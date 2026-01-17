@@ -1,0 +1,45 @@
+{
+  "name": "findarr",
+  "version": "1.0.0",
+  "description": "Movie/Show discovery and request system with TMDB API integration",
+  "type": "module",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=@findarr/server\" \"npm run dev --workspace=@findarr/client\"",
+    "build": "npm run build --workspace=@findarr/shared && npm run build --workspace=@findarr/client && npm run build --workspace=@findarr/server",
+    "build:client": "npm run build --workspace=@findarr/client",
+    "build:server": "npm run build --workspace=@findarr/server",
+    "dev:client": "npm run dev --workspace=@findarr/client",
+    "dev:server": "npm run dev --workspace=@findarr/server",
+    "test": "npm run type-check && npm run lint && npm run format:check && npm run build",
+    "test:fix": "npm run type-check && npm run lint:fix && npm run format && npm run build",
+    "ci": "npm run test",
+    "type-check": "npm run type-check --workspace=@findarr/client && npm run type-check --workspace=@findarr/server",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
+    "format": "prettier --write --log-level silent .",
+    "format:check": "prettier --check .",
+    "clean": "rimraf node_modules client/node_modules server/node_modules shared/node_modules client/dist server/dist",
+    "postinstall": "npm run build --workspace=@findarr/shared",
+    "update": "npx npm-check-updates -u --workspaces && npm install"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.23.0",
+    "@typescript-eslint/parser": "^8.23.0",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.20.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-plugin-react": "^7.36.1",
+    "eslint-plugin-react-hooks": "^5.0.1",
+    "npm-check-updates": "^19.3.1",
+    "prettier": "^3.4.2",
+    "rimraf": "^6.1.2",
+    "typescript": "^5.9.3"
+  }
+}
