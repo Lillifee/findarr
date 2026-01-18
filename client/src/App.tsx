@@ -32,6 +32,7 @@ function App() {
   const [timePeriod, setTimePeriod] = useState<RecentPeriod>('last_month');
   const [language, setLanguage] = useState<string>('de-DE');
   const [selectedRegions, setSelectedRegions] = useState<RegionGroupId[]>([]); // Default to no filtering - show all content
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
 
   // Load popular content on initial render or when back to discovery mode
   useEffect(() => {
@@ -159,95 +160,139 @@ function App() {
 
       {!selectedItem && (
         <>
-          {/* Global Controls */}
+          <SearchBar onSearch={handleSearch} loading={loading} />
+
+          {/* Expandable Filter Controls */}
           <div
             style={{
               marginBottom: '2rem',
-              padding: '1.5rem',
+              padding: '1rem',
               backgroundColor: '#f8f9fa',
               borderRadius: '8px',
               border: '1px solid #e9ecef',
             }}
           >
-            <h3
-              style={{
-                margin: '0 0 1rem 0',
-                color: '#495057',
-                fontSize: '1.1rem',
-                fontWeight: '600',
-              }}
-            >
-              Filter & Settings
-            </h3>
-            <div
+            <button
+              onClick={() => setFiltersExpanded(!filtersExpanded)}
               style={{
                 display: 'flex',
-                gap: '1.5rem',
-                alignItems: 'flex-start',
-                flexWrap: 'wrap',
-                justifyContent: 'flex-start',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: '100%',
+                padding: '0.5rem',
+                backgroundColor: 'transparent',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '1.1rem',
+                fontWeight: '600',
+                color: '#495057',
               }}
             >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <label style={{ fontSize: '0.875rem', fontWeight: '500', color: '#6c757d' }}>
-                  Media Type
-                </label>
-                <select
-                  value={currentSearchType}
-                  onChange={e => handleTypeChange(e.target.value as SearchType)}
-                  disabled={loading}
+              <span>
+                🎛️ Advanced Filters
+                {!filtersExpanded && selectedRegions.length > 0 && (
+                  <span
+                    style={{
+                      fontSize: '0.875rem',
+                      fontWeight: '400',
+                      color: '#6c757d',
+                      marginLeft: '0.5rem',
+                    }}
+                  >
+                    ({selectedRegions.length} region{selectedRegions.length !== 1 ? 's' : ''},{' '}
+                    {currentSearchType}, {language.split('-')[0].toUpperCase()})
+                  </span>
+                )}
+              </span>
+              <span
+                style={{
+                  fontSize: '1.2rem',
+                  transform: filtersExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.2s',
+                }}
+              >
+                ▼
+              </span>
+            </button>
+
+            {filtersExpanded && (
+              <div
+                style={{
+                  marginTop: '1rem',
+                  paddingTop: '1rem',
+                  borderTop: '1px solid #e9ecef',
+                }}
+              >
+                <div
                   style={{
-                    padding: '0.75rem',
-                    fontSize: '1rem',
-                    border: '2px solid #ddd',
-                    borderRadius: '6px',
-                    backgroundColor: 'white',
-                    minWidth: '180px',
+                    display: 'flex',
+                    gap: '1.5rem',
+                    alignItems: 'flex-start',
+                    flexWrap: 'wrap',
+                    justifyContent: 'flex-start',
                   }}
                 >
-                  <option value="both">Movies & TV Shows</option>
-                  <option value="movie">Movies Only</option>
-                  <option value="tv">TV Shows Only</option>
-                </select>
-              </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <label style={{ fontSize: '0.875rem', fontWeight: '500', color: '#6c757d' }}>
+                      Media Type
+                    </label>
+                    <select
+                      value={currentSearchType}
+                      onChange={e => handleTypeChange(e.target.value as SearchType)}
+                      disabled={loading}
+                      style={{
+                        padding: '0.75rem',
+                        fontSize: '1rem',
+                        border: '2px solid #ddd',
+                        borderRadius: '6px',
+                        backgroundColor: 'white',
+                        minWidth: '180px',
+                      }}
+                    >
+                      <option value="both">Movies & TV Shows</option>
+                      <option value="movie">Movies Only</option>
+                      <option value="tv">TV Shows Only</option>
+                    </select>
+                  </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <label style={{ fontSize: '0.875rem', fontWeight: '500', color: '#6c757d' }}>
-                  Language
-                </label>
-                <select
-                  value={language}
-                  onChange={handleLanguageChange}
-                  disabled={loading}
-                  style={{
-                    padding: '0.75rem',
-                    fontSize: '1rem',
-                    border: '2px solid #ddd',
-                    borderRadius: '6px',
-                    backgroundColor: 'white',
-                    minWidth: '180px',
-                  }}
-                >
-                  <option value="de-DE">German (Germany)</option>
-                  <option value="en-US">English (US)</option>
-                  <option value="en-GB">English (UK)</option>
-                  <option value="fr-FR">French (France)</option>
-                  <option value="es-ES">Spanish (Spain)</option>
-                  <option value="it-IT">Italian (Italy)</option>
-                  <option value="nl-NL">Dutch (Netherlands)</option>
-                  <option value="pt-BR">Portuguese (Brazil)</option>
-                </select>
-              </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <label style={{ fontSize: '0.875rem', fontWeight: '500', color: '#6c757d' }}>
+                      Language
+                    </label>
+                    <select
+                      value={language}
+                      onChange={handleLanguageChange}
+                      disabled={loading}
+                      style={{
+                        padding: '0.75rem',
+                        fontSize: '1rem',
+                        border: '2px solid #ddd',
+                        borderRadius: '6px',
+                        backgroundColor: 'white',
+                        minWidth: '180px',
+                      }}
+                    >
+                      <option value="de-DE">German (Germany)</option>
+                      <option value="en-US">English (US)</option>
+                      <option value="en-GB">English (UK)</option>
+                      <option value="fr-FR">French (France)</option>
+                      <option value="es-ES">Spanish (Spain)</option>
+                      <option value="it-IT">Italian (Italy)</option>
+                      <option value="nl-NL">Dutch (Netherlands)</option>
+                      <option value="pt-BR">Portuguese (Brazil)</option>
+                    </select>
+                  </div>
 
-              <RegionSelector
-                selectedRegions={selectedRegions}
-                onRegionsChange={handleRegionsChange}
-                disabled={loading}
-              />
-            </div>
+                  <RegionSelector
+                    selectedRegions={selectedRegions}
+                    onRegionsChange={handleRegionsChange}
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+            )}
           </div>
-
-          <SearchBar onSearch={handleSearch} loading={loading} />
 
           {!hasSearched && <TimeRangeSlider value={timePeriod} onChange={handleTimePeriodChange} />}
 
