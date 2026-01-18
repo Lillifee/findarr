@@ -10,6 +10,7 @@ import {
   DiscoverQuerySchema,
   DetailsQuerySchema,
   ServerEnvSchema,
+  RecentPeriodSchema,
 } from './schemas';
 
 // Server configuration types
@@ -18,6 +19,7 @@ export type ServerEnv = z.infer<typeof ServerEnvSchema>;
 // Core application types
 export type MediaType = 'movie' | 'tv';
 export type SearchType = 'movie' | 'tv' | 'both';
+export type RecentPeriod = z.infer<typeof RecentPeriodSchema>;
 
 // TMDB API types (inferred from schemas)
 export type Movie = z.infer<typeof TMDBMovieSchema>;

@@ -9,9 +9,9 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@findarr/shared": "*",
     "axios": "^1.13.2",
-    "zod": "^4.3.5",
-    "@findarr/shared": "*"
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@types/react": "^19.2.8",

@@ -8,6 +8,8 @@ import {
   SearchQuery,
   DiscoverQuery,
   DetailsQuery,
+  REGION_GROUPS,
+  type RegionGroupId,
 } from '@findarr/shared';
 
 interface TMDBService {
@@ -40,9 +42,13 @@ async function tmdbPlugin(fastify: FastifyInstance, _options: FastifyPluginOptio
         include_adult: includeAdult = false,
         language = 'en-US',
       } = params;
+
+      // Extract region from language code (e.g., 'de-DE' -> 'DE')
+      const region = language.includes('-') ? language.split('-')[1] : 'US';
+
       const searchEndpoint = (searchType: 'movie' | 'tv') =>
         client.get(`/search/${searchType}`, {
-          params: { query, page, include_adult: includeAdult, language },
+          params: { query, page, include_adult: includeAdult, language, region },
         });
 
       // Collect promises based on search type
@@ -70,28 +76,110 @@ async function tmdbPlugin(fastify: FastifyInstance, _options: FastifyPluginOptio
       };
     },
 
-    async detailsMedia(params: DetailsQuery) {
-      const { id, type, language = 'en-US' } = params;
-      const response = await client.get(`/${type}/${id}`, {
-        params: { language },
-      });
-      return response.data;
-    },
-
     async discoverMedia(params: DiscoverQuery) {
       const {
         type = 'both',
         page = 1,
         sort_by = 'popularity.desc',
         language = 'en-US',
+        recent_period,
+        region_groups = [], // Default to no filtering - show all content
+        // Content filtering parameters
+        vote_average_gte,
+        vote_count_gte,
         ...otherParams
       } = params;
 
-      const discoverEndpoint = (discoverType: 'movie' | 'tv') =>
-        client.get(`/discover/${discoverType}`, {
-          params: { page, sort_by, language, ...otherParams },
-        });
+      // Extract region from language code (e.g., 'de-DE' -> 'DE')
+      const region = language.includes('-') ? language.split('-')[1] : 'US';
 
+      // Build language and country filters from selected region groups
+      // region_groups now represents regions to INCLUDE (show)
+      // If all regions are selected or none specified, don't apply filtering (show all)
+      let languageFilter = '';
+      let countryFilter = '';
+
+      const allRegions = Object.keys(REGION_GROUPS) as RegionGroupId[];
+      const isShowingAll = region_groups.length === 0 || region_groups.length === allRegions.length;
+
+      if (!isShowingAll) {
+        const includedLanguages = region_groups.flatMap(
+          groupId => REGION_GROUPS[groupId as RegionGroupId].languages
+        );
+        const includedCountries = region_groups.flatMap(
+          groupId => REGION_GROUPS[groupId as RegionGroupId].countries
+        );
+
+        languageFilter = includedLanguages.join('|');
+        countryFilter = includedCountries.join('|');
+      }
+
+      let dateParams = {};
+      if (recent_period) {
+        const today = new Date();
+        const futureDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000); // today + 1 week
+        let pastDate: Date;
+
+        switch (recent_period) {
+          case 'last_week':
+            pastDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+            break;
+          case 'last_month':
+            pastDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+            break;
+          case 'last_3_months':
+            pastDate = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
+            break;
+          case 'last_6_months':
+            pastDate = new Date(today.getTime() - 180 * 24 * 60 * 60 * 1000);
+            break;
+          case 'last_year':
+            pastDate = new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000);
+            break;
+          case 'last_2_years':
+            pastDate = new Date(today.getTime() - 730 * 24 * 60 * 60 * 1000);
+            break;
+          default:
+            pastDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000); // default to last month
+        }
+
+        const formatDate = (date: Date) => date.toISOString().split('T')[0]; // YYYY-MM-DD
+
+        // Apply appropriate date filters based on media type
+        if (type === 'movie' || type === 'both') {
+          dateParams = {
+            ...dateParams,
+            'primary_release_date.gte': formatDate(pastDate),
+            'primary_release_date.lte': formatDate(futureDate),
+          };
+        }
+        if (type === 'tv' || type === 'both') {
+          // For TV shows, use air_date to filter by recent episodes, not first_air_date
+          dateParams = {
+            ...dateParams,
+            'air_date.gte': formatDate(pastDate),
+            'air_date.lte': formatDate(futureDate),
+          };
+        }
+      }
+
+      const discoverEndpoint = (discoverType: 'movie' | 'tv') => {
+        const params = {
+          page,
+          sort_by,
+          language,
+          region,
+          watch_region: region, // Focus on content available in the user's region
+          ...(languageFilter && { with_original_language: languageFilter }),
+          ...(countryFilter && { with_origin_country: countryFilter }),
+          ...(vote_average_gte && { 'vote_average.gte': vote_average_gte }),
+          ...(vote_count_gte && { 'vote_count.gte': vote_count_gte }),
+          ...otherParams,
+          ...dateParams,
+        };
+
+        return client.get(`/discover/${discoverType}`, { params });
+      };
       // Collect promises based on discover type
       const discoverTypes = type === 'both' ? (['movie', 'tv'] as const) : ([type] as const);
       const promises = discoverTypes.map(discoverType => discoverEndpoint(discoverType));
@@ -105,6 +193,7 @@ async function tmdbPlugin(fastify: FastifyInstance, _options: FastifyPluginOptio
           media_type: response.config.url?.includes('/discover/movie') ? 'movie' : 'tv',
         }))
       );
+
       const sortedResults = allResults.sort((a, b) => {
         if (sort_by.includes('popularity')) {
           return (b.popularity || 0) - (a.popularity || 0);
@@ -125,6 +214,18 @@ async function tmdbPlugin(fastify: FastifyInstance, _options: FastifyPluginOptio
         total_pages: totalPages,
         total_results: totalResults,
       };
+    },
+
+    async detailsMedia(params: DetailsQuery) {
+      const { id, type, language = 'en-US' } = params;
+
+      // Extract region from language code (e.g., 'de-DE' -> 'DE')
+      const region = language.includes('-') ? language.split('-')[1] : 'US';
+
+      const response = await client.get(`/${type}/${id}`, {
+        params: { language, region },
+      });
+      return response.data;
     },
   };
 

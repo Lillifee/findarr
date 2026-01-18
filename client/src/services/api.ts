@@ -19,7 +19,12 @@ export const searchService = {
   },
 
   discoverMedia: async (params: DiscoverQuery = {}): Promise<SearchResponse> => {
-    const response = await api.get('/discover', { params });
+    const response = await api.get('/discover', {
+      params,
+      paramsSerializer: {
+        indexes: null, // Use a=1&a=2 instead of a[0]=1&a[1]=2 for arrays
+      },
+    });
     return response.data;
   },
 
