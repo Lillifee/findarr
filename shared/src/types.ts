@@ -7,8 +7,8 @@ import {
   TMDBTVDetailsSchema,
   TMDBGenreSchema,
   SearchQuerySchema,
-  MediaQuerySchema,
-  MediaParamsSchema,
+  DiscoverQuerySchema,
+  DetailsQuerySchema,
   ServerEnvSchema,
 } from './schemas';
 
@@ -28,9 +28,9 @@ export type TVDetails = z.infer<typeof TMDBTVDetailsSchema>;
 export type Genre = z.infer<typeof TMDBGenreSchema>;
 
 // Request/Response types (inferred from schemas)
-export type SearchParams = z.infer<typeof SearchQuerySchema>;
-export type MediaQuery = z.infer<typeof MediaQuerySchema>;
-export type MediaParams = z.infer<typeof MediaParamsSchema>;
+export type SearchQuery = z.infer<typeof SearchQuerySchema>;
+export type DiscoverQuery = z.infer<typeof DiscoverQuerySchema>;
+export type DetailsQuery = z.infer<typeof DetailsQuerySchema>;
 
 // Application-specific types
 export interface MediaItem {

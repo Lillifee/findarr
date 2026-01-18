@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { searchService } from './services/api';
 import {
   Movie,
@@ -24,9 +24,32 @@ function App() {
   const [selectedItem, setSelectedItem] = useState<Movie | TVShow | null>(null);
   const [selectedDetails, setSelectedDetails] = useState<MovieDetails | TVDetails | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  // Load popular content on initial render
+  useEffect(() => {
+    const loadDiscoveryContent = async () => {
+      setLoading(true);
+      try {
+        const discoveryResults = await searchService.discoverMedia({
+          type: 'both',
+          sort_by: 'popularity.desc',
+          page: 1,
+        });
+        setSearchResults(discoveryResults);
+      } catch (error) {
+        console.error('Failed to load discovery content:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDiscoveryContent();
+  }, []);
 
   const handleSearch = async (results: SearchResponse, type: SearchType) => {
     setLoading(true);
+    setHasSearched(true);
     try {
       setSearchResults(results);
       setCurrentSearchType(type);
@@ -43,7 +66,7 @@ function App() {
 
     try {
       const type = isMovie(item) ? 'movie' : 'tv';
-      const details = await searchService.getDetails(item.id, type);
+      const details = await searchService.detailsMedia({ id: item.id, type });
       setSelectedDetails(details);
     } catch (error) {
       console.error('Failed to fetch details:', error);
@@ -103,11 +126,13 @@ function App() {
                 }}
               >
                 <h2 style={{ margin: '0', color: '#333' }}>
-                  {currentSearchType === 'movie'
-                    ? 'Movies'
-                    : currentSearchType === 'tv'
-                      ? 'TV Shows'
-                      : 'Movies & TV Shows'}
+                  {hasSearched
+                    ? currentSearchType === 'movie'
+                      ? 'Movies'
+                      : currentSearchType === 'tv'
+                        ? 'TV Shows'
+                        : 'Movies & TV Shows'
+                    : 'Popular Movies & TV Shows'}
                 </h2>
                 <span style={{ color: '#666', fontSize: '0.9rem' }}>
                   {searchResults.total_results.toLocaleString()} results
@@ -184,9 +209,7 @@ function App() {
             color: '#666',
           }}
         >
-          <p style={{ fontSize: '1.1rem' }}>
-            Search for your favorite movies and TV shows to get started!
-          </p>
+          <p style={{ fontSize: '1.1rem' }}>Loading popular content...</p>
         </div>
       )}
     </div>

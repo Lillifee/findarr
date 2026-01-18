@@ -10,21 +10,31 @@ export const ServerEnvSchema = z.object({
 });
 
 // Request validation schemas
-export const SearchQuerySchema = z.object({
-  query: z.string().min(1),
-  page: z.coerce.number().int().min(1).max(1000).default(1),
-  include_adult: z.coerce.boolean().default(false),
-  language: z.string().default('en-US'),
-  type: z.enum(['movie', 'tv', 'both']).default('both'),
-});
-
-export const MediaQuerySchema = z.object({
+const BaseQuerySchema = z.object({
   language: z.string().optional(),
 });
 
-export const MediaParamsSchema = z.object({
-  type: z.enum(['movie', 'tv']),
+export const SearchQuerySchema = BaseQuerySchema.extend({
+  query: z.string().min(1),
+  page: z.coerce.number().int().min(1).max(1000).default(1),
+  include_adult: z.coerce.boolean().default(false),
+  type: z.enum(['movie', 'tv', 'both']).default('both'),
+});
+
+export const DiscoverQuerySchema = BaseQuerySchema.extend({
+  page: z.coerce.number().int().min(1).max(1000).optional(),
+  type: z.enum(['movie', 'tv', 'both']).optional(),
+  sort_by: z
+    .enum(['popularity.desc', 'release_date.desc', 'vote_average.desc', 'revenue.desc'])
+    .optional(),
+  with_genres: z.string().optional(),
+  primary_release_year: z.coerce.number().int().min(1900).max(2100).optional(),
+  vote_average_gte: z.coerce.number().min(0).max(10).optional(),
+});
+
+export const DetailsQuerySchema = BaseQuerySchema.extend({
   id: z.coerce.number().int().positive(),
+  type: z.enum(['movie', 'tv']),
 });
 
 // TMDB API response schemas

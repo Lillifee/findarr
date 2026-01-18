@@ -1,4 +1,11 @@
-import { SearchParams, SearchResponse, MovieDetails, TVDetails, SearchType } from '@findarr/shared';
+import {
+  SearchQuery,
+  SearchResponse,
+  MovieDetails,
+  TVDetails,
+  DiscoverQuery,
+  DetailsQuery,
+} from '@findarr/shared';
 import axios from 'axios';
 
 const api = axios.create({
@@ -6,19 +13,18 @@ const api = axios.create({
 });
 
 export const searchService = {
-  searchMedia: async (params: SearchParams & { type?: SearchType }): Promise<SearchResponse> => {
+  searchMedia: async (params: SearchQuery): Promise<SearchResponse> => {
     const response = await api.get('/search', { params });
     return response.data;
   },
 
-  getDetails: async (
-    id: number,
-    type: 'movie' | 'tv',
-    language?: string
-  ): Promise<MovieDetails | TVDetails> => {
-    const response = await api.get(`/${type}/${id}`, {
-      params: language ? { language } : undefined,
-    });
+  discoverMedia: async (params: DiscoverQuery = {}): Promise<SearchResponse> => {
+    const response = await api.get('/discover', { params });
+    return response.data;
+  },
+
+  detailsMedia: async (params: DetailsQuery): Promise<MovieDetails | TVDetails> => {
+    const response = await api.get('/details', { params });
     return response.data;
   },
 };

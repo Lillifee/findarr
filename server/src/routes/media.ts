@@ -1,4 +1,4 @@
-import { MediaQuerySchema, MediaParamsSchema, SearchQuerySchema } from '@findarr/shared';
+import { SearchQuerySchema, DiscoverQuerySchema, DetailsQuerySchema } from '@findarr/shared';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 
 export async function mediaRoutes(fastify: FastifyInstance) {
@@ -6,13 +6,7 @@ export async function mediaRoutes(fastify: FastifyInstance) {
   fastify.get('/search', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const queryParams = SearchQuerySchema.parse(request.query);
-      const results = await fastify.tmdb.searchMedia(
-        queryParams.query,
-        queryParams.type,
-        queryParams.page,
-        queryParams.include_adult,
-        queryParams.language
-      );
+      const results = await fastify.tmdb.searchMedia(queryParams);
       return results;
     } catch (error) {
       fastify.log.error(error);
@@ -20,14 +14,23 @@ export async function mediaRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // Details endpoint: GET /:type/:id where type is 'movie' or 'tv'
-  fastify.get('/:type/:id', async (request: FastifyRequest, reply: FastifyReply) => {
+  // Discover endpoint: GET /discover?type=both&sort_by=popularity.desc
+  fastify.get('/discover', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      const params = MediaParamsSchema.parse(request.params);
-      const query = MediaQuerySchema.parse(request.query);
-      const language = query.language || 'en-US';
+      const queryParams = DiscoverQuerySchema.parse(request.query);
+      const results = await fastify.tmdb.discoverMedia(queryParams);
+      return results;
+    } catch (error) {
+      fastify.log.error(error);
+      return reply.status(500).send({ error: 'Failed to discover media' });
+    }
+  });
 
-      const result = await fastify.tmdb.getMediaDetails(params.id, params.type, language);
+  // Details endpoint: GET /details?id=123&type=movie&language=en-US
+  fastify.get('/details', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const queryParams = DetailsQuerySchema.parse(request.query);
+      const result = await fastify.tmdb.detailsMedia(queryParams);
       return result;
     } catch (error) {
       fastify.log.error(error);
