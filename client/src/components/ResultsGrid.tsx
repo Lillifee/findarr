@@ -1,15 +1,19 @@
 import React from 'react';
-import { MediaType, Movie, TVShow } from '../../../shared/dist/types';
+import { Movie, TVShow } from '../../../shared/dist/types';
 
 interface ResultsGridProps {
   results: (Movie | TVShow)[];
-  mediaType: MediaType;
   onSelectItem: (item: Movie | TVShow) => void;
 }
 
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
 
-export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, mediaType, onSelectItem }) => {
+// Helper function to determine if item is a movie
+function isMovie(item: Movie | TVShow): item is Movie {
+  return 'title' in item && 'release_date' in item;
+}
+
+export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem }) => {
   if (results.length === 0) {
     return <div style={{ textAlign: 'center', padding: '2rem' }}>No results found</div>;
   }
@@ -23,10 +27,10 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, mediaType, on
       }}
     >
       {results.map(item => {
-        const title = mediaType === 'movie' ? (item as Movie).title : (item as TVShow).name;
-        const releaseDate =
-          mediaType === 'movie' ? (item as Movie).release_date : (item as TVShow).first_air_date;
+        const title = isMovie(item) ? item.title : item.name;
+        const releaseDate = isMovie(item) ? item.release_date : item.first_air_date;
         const year = releaseDate ? new Date(releaseDate).getFullYear() : 'N/A';
+        const itemType = isMovie(item) ? 'Movie' : 'TV Show';
 
         return (
           <div
@@ -98,6 +102,17 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, mediaType, on
               >
                 <span>{year}</span>
                 <span>⭐ {item.vote_average.toFixed(1)}</span>
+              </div>
+
+              <div
+                style={{
+                  fontSize: '0.75rem',
+                  color: '#888',
+                  marginTop: '0.25rem',
+                  fontStyle: 'italic',
+                }}
+              >
+                {itemType}
               </div>
 
               {item.overview && (

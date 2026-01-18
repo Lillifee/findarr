@@ -1,23 +1,21 @@
 import type { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import fp from 'fastify-plugin';
 import axios, { type AxiosInstance } from 'axios';
-import { MovieDetails, SearchResponse, TVDetails } from '@findarr/shared';
+import { MovieDetails, SearchResponse, TVDetails, SearchType } from '@findarr/shared';
 
 interface TMDBService {
-  searchMovies(
+  searchMedia(
     query: string,
+    type?: SearchType,
     page?: number,
     includeAdult?: boolean,
     language?: string
   ): Promise<SearchResponse>;
-  searchTV(
-    query: string,
-    page?: number,
-    includeAdult?: boolean,
+  getMediaDetails(
+    id: number,
+    type: 'movie' | 'tv',
     language?: string
-  ): Promise<SearchResponse>;
-  getMovieDetails(id: number, language?: string): Promise<MovieDetails>;
-  getTVDetails(id: number, language?: string): Promise<TVDetails>;
+  ): Promise<MovieDetails | TVDetails>;
 }
 
 declare module 'fastify' {
@@ -36,29 +34,45 @@ async function tmdbPlugin(fastify: FastifyInstance, _options: FastifyPluginOptio
   });
 
   const tmdbService: TMDBService = {
-    async searchMovies(query: string, page = 1, includeAdult = false, language = 'en-US') {
-      const response = await client.get('/search/movie', {
-        params: { query, page, include_adult: includeAdult, language },
-      });
-      return response.data;
+    async searchMedia(
+      query: string,
+      type: SearchType = 'both',
+      page = 1,
+      includeAdult = false,
+      language = 'en-US'
+    ) {
+      const searchEndpoint = (searchType: 'movie' | 'tv') =>
+        client.get(`/search/${searchType}`, {
+          params: { query, page, include_adult: includeAdult, language },
+        });
+
+      // Collect promises based on search type
+      const searchTypes = type === 'both' ? (['movie', 'tv'] as const) : ([type] as const);
+      const promises = searchTypes.map(searchType => searchEndpoint(searchType));
+
+      const responses = await Promise.all(promises);
+
+      // Extract and sort results from all responses
+      const allResults = responses.flatMap(response => response.data.results);
+      const sortedResults = allResults.sort((a, b) => b.popularity - a.popularity);
+
+      // Calculate totals
+      const totalPages = Math.max(...responses.map(response => response.data.total_pages));
+      const totalResults = responses.reduce(
+        (sum, response) => sum + response.data.total_results,
+        0
+      );
+
+      return {
+        page,
+        results: sortedResults,
+        total_pages: totalPages,
+        total_results: totalResults,
+      };
     },
 
-    async searchTV(query: string, page = 1, includeAdult = false, language = 'en-US') {
-      const response = await client.get('/search/tv', {
-        params: { query, page, include_adult: includeAdult, language },
-      });
-      return response.data;
-    },
-
-    async getMovieDetails(id: number, language = 'en-US') {
-      const response = await client.get(`/movie/${id}`, {
-        params: { language },
-      });
-      return response.data;
-    },
-
-    async getTVDetails(id: number, language = 'en-US') {
-      const response = await client.get(`/tv/${id}`, {
+    async getMediaDetails(id: number, type: 'movie' | 'tv', language = 'en-US') {
+      const response = await client.get(`/${type}/${id}`, {
         params: { language },
       });
       return response.data;

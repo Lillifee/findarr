@@ -1,31 +1,35 @@
 import { useState } from 'react';
 import { searchService } from './services/api';
 import {
-  MediaType,
   Movie,
   MovieDetails,
   SearchResponse,
+  SearchType,
   TVDetails,
   TVShow,
 } from '../../shared/dist/types';
-import { MovieDetailsComponent } from './components/MovieDetails';
 import { ResultsGrid } from './components/ResultsGrid';
 import { SearchBar } from './components/SearchBar';
-import { TVDetailsComponent } from './components/TVDetails';
+import { MediaView } from './components/MediaView';
+
+// Helper function to determine if an item is a movie
+function isMovie(item: Movie | TVShow): item is Movie {
+  return 'title' in item && 'release_date' in item;
+}
 
 function App() {
   const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
-  const [currentMediaType, setCurrentMediaType] = useState<MediaType>('movie');
+  const [currentSearchType, setCurrentSearchType] = useState<SearchType>('both');
   const [loading, setLoading] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Movie | TVShow | null>(null);
   const [selectedDetails, setSelectedDetails] = useState<MovieDetails | TVDetails | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
 
-  const handleSearch = async (results: SearchResponse, type: MediaType) => {
+  const handleSearch = async (results: SearchResponse, type: SearchType) => {
     setLoading(true);
     try {
       setSearchResults(results);
-      setCurrentMediaType(type);
+      setCurrentSearchType(type);
       setSelectedItem(null);
     } finally {
       setLoading(false);
@@ -38,12 +42,8 @@ function App() {
     setDetailsLoading(true);
 
     try {
-      let details;
-      if (currentMediaType === 'movie') {
-        details = await searchService.getMovieDetails(item.id);
-      } else {
-        details = await searchService.getTVDetails(item.id);
-      }
+      const type = isMovie(item) ? 'movie' : 'tv';
+      const details = await searchService.getDetails(item.id, type);
       setSelectedDetails(details);
     } catch (error) {
       console.error('Failed to fetch details:', error);
@@ -103,18 +103,18 @@ function App() {
                 }}
               >
                 <h2 style={{ margin: '0', color: '#333' }}>
-                  {currentMediaType === 'movie' ? 'Movies' : 'TV Shows'}
+                  {currentSearchType === 'movie'
+                    ? 'Movies'
+                    : currentSearchType === 'tv'
+                      ? 'TV Shows'
+                      : 'Movies & TV Shows'}
                 </h2>
                 <span style={{ color: '#666', fontSize: '0.9rem' }}>
                   {searchResults.total_results.toLocaleString()} results
                 </span>
               </div>
 
-              <ResultsGrid
-                results={searchResults.results}
-                mediaType={currentMediaType}
-                onSelectItem={handleSelectItem}
-              />
+              <ResultsGrid results={searchResults.results} onSelectItem={handleSelectItem} />
 
               {searchResults.total_pages > 1 && (
                 <div
@@ -162,29 +162,16 @@ function App() {
           )}
 
           {selectedDetails && !detailsLoading && (
-            <>
-              {currentMediaType === 'movie' ? (
-                <MovieDetailsComponent
-                  movie={selectedDetails as MovieDetails}
-                  onRequest={() => {
-                    // TODO: Implement request functionality for Jellyseer/Radarr
-                    alert(
-                      'Movie request functionality coming soon! This will integrate with Jellyseer or Radarr.'
-                    );
-                  }}
-                />
-              ) : (
-                <TVDetailsComponent
-                  tv={selectedDetails as TVDetails}
-                  onRequest={() => {
-                    // TODO: Implement request functionality for Jellyseer/Sonarr
-                    alert(
-                      'TV Show request functionality coming soon! This will integrate with Jellyseer or Sonarr.'
-                    );
-                  }}
-                />
-              )}
-            </>
+            <MediaView
+              media={selectedDetails}
+              onRequest={() => {
+                const mediaType = isMovie(selectedItem) ? 'Movie' : 'TV Show';
+                const service = isMovie(selectedItem) ? 'Jellyseer/Radarr' : 'Jellyseer/Sonarr';
+                alert(
+                  `${mediaType} request functionality coming soon! This will integrate with ${service}.`
+                );
+              }}
+            />
           )}
         </div>
       )}

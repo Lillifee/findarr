@@ -9,6 +9,24 @@ export const ServerEnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('production'),
 });
 
+// Request validation schemas
+export const SearchQuerySchema = z.object({
+  query: z.string().min(1),
+  page: z.coerce.number().int().min(1).max(1000).default(1),
+  include_adult: z.coerce.boolean().default(false),
+  language: z.string().default('en-US'),
+  type: z.enum(['movie', 'tv', 'both']).default('both'),
+});
+
+export const MediaQuerySchema = z.object({
+  language: z.string().optional(),
+});
+
+export const MediaParamsSchema = z.object({
+  type: z.enum(['movie', 'tv']),
+  id: z.coerce.number().int().positive(),
+});
+
 // TMDB API response schemas
 export const TMDBMovieSchema = z.object({
   id: z.number(),
@@ -74,24 +92,4 @@ export const TMDBTVDetailsSchema = TMDBTVSchema.extend({
   status: z.string(),
   type: z.string(),
   homepage: z.string().nullable(),
-});
-
-// Request validation schemas
-export const SearchQuerySchema = z.object({
-  query: z.string().min(1),
-  page: z.coerce.number().int().min(1).max(1000).default(1),
-  include_adult: z.coerce.boolean().default(false),
-  language: z.string().default('en-US'),
-});
-
-export const MovieIdParamsSchema = z.object({
-  id: z.coerce.number().int().positive(),
-});
-
-export const TVIdParamsSchema = z.object({
-  id: z.coerce.number().int().positive(),
-});
-
-export const MediaQuerySchema = z.object({
-  language: z.string().optional(),
 });

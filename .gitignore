@@ -3,16 +3,22 @@ node_modules/
 
 # Environment variables
 .env
+.env.local
 
 # Build outputs
 dist/
 build/
+*.tsbuildinfo
 
 # Logs
 *.log
+npm-debug.log*
 
-# Editor
+# Editor and IDE
 .vscode/settings.json
 .github/copilot-instructions.md
+
+# Temporary files
+*.tmp
 
 

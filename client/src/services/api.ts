@@ -1,4 +1,4 @@
-import { SearchParams, SearchResponse, MovieDetails, TVDetails } from '@findarr/shared';
+import { SearchParams, SearchResponse, MovieDetails, TVDetails, SearchType } from '@findarr/shared';
 import axios from 'axios';
 
 const api = axios.create({
@@ -6,25 +6,17 @@ const api = axios.create({
 });
 
 export const searchService = {
-  searchMovies: async (params: SearchParams): Promise<SearchResponse> => {
-    const response = await api.get('/search/movie', { params });
+  searchMedia: async (params: SearchParams & { type?: SearchType }): Promise<SearchResponse> => {
+    const response = await api.get('/search', { params });
     return response.data;
   },
 
-  searchTV: async (params: SearchParams): Promise<SearchResponse> => {
-    const response = await api.get('/search/tv', { params });
-    return response.data;
-  },
-
-  getMovieDetails: async (id: number, language?: string): Promise<MovieDetails> => {
-    const response = await api.get(`/movie/${id}`, {
-      params: language ? { language } : undefined,
-    });
-    return response.data;
-  },
-
-  getTVDetails: async (id: number, language?: string): Promise<TVDetails> => {
-    const response = await api.get(`/tv/${id}`, {
+  getDetails: async (
+    id: number,
+    type: 'movie' | 'tv',
+    language?: string
+  ): Promise<MovieDetails | TVDetails> => {
+    const response = await api.get(`/${type}/${id}`, {
       params: language ? { language } : undefined,
     });
     return response.data;

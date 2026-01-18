@@ -2,9 +2,7 @@ import 'dotenv/config';
 import fastify from 'fastify';
 import cors from '@fastify/cors';
 import { tmdbPlugin } from './services/tmdb';
-import { movieRoutes } from './routes/movies';
-import { searchRoutes } from './routes/search';
-import { tvRoutes } from './routes/tv';
+import { mediaRoutes } from './routes/media';
 import { ServerEnvSchema } from '@findarr/shared';
 
 // Validate environment variables
@@ -33,9 +31,7 @@ async function start() {
     }));
 
     // Register API routes
-    await server.register(searchRoutes, { prefix: '/api/search' });
-    await server.register(movieRoutes, { prefix: '/api/movie' });
-    await server.register(tvRoutes, { prefix: '/api/tv' });
+    await server.register(mediaRoutes, { prefix: '/api' });
 
     // Start server
     const address = await server.listen({

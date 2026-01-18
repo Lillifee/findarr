@@ -1,37 +1,30 @@
 import React, { useState } from 'react';
 import { searchService } from '../services/api';
-import { SearchResponse, MediaType } from '@findarr/shared';
+import { SearchResponse, SearchType } from '@findarr/shared';
 
 interface SearchBarProps {
-  onSearch: (results: SearchResponse, type: MediaType) => void;
+  onSearch: (results: SearchResponse, type: SearchType) => void;
   loading: boolean;
 }
 
 export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, loading }) => {
   const [query, setQuery] = useState('');
-  const [mediaType, setMediaType] = useState<MediaType>('movie');
+  const [searchType, setSearchType] = useState<SearchType>('both');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
 
     try {
-      const results =
-        mediaType === 'movie'
-          ? await searchService.searchMovies({
-              query: query.trim(),
-              page: 1,
-              include_adult: false,
-              language: '',
-            })
-          : await searchService.searchTV({
-              query: query.trim(),
-              page: 1,
-              include_adult: false,
-              language: '',
-            });
+      const results = await searchService.searchMedia({
+        query: query.trim(),
+        page: 1,
+        include_adult: false,
+        language: 'en-US',
+        type: searchType,
+      });
 
-      onSearch(results, mediaType);
+      onSearch(results, searchType);
     } catch (error) {
       console.error('Search failed:', error);
     }
@@ -64,8 +57,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, loading }) => {
         />
 
         <select
-          value={mediaType}
-          onChange={e => setMediaType(e.target.value as MediaType)}
+          value={searchType}
+          onChange={e => setSearchType(e.target.value as SearchType)}
           disabled={loading}
           style={{
             padding: '0.75rem',
@@ -74,8 +67,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, loading }) => {
             borderRadius: '4px',
           }}
         >
-          <option value="movie">Movies</option>
-          <option value="tv">TV Shows</option>
+          <option value="both">Movies & TV Shows</option>
+          <option value="movie">Movies Only</option>
+          <option value="tv">TV Shows Only</option>
         </select>
 
         <button

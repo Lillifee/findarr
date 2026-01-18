@@ -7,9 +7,8 @@ import {
   TMDBTVDetailsSchema,
   TMDBGenreSchema,
   SearchQuerySchema,
-  MovieIdParamsSchema,
-  TVIdParamsSchema,
   MediaQuerySchema,
+  MediaParamsSchema,
   ServerEnvSchema,
 } from './schemas';
 
@@ -18,6 +17,7 @@ export type ServerEnv = z.infer<typeof ServerEnvSchema>;
 
 // Core application types
 export type MediaType = 'movie' | 'tv';
+export type SearchType = 'movie' | 'tv' | 'both';
 
 // TMDB API types (inferred from schemas)
 export type Movie = z.infer<typeof TMDBMovieSchema>;
@@ -29,9 +29,8 @@ export type Genre = z.infer<typeof TMDBGenreSchema>;
 
 // Request/Response types (inferred from schemas)
 export type SearchParams = z.infer<typeof SearchQuerySchema>;
-export type MovieIdParams = z.infer<typeof MovieIdParamsSchema>;
-export type TVIdParams = z.infer<typeof TVIdParamsSchema>;
 export type MediaQuery = z.infer<typeof MediaQuerySchema>;
+export type MediaParams = z.infer<typeof MediaParamsSchema>;
 
 // Application-specific types
 export interface MediaItem {
