@@ -33,6 +33,8 @@ function App() {
   const [language, setLanguage] = useState<string>('de-DE');
   const [selectedRegions, setSelectedRegions] = useState<RegionGroupId[]>([]); // Default to no filtering - show all content
   const [filtersExpanded, setFiltersExpanded] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [currentQuery, setCurrentQuery] = useState<string>('');
 
   // Load popular content on initial render or when back to discovery mode
   useEffect(() => {
@@ -45,7 +47,7 @@ function App() {
         const discoveryResults = await searchService.discoverMedia({
           type: currentSearchType,
           sort_by: 'popularity.desc',
-          page: 1,
+          page: currentPage,
           recent_period: timePeriod as RecentPeriod,
           language,
           region_groups: selectedRegions,
@@ -61,40 +63,55 @@ function App() {
     };
 
     loadDiscoveryContent();
-  }, [timePeriod, hasSearched, currentSearchType, language, selectedRegions]);
+  }, [timePeriod, hasSearched, currentSearchType, language, selectedRegions, currentPage]);
 
   const handleTimePeriodChange = async (newTimePeriod: RecentPeriod) => {
     setTimePeriod(newTimePeriod);
+    setCurrentPage(1); // Reset to first page when changing filters
+    setSearchResults(null); // Clear existing results for fresh filtered content
   };
 
   const handleRegionsChange = (regions: RegionGroupId[]) => {
     setSelectedRegions(regions);
+    setCurrentPage(1); // Reset to first page when changing filters
+    setSearchResults(null); // Clear existing results for fresh filtered content
   };
 
   const handleTypeChange = (type: SearchType) => {
     setCurrentSearchType(type);
+    setCurrentPage(1); // Reset to first page when changing filters
+    setSearchResults(null); // Clear existing results for fresh filtered content
   };
 
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setLanguage(e.target.value);
+    setCurrentPage(1); // Reset to first page when changing language
+    setSearchResults(null); // Clear existing results for fresh filtered content
   };
 
   const handleBackToDiscovery = () => {
     setHasSearched(false);
     setSelectedItem(null);
     setSelectedDetails(null);
+    setCurrentPage(1);
+    setCurrentQuery('');
+    setSearchResults(null); // Clear existing results for fresh discovery content
   };
 
-  const handleSearch = async (query: string) => {
+  const handleSearch = async (query: string, page: number = 1) => {
     setLoading(true);
     setHasSearched(true);
+    setCurrentQuery(query);
+    setCurrentPage(page);
+
     try {
       const results = await searchService.searchMedia({
         query,
-        page: 1,
+        page,
         include_adult: false,
         language,
         type: currentSearchType,
+        per_page: 40, // Get more results per page (TMDB supports up to 100)
       });
 
       setSearchResults(results);
@@ -104,6 +121,24 @@ function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePageChange = async (newPage: number) => {
+    if (hasSearched && currentQuery) {
+      // Handle search pagination
+      await handleSearch(currentQuery, newPage);
+    } else {
+      // Handle discovery pagination
+      setCurrentPage(newPage);
+    }
+
+    // Scroll to results section after page change
+    setTimeout(() => {
+      const resultsSection = document.getElementById('results-section');
+      if (resultsSection) {
+        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100); // Small delay to ensure content is loaded
   };
 
   const handleSelectItem = async (item: Movie | TVShow) => {
@@ -297,7 +332,7 @@ function App() {
           {!hasSearched && <TimeRangeSlider value={timePeriod} onChange={handleTimePeriodChange} />}
 
           {searchResults && (
-            <div>
+            <div id="results-section">
               <div
                 style={{
                   display: 'flex',
@@ -341,16 +376,147 @@ function App() {
 
               <ResultsGrid results={searchResults.results} onSelectItem={handleSelectItem} />
 
+              {/* Pagination Controls */}
               {searchResults.total_pages > 1 && (
                 <div
                   style={{
                     textAlign: 'center',
                     marginTop: '2rem',
-                    color: '#666',
+                    padding: '1rem',
+                    borderTop: '1px solid #e9ecef',
                   }}
                 >
-                  Page {searchResults.page} of {searchResults.total_pages}
-                  {/* TODO: Add pagination controls */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      gap: '1rem',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    {/* Previous button */}
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage <= 1 || loading}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        backgroundColor: currentPage <= 1 ? '#f8f9fa' : '#007bff',
+                        color: currentPage <= 1 ? '#6c757d' : 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: currentPage <= 1 || loading ? 'not-allowed' : 'pointer',
+                        fontSize: '0.875rem',
+                      }}
+                    >
+                      ← Previous
+                    </button>
+
+                    {/* Page numbers */}
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      {/* First page */}
+                      {currentPage > 3 && (
+                        <>
+                          <button
+                            onClick={() => handlePageChange(1)}
+                            disabled={loading}
+                            style={{
+                              padding: '0.5rem 0.75rem',
+                              backgroundColor: 'white',
+                              color: '#007bff',
+                              border: '1px solid #dee2e6',
+                              borderRadius: '4px',
+                              cursor: loading ? 'not-allowed' : 'pointer',
+                              fontSize: '0.875rem',
+                            }}
+                          >
+                            1
+                          </button>
+                          {currentPage > 4 && <span style={{ color: '#6c757d' }}>...</span>}
+                        </>
+                      )}
+
+                      {/* Current page and neighbors */}
+                      {Array.from({ length: Math.min(5, searchResults.total_pages) }, (_, i) => {
+                        const pageStart = Math.max(1, currentPage - 2);
+                        const pageEnd = Math.min(searchResults.total_pages, pageStart + 4);
+                        const adjustedStart = Math.max(1, pageEnd - 4);
+                        const pageNum = adjustedStart + i;
+
+                        if (pageNum > pageEnd) return null;
+
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => handlePageChange(pageNum)}
+                            disabled={loading}
+                            style={{
+                              padding: '0.5rem 0.75rem',
+                              backgroundColor: pageNum === currentPage ? '#007bff' : 'white',
+                              color: pageNum === currentPage ? 'white' : '#007bff',
+                              border: `1px solid ${pageNum === currentPage ? '#007bff' : '#dee2e6'}`,
+                              borderRadius: '4px',
+                              cursor: loading ? 'not-allowed' : 'pointer',
+                              fontSize: '0.875rem',
+                              fontWeight: pageNum === currentPage ? '600' : '400',
+                            }}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+
+                      {/* Last page */}
+                      {currentPage < searchResults.total_pages - 2 && (
+                        <>
+                          {currentPage < searchResults.total_pages - 3 && (
+                            <span style={{ color: '#6c757d' }}>...</span>
+                          )}
+                          <button
+                            onClick={() => handlePageChange(searchResults.total_pages)}
+                            disabled={loading}
+                            style={{
+                              padding: '0.5rem 0.75rem',
+                              backgroundColor: 'white',
+                              color: '#007bff',
+                              border: '1px solid #dee2e6',
+                              borderRadius: '4px',
+                              cursor: loading ? 'not-allowed' : 'pointer',
+                              fontSize: '0.875rem',
+                            }}
+                          >
+                            {searchResults.total_pages}
+                          </button>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Next button */}
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage >= searchResults.total_pages || loading}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        backgroundColor:
+                          currentPage >= searchResults.total_pages ? '#f8f9fa' : '#007bff',
+                        color: currentPage >= searchResults.total_pages ? '#6c757d' : 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor:
+                          currentPage >= searchResults.total_pages || loading
+                            ? 'not-allowed'
+                            : 'pointer',
+                        fontSize: '0.875rem',
+                      }}
+                    >
+                      Next →
+                    </button>
+                  </div>
+
+                  <div style={{ marginTop: '0.75rem', fontSize: '0.875rem', color: '#6c757d' }}>
+                    Page {currentPage} of {searchResults.total_pages} (
+                    {searchResults.total_results.toLocaleString()} total results)
+                  </div>
                 </div>
               )}
             </div>

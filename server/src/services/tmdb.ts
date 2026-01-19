@@ -210,7 +210,7 @@ async function tmdbPlugin(fastify: FastifyInstance, _options: FastifyPluginOptio
 
       return {
         page,
-        results: type === 'both' ? sortedResults.slice(0, 20) : sortedResults,
+        results: sortedResults,
         total_pages: totalPages,
         total_results: totalResults,
       };
