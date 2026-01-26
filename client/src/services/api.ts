@@ -5,6 +5,7 @@ import {
   TVDetails,
   DiscoverQuery,
   DetailsQuery,
+  VideosResponse,
 } from '@findarr/shared';
 import axios from 'axios';
 
@@ -30,6 +31,18 @@ export const searchService = {
 
   detailsMedia: async (params: DetailsQuery): Promise<MovieDetails | TVDetails> => {
     const response = await api.get('/details', { params });
+    return response.data;
+  },
+
+  getVideos: async (id: number, type: 'movie' | 'tv'): Promise<VideosResponse> => {
+    const response = await api.get(`/videos`, { params: { id, type } });
+    return response.data;
+  },
+
+  getGenres: async (
+    type: 'movie' | 'tv'
+  ): Promise<{ genres: Array<{ id: number; name: string }> }> => {
+    const response = await api.get('/genres', { params: { type } });
     return response.data;
   },
 };

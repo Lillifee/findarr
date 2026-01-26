@@ -6,6 +6,8 @@ import {
   TMDBMovieDetailsSchema,
   TMDBTVDetailsSchema,
   TMDBGenreSchema,
+  TMDBVideoSchema,
+  TMDBVideosResponseSchema,
   SearchQuerySchema,
   DiscoverQuerySchema,
   DetailsQuerySchema,
@@ -28,6 +30,8 @@ export type SearchResponse = z.infer<typeof TMDBSearchResponseSchema>;
 export type MovieDetails = z.infer<typeof TMDBMovieDetailsSchema>;
 export type TVDetails = z.infer<typeof TMDBTVDetailsSchema>;
 export type Genre = z.infer<typeof TMDBGenreSchema>;
+export type Video = z.infer<typeof TMDBVideoSchema>;
+export type VideosResponse = z.infer<typeof TMDBVideosResponseSchema>;
 
 // Request/Response types (inferred from schemas)
 export type SearchQuery = z.infer<typeof SearchQuerySchema>;

@@ -1,4 +1,4 @@
-import { MovieDetails, TVDetails } from '@findarr/shared';
+import { MovieDetails, TVDetails, Video } from '@findarr/shared';
 
 interface MediaDetailsProps {
   media: MovieDetails | TVDetails;
@@ -248,6 +248,110 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
             </div>
           )}
         </div>
+
+        {/* Trailers and Videos */}
+        {media.videos && media.videos.results.length > 0 && (
+          <div style={{ marginBottom: '2rem' }}>
+            <h3 style={{ margin: '0 0 1rem 0' }}>Trailers & Videos</h3>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                gap: '1rem',
+              }}
+            >
+              {media.videos.results
+                .filter((video: Video) => video.site === 'YouTube')
+                .slice(0, 6) // Limit to 6 videos to avoid overwhelming
+                .map((video: Video) => (
+                  <div
+                    key={video.id}
+                    style={{
+                      border: '1px solid #ddd',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      backgroundColor: 'white',
+                    }}
+                  >
+                    <div
+                      style={{
+                        position: 'relative',
+                        aspectRatio: '16/9',
+                        backgroundColor: '#f0f0f0',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() =>
+                        window.open(`https://www.youtube.com/watch?v=${video.key}`, '_blank')
+                      }
+                    >
+                      <img
+                        src={`https://img.youtube.com/vi/${video.key}/hqdefault.jpg`}
+                        alt={video.name}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                        }}
+                      />
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                          borderRadius: '50%',
+                          width: '60px',
+                          height: '60px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '1.5rem',
+                          color: 'white',
+                        }}
+                      >
+                        ▶️
+                      </div>
+                    </div>
+                    <div style={{ padding: '0.75rem' }}>
+                      <h4
+                        style={{ margin: '0 0 0.25rem 0', fontSize: '0.9rem', fontWeight: '600' }}
+                      >
+                        {video.name}
+                      </h4>
+                      <div
+                        style={{
+                          fontSize: '0.75rem',
+                          color: '#666',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <span>{video.type}</span>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          {video.official && (
+                            <span
+                              style={{
+                                backgroundColor: '#28a745',
+                                color: 'white',
+                                padding: '0.125rem 0.5rem',
+                                borderRadius: '12px',
+                                fontSize: '0.7rem',
+                              }}
+                            >
+                              Official
+                            </span>
+                          )}
+                          <span style={{ textTransform: 'uppercase' }}>{video.site}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
 
         {/* Homepage link */}
         {media.homepage && (

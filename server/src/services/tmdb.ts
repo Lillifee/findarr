@@ -16,7 +16,15 @@ interface TMDBService {
   searchMedia(params: SearchQuery): Promise<SearchResponse>;
   detailsMedia(params: DetailsQuery): Promise<MovieDetails | TVDetails>;
   discoverMedia(params: DiscoverQuery): Promise<SearchResponse>;
+  getVideos(params: DetailsQuery): Promise<any>;
+  getGenres(type: 'movie' | 'tv'): Promise<{ genres: Array<{ id: number; name: string }> }>;
 }
+
+// Cache for genres - loaded once at startup
+const genreCache: {
+  movie?: { genres: Array<{ id: number; name: string }> };
+  tv?: { genres: Array<{ id: number; name: string }> };
+} = {};
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -32,6 +40,29 @@ async function tmdbPlugin(fastify: FastifyInstance, _options: FastifyPluginOptio
       'Content-Type': 'application/json',
     },
   });
+
+  // Load genres once at startup
+  const loadGenres = async () => {
+    try {
+      fastify.log.info('Loading genres from TMDB...');
+      const [movieGenres, tvGenres] = await Promise.all([
+        client.get('/genre/movie/list', { params: { language: 'en-US' } }),
+        client.get('/genre/tv/list', { params: { language: 'en-US' } }),
+      ]);
+
+      genreCache.movie = movieGenres.data;
+      genreCache.tv = tvGenres.data;
+
+      fastify.log.info(
+        `Loaded ${movieGenres.data.genres.length} movie genres and ${tvGenres.data.genres.length} TV genres`
+      );
+    } catch (error) {
+      fastify.log.error({ error }, 'Failed to load genres');
+      throw error;
+    }
+  };
+
+  await loadGenres();
 
   const tmdbService: TMDBService = {
     async searchMedia(params: SearchQuery) {
@@ -83,6 +114,7 @@ async function tmdbPlugin(fastify: FastifyInstance, _options: FastifyPluginOptio
         sort_by = 'popularity.desc',
         language = 'en-US',
         recent_period,
+        tv_date_filter = 'air_date',
         region_groups = [], // Default to no filtering - show all content
         // Content filtering parameters
         vote_average_gte,
@@ -154,12 +186,20 @@ async function tmdbPlugin(fastify: FastifyInstance, _options: FastifyPluginOptio
           };
         }
         if (type === 'tv' || type === 'both') {
-          // For TV shows, use air_date to filter by recent episodes, not first_air_date
-          dateParams = {
-            ...dateParams,
-            'air_date.gte': formatDate(pastDate),
-            'air_date.lte': formatDate(futureDate),
-          };
+          // Use configurable date filter for TV shows
+          if (tv_date_filter === 'first_air_date') {
+            dateParams = {
+              ...dateParams,
+              'first_air_date.gte': formatDate(pastDate),
+              'first_air_date.lte': formatDate(futureDate),
+            };
+          } else {
+            dateParams = {
+              ...dateParams,
+              'air_date.gte': formatDate(pastDate),
+              'air_date.lte': formatDate(futureDate),
+            };
+          }
         }
       }
 
@@ -198,7 +238,13 @@ async function tmdbPlugin(fastify: FastifyInstance, _options: FastifyPluginOptio
         if (sort_by.includes('popularity')) {
           return (b.popularity || 0) - (a.popularity || 0);
         }
-        return (b.vote_average || 0) - (a.vote_average || 0);
+        if (sort_by.includes('vote_average')) {
+          return (b.vote_average || 0) - (a.vote_average || 0);
+        }
+        if (sort_by.includes('vote_count')) {
+          return (b.vote_count || 0) - (a.vote_count || 0);
+        }
+        return (b.popularity || 0) - (a.popularity || 0); // fallback to popularity
       });
 
       // Calculate totals
@@ -222,10 +268,42 @@ async function tmdbPlugin(fastify: FastifyInstance, _options: FastifyPluginOptio
       // Extract region from language code (e.g., 'de-DE' -> 'DE')
       const region = language.includes('-') ? language.split('-')[1] : 'US';
 
-      const response = await client.get(`/${type}/${id}`, {
-        params: { language, region },
+      // Fetch both details and videos in parallel
+      const [detailsResponse, videosResponse] = await Promise.all([
+        client.get(`/${type}/${id}`, {
+          params: { language, region },
+        }),
+        client.get(`/${type}/${id}/videos`, {
+          params: { language },
+        }),
+      ]);
+
+      // Combine the results
+      const details = detailsResponse.data;
+      const videos = videosResponse.data;
+
+      return {
+        ...details,
+        videos,
+      };
+    },
+
+    async getVideos(params: DetailsQuery) {
+      const { id, type, language = 'en-US' } = params;
+
+      const response = await client.get(`/${type}/${id}/videos`, {
+        params: { language },
       });
       return response.data;
+    },
+
+    async getGenres(type: 'movie' | 'tv') {
+      // Return cached genres
+      const cached = genreCache[type];
+      if (!cached) {
+        throw new Error(`Genres for ${type} not loaded`);
+      }
+      return cached;
     },
   };
 

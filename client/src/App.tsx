@@ -14,6 +14,7 @@ import { SearchBar } from './components/SearchBar';
 import { MediaView } from './components/MediaView';
 import { TimeRangeSlider } from './components/TimeRangeSlider';
 import { RegionSelector } from './components/RegionSelector';
+import GenreSelector from './components/GenreSelector';
 import { RegionGroupId } from '@findarr/shared';
 
 // Helper function to determine if an item is a movie
@@ -35,6 +36,11 @@ function App() {
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentQuery, setCurrentQuery] = useState<string>('');
+  const [tvDateFilter, setTvDateFilter] = useState<'first_air_date' | 'air_date'>('air_date');
+  const [sortBy, setSortBy] = useState<'popularity.desc' | 'vote_average.desc' | 'vote_count.desc'>(
+    'popularity.desc'
+  );
+  const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
 
   // Load popular content on initial render or when back to discovery mode
   useEffect(() => {
@@ -46,12 +52,15 @@ function App() {
       try {
         const discoveryResults = await searchService.discoverMedia({
           type: currentSearchType,
-          sort_by: 'popularity.desc',
+          sort_by: sortBy,
           page: currentPage,
           recent_period: timePeriod as RecentPeriod,
           language,
           region_groups: selectedRegions,
-          // vote_count_gte: 50, // Higher threshold for better quality
+          tv_date_filter: tvDateFilter,
+          with_genres: selectedGenres.length > 0 ? selectedGenres.join('|') : undefined,
+          // Add minimum vote count when sorting by rating to ensure quality
+          ...(sortBy === 'vote_average.desc' && { vote_count_gte: 100 }),
         });
 
         setSearchResults(discoveryResults);
@@ -63,7 +72,17 @@ function App() {
     };
 
     loadDiscoveryContent();
-  }, [timePeriod, hasSearched, currentSearchType, language, selectedRegions, currentPage]);
+  }, [
+    timePeriod,
+    hasSearched,
+    currentSearchType,
+    language,
+    selectedRegions,
+    currentPage,
+    tvDateFilter,
+    sortBy,
+    selectedGenres,
+  ]);
 
   const handleTimePeriodChange = async (newTimePeriod: RecentPeriod) => {
     setTimePeriod(newTimePeriod);
@@ -89,12 +108,31 @@ function App() {
     setSearchResults(null); // Clear existing results for fresh filtered content
   };
 
+  const handleTvDateFilterChange = (filter: 'first_air_date' | 'air_date') => {
+    setTvDateFilter(filter);
+    setCurrentPage(1); // Reset to first page when changing filters
+    setSearchResults(null); // Clear existing results for fresh filtered content
+  };
+
+  const handleSortChange = (sort: 'popularity.desc' | 'vote_average.desc' | 'vote_count.desc') => {
+    setSortBy(sort);
+    setCurrentPage(1); // Reset to first page when changing sort
+    setSearchResults(null); // Clear existing results for fresh sorted content
+  };
+
+  const handleGenreChange = (genres: number[]) => {
+    setSelectedGenres(genres);
+    setCurrentPage(1); // Reset to first page when changing genres
+    setSearchResults(null); // Clear existing results for fresh filtered content
+  };
+
   const handleBackToDiscovery = () => {
     setHasSearched(false);
     setSelectedItem(null);
     setSelectedDetails(null);
     setCurrentPage(1);
     setCurrentQuery('');
+    setSelectedGenres([]); // Clear genre selection
     setSearchResults(null); // Clear existing results for fresh discovery content
   };
 
@@ -111,7 +149,6 @@ function App() {
         include_adult: false,
         language,
         type: currentSearchType,
-        per_page: 40, // Get more results per page (TMDB supports up to 100)
       });
 
       setSearchResults(results);
@@ -226,7 +263,7 @@ function App() {
             >
               <span>
                 🎛️ Advanced Filters
-                {!filtersExpanded && selectedRegions.length > 0 && (
+                {!filtersExpanded && (selectedRegions.length > 0 || selectedGenres.length > 0) && (
                   <span
                     style={{
                       fontSize: '0.875rem',
@@ -235,8 +272,13 @@ function App() {
                       marginLeft: '0.5rem',
                     }}
                   >
-                    ({selectedRegions.length} region{selectedRegions.length !== 1 ? 's' : ''},{' '}
-                    {currentSearchType}, {language.split('-')[0].toUpperCase()})
+                    (
+                    {selectedRegions.length > 0 &&
+                      `${selectedRegions.length} region${selectedRegions.length !== 1 ? 's' : ''}`}
+                    {selectedRegions.length > 0 && selectedGenres.length > 0 && ', '}
+                    {selectedGenres.length > 0 &&
+                      `${selectedGenres.length} genre${selectedGenres.length !== 1 ? 's' : ''}`}
+                    , {currentSearchType}, {language.split('-')[0].toUpperCase()})
                   </span>
                 )}
               </span>
@@ -293,6 +335,36 @@ function App() {
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     <label style={{ fontSize: '0.875rem', fontWeight: '500', color: '#6c757d' }}>
+                      Sort By
+                    </label>
+                    <select
+                      value={sortBy}
+                      onChange={e =>
+                        handleSortChange(
+                          e.target.value as
+                            | 'popularity.desc'
+                            | 'vote_average.desc'
+                            | 'vote_count.desc'
+                        )
+                      }
+                      disabled={loading}
+                      style={{
+                        padding: '0.75rem',
+                        fontSize: '1rem',
+                        border: '2px solid #ddd',
+                        borderRadius: '6px',
+                        backgroundColor: 'white',
+                        minWidth: '180px',
+                      }}
+                    >
+                      <option value="popularity.desc">🔥 Most Popular</option>
+                      <option value="vote_average.desc">⭐ Highest Rated</option>
+                      <option value="vote_count.desc">💬 Most Discussed</option>
+                    </select>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <label style={{ fontSize: '0.875rem', fontWeight: '500', color: '#6c757d' }}>
                       Language
                     </label>
                     <select
@@ -325,11 +397,77 @@ function App() {
                     disabled={loading}
                   />
                 </div>
+
+                <GenreSelector
+                  type={currentSearchType}
+                  selectedGenres={selectedGenres}
+                  onGenreChange={handleGenreChange}
+                />
               </div>
             )}
           </div>
 
           {!hasSearched && <TimeRangeSlider value={timePeriod} onChange={handleTimePeriodChange} />}
+
+          {!hasSearched && (currentSearchType === 'tv' || currentSearchType === 'both') && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1rem',
+                marginBottom: '1.5rem',
+                padding: '1rem',
+                backgroundColor: '#f8f9fa',
+                borderRadius: '8px',
+                border: '1px solid #e9ecef',
+              }}
+            >
+              <label style={{ fontWeight: '500', color: '#333', whiteSpace: 'nowrap' }}>
+                TV Show Date Filter:
+              </label>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="tvDateFilter"
+                    value="air_date"
+                    checked={tvDateFilter === 'air_date'}
+                    onChange={() => handleTvDateFilterChange('air_date')}
+                  />
+                  <span>Recent Episodes</span>
+                </label>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="tvDateFilter"
+                    value="first_air_date"
+                    checked={tvDateFilter === 'first_air_date'}
+                    onChange={() => handleTvDateFilterChange('first_air_date')}
+                  />
+                  <span>Original Release</span>
+                </label>
+              </div>
+              <span style={{ fontSize: '0.875rem', color: '#666', fontStyle: 'italic' }}>
+                {tvDateFilter === 'air_date'
+                  ? 'Shows shows with recent episodes in the selected time period'
+                  : 'Shows series that originally premiered in the selected time period'}
+              </span>
+            </div>
+          )}
 
           {searchResults && (
             <div id="results-section">

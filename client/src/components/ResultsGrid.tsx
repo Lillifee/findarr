@@ -1,5 +1,6 @@
 import React from 'react';
 import { Movie, TVShow } from '../../../shared/dist/types';
+import { TrailerButton } from './TrailerButton';
 
 interface ResultsGridProps {
   results: (Movie | TVShow)[];
@@ -43,6 +44,7 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
               cursor: 'pointer',
               transition: 'transform 0.2s, box-shadow 0.2s',
               backgroundColor: 'white',
+              position: 'relative',
             }}
             onMouseEnter={e => {
               e.currentTarget.style.transform = 'translateY(-4px)';
@@ -53,6 +55,7 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
               e.currentTarget.style.boxShadow = 'none';
             }}
           >
+            <TrailerButton id={item.id} type={isMovie(item) ? 'movie' : 'tv'} title={title} />
             {item.poster_path ? (
               <img
                 src={`${TMDB_IMAGE_BASE}${item.poster_path}`}
@@ -91,6 +94,7 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
                 {title}
               </h3>
 
+              {/* Year and Rating Row */}
               <div
                 style={{
                   fontSize: '0.875rem',
@@ -98,21 +102,39 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
+                  marginBottom: '0.25rem',
                 }}
               >
                 <span>{year}</span>
-                <span>⭐ {item.vote_average.toFixed(1)}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span>⭐ {item.vote_average.toFixed(1)}</span>
+                  <span style={{ fontSize: '0.75rem', color: '#999' }}>
+                    ({item.vote_count.toLocaleString()} votes)
+                  </span>
+                </div>
               </div>
 
+              {/* Media Type and Popularity Row */}
               <div
                 style={{
                   fontSize: '0.75rem',
                   color: '#888',
-                  marginTop: '0.25rem',
-                  fontStyle: 'italic',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '0.5rem',
                 }}
               >
-                {itemType}
+                <span style={{ fontStyle: 'italic' }}>{itemType}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span title="Popularity Score">🔥 {Math.round(item.popularity)}</span>
+                  <span
+                    title="Original Language"
+                    style={{ textTransform: 'uppercase', fontWeight: '500' }}
+                  >
+                    {item.original_language}
+                  </span>
+                </div>
               </div>
 
               {item.overview && (
@@ -120,7 +142,7 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
                   style={{
                     fontSize: '0.8rem',
                     color: '#888',
-                    margin: '0.5rem 0 0 0',
+                    margin: '0',
                     lineHeight: '1.4',
                     display: '-webkit-box',
                     WebkitLineClamp: 3,

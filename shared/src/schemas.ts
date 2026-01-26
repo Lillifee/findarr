@@ -259,6 +259,8 @@ export const DiscoverQuerySchema = BaseQuerySchema.extend({
     .optional(),
   // Recent content filter
   recent_period: RecentPeriodSchema.optional(),
+  // TV date filtering option - use first_air_date (original) vs air_date (recent episodes)
+  tv_date_filter: z.enum(['first_air_date', 'air_date']).optional(),
   // Region-based filtering (replaces individual language/country filtering)
   region_groups: RegionGroupSchema.optional(),
 
@@ -267,7 +269,7 @@ export const DiscoverQuerySchema = BaseQuerySchema.extend({
   with_origin_country: z.string().optional(), // Include only these countries (comma-separated)
 
   // Genre filtering
-  with_genres: z.string().optional(), // comma-separated genre IDs
+  with_genres: z.string().optional(), // pipe-separated genre IDs for OR logic (18|35|80)
   without_genres: z.string().optional(),
   // Release date filtering
   primary_release_year: z.coerce.number().int().min(1900).max(2100).optional(),
@@ -348,6 +350,22 @@ export const TMDBGenreSchema = z.object({
   name: z.string(),
 });
 
+export const TMDBVideoSchema = z.object({
+  id: z.string(),
+  key: z.string(), // YouTube/Vimeo video ID
+  site: z.string(), // "YouTube" or "Vimeo"
+  type: z.string(), // "Trailer", "Teaser", "Clip", etc.
+  name: z.string(), // Video title
+  official: z.boolean(),
+  published_at: z.string().nullable(),
+  size: z.number(), // Video resolution (720, 1080, etc.)
+});
+
+export const TMDBVideosResponseSchema = z.object({
+  id: z.number(),
+  results: z.array(TMDBVideoSchema),
+});
+
 export const TMDBMovieDetailsSchema = TMDBMovieSchema.extend({
   genres: z.array(TMDBGenreSchema),
   runtime: z.number().nullable(),
@@ -357,6 +375,7 @@ export const TMDBMovieDetailsSchema = TMDBMovieSchema.extend({
   tagline: z.string().nullable(),
   homepage: z.string().nullable(),
   imdb_id: z.string().nullable(),
+  videos: TMDBVideosResponseSchema.optional(),
 });
 
 export const TMDBTVDetailsSchema = TMDBTVSchema.extend({
@@ -367,4 +386,5 @@ export const TMDBTVDetailsSchema = TMDBTVSchema.extend({
   status: z.string(),
   type: z.string(),
   homepage: z.string().nullable(),
+  videos: TMDBVideosResponseSchema.optional(),
 });

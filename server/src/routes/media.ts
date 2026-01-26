@@ -37,4 +37,31 @@ export async function mediaRoutes(fastify: FastifyInstance) {
       return reply.status(500).send({ error: 'Failed to get media details' });
     }
   });
+
+  // Videos endpoint: GET /videos?id=123&type=movie&language=en-US
+  fastify.get('/videos', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const queryParams = DetailsQuerySchema.parse(request.query);
+      const result = await fastify.tmdb.getVideos(queryParams);
+      return result;
+    } catch (error) {
+      fastify.log.error(error);
+      return reply.status(500).send({ error: 'Failed to get media videos' });
+    }
+  });
+
+  // Genres endpoint: GET /genres?type=movie
+  fastify.get('/genres', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const { type } = request.query as { type: 'movie' | 'tv' };
+      if (!type || (type !== 'movie' && type !== 'tv')) {
+        return reply.status(400).send({ error: 'Valid type parameter (movie or tv) is required' });
+      }
+      const result = await fastify.tmdb.getGenres(type);
+      return result;
+    } catch (error) {
+      fastify.log.error(error);
+      return reply.status(500).send({ error: 'Failed to get genres' });
+    }
+  });
 }
