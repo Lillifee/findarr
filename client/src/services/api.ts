@@ -1,11 +1,14 @@
 import {
   SearchQuery,
   SearchResponse,
-  MovieDetails,
-  TVDetails,
   DiscoverQuery,
   DetailsQuery,
   VideosResponse,
+  VideosQuery,
+  GenresResponse,
+  GenresQuery,
+  DiscoverResponse,
+  DetailsResponse,
 } from '@findarr/shared';
 import axios from 'axios';
 
@@ -19,7 +22,7 @@ export const searchService = {
     return response.data;
   },
 
-  discoverMedia: async (params: DiscoverQuery = {}): Promise<SearchResponse> => {
+  discoverMedia: async (params: DiscoverQuery = {}): Promise<DiscoverResponse> => {
     const response = await api.get('/discover', {
       params,
       paramsSerializer: {
@@ -29,20 +32,18 @@ export const searchService = {
     return response.data;
   },
 
-  detailsMedia: async (params: DetailsQuery): Promise<MovieDetails | TVDetails> => {
+  detailsMedia: async (params: DetailsQuery): Promise<DetailsResponse> => {
     const response = await api.get('/details', { params });
     return response.data;
   },
 
-  getVideos: async (id: number, type: 'movie' | 'tv'): Promise<VideosResponse> => {
-    const response = await api.get(`/videos`, { params: { id, type } });
+  getVideos: async (params: VideosQuery): Promise<VideosResponse> => {
+    const response = await api.get(`/videos`, { params });
     return response.data;
   },
 
-  getGenres: async (
-    type: 'movie' | 'tv'
-  ): Promise<{ genres: Array<{ id: number; name: string }> }> => {
-    const response = await api.get('/genres', { params: { type } });
+  getGenres: async (params: GenresQuery): Promise<GenresResponse> => {
+    const response = await api.get('/genres', { params });
     return response.data;
   },
 };

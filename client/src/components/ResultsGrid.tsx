@@ -28,8 +28,8 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
       }}
     >
       {results.map(item => {
-        const title = isMovie(item) ? item.title : item.name;
-        const releaseDate = isMovie(item) ? item.release_date : item.first_air_date;
+        const title = item.name;
+        const releaseDate = item.date;
         const year = releaseDate ? new Date(releaseDate).getFullYear() : 'N/A';
         const itemType = isMovie(item) ? 'Movie' : 'TV Show';
 
@@ -56,6 +56,31 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
             }}
           >
             <TrailerButton id={item.id} type={isMovie(item) ? 'movie' : 'tv'} title={title} />
+
+            {/* Trending Badge */}
+            {item.is_trending && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '8px',
+                  right: '8px',
+                  background: 'linear-gradient(45deg, #ff6b35, #f7931e)',
+                  color: 'white',
+                  padding: '4px 8px',
+                  borderRadius: '12px',
+                  fontSize: '0.75rem',
+                  fontWeight: 'bold',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                  zIndex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '2px',
+                }}
+              >
+                🔥 TRENDING
+              </div>
+            )}
+
             {item.poster_path ? (
               <img
                 src={`${TMDB_IMAGE_BASE}${item.poster_path}`}
@@ -127,7 +152,8 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
               >
                 <span style={{ fontStyle: 'italic' }}>{itemType}</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span title="Popularity Score">🔥 {Math.round(item.popularity)}</span>
+                  <span title="Popularity Score">🔥 {Math.round(item.popularity || 0)}</span>
+
                   <span
                     title="Original Language"
                     style={{ textTransform: 'uppercase', fontWeight: '500' }}
@@ -136,6 +162,29 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
                   </span>
                 </div>
               </div>
+
+              {/* Custom Score Row */}
+              {item.custom_popularity && (
+                <div
+                  style={{
+                    fontSize: '0.75rem',
+                    color: '#666',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '0.5rem',
+                  }}
+                >
+                  <span title="Custom Score (Trending + Quality + Recency)">
+                    📊 Custom: {Math.round(item.custom_popularity || 0)}
+                  </span>
+                  {item.trending_rank && (
+                    <span title={`Trending Rank #${item.trending_rank}`}>
+                      #{item.trending_rank}
+                    </span>
+                  )}
+                </div>
+              )}
 
               {item.overview && (
                 <p

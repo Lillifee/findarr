@@ -4,20 +4,19 @@ interface MediaDetailsProps {
   media: MovieDetails | TVDetails;
   onRequest: () => void;
 }
-
 // Type guards
 function isMovie(media: MovieDetails | TVDetails): media is MovieDetails {
-  return 'title' in media && 'release_date' in media;
+  return media.media_type === 'movie';
 }
 
 export function MediaView({ media, onRequest }: MediaDetailsProps) {
   const isMovieType = isMovie(media);
 
   // Common data extraction
-  const title = isMovieType ? media.title : media.name;
-  const releaseDate = isMovieType ? media.release_date : media.first_air_date;
-  const buttonText = isMovieType ? '📥 Request Movie' : '📥 Request TV Show';
-  const buttonColor = isMovieType ? '#28a745' : '#17a2b8';
+  const title = media.name;
+  const releaseDate = media.date;
+  const buttonText = media.media_type === 'movie' ? '📥 Request Movie' : '📥 Request TV Show';
+  const buttonColor = media.media_type === 'movie' ? '#28a745' : '#17a2b8';
 
   // Format helpers
   const formatRuntime = (value: number | number[] | null) => {

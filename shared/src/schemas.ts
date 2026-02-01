@@ -17,22 +17,8 @@ const BaseQuerySchema = z.object({
 export const SearchQuerySchema = BaseQuerySchema.extend({
   query: z.string().min(1),
   page: z.coerce.number().int().min(1).max(1000).default(1),
-  include_adult: z.coerce.boolean().default(false),
   type: z.enum(['movie', 'tv', 'both']).default('both'),
 });
-
-// Recent content period enum
-export const RecentPeriodSchema = z.enum([
-  'last_week',
-  'last_month',
-  'last_3_months',
-  'last_6_months',
-  'last_year',
-  'last_2_years',
-]);
-
-// Export the enum values for use in components
-export const RECENT_PERIOD_VALUES = RecentPeriodSchema.options;
 
 // Region groups for content filtering
 export const REGION_GROUPS = {
@@ -243,24 +229,10 @@ export const RegionGroupSchema = z.preprocess(
 export const DiscoverQuerySchema = BaseQuerySchema.extend({
   page: z.coerce.number().int().min(1).max(1000).optional(),
   type: z.enum(['movie', 'tv', 'both']).optional(),
-  sort_by: z
-    .enum([
-      'popularity.desc',
-      'popularity.asc',
-      'release_date.desc',
-      'release_date.asc',
-      'vote_average.desc',
-      'vote_average.asc',
-      'vote_count.desc',
-      'vote_count.asc',
-      'revenue.desc',
-      'revenue.asc',
-    ])
-    .optional(),
-  // Recent content filter
-  recent_period: RecentPeriodSchema.optional(),
-  // TV date filtering option - use first_air_date (original) vs air_date (recent episodes)
-  tv_date_filter: z.enum(['first_air_date', 'air_date']).optional(),
+
+  // Recent content filter - number of days to look back
+  recent_days: z.coerce.number().int().min(1).max(3650).optional(), // Max 10 years
+
   // Region-based filtering (replaces individual language/country filtering)
   region_groups: RegionGroupSchema.optional(),
 
@@ -304,39 +276,68 @@ export const DetailsQuerySchema = BaseQuerySchema.extend({
   type: z.enum(['movie', 'tv']),
 });
 
-// TMDB API response schemas
-export const TMDBMovieSchema = z.object({
-  id: z.number(),
-  title: z.string(),
-  overview: z.string().nullable(),
-  poster_path: z.string().nullable(),
-  backdrop_path: z.string().nullable(),
-  release_date: z.string().nullable(),
-  vote_average: z.number(),
-  vote_count: z.number(),
-  popularity: z.number(),
-  genre_ids: z.array(z.number()),
-  adult: z.boolean(),
-  original_language: z.string(),
-  original_title: z.string(),
-  video: z.boolean(),
+export const GenresQuerySchema = z.object({
+  type: z.enum(['movie', 'tv']),
 });
 
-export const TMDBTVSchema = z.object({
+// TMDB API response schemas - shared fields
+const TMDBBaseFieldsSchema = z.object({
   id: z.number(),
-  name: z.string(),
   overview: z.string().nullable(),
   poster_path: z.string().nullable(),
   backdrop_path: z.string().nullable(),
-  first_air_date: z.string().nullable(),
   vote_average: z.number(),
   vote_count: z.number(),
   popularity: z.number(),
-  genre_ids: z.array(z.number()),
-  origin_country: z.array(z.string()),
+  genre_ids: z.array(z.number()).optional(), // Only in search/discover, not in details
   original_language: z.string(),
+
+  // only in tv shows but lets see if we can combine them
+  origin_country: z.array(z.string()).optional(),
+
+  // custom fields
+  is_trending: z.boolean().optional(),
+  trending_rank: z.number().optional(),
+  custom_popularity: z.number().optional(),
+});
+
+// Base schemas without transforms (for extending)
+const TMDBMovieBaseSchema = TMDBBaseFieldsSchema.extend({
+  title: z.string(),
+  release_date: z.string().nullable(),
+  original_title: z.string(),
+  // video: z.boolean(),
+});
+
+const TMDBTVBaseSchema = TMDBBaseFieldsSchema.extend({
+  name: z.string(),
+  first_air_date: z.string().nullable(),
   original_name: z.string(),
 });
+
+// Transform helpers - add media_type during transform
+const transformMovie = <T extends z.infer<typeof TMDBMovieBaseSchema>>({
+  title,
+  original_title,
+  release_date,
+  ...movie
+}: T) => ({
+  ...movie,
+  media_type: 'movie' as const,
+  name: title,
+  original_name: original_title,
+  date: release_date,
+});
+
+const transformTV = <T extends z.infer<typeof TMDBTVBaseSchema>>({ first_air_date, ...tv }: T) => ({
+  ...tv,
+  media_type: 'tv' as const,
+  date: first_air_date,
+});
+
+// Transformed schemas for search results
+export const TMDBMovieSchema = TMDBMovieBaseSchema.transform(transformMovie);
+export const TMDBTVSchema = TMDBTVBaseSchema.transform(transformTV);
 
 export const TMDBSearchResponseSchema = z.object({
   page: z.number(),
@@ -345,9 +346,17 @@ export const TMDBSearchResponseSchema = z.object({
   total_results: z.number(),
 });
 
+export const TMDBDiscoverResponseSchema = z.object({
+  results: z.array(z.union([TMDBMovieSchema, TMDBTVSchema])),
+});
+
 export const TMDBGenreSchema = z.object({
   id: z.number(),
   name: z.string(),
+});
+
+export const TMDBGenresResponseSchema = z.object({
+  genres: z.array(TMDBGenreSchema),
 });
 
 export const TMDBVideoSchema = z.object({
@@ -366,7 +375,8 @@ export const TMDBVideosResponseSchema = z.object({
   results: z.array(TMDBVideoSchema),
 });
 
-export const TMDBMovieDetailsSchema = TMDBMovieSchema.extend({
+// Details schemas - extend base and apply same transforms
+export const TMDBMovieDetailsSchema = TMDBMovieBaseSchema.extend({
   genres: z.array(TMDBGenreSchema),
   runtime: z.number().nullable(),
   budget: z.number(),
@@ -376,9 +386,9 @@ export const TMDBMovieDetailsSchema = TMDBMovieSchema.extend({
   homepage: z.string().nullable(),
   imdb_id: z.string().nullable(),
   videos: TMDBVideosResponseSchema.optional(),
-});
+}).transform(transformMovie);
 
-export const TMDBTVDetailsSchema = TMDBTVSchema.extend({
+export const TMDBTVDetailsSchema = TMDBTVBaseSchema.extend({
   genres: z.array(TMDBGenreSchema),
   episode_run_time: z.array(z.number()),
   number_of_episodes: z.number(),
@@ -387,4 +397,4 @@ export const TMDBTVDetailsSchema = TMDBTVSchema.extend({
   type: z.string(),
   homepage: z.string().nullable(),
   videos: TMDBVideosResponseSchema.optional(),
-});
+}).transform(transformTV);

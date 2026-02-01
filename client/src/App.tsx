@@ -7,7 +7,7 @@ import {
   SearchType,
   TVDetails,
   TVShow,
-  RecentPeriod,
+  DiscoverResponse,
 } from '../../shared/dist/types';
 import { ResultsGrid } from './components/ResultsGrid';
 import { SearchBar } from './components/SearchBar';
@@ -15,31 +15,25 @@ import { MediaView } from './components/MediaView';
 import { TimeRangeSlider } from './components/TimeRangeSlider';
 import { RegionSelector } from './components/RegionSelector';
 import GenreSelector from './components/GenreSelector';
-import { RegionGroupId } from '@findarr/shared';
-
-// Helper function to determine if an item is a movie
-function isMovie(item: Movie | TVShow): item is Movie {
-  return 'title' in item && 'release_date' in item;
-}
+import { RegionGroupId, isSearchResponse, isMovie } from '@findarr/shared';
 
 function App() {
-  const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
+  const [searchResults, setSearchResults] = useState<SearchResponse | DiscoverResponse | null>(
+    null
+  );
   const [currentSearchType, setCurrentSearchType] = useState<SearchType>('both');
   const [loading, setLoading] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Movie | TVShow | null>(null);
   const [selectedDetails, setSelectedDetails] = useState<MovieDetails | TVDetails | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const [timePeriod, setTimePeriod] = useState<RecentPeriod>('last_month');
+  const [recentDays, setRecentDays] = useState<number>(365); // Default to 30 days (last month)
   const [language, setLanguage] = useState<string>('de-DE');
-  const [selectedRegions, setSelectedRegions] = useState<RegionGroupId[]>([]); // Default to no filtering - show all content
+  const [selectedRegions, setSelectedRegions] = useState<RegionGroupId[]>(['western']); // Default to no filtering - show all content
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentQuery, setCurrentQuery] = useState<string>('');
-  const [tvDateFilter, setTvDateFilter] = useState<'first_air_date' | 'air_date'>('air_date');
-  const [sortBy, setSortBy] = useState<'popularity.desc' | 'vote_average.desc' | 'vote_count.desc'>(
-    'popularity.desc'
-  );
+
   const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
 
   // Load popular content on initial render or when back to discovery mode
@@ -52,15 +46,11 @@ function App() {
       try {
         const discoveryResults = await searchService.discoverMedia({
           type: currentSearchType,
-          sort_by: sortBy,
           page: currentPage,
-          recent_period: timePeriod as RecentPeriod,
+          recent_days: recentDays,
           language,
           region_groups: selectedRegions,
-          tv_date_filter: tvDateFilter,
           with_genres: selectedGenres.length > 0 ? selectedGenres.join('|') : undefined,
-          // Add minimum vote count when sorting by rating to ensure quality
-          ...(sortBy === 'vote_average.desc' && { vote_count_gte: 100 }),
         });
 
         setSearchResults(discoveryResults);
@@ -73,19 +63,17 @@ function App() {
 
     loadDiscoveryContent();
   }, [
-    timePeriod,
+    recentDays,
     hasSearched,
     currentSearchType,
     language,
     selectedRegions,
     currentPage,
-    tvDateFilter,
-    sortBy,
     selectedGenres,
   ]);
 
-  const handleTimePeriodChange = async (newTimePeriod: RecentPeriod) => {
-    setTimePeriod(newTimePeriod);
+  const handleTimePeriodChange = async (newDays: number) => {
+    setRecentDays(newDays);
     setCurrentPage(1); // Reset to first page when changing filters
     setSearchResults(null); // Clear existing results for fresh filtered content
   };
@@ -106,18 +94,6 @@ function App() {
     setLanguage(e.target.value);
     setCurrentPage(1); // Reset to first page when changing language
     setSearchResults(null); // Clear existing results for fresh filtered content
-  };
-
-  const handleTvDateFilterChange = (filter: 'first_air_date' | 'air_date') => {
-    setTvDateFilter(filter);
-    setCurrentPage(1); // Reset to first page when changing filters
-    setSearchResults(null); // Clear existing results for fresh filtered content
-  };
-
-  const handleSortChange = (sort: 'popularity.desc' | 'vote_average.desc' | 'vote_count.desc') => {
-    setSortBy(sort);
-    setCurrentPage(1); // Reset to first page when changing sort
-    setSearchResults(null); // Clear existing results for fresh sorted content
   };
 
   const handleGenreChange = (genres: number[]) => {
@@ -146,7 +122,6 @@ function App() {
       const results = await searchService.searchMedia({
         query,
         page,
-        include_adult: false,
         language,
         type: currentSearchType,
       });
@@ -234,7 +209,63 @@ function App() {
         <>
           <SearchBar onSearch={handleSearch} loading={loading} />
 
-          {/* Expandable Filter Controls */}
+          {/* Primary Filters - Always Visible */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'auto 1px 1fr',
+              gap: '1.5rem',
+              alignItems: 'start',
+              marginBottom: '1.5rem',
+            }}
+          >
+            {/* Left: Media Type and Sort By dropdowns */}
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <label style={{ fontSize: '0.875rem', fontWeight: '500', color: '#6c757d' }}>
+                  Media Type
+                </label>
+                <select
+                  value={currentSearchType}
+                  onChange={e => handleTypeChange(e.target.value as SearchType)}
+                  disabled={loading}
+                  style={{
+                    padding: '0.75rem',
+                    fontSize: '1rem',
+                    border: '2px solid #ddd',
+                    borderRadius: '6px',
+                    backgroundColor: 'white',
+                    minWidth: '180px',
+                  }}
+                >
+                  <option value="both">Movies & TV Shows</option>
+                  <option value="movie">Movies Only</option>
+                  <option value="tv">TV Shows Only</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Center: Vertical divider */}
+            <div
+              style={{
+                width: '1px',
+                backgroundColor: '#dee2e6',
+                alignSelf: 'stretch',
+                marginTop: '1.75rem',
+              }}
+            />
+
+            {/* Right: Genre Selector (takes remaining space) */}
+            <div style={{ minWidth: 0 }}>
+              <GenreSelector
+                type={currentSearchType}
+                selectedGenres={selectedGenres}
+                onGenreChange={handleGenreChange}
+              />
+            </div>
+          </div>
+
+          {/* Advanced Filters - Expandable */}
           <div
             style={{
               marginBottom: '2rem',
@@ -263,7 +294,7 @@ function App() {
             >
               <span>
                 🎛️ Advanced Filters
-                {!filtersExpanded && (selectedRegions.length > 0 || selectedGenres.length > 0) && (
+                {!filtersExpanded && selectedRegions.length > 0 && (
                   <span
                     style={{
                       fontSize: '0.875rem',
@@ -272,13 +303,8 @@ function App() {
                       marginLeft: '0.5rem',
                     }}
                   >
-                    (
-                    {selectedRegions.length > 0 &&
-                      `${selectedRegions.length} region${selectedRegions.length !== 1 ? 's' : ''}`}
-                    {selectedRegions.length > 0 && selectedGenres.length > 0 && ', '}
-                    {selectedGenres.length > 0 &&
-                      `${selectedGenres.length} genre${selectedGenres.length !== 1 ? 's' : ''}`}
-                    , {currentSearchType}, {language.split('-')[0].toUpperCase()})
+                    ({selectedRegions.length} region{selectedRegions.length !== 1 ? 's' : ''},{' '}
+                    {language.split('-')[0].toUpperCase()})
                   </span>
                 )}
               </span>
@@ -312,59 +338,6 @@ function App() {
                 >
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     <label style={{ fontSize: '0.875rem', fontWeight: '500', color: '#6c757d' }}>
-                      Media Type
-                    </label>
-                    <select
-                      value={currentSearchType}
-                      onChange={e => handleTypeChange(e.target.value as SearchType)}
-                      disabled={loading}
-                      style={{
-                        padding: '0.75rem',
-                        fontSize: '1rem',
-                        border: '2px solid #ddd',
-                        borderRadius: '6px',
-                        backgroundColor: 'white',
-                        minWidth: '180px',
-                      }}
-                    >
-                      <option value="both">Movies & TV Shows</option>
-                      <option value="movie">Movies Only</option>
-                      <option value="tv">TV Shows Only</option>
-                    </select>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <label style={{ fontSize: '0.875rem', fontWeight: '500', color: '#6c757d' }}>
-                      Sort By
-                    </label>
-                    <select
-                      value={sortBy}
-                      onChange={e =>
-                        handleSortChange(
-                          e.target.value as
-                            | 'popularity.desc'
-                            | 'vote_average.desc'
-                            | 'vote_count.desc'
-                        )
-                      }
-                      disabled={loading}
-                      style={{
-                        padding: '0.75rem',
-                        fontSize: '1rem',
-                        border: '2px solid #ddd',
-                        borderRadius: '6px',
-                        backgroundColor: 'white',
-                        minWidth: '180px',
-                      }}
-                    >
-                      <option value="popularity.desc">🔥 Most Popular</option>
-                      <option value="vote_average.desc">⭐ Highest Rated</option>
-                      <option value="vote_count.desc">💬 Most Discussed</option>
-                    </select>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <label style={{ fontSize: '0.875rem', fontWeight: '500', color: '#6c757d' }}>
                       Language
                     </label>
                     <select
@@ -377,7 +350,7 @@ function App() {
                         border: '2px solid #ddd',
                         borderRadius: '6px',
                         backgroundColor: 'white',
-                        minWidth: '180px',
+                        minWidth: '200px',
                       }}
                     >
                       <option value="de-DE">German (Germany)</option>
@@ -397,77 +370,11 @@ function App() {
                     disabled={loading}
                   />
                 </div>
-
-                <GenreSelector
-                  type={currentSearchType}
-                  selectedGenres={selectedGenres}
-                  onGenreChange={handleGenreChange}
-                />
               </div>
             )}
           </div>
 
-          {!hasSearched && <TimeRangeSlider value={timePeriod} onChange={handleTimePeriodChange} />}
-
-          {!hasSearched && (currentSearchType === 'tv' || currentSearchType === 'both') && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '1rem',
-                marginBottom: '1.5rem',
-                padding: '1rem',
-                backgroundColor: '#f8f9fa',
-                borderRadius: '8px',
-                border: '1px solid #e9ecef',
-              }}
-            >
-              <label style={{ fontWeight: '500', color: '#333', whiteSpace: 'nowrap' }}>
-                TV Show Date Filter:
-              </label>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.25rem',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <input
-                    type="radio"
-                    name="tvDateFilter"
-                    value="air_date"
-                    checked={tvDateFilter === 'air_date'}
-                    onChange={() => handleTvDateFilterChange('air_date')}
-                  />
-                  <span>Recent Episodes</span>
-                </label>
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.25rem',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <input
-                    type="radio"
-                    name="tvDateFilter"
-                    value="first_air_date"
-                    checked={tvDateFilter === 'first_air_date'}
-                    onChange={() => handleTvDateFilterChange('first_air_date')}
-                  />
-                  <span>Original Release</span>
-                </label>
-              </div>
-              <span style={{ fontSize: '0.875rem', color: '#666', fontStyle: 'italic' }}>
-                {tvDateFilter === 'air_date'
-                  ? 'Shows shows with recent episodes in the selected time period'
-                  : 'Shows series that originally premiered in the selected time period'}
-              </span>
-            </div>
-          )}
+          {!hasSearched && <TimeRangeSlider value={recentDays} onChange={handleTimePeriodChange} />}
 
           {searchResults && (
             <div id="results-section">
@@ -507,15 +414,17 @@ function App() {
                     </button>
                   )}
                 </div>
-                <span style={{ color: '#666', fontSize: '0.9rem' }}>
-                  {searchResults.total_results.toLocaleString()} results
-                </span>
+                {isSearchResponse(searchResults) && (
+                  <span style={{ color: '#666', fontSize: '0.9rem' }}>
+                    {searchResults.total_results.toLocaleString()} results
+                  </span>
+                )}
               </div>
 
               <ResultsGrid results={searchResults.results} onSelectItem={handleSelectItem} />
 
               {/* Pagination Controls */}
-              {searchResults.total_pages > 1 && (
+              {isSearchResponse(searchResults) && searchResults.total_pages > 1 && (
                 <div
                   style={{
                     textAlign: 'center',

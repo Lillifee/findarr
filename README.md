@@ -27,22 +27,22 @@ A full-stack TypeScript application for discovering movies and shows using the T
 
 ### Installation
 
-1. Clone the repository
-2. Install dependencies:
+1. **Clone and install**:
 
    ```bash
+   git clone <your-repo-url>
+   cd findarr
    npm install
    ```
 
-3. Set up environment variables:
+2. **Setup environment**:
 
    ```bash
-   # Create server/.env file
    cp server/.env.example server/.env
-   # Add your TMDB API key to server/.env
+   # Edit server/.env and add your API keys
    ```
 
-4. Start development servers:
+3. **Start developing**:
    ```bash
    npm run dev
    ```

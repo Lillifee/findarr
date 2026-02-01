@@ -19,7 +19,7 @@ export const TrailerButton: React.FC<TrailerButtonProps> = ({ id, type, title })
     setLoading(true);
 
     try {
-      const videos = await searchService.getVideos(id, type);
+      const videos = await searchService.getVideos({ id, type });
 
       // Find the best trailer (prefer official trailers)
       const trailers = videos.results.filter(

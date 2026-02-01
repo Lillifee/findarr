@@ -1,4 +1,9 @@
-import { SearchQuerySchema, DiscoverQuerySchema, DetailsQuerySchema } from '@findarr/shared';
+import {
+  SearchQuerySchema,
+  DiscoverQuerySchema,
+  DetailsQuerySchema,
+  GenresQuerySchema,
+} from '@findarr/shared';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 
 export async function mediaRoutes(fastify: FastifyInstance) {
@@ -6,7 +11,7 @@ export async function mediaRoutes(fastify: FastifyInstance) {
   fastify.get('/search', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const queryParams = SearchQuerySchema.parse(request.query);
-      const results = await fastify.tmdb.searchMedia(queryParams);
+      const results = await fastify.tmdb.search(queryParams);
       return results;
     } catch (error) {
       fastify.log.error(error);
@@ -18,7 +23,7 @@ export async function mediaRoutes(fastify: FastifyInstance) {
   fastify.get('/discover', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const queryParams = DiscoverQuerySchema.parse(request.query);
-      const results = await fastify.tmdb.discoverMedia(queryParams);
+      const results = await fastify.tmdb.discover(queryParams);
       return results;
     } catch (error) {
       fastify.log.error(error);
@@ -30,7 +35,7 @@ export async function mediaRoutes(fastify: FastifyInstance) {
   fastify.get('/details', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const queryParams = DetailsQuerySchema.parse(request.query);
-      const result = await fastify.tmdb.detailsMedia(queryParams);
+      const result = await fastify.tmdb.getDetails(queryParams);
       return result;
     } catch (error) {
       fastify.log.error(error);
@@ -53,11 +58,8 @@ export async function mediaRoutes(fastify: FastifyInstance) {
   // Genres endpoint: GET /genres?type=movie
   fastify.get('/genres', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      const { type } = request.query as { type: 'movie' | 'tv' };
-      if (!type || (type !== 'movie' && type !== 'tv')) {
-        return reply.status(400).send({ error: 'Valid type parameter (movie or tv) is required' });
-      }
-      const result = await fastify.tmdb.getGenres(type);
+      const queryParams = GenresQuerySchema.parse(request.query);
+      const result = await fastify.tmdb.getGenres(queryParams);
       return result;
     } catch (error) {
       fastify.log.error(error);

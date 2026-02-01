@@ -23,11 +23,11 @@ export default function GenreSelector({ type, selectedGenres, onGenreChange }: P
       setIsLoading(true);
       try {
         if (type === 'movie' || type === 'both') {
-          const movieData = await searchService.getGenres('movie');
+          const movieData = await searchService.getGenres({ type: 'movie' });
           setMovieGenres(movieData.genres);
         }
         if (type === 'tv' || type === 'both') {
-          const tvData = await searchService.getGenres('tv');
+          const tvData = await searchService.getGenres({ type: 'tv' });
           setTvGenres(tvData.genres);
         }
       } catch (error) {

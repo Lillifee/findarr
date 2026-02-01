@@ -1,33 +1,24 @@
 import React from 'react';
-import { RECENT_PERIOD_VALUES, type RecentPeriod } from '@findarr/shared';
 
 interface TimeRangeSliderProps {
-  value: RecentPeriod;
-  onChange: (period: RecentPeriod) => void;
+  value: number;
+  onChange: (days: number) => void;
 }
 
-// Create display labels for each period value
-const PERIOD_LABELS: Record<RecentPeriod, string> = {
-  last_week: 'Last Week',
-  last_month: 'Last Month',
-  last_3_months: 'Last 3 Months',
-  last_6_months: 'Last 6 Months',
-  last_year: 'Last Year',
-  last_2_years: 'Last 2 Years',
-};
-
-const TIME_PERIODS = RECENT_PERIOD_VALUES.map(value => ({
-  value,
-  label: PERIOD_LABELS[value],
-}));
+// Define time period options with labels and days
+const TIME_PERIODS = [
+  { days: 30, label: 'Last Month' },
+  { days: 180, label: 'Last 6 Months' },
+  { days: 365, label: 'Last Year' },
+  { days: 730, label: 'Last 2 Years' },
+];
 
 export function TimeRangeSlider({ value, onChange }: TimeRangeSliderProps) {
-  const currentIndex = TIME_PERIODS.findIndex(period => period.value === value);
-  const selectedIndex = currentIndex >= 0 ? currentIndex : 1; // default to 'last_month'
+  const currentIndex = TIME_PERIODS.findIndex(period => period.days === value);
 
   const handleSliderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const index = parseInt(event.target.value);
-    onChange(TIME_PERIODS[index].value);
+    onChange(TIME_PERIODS[index].days);
   };
 
   return (
@@ -66,7 +57,7 @@ export function TimeRangeSlider({ value, onChange }: TimeRangeSliderProps) {
             fontWeight: '500',
           }}
         >
-          {TIME_PERIODS[selectedIndex].label}
+          {TIME_PERIODS[currentIndex].label}
         </span>
       </div>
 
@@ -75,7 +66,7 @@ export function TimeRangeSlider({ value, onChange }: TimeRangeSliderProps) {
           type="range"
           min="0"
           max={TIME_PERIODS.length - 1}
-          value={selectedIndex}
+          value={currentIndex}
           onChange={handleSliderChange}
           style={{
             width: '100%',
@@ -98,11 +89,11 @@ export function TimeRangeSlider({ value, onChange }: TimeRangeSliderProps) {
         >
           {TIME_PERIODS.map((period, index) => (
             <span
-              key={period.value}
+              key={period.days}
               style={{
                 textAlign: 'center',
-                fontWeight: index === selectedIndex ? '600' : '400',
-                color: index === selectedIndex ? '#007bff' : '#666',
+                fontWeight: index === currentIndex ? '600' : '400',
+                color: index === currentIndex ? '#007bff' : '#666',
               }}
             >
               {period.label.split(' ')[1] || period.label} {/* Show only "Week", "Month", etc. */}
@@ -119,7 +110,7 @@ export function TimeRangeSlider({ value, onChange }: TimeRangeSliderProps) {
           textAlign: 'center',
         }}
       >
-        Discover movies and TV shows from {TIME_PERIODS[selectedIndex].label.toLowerCase()} to next
+        Discover movies and TV shows from {TIME_PERIODS[currentIndex].label.toLowerCase()} to next
         week
       </div>
     </div>
