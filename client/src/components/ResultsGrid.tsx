@@ -8,11 +8,6 @@ interface ResultsGridProps {
 
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
 
-// Helper function to determine if item is a movie
-function isMovie(item: Movie | TVShow): item is Movie {
-  return 'title' in item && 'release_date' in item;
-}
-
 export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem }) => {
   if (results.length === 0) {
     return <div style={{ textAlign: 'center', padding: '2rem' }}>No results found</div>;
@@ -30,7 +25,7 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
         const title = item.name;
         const releaseDate = item.date;
         const year = releaseDate ? new Date(releaseDate).getFullYear() : 'N/A';
-        const itemType = isMovie(item) ? 'Movie' : 'TV Show';
+        const itemType = item.type === 'movie' ? 'Movie' : 'TV Show';
 
         return (
           <div

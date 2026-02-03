@@ -5,7 +5,7 @@ import {
   GenresQuerySchema,
 } from '@findarr/shared';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import type { z } from 'zod';
+import { ZodError, type z } from 'zod';
 
 export async function mediaRoutes(x: FastifyInstance) {
   // Search endpoint: GET /search?query=batman&type=both
@@ -35,8 +35,18 @@ function registerRoute<TSchema extends z.ZodTypeAny, TResult>(
 
   fastify.get(route, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      return await handler(fastify, schema.parse(request.query));
+      const params = schema.parse(request.query);
+      return await handler(fastify, params);
     } catch (error) {
+      // Distinguish validation errors from server errors
+      if (error instanceof ZodError) {
+        request.log.warn({ error }, 'Validation error');
+        return reply.status(400).send({
+          error: 'Invalid request parameters',
+          details: error.issues,
+        });
+      }
+
       request.log.error(error);
       return reply.status(500).send({ error: errorMessage });
     }

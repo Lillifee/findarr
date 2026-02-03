@@ -18,7 +18,7 @@ import {
 /**
  * Create a TMDB API client with configured axios instance
  * Pure API client - 1:1 mapping with TMDB API endpoints
- * Returns raw TMDB response types without any transformation
+ * Returns raw TMDB response types with minimal transformation
  */
 export function createTMDBClient(
   accessToken: string,

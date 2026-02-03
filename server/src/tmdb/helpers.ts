@@ -1,4 +1,4 @@
-import type { RegionGroupId } from '@findarr/shared';
+import type { RegionGroupId, Movie, TVShow } from '@findarr/shared';
 
 /**
  * Region groups for TMDB API filtering
@@ -253,4 +253,55 @@ export function buildDateParams(
   }
 
   return dateParams;
+}
+
+/**
+ * Filter criteria for TMDB results
+ */
+export interface FilterCriteria {
+  type: 'movie' | 'tv' | 'both';
+  languageFilter: string;
+  countryFilter: string;
+  genresFilter?: string;
+}
+
+/**
+ * Filter media items by criteria
+ * Used for post-fetch filtering when TMDB API doesn't support certain filters
+ */
+export function filterByCriteria(item: Movie | TVShow, filters: FilterCriteria): boolean {
+  // Media type filter
+  if (filters.type !== 'both' && item.type !== filters.type) {
+    return false;
+  }
+
+  // Language filter
+  if (
+    filters.languageFilter &&
+    !filters.languageFilter.split('|').includes(item.original_language)
+  ) {
+    return false;
+  }
+
+  // Country filter
+  if (filters.countryFilter && item.origin_country) {
+    const itemCountries = Array.isArray(item.origin_country)
+      ? item.origin_country
+      : [item.origin_country];
+    const allowedCountries = filters.countryFilter.split('|');
+    if (!itemCountries.some(country => allowedCountries.includes(country))) {
+      return false;
+    }
+  }
+
+  // Genre filter
+  if (filters.genresFilter && item.genres) {
+    const selectedGenres = filters.genresFilter.split('|').map(Number);
+    const itemGenres = item.genres.map(g => g.id);
+    if (!selectedGenres.some(genreId => itemGenres.includes(genreId))) {
+      return false;
+    }
+  }
+
+  return true;
 }
