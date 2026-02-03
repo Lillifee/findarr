@@ -10,10 +10,11 @@
     "shared"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev --workspace=@findarr/server\" \"npm run dev --workspace=@findarr/client\"",
+    "dev": "concurrently \"npm run dev --workspace=@findarr/shared\" \"npm run dev --workspace=@findarr/server\" \"npm run dev --workspace=@findarr/client\"",
     "build": "npm run build --workspace=@findarr/shared && npm run build --workspace=@findarr/client && npm run build --workspace=@findarr/server",
     "build:client": "npm run build --workspace=@findarr/client",
     "build:server": "npm run build --workspace=@findarr/server",
+    "dev:shared": "npm run watch --workspace=@findarr/shared",
     "dev:client": "npm run dev --workspace=@findarr/client",
     "dev:server": "npm run dev --workspace=@findarr/server",
     "test": "npm run type-check && npm run lint && npm run format:check && npm run build",

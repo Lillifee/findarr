@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import fastify from 'fastify';
 import cors from '@fastify/cors';
-import { tmdbPlugin } from './services/tmdb';
+import { mediaPlugin } from './plugins/media';
 import { mediaRoutes } from './routes/media';
 import { ServerEnvSchema } from '@findarr/shared';
 
@@ -9,9 +9,22 @@ import { ServerEnvSchema } from '@findarr/shared';
 const env = ServerEnvSchema.parse(process.env);
 
 const server = fastify({
-  logger: {
-    level: env.NODE_ENV === 'production' ? 'info' : 'debug',
-  },
+  logger:
+    env.NODE_ENV === 'development'
+      ? {
+          level: 'info',
+          transport: {
+            target: 'pino-pretty',
+            options: {
+              colorize: true,
+              translateTime: 'HH:MM:ss',
+              ignore: 'pid,hostname',
+            },
+          },
+        }
+      : {
+          level: 'warn',
+        },
 });
 
 async function start() {
@@ -21,8 +34,8 @@ async function start() {
       origin: env.NODE_ENV === 'development' ? ['http://localhost:5173'] : false,
     });
 
-    // Register TMDB service
-    await server.register(tmdbPlugin);
+    // Register media service
+    await server.register(mediaPlugin, { env });
 
     // Health check endpoint
     server.get('/health', async () => ({

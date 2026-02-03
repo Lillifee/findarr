@@ -1,5 +1,34 @@
 import React from 'react';
-import { REGION_GROUPS, type RegionGroupId } from '@findarr/shared';
+import { type RegionGroupId } from '@findarr/shared';
+
+// Region metadata for UI display (TMDB mapping handled server-side)
+const REGION_INFO: Record<RegionGroupId, { name: string; description: string }> = {
+  western: {
+    name: 'Western',
+    description:
+      'English-speaking countries, Western Europe, and Nordic countries (US, UK, Germany, France, etc.)',
+  },
+  'eastern-europe': {
+    name: 'Eastern Europe',
+    description:
+      'Eastern European countries including Russia, Poland, Czech Republic, and Baltic states',
+  },
+  asian: {
+    name: 'Asian',
+    description:
+      'All Asian countries including Japan, Korea, China, India, Thailand, Indonesia, Philippines, etc.',
+  },
+  'latin-america': {
+    name: 'Latin America',
+    description:
+      'Latin American countries including Mexico, Brazil, Argentina, Chile, Colombia, Peru, etc.',
+  },
+  'middle-east-africa': {
+    name: 'Middle East & Africa',
+    description:
+      'Middle Eastern and African countries including Saudi Arabia, Turkey, Egypt, Nigeria, Kenya, etc.',
+  },
+};
 
 interface RegionSelectorProps {
   selectedRegions: RegionGroupId[];
@@ -12,7 +41,7 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
   onRegionsChange,
   disabled = false,
 }) => {
-  const allRegions = Object.keys(REGION_GROUPS) as RegionGroupId[];
+  const allRegions = Object.keys(REGION_INFO) as RegionGroupId[];
 
   const handleRegionToggle = (regionId: RegionGroupId) => {
     if (selectedRegions.includes(regionId)) {
@@ -88,7 +117,7 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
         }}
       >
         {allRegions.map(regionId => {
-          const region = REGION_GROUPS[regionId];
+          const region = REGION_INFO[regionId];
           const isSelected = selectedRegions.includes(regionId);
 
           return (

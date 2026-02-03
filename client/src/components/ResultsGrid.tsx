@@ -1,6 +1,5 @@
 import React from 'react';
 import { Movie, TVShow } from '../../../shared/dist/types';
-import { TrailerButton } from './TrailerButton';
 
 interface ResultsGridProps {
   results: (Movie | TVShow)[];
@@ -55,8 +54,6 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
               e.currentTarget.style.boxShadow = 'none';
             }}
           >
-            <TrailerButton id={item.id} type={isMovie(item) ? 'movie' : 'tv'} title={title} />
-
             {/* Trending Badge */}
             {item.is_trending && (
               <div

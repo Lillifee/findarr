@@ -1,59 +1,155 @@
 import { z } from 'zod';
 import {
-  TMDBMovieSchema,
-  TMDBTVSchema,
-  TMDBSearchResponseSchema,
-  TMDBMovieDetailsSchema,
-  TMDBTVDetailsSchema,
-  TMDBGenreSchema,
-  TMDBVideoSchema,
-  TMDBVideosResponseSchema,
   SearchQuerySchema,
   DiscoverQuerySchema,
   DetailsQuerySchema,
   ServerEnvSchema,
   GenresQuerySchema,
-  TMDBGenresResponseSchema,
-  TMDBDiscoverResponseSchema,
 } from './schemas';
+
+// ============================================================================
+// Application Types - Media (Movies and TV Shows)
+// ============================================================================
+
+/**
+ * Application types for media (movies and TV shows)
+ * These are the clean, unified types used throughout the application
+ * Separate from TMDB API types which live in server/src/schemas/tmdb.ts
+ */
+
+export interface Genre {
+  id: number;
+  name: string;
+}
+
+/**
+ * Base fields common to Movie and TVShow
+ */
+interface MediaBase {
+  id: number;
+  type: 'movie' | 'tv';
+  name: string;
+  date: string | null;
+  poster_path: string | null;
+  overview: string | null;
+  vote_average: number;
+  vote_count: number;
+  popularity: number;
+  original_language: string;
+  origin_country?: string[]; // TV-specific field - undefined for movies
+  genres: Genre[];
+
+  // Custom enrichment fields added by server
+  is_trending?: boolean;
+  trending_rank?: number;
+  custom_popularity?: number;
+}
+
+/**
+ * Movie type - used in search/discover results
+ */
+export interface Movie extends MediaBase {
+  type: 'movie';
+}
+
+/**
+ * TV Show type - used in search/discover results
+ */
+export interface TVShow extends MediaBase {
+  type: 'tv';
+}
+
+/**
+ * Movie Details - extends Movie with additional fields
+ */
+export interface MovieDetails extends Movie {
+  tagline: string | null;
+  runtime: number | null;
+  budget: number;
+  revenue: number;
+  status: string;
+  homepage: string | null;
+  imdb_id: string | null;
+}
+
+/**
+ * TV Show Details - extends TVShow with additional fields
+ */
+export interface TVDetails extends TVShow {
+  original_name: string;
+  episode_run_time: number[];
+  show_type: string;
+  number_of_seasons: number;
+  number_of_episodes: number;
+  status: string;
+  homepage: string | null;
+}
+
+/**
+ * Search response wrapper
+ */
+export interface SearchResponse {
+  page: number;
+  results: (Movie | TVShow)[];
+  total_pages: number;
+  total_results: number;
+}
+
+/**
+ * Discover response wrapper
+ */
+export interface DiscoverResponse {
+  results: (Movie | TVShow)[];
+}
+
+// ============================================================================
+// Type Guards
+// ============================================================================
+
+/**
+ * Type guard to check if media item is a Movie
+ */
+export function isMovie(item: Movie | TVShow): item is Movie {
+  return item.type === 'movie';
+}
+
+/**
+ * Type guard to check if media item is a TVShow
+ */
+export function isTVShow(item: Movie | TVShow): item is TVShow {
+  return item.type === 'tv';
+}
+
+/**
+ * Type guard to check if response is a SearchResponse
+ */
+export function isSearchResponse(
+  response: SearchResponse | DiscoverResponse
+): response is SearchResponse {
+  return 'page' in response && 'total_pages' in response && 'total_results' in response;
+}
+
+// ============================================================================
+// Server Configuration Types
+// ============================================================================
 
 // Server configuration types
 export type ServerEnv = z.infer<typeof ServerEnvSchema>;
+
+// ============================================================================
+// Core Application Types
+// ============================================================================
 
 // Core application types
 export type MediaType = 'movie' | 'tv';
 export type SearchType = 'movie' | 'tv' | 'both';
 
-// TMDB API types (inferred from schemas)
-export type Movie = z.infer<typeof TMDBMovieSchema>;
-export type TVShow = z.infer<typeof TMDBTVSchema>;
-export type MovieDetails = z.infer<typeof TMDBMovieDetailsSchema>;
-export type TVDetails = z.infer<typeof TMDBTVDetailsSchema>;
-export type Genre = z.infer<typeof TMDBGenreSchema>;
-export type Video = z.infer<typeof TMDBVideoSchema>;
+// ============================================================================
+// Request Types (inferred from schemas)
+// ============================================================================
 
-export type MovieOrTVShow = Movie | TVShow;
-
-// Request/Response types (inferred from schemas)
+// Request types (inferred from schemas)
 export type SearchQuery = z.infer<typeof SearchQuerySchema>;
 export type DiscoverQuery = z.infer<typeof DiscoverQuerySchema>;
 export type DetailsQuery = z.infer<typeof DetailsQuerySchema>;
-export type VideosQuery = z.infer<typeof DetailsQuerySchema>;
 export type GenresQuery = z.infer<typeof GenresQuerySchema>;
-
-export type SearchResponse = z.infer<typeof TMDBSearchResponseSchema>;
-export type DiscoverResponse = z.infer<typeof TMDBDiscoverResponseSchema>;
-export type DetailsResponse = MovieDetails | TVDetails;
-export type VideosResponse = z.infer<typeof TMDBVideosResponseSchema>;
-export type GenresResponse = z.infer<typeof TMDBGenresResponseSchema>;
-
-// Type guard functions
-export function isSearchResponse(
-  response: SearchResponse | DiscoverResponse
-): response is SearchResponse {
-  return 'total_pages' in response;
-}
-
-export function isMovie(item: Movie | TVShow): item is Movie {
-  return item.media_type === 'movie';
-}

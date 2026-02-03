@@ -1,22 +1,16 @@
-import { MovieDetails, TVDetails, Video } from '@findarr/shared';
+import { MovieDetails, TVDetails } from '@findarr/shared';
 
 interface MediaDetailsProps {
   media: MovieDetails | TVDetails;
   onRequest: () => void;
 }
-// Type guards
-function isMovie(media: MovieDetails | TVDetails): media is MovieDetails {
-  return media.media_type === 'movie';
-}
 
 export function MediaView({ media, onRequest }: MediaDetailsProps) {
-  const isMovieType = isMovie(media);
-
   // Common data extraction
   const title = media.name;
   const releaseDate = media.date;
-  const buttonText = media.media_type === 'movie' ? '📥 Request Movie' : '📥 Request TV Show';
-  const buttonColor = media.media_type === 'movie' ? '#28a745' : '#17a2b8';
+  const buttonText = media.type === 'movie' ? '📥 Request Movie' : '📥 Request TV Show';
+  const buttonColor = media.type === 'movie' ? '#28a745' : '#17a2b8';
 
   // Format helpers
   const formatRuntime = (value: number | number[] | null) => {
@@ -65,7 +59,7 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
         <h1 style={{ margin: '0 0 0.5rem 0', fontSize: '2.5rem' }}>{title}</h1>
 
         {/* Movie tagline or TV original name */}
-        {isMovieType && media.tagline && (
+        {media.type === 'movie' && media.tagline && (
           <p
             style={{
               fontStyle: 'italic',
@@ -78,7 +72,7 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
           </p>
         )}
 
-        {!isMovieType && media.original_name !== media.name && (
+        {media.type === 'tv' && media.original_name !== media.name && (
           <p
             style={{
               fontStyle: 'italic',
@@ -105,12 +99,14 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
             ⭐ {media.vote_average.toFixed(1)} ({media.vote_count.toLocaleString()} votes)
           </span>
           <span>📅 {releaseDate}</span>
-          <span>⏱️ {formatRuntime(isMovieType ? media.runtime : media.episode_run_time)}</span>
+          <span>
+            ⏱️ {formatRuntime(media.type === 'movie' ? media.runtime : media.episode_run_time)}
+          </span>
           <span>🎭 {media.status}</span>
         </div>
 
         {/* TV-specific additional stats */}
-        {!isMovieType && (
+        {media.type === 'tv' && (
           <div
             style={{
               display: 'flex',
@@ -154,7 +150,7 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
         )}
 
         {/* TV-specific origin countries */}
-        {!isMovieType && media.origin_country && media.origin_country.length > 0 && (
+        {media.type === 'tv' && media.origin_country && media.origin_country.length > 0 && (
           <div style={{ marginBottom: '1.5rem' }}>
             <h3 style={{ margin: '0 0 0.5rem 0' }}>Origin Country</h3>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
@@ -196,7 +192,7 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
             borderRadius: '8px',
           }}
         >
-          {isMovieType && (
+          {media.type === 'movie' && (
             <>
               <div>
                 <strong>Budget:</strong>
@@ -211,12 +207,12 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
             </>
           )}
 
-          {!isMovieType && (
+          {media.type === 'tv' && (
             <>
               <div>
                 <strong>Show Type:</strong>
                 <br />
-                {media.type}
+                {media.show_type}
               </div>
               <div>
                 <strong>Popularity:</strong>
@@ -232,7 +228,7 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
             {media.original_language?.toUpperCase()}
           </div>
 
-          {isMovieType && media.imdb_id && (
+          {media.type === 'movie' && media.imdb_id && (
             <div>
               <strong>IMDB:</strong>
               <br />
@@ -247,110 +243,6 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
             </div>
           )}
         </div>
-
-        {/* Trailers and Videos */}
-        {media.videos && media.videos.results.length > 0 && (
-          <div style={{ marginBottom: '2rem' }}>
-            <h3 style={{ margin: '0 0 1rem 0' }}>Trailers & Videos</h3>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                gap: '1rem',
-              }}
-            >
-              {media.videos.results
-                .filter((video: Video) => video.site === 'YouTube')
-                .slice(0, 6) // Limit to 6 videos to avoid overwhelming
-                .map((video: Video) => (
-                  <div
-                    key={video.id}
-                    style={{
-                      border: '1px solid #ddd',
-                      borderRadius: '8px',
-                      overflow: 'hidden',
-                      backgroundColor: 'white',
-                    }}
-                  >
-                    <div
-                      style={{
-                        position: 'relative',
-                        aspectRatio: '16/9',
-                        backgroundColor: '#f0f0f0',
-                        cursor: 'pointer',
-                      }}
-                      onClick={() =>
-                        window.open(`https://www.youtube.com/watch?v=${video.key}`, '_blank')
-                      }
-                    >
-                      <img
-                        src={`https://img.youtube.com/vi/${video.key}/hqdefault.jpg`}
-                        alt={video.name}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                        }}
-                      />
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '50%',
-                          left: '50%',
-                          transform: 'translate(-50%, -50%)',
-                          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                          borderRadius: '50%',
-                          width: '60px',
-                          height: '60px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '1.5rem',
-                          color: 'white',
-                        }}
-                      >
-                        ▶️
-                      </div>
-                    </div>
-                    <div style={{ padding: '0.75rem' }}>
-                      <h4
-                        style={{ margin: '0 0 0.25rem 0', fontSize: '0.9rem', fontWeight: '600' }}
-                      >
-                        {video.name}
-                      </h4>
-                      <div
-                        style={{
-                          fontSize: '0.75rem',
-                          color: '#666',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <span>{video.type}</span>
-                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                          {video.official && (
-                            <span
-                              style={{
-                                backgroundColor: '#28a745',
-                                color: 'white',
-                                padding: '0.125rem 0.5rem',
-                                borderRadius: '12px',
-                                fontSize: '0.7rem',
-                              }}
-                            >
-                              Official
-                            </span>
-                          )}
-                          <span style={{ textTransform: 'uppercase' }}>{video.site}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
-        )}
 
         {/* Homepage link */}
         {media.homepage && (
