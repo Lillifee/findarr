@@ -62,6 +62,9 @@ export const DiscoverQuerySchema = BaseQuerySchema.extend({
   with_genres: z.string().optional(), // comma-separated genre IDs
 });
 
+// Popular query extends discover with required pagination
+export const PopularQuerySchema = DiscoverQuerySchema.extend({});
+
 export const DetailsQuerySchema = BaseQuerySchema.extend({
   id: z.coerce.number().int().positive(),
   type: z.enum(['movie', 'tv']),

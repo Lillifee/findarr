@@ -33,6 +33,7 @@ function App() {
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentQuery, setCurrentQuery] = useState<string>('');
+  const [viewMode, setViewMode] = useState<'popular' | 'discover'>('popular');
 
   const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
 
@@ -44,14 +45,21 @@ function App() {
       setLoading(true);
 
       try {
-        const discoveryResults = await searchService.discoverMedia({
+        const baseParams = {
           type: currentSearchType,
           page: currentPage,
-          recent_days: recentDays,
           language,
           region_groups: selectedRegions,
           with_genres: selectedGenres.length > 0 ? selectedGenres.join('|') : undefined,
-        });
+        };
+
+        const discoveryResults =
+          viewMode === 'popular'
+            ? await searchService.popularMedia(baseParams)
+            : await searchService.discoverMedia({
+                ...baseParams,
+                recent_days: recentDays,
+              });
 
         setSearchResults(discoveryResults);
       } catch (error) {
@@ -63,6 +71,7 @@ function App() {
 
     loadDiscoveryContent();
   }, [
+    viewMode,
     recentDays,
     hasSearched,
     currentSearchType,
@@ -374,7 +383,9 @@ function App() {
             )}
           </div>
 
-          {!hasSearched && <TimeRangeSlider value={recentDays} onChange={handleTimePeriodChange} />}
+          {!hasSearched && viewMode === 'discover' && (
+            <TimeRangeSlider value={recentDays} onChange={handleTimePeriodChange} />
+          )}
 
           {searchResults && (
             <div id="results-section">
@@ -387,6 +398,58 @@ function App() {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  {!hasSearched && (
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '0.5rem',
+                        marginRight: '1rem',
+                      }}
+                    >
+                      <button
+                        onClick={() => {
+                          setViewMode('popular');
+                          setCurrentPage(1);
+                        }}
+                        disabled={loading}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          backgroundColor: viewMode === 'popular' ? '#007bff' : '#f8f9fa',
+                          color: viewMode === 'popular' ? 'white' : '#333',
+                          border: '1px solid',
+                          borderColor: viewMode === 'popular' ? '#007bff' : '#ddd',
+                          borderRadius: '4px',
+                          fontSize: '0.875rem',
+                          cursor: loading ? 'not-allowed' : 'pointer',
+                          fontWeight: '500',
+                          opacity: loading ? 0.6 : 1,
+                        }}
+                      >
+                        Popular
+                      </button>
+                      <button
+                        onClick={() => {
+                          setViewMode('discover');
+                          setCurrentPage(1);
+                        }}
+                        disabled={loading}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          backgroundColor: viewMode === 'discover' ? '#007bff' : '#f8f9fa',
+                          color: viewMode === 'discover' ? 'white' : '#333',
+                          border: '1px solid',
+                          borderColor: viewMode === 'discover' ? '#007bff' : '#ddd',
+                          borderRadius: '4px',
+                          fontSize: '0.875rem',
+                          cursor: loading ? 'not-allowed' : 'pointer',
+                          fontWeight: '500',
+                          opacity: loading ? 0.6 : 1,
+                        }}
+                      >
+                        Browse
+                      </button>
+                    </div>
+                  )}
                   <h2 style={{ margin: '0', color: '#333' }}>
                     {hasSearched
                       ? currentSearchType === 'movie'
@@ -394,7 +457,9 @@ function App() {
                         : currentSearchType === 'tv'
                           ? 'TV Shows'
                           : 'Movies & TV Shows'
-                      : 'Popular Movies & TV Shows'}
+                      : viewMode === 'popular'
+                        ? 'Trending & Popular'
+                        : 'Movies & TV Shows'}
                   </h2>
                   {hasSearched && (
                     <button
@@ -424,7 +489,7 @@ function App() {
               <ResultsGrid results={searchResults.results} onSelectItem={handleSelectItem} />
 
               {/* Pagination Controls */}
-              {isSearchResponse(searchResults) && searchResults.total_pages > 1 && (
+              {searchResults.total_pages && searchResults.total_pages > 1 && (
                 <div
                   style={{
                     textAlign: 'center',
@@ -484,43 +549,46 @@ function App() {
                       )}
 
                       {/* Current page and neighbors */}
-                      {Array.from({ length: Math.min(5, searchResults.total_pages) }, (_, i) => {
-                        const pageStart = Math.max(1, currentPage - 2);
-                        const pageEnd = Math.min(searchResults.total_pages, pageStart + 4);
-                        const adjustedStart = Math.max(1, pageEnd - 4);
-                        const pageNum = adjustedStart + i;
+                      {Array.from(
+                        { length: Math.min(5, searchResults.total_pages ?? 1) },
+                        (_, i) => {
+                          const pageStart = Math.max(1, currentPage - 2);
+                          const pageEnd = Math.min(searchResults.total_pages ?? 1, pageStart + 4);
+                          const adjustedStart = Math.max(1, pageEnd - 4);
+                          const pageNum = adjustedStart + i;
 
-                        if (pageNum > pageEnd) return null;
+                          if (pageNum > pageEnd) return null;
 
-                        return (
-                          <button
-                            key={pageNum}
-                            onClick={() => handlePageChange(pageNum)}
-                            disabled={loading}
-                            style={{
-                              padding: '0.5rem 0.75rem',
-                              backgroundColor: pageNum === currentPage ? '#007bff' : 'white',
-                              color: pageNum === currentPage ? 'white' : '#007bff',
-                              border: `1px solid ${pageNum === currentPage ? '#007bff' : '#dee2e6'}`,
-                              borderRadius: '4px',
-                              cursor: loading ? 'not-allowed' : 'pointer',
-                              fontSize: '0.875rem',
-                              fontWeight: pageNum === currentPage ? '600' : '400',
-                            }}
-                          >
-                            {pageNum}
-                          </button>
-                        );
-                      })}
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => handlePageChange(pageNum)}
+                              disabled={loading}
+                              style={{
+                                padding: '0.5rem 0.75rem',
+                                backgroundColor: pageNum === currentPage ? '#007bff' : 'white',
+                                color: pageNum === currentPage ? 'white' : '#007bff',
+                                border: `1px solid ${pageNum === currentPage ? '#007bff' : '#dee2e6'}`,
+                                borderRadius: '4px',
+                                cursor: loading ? 'not-allowed' : 'pointer',
+                                fontSize: '0.875rem',
+                                fontWeight: pageNum === currentPage ? '600' : '400',
+                              }}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        }
+                      )}
 
                       {/* Last page */}
-                      {currentPage < searchResults.total_pages - 2 && (
+                      {currentPage < (searchResults.total_pages ?? 1) - 2 && (
                         <>
-                          {currentPage < searchResults.total_pages - 3 && (
+                          {currentPage < (searchResults.total_pages ?? 1) - 3 && (
                             <span style={{ color: '#6c757d' }}>...</span>
                           )}
                           <button
-                            onClick={() => handlePageChange(searchResults.total_pages)}
+                            onClick={() => handlePageChange(searchResults.total_pages ?? 1)}
                             disabled={loading}
                             style={{
                               padding: '0.5rem 0.75rem',
@@ -541,16 +609,17 @@ function App() {
                     {/* Next button */}
                     <button
                       onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage >= searchResults.total_pages || loading}
+                      disabled={currentPage >= (searchResults.total_pages ?? 1) || loading}
                       style={{
                         padding: '0.5rem 1rem',
                         backgroundColor:
-                          currentPage >= searchResults.total_pages ? '#f8f9fa' : '#007bff',
-                        color: currentPage >= searchResults.total_pages ? '#6c757d' : 'white',
+                          currentPage >= (searchResults.total_pages ?? 1) ? '#f8f9fa' : '#007bff',
+                        color:
+                          currentPage >= (searchResults.total_pages ?? 1) ? '#6c757d' : 'white',
                         border: 'none',
                         borderRadius: '4px',
                         cursor:
-                          currentPage >= searchResults.total_pages || loading
+                          currentPage >= (searchResults.total_pages ?? 1) || loading
                             ? 'not-allowed'
                             : 'pointer',
                         fontSize: '0.875rem',
@@ -562,7 +631,7 @@ function App() {
 
                   <div style={{ marginTop: '0.75rem', fontSize: '0.875rem', color: '#6c757d' }}>
                     Page {currentPage} of {searchResults.total_pages} (
-                    {searchResults.total_results.toLocaleString()} total results)
+                    {searchResults.total_results?.toLocaleString()} total results)
                   </div>
                 </div>
               )}

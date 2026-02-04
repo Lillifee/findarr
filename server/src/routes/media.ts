@@ -1,6 +1,7 @@
 import {
   SearchQuerySchema,
   DiscoverQuerySchema,
+  PopularQuerySchema,
   DetailsQuerySchema,
   GenresQuerySchema,
 } from '@findarr/shared';
@@ -11,7 +12,10 @@ export async function mediaRoutes(x: FastifyInstance) {
   // Search endpoint: GET /search?query=batman&type=both
   registerRoute(x, '/search', SearchQuerySchema, (x, q) => x.media.search(q));
 
-  // Discover endpoint: GET /discover?type=both&sort_by=popularity.desc
+  // Popular endpoint: GET /popular?page=1&type=both (cached with custom scoring)
+  registerRoute(x, '/popular', PopularQuerySchema, (x, q) => x.media.popular(q));
+
+  // Discover endpoint: GET /discover?type=both&recent_days=30 (direct TMDB passthrough)
   registerRoute(x, '/discover', DiscoverQuerySchema, (x, q) => x.media.discover(q));
 
   // Details endpoint: GET /details?id=123&type=movie&language=en-US

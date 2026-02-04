@@ -3,6 +3,7 @@ import {
   SearchResponse,
   DiscoverQuery,
   DiscoverResponse,
+  PopularQuery,
   DetailsQuery,
   MovieDetails,
   TVDetails,
@@ -21,6 +22,11 @@ const api = axios.create({
 export const searchService = {
   searchMedia: async (params: SearchQuery): Promise<SearchResponse> => {
     const response = await api.get('/search', { params });
+    return response.data;
+  },
+
+  popularMedia: async (params: PopularQuery): Promise<DiscoverResponse> => {
+    const response = await api.get('/popular', { params });
     return response.data;
   },
 

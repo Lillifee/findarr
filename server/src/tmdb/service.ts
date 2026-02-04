@@ -9,6 +9,7 @@ import type {
   TVDetails,
   SearchResponse,
   Genre,
+  DiscoverResponse,
 } from '@findarr/shared';
 import type { TMDBClient } from './client';
 import type { TMDBMovie, TMDBTVShow } from './schemas';
@@ -19,27 +20,14 @@ import {
   transformTVDetails,
   buildRegionFilters,
   buildDateParams,
-  filterByCriteria,
-  type FilterCriteria,
 } from './';
 
 /**
  * TMDB Service - handles data fetching from TMDB API
- * Pure data operations without business logic
+ * Pure data operations without business logic or caching
  */
 export function createTMDBService(tmdbClient: TMDBClient) {
   const genreMap = new Map<number, Genre>();
-
-  // Trending cache: stores all trending results for fast filtering
-  const trendingCache = new Map<
-    'movie' | 'tv',
-    {
-      results: (Movie | TVShow)[];
-      fetchedAt: Date;
-    }
-  >();
-
-  const TRENDING_TTL = 6 * 60 * 60 * 1000; // 6 hours (TMDB trending updates weekly)
 
   /**
    * Load genres once at startup
@@ -90,26 +78,29 @@ export function createTMDBService(tmdbClient: TMDBClient) {
   }
 
   /**
-   * Fetch discover results (5 pages in parallel for better coverage)
+   * Fetch discover results from TMDB
+   * Fetches specified pages and transforms to application format
    */
-  async function fetchDiscover(params: DiscoverQuery): Promise<(Movie | TVShow)[]> {
+  async function fetchDiscover(params: DiscoverQuery, pages?: number[]): Promise<DiscoverResponse> {
     const {
       type = 'both',
       language = 'en-US',
       recent_days,
       region_groups = [],
       with_genres,
+      page = 1,
     } = params;
 
     const region = language.includes('-') ? language.split('-')[1] : 'US';
     const { languageFilter, countryFilter } = buildRegionFilters(region_groups);
     const dateParams = buildDateParams(recent_days, type);
     const discoverTypes = type === 'both' ? (['movie', 'tv'] as const) : ([type] as const);
+    const pagesToFetch = pages ?? [page];
 
     const discoverPromises = discoverTypes.flatMap(discoverType =>
-      [1, 2, 3, 4, 5].map(page => {
+      pagesToFetch.map(pageNum => {
         const baseParams = {
-          page,
+          page: pageNum,
           sort_by: 'popularity.desc',
           language,
           region,
@@ -128,79 +119,42 @@ export function createTMDBService(tmdbClient: TMDBClient) {
 
     const responses = await Promise.all(discoverPromises);
 
-    return responses.flatMap(response => {
-      return response.results.map(item =>
+    const results = responses.flatMap(response =>
+      response.results.map(item =>
         item.type === 'movie'
           ? transformMovie(item, genreMap, { is_trending: false })
           : transformTVShow(item, genreMap, { is_trending: false })
-      );
-    });
+      )
+    );
+
+    // Aggregate pagination metadata (max of both types)
+    const total_pages = Math.max(...responses.map(r => r.total_pages));
+    const total_results = responses.reduce((sum, r) => sum + r.total_results, 0);
+
+    return { results, page, total_pages, total_results };
   }
 
   /**
-   * Fetch all trending results with caching
-   * Fetches 10 pages (~200 items) and caches for 6 hours
+   * Fetch trending results from TMDB
+   * Fetches specified pages and transforms to application format
    */
-  async function fetchTrendingWithCache(type: 'movie' | 'tv'): Promise<(Movie | TVShow)[]> {
-    const cached = trendingCache.get(type);
-    const now = new Date();
+  async function fetchTrending(pages?: number[]): Promise<(Movie | TVShow)[]> {
+    const pagesToFetch = pages ?? [1];
 
-    // Return cache if still fresh
-    if (cached && now.getTime() - cached.fetchedAt.getTime() < TRENDING_TTL) {
-      return cached.results;
-    }
-
-    // Fetch all 10 pages in parallel
-    const promises = Array.from({ length: 10 }, (_, i) =>
-      type === 'movie'
-        ? tmdbClient.getTrendingMovies({ time_window: 'week', page: i + 1 })
-        : tmdbClient.getTrendingTV({ time_window: 'week', page: i + 1 })
-    );
+    const promises = [
+      ...pagesToFetch.map(page => tmdbClient.getTrendingMovies({ time_window: 'week', page })),
+      ...pagesToFetch.map(page => tmdbClient.getTrendingTV({ time_window: 'week', page })),
+    ];
 
     const responses = await Promise.all(promises);
 
-    // Transform all results
-    const allResults = responses.flatMap(response =>
+    return responses.flatMap(response =>
       response.results.map(item =>
         item.type === 'movie'
           ? transformMovie(item as TMDBMovie, genreMap, { is_trending: true })
           : transformTVShow(item as TMDBTVShow, genreMap, { is_trending: true })
       )
     );
-
-    // Cache for next time
-    trendingCache.set(type, {
-      results: allResults,
-      fetchedAt: now,
-    });
-
-    return allResults;
-  }
-
-  /**
-   * Fetch trending results for discover operation
-   * Filters cached results on-the-fly
-   */
-  async function fetchTrending(params: DiscoverQuery): Promise<(Movie | TVShow)[]> {
-    const { type = 'both', region_groups = [], with_genres } = params;
-
-    const { languageFilter, countryFilter } = buildRegionFilters(region_groups);
-    const filters: FilterCriteria = {
-      type,
-      languageFilter,
-      countryFilter,
-      genresFilter: with_genres,
-    };
-
-    const discoverTypes = type === 'both' ? (['movie', 'tv'] as const) : ([type] as const);
-
-    // Fetch from cache (or refresh cache if stale)
-    const allTrending = await Promise.all(
-      discoverTypes.map(discoverType => fetchTrendingWithCache(discoverType))
-    );
-
-    // Filter and return top 50
-    return allTrending.flat().filter(item => filterByCriteria(item, filters));
   }
 
   /**

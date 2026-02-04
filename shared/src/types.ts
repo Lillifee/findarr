@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
   SearchQuerySchema,
   DiscoverQuerySchema,
+  PopularQuerySchema,
   DetailsQuerySchema,
   ServerEnvSchema,
   GenresQuerySchema,
@@ -89,8 +90,8 @@ export interface TVDetails extends TVShow {
  * Search response wrapper
  */
 export interface SearchResponse {
-  page: number;
   results: (Movie | TVShow)[];
+  page: number;
   total_pages: number;
   total_results: number;
 }
@@ -100,6 +101,9 @@ export interface SearchResponse {
  */
 export interface DiscoverResponse {
   results: (Movie | TVShow)[];
+  page?: number;
+  total_pages?: number;
+  total_results?: number;
 }
 
 // ============================================================================
@@ -151,5 +155,6 @@ export type SearchType = 'movie' | 'tv' | 'both';
 // Request types (inferred from schemas)
 export type SearchQuery = z.infer<typeof SearchQuerySchema>;
 export type DiscoverQuery = z.infer<typeof DiscoverQuerySchema>;
+export type PopularQuery = z.infer<typeof PopularQuerySchema>;
 export type DetailsQuery = z.infer<typeof DetailsQuerySchema>;
 export type GenresQuery = z.infer<typeof GenresQuerySchema>;
