@@ -26,7 +26,7 @@ export interface Genre {
 /**
  * Base fields common to Movie and TVShow
  */
-interface MediaBase {
+export interface Media {
   id: number;
   type: 'movie' | 'tv';
   name: string;
@@ -41,7 +41,6 @@ interface MediaBase {
   genres: Genre[];
 
   // Custom enrichment fields added by server
-  is_trending?: boolean;
   trending_rank?: number;
   custom_popularity?: number;
 }
@@ -49,14 +48,14 @@ interface MediaBase {
 /**
  * Movie type - used in search/discover results
  */
-export interface Movie extends MediaBase {
+export interface Movie extends Media {
   type: 'movie';
 }
 
 /**
  * TV Show type - used in search/discover results
  */
-export interface TVShow extends MediaBase {
+export interface TVShow extends Media {
   type: 'tv';
 }
 
@@ -86,11 +85,13 @@ export interface TVDetails extends TVShow {
   homepage: string | null;
 }
 
+export type MediaDetails = MovieDetails | TVDetails;
+
 /**
  * Search response wrapper
  */
 export interface SearchResponse {
-  results: (Movie | TVShow)[];
+  results: Media[];
   page: number;
   total_pages: number;
   total_results: number;
@@ -100,7 +101,7 @@ export interface SearchResponse {
  * Discover response wrapper
  */
 export interface DiscoverResponse {
-  results: (Movie | TVShow)[];
+  results: Media[];
   page?: number;
   total_pages?: number;
   total_results?: number;
@@ -113,14 +114,14 @@ export interface DiscoverResponse {
 /**
  * Type guard to check if media item is a Movie
  */
-export function isMovie(item: Movie | TVShow): item is Movie {
+export function isMovie(item: Media): item is Movie {
   return item.type === 'movie';
 }
 
 /**
  * Type guard to check if media item is a TVShow
  */
-export function isTVShow(item: Movie | TVShow): item is TVShow {
+export function isTVShow(item: Media): item is TVShow {
   return item.type === 'tv';
 }
 

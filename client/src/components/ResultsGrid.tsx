@@ -1,9 +1,9 @@
 import React from 'react';
-import { Movie, TVShow } from '../../../shared/dist/types';
+import { Media } from '../../../shared/dist/types';
 
 interface ResultsGridProps {
-  results: (Movie | TVShow)[];
-  onSelectItem: (item: Movie | TVShow) => void;
+  results: Media[];
+  onSelectItem: (item: Media) => void;
 }
 
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
@@ -50,7 +50,7 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
             }}
           >
             {/* Trending Badge */}
-            {item.is_trending && (
+            {item.trending_rank && (
               <div
                 style={{
                   position: 'absolute',

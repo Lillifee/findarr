@@ -1,14 +1,10 @@
-import type { Movie, TVShow } from '@findarr/shared';
+import type { Media } from '@findarr/shared';
 
 /**
  * Calculate custom popularity score for a media item
  * Applies trending boosts, vote-based quality scoring, and age-based adjustments
  */
-export function calculateCustomPopularity(
-  item: Movie | TVShow,
-  trendingRank?: number,
-  trendingBoost?: number
-): number {
+export function calculateCustomPopularity(item: Media): number {
   const basePop = item.popularity || 0;
   const voteAverage = item.vote_average || 0;
   const voteCount = item.vote_count || 0;
@@ -16,12 +12,13 @@ export function calculateCustomPopularity(
   let customPopularity = basePop;
 
   // Apply trending boost
-  if (trendingRank !== undefined && trendingBoost !== undefined) {
-    customPopularity += trendingBoost;
+  if (item.trending_rank) {
+    const trendingBoost = Math.max(0, 500 - (item.trending_rank - 1) * 10);
 
-    if (trendingRank <= 10) customPopularity += 200;
-    if (trendingRank <= 5) customPopularity += 150;
-    if (trendingRank === 1) customPopularity += 200;
+    customPopularity += trendingBoost;
+    if (item.trending_rank <= 10) customPopularity += 200;
+    if (item.trending_rank <= 5) customPopularity += 150;
+    if (item.trending_rank === 1) customPopularity += 200;
   }
 
   // Apply vote-based quality boost
@@ -72,12 +69,16 @@ export function calculateCustomPopularity(
  * Create a map of trending scores based on ranking
  */
 export function createTrendingScoreMap(
-  trendingResults: (Movie | TVShow)[]
+  trendingResults: Media[]
 ): Map<number, { trending_boost: number; trending_rank: number }> {
   const scoreMap = new Map<number, { trending_boost: number; trending_rank: number }>();
 
+  const MAX_TRENDING_BOOST = 500;
+  const TRENDING_DECAY_PER_RANK = 10;
+
   trendingResults.forEach((item, index) => {
-    const trendingBoost = Math.max(0, 500 - index * 10);
+    const trendingBoost = Math.max(0, MAX_TRENDING_BOOST - index * TRENDING_DECAY_PER_RANK);
+
     scoreMap.set(item.id, {
       trending_boost: trendingBoost,
       trending_rank: index + 1,

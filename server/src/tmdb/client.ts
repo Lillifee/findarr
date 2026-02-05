@@ -4,9 +4,6 @@ import {
   TMDBMovieDetailsSchema,
   TMDBTVDetailsSchema,
   TMDBGenresResponseSchema,
-  type TMDBSearchResponse,
-  type TMDBMovieDetails,
-  type TMDBTVDetails,
   type TMDBSearchParams,
   type TMDBTVSearchParams,
   type TMDBDiscoverParams,
@@ -34,93 +31,50 @@ export function createTMDBClient(
 
   return {
     /**
-     * Search for movies
+     * Search for movies or tv shows
      */
-    async searchMovies(params: TMDBSearchParams): Promise<TMDBSearchResponse> {
-      const response = await client.get('/search/movie', { params });
+    async search(type: 'movie' | 'tv', params: TMDBSearchParams | TMDBTVSearchParams) {
+      const response = await client.get(`/search/${type}`, { params });
       return TMDBSearchResponseSchema.parse(response.data);
     },
 
     /**
-     * Search for TV shows
-     */
-    async searchTV(params: TMDBTVSearchParams): Promise<TMDBSearchResponse> {
-      const response = await client.get('/search/tv', { params });
-      return TMDBSearchResponseSchema.parse(response.data);
-    },
-
-    /**
-     * Discover movies with filters
+     * Discover movies or tv shows with filters
      * All TMDB discover parameters are supported - see TMDBDiscoverParams interface for full list
      */
-    async discoverMovies(params: Partial<TMDBDiscoverParams>): Promise<TMDBSearchResponse> {
-      const response = await client.get('/discover/movie', { params });
+    async discover(type: 'movie' | 'tv', params: Partial<TMDBDiscoverParams>) {
+      const response = await client.get(`/discover/${type}`, { params });
       return TMDBSearchResponseSchema.parse(response.data);
     },
 
     /**
-     * Discover TV shows with filters
-     * All TMDB discover parameters are supported - see TMDBDiscoverParams interface for full list
+     * Get trending movies or shows
      */
-    async discoverTV(params: Partial<TMDBDiscoverParams>): Promise<TMDBSearchResponse> {
-      const response = await client.get('/discover/tv', { params });
-      return TMDBSearchResponseSchema.parse(response.data);
-    },
-
-    /**
-     * Get trending movies
-     */
-    async getTrendingMovies(params: TMDBTrendingParams = {}): Promise<TMDBSearchResponse> {
+    async getTrending(type: 'movie' | 'tv', params: TMDBTrendingParams = {}) {
       const { time_window = 'week', page = 1, language } = params;
-      const response = await client.get(`/trending/movie/${time_window}`, {
+      const response = await client.get(`/trending/${type}/${time_window}`, {
         params: { page, language },
       });
       return TMDBSearchResponseSchema.parse(response.data);
     },
 
     /**
-     * Get trending TV shows
-     */
-    async getTrendingTV(params: TMDBTrendingParams = {}): Promise<TMDBSearchResponse> {
-      const { time_window = 'week', page = 1, language } = params;
-      const response = await client.get(`/trending/tv/${time_window}`, {
-        params: { page, language },
-      });
-      return TMDBSearchResponseSchema.parse(response.data);
-    },
-
-    /**
-     * Get movie details
+     * Get movie or tv details
      * Use append_to_response to fetch related data in a single call (e.g., 'credits,videos,images')
      */
-    async getMovieDetails(params: TMDBDetailsParams): Promise<TMDBMovieDetails> {
+    async getDetails(type: 'movie' | 'tv', params: TMDBDetailsParams) {
       const { id, ...queryParams } = params;
-      const response = await client.get(`/movie/${id}`, { params: queryParams });
-      return TMDBMovieDetailsSchema.parse(response.data);
+      const response = await client.get(`/${type}/${id}`, { params: queryParams });
+      return type === 'movie'
+        ? TMDBMovieDetailsSchema.parse(response.data)
+        : TMDBTVDetailsSchema.parse(response.data);
     },
 
     /**
-     * Get TV show details
+     * Get movie or tv genres
      */
-    async getTVDetails(params: TMDBDetailsParams): Promise<TMDBTVDetails> {
-      const { id, ...queryParams } = params;
-      const response = await client.get(`/tv/${id}`, { params: queryParams });
-      return TMDBTVDetailsSchema.parse(response.data);
-    },
-
-    /**
-     * Get movie genres
-     */
-    async getMovieGenres(params?: TMDBGenresParams) {
-      const response = await client.get('/genre/movie/list', { params });
-      return TMDBGenresResponseSchema.parse(response.data);
-    },
-
-    /**
-     * Get TV genres
-     */
-    async getTVGenres(params?: TMDBGenresParams) {
-      const response = await client.get('/genre/tv/list', { params });
+    async getGenres(type: 'movie' | 'tv', params?: TMDBGenresParams) {
+      const response = await client.get(`/genre/${type}/list`, { params });
       return TMDBGenresResponseSchema.parse(response.data);
     },
   };

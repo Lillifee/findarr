@@ -5,10 +5,9 @@ import {
   DiscoverResponse,
   PopularQuery,
   DetailsQuery,
-  MovieDetails,
-  TVDetails,
   GenresQuery,
   Genre,
+  MediaDetails,
 } from '@findarr/shared';
 import axios from 'axios';
 
@@ -35,7 +34,7 @@ export const searchService = {
     return response.data;
   },
 
-  detailsMedia: async (params: DetailsQuery): Promise<MovieDetails | TVDetails> => {
+  detailsMedia: async (params: DetailsQuery): Promise<MediaDetails> => {
     const response = await api.get('/details', { params });
     return response.data;
   },

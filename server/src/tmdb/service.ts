@@ -3,24 +3,13 @@ import type {
   DiscoverQuery,
   DetailsQuery,
   GenresQuery,
-  Movie,
-  TVShow,
-  MovieDetails,
-  TVDetails,
   SearchResponse,
   Genre,
   DiscoverResponse,
+  MediaDetails,
 } from '@findarr/shared';
 import type { TMDBClient } from './client';
-import type { TMDBMovie, TMDBTVShow } from './schemas';
-import {
-  transformMovie,
-  transformTVShow,
-  transformMovieDetails,
-  transformTVDetails,
-  buildRegionFilters,
-  buildDateParams,
-} from './';
+import { buildRegionFilters, buildDateParams, transformMedia, transformDetails } from './';
 
 /**
  * TMDB Service - handles data fetching from TMDB API
@@ -34,8 +23,8 @@ export function createTMDBService(tmdbClient: TMDBClient) {
    */
   async function loadGenres(): Promise<void> {
     const [movieGenres, tvGenres] = await Promise.all([
-      tmdbClient.getMovieGenres({ language: 'en-US' }),
-      tmdbClient.getTVGenres({ language: 'en-US' }),
+      tmdbClient.getGenres('movie', { language: 'en-US' }),
+      tmdbClient.getGenres('tv', { language: 'en-US' }),
     ]);
 
     [...movieGenres.genres, ...tvGenres.genres].forEach(genre => {
@@ -52,17 +41,13 @@ export function createTMDBService(tmdbClient: TMDBClient) {
 
     const searchTypes = type === 'both' ? (['movie', 'tv'] as const) : ([type] as const);
     const promises = searchTypes.map(searchType =>
-      searchType === 'movie'
-        ? tmdbClient.searchMovies({ query, page, language, region })
-        : tmdbClient.searchTV({ query, page, language })
+      tmdbClient.search(searchType, { query, page, language, region })
     );
 
     const searchResponses = await Promise.all(promises);
 
     const allResults = searchResponses.flatMap(response =>
-      response.results.map(item =>
-        item.type === 'movie' ? transformMovie(item, genreMap) : transformTVShow(item, genreMap)
-      )
+      response.results.map(item => transformMedia(item, genreMap))
     );
 
     const sortedResults = allResults.sort((a, b) => b.popularity - a.popularity);
@@ -101,9 +86,8 @@ export function createTMDBService(tmdbClient: TMDBClient) {
       pagesToFetch.map(pageNum => {
         const baseParams = {
           page: pageNum,
-          sort_by: 'popularity.desc',
-          language,
           region,
+          language,
           watch_region: region,
           ...(languageFilter && { with_original_language: languageFilter }),
           ...(countryFilter && { with_origin_country: countryFilter }),
@@ -111,20 +95,14 @@ export function createTMDBService(tmdbClient: TMDBClient) {
           ...dateParams,
         };
 
-        return discoverType === 'movie'
-          ? tmdbClient.discoverMovies(baseParams)
-          : tmdbClient.discoverTV(baseParams);
+        return tmdbClient.discover(discoverType, baseParams);
       })
     );
 
     const responses = await Promise.all(discoverPromises);
 
     const results = responses.flatMap(response =>
-      response.results.map(item =>
-        item.type === 'movie'
-          ? transformMovie(item, genreMap, { is_trending: false })
-          : transformTVShow(item, genreMap, { is_trending: false })
-      )
+      response.results.map(item => transformMedia(item, genreMap))
     );
 
     // Aggregate pagination metadata (max of both types)
@@ -138,38 +116,39 @@ export function createTMDBService(tmdbClient: TMDBClient) {
    * Fetch trending results from TMDB
    * Fetches specified pages and transforms to application format
    */
-  async function fetchTrending(pages?: number[]): Promise<(Movie | TVShow)[]> {
+  async function fetchTrending(pages?: number[]): Promise<DiscoverResponse> {
     const pagesToFetch = pages ?? [1];
+    const ranks: Record<'movie' | 'tv', number> = { movie: 0, tv: 0 };
 
-    const promises = [
-      ...pagesToFetch.map(page => tmdbClient.getTrendingMovies({ time_window: 'week', page })),
-      ...pagesToFetch.map(page => tmdbClient.getTrendingTV({ time_window: 'week', page })),
-    ];
-
-    const responses = await Promise.all(promises);
-
-    return responses.flatMap(response =>
-      response.results.map(item =>
-        item.type === 'movie'
-          ? transformMovie(item as TMDBMovie, genreMap, { is_trending: true })
-          : transformTVShow(item as TMDBTVShow, genreMap, { is_trending: true })
+    const responses = await Promise.all(
+      (['movie', 'tv'] as const).flatMap(type =>
+        pagesToFetch.map(page => tmdbClient.getTrending(type, { time_window: 'week', page }))
       )
     );
+
+    const results = responses.flatMap(({ results }) =>
+      results.map(item => {
+        const type = item.type as 'movie' | 'tv';
+        const trending_rank = ++ranks[type];
+
+        return transformMedia(item, genreMap, { trending_rank });
+      })
+    );
+
+    const total_pages = Math.max(...responses.map(r => r.total_pages));
+    const total_results = responses.reduce((sum, r) => sum + r.total_results, 0);
+
+    return { results, page: 1, total_pages, total_results };
   }
 
   /**
    * Get movie or TV show details
    */
-  async function getDetails(params: DetailsQuery): Promise<MovieDetails | TVDetails> {
+  async function getDetails(params: DetailsQuery): Promise<MediaDetails> {
     const { id, type, language = 'en-US' } = params;
 
-    if (type === 'movie') {
-      const tmdbMovie = await tmdbClient.getMovieDetails({ id, language });
-      return transformMovieDetails(tmdbMovie);
-    } else {
-      const tmdbTV = await tmdbClient.getTVDetails({ id, language });
-      return transformTVDetails(tmdbTV);
-    }
+    const tmdbMovie = await tmdbClient.getDetails(type, { id, language });
+    return transformDetails(tmdbMovie);
   }
 
   /**

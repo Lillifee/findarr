@@ -4,13 +4,12 @@
  */
 
 import type { TMDBMovie, TMDBTVShow, TMDBMovieDetails, TMDBTVDetails } from './schemas';
-import type { Movie, TVShow, MovieDetails, TVDetails, Genre } from '@findarr/shared';
+import type { Movie, TVShow, MovieDetails, TVDetails, Genre, Media } from '@findarr/shared';
 
 /**
  * Custom enrichment fields that can be added to transformed items
  */
 interface CustomFields {
-  is_trending?: boolean;
   trending_rank?: number;
   custom_popularity?: number;
 }
@@ -18,7 +17,20 @@ interface CustomFields {
 /**
  * Transform TMDB Movie to application Movie type
  */
-export function transformMovie(
+export function transformMedia(
+  item: TMDBMovie | TMDBTVShow,
+  genreMap: Map<number, Genre>,
+  customFields?: CustomFields
+): Media {
+  return item.type === 'movie'
+    ? transformMovie(item as TMDBMovie, genreMap, customFields)
+    : transformTVShow(item as TMDBTVShow, genreMap, customFields);
+}
+
+/**
+ * Transform TMDB Movie to application Movie type
+ */
+function transformMovie(
   tmdbMovie: TMDBMovie,
   genreMap: Map<number, Genre>,
   customFields?: CustomFields
@@ -47,7 +59,7 @@ export function transformMovie(
 /**
  * Transform TMDB TV Show to application TVShow type
  */
-export function transformTVShow(
+function transformTVShow(
   tmdbTV: TMDBTVShow,
   genreMap: Map<number, Genre>,
   customFields?: CustomFields
@@ -75,9 +87,16 @@ export function transformTVShow(
 }
 
 /**
+ * Transform TMDB Movie to application Movie type
+ */
+export function transformDetails(item: TMDBMovieDetails | TMDBTVDetails) {
+  return item.type === 'movie' ? transformMovieDetails(item) : transformTVDetails(item);
+}
+
+/**
  * Transform TMDB Movie Details to application MovieDetails type
  */
-export function transformMovieDetails(tmdbMovie: TMDBMovieDetails): MovieDetails {
+function transformMovieDetails(tmdbMovie: TMDBMovieDetails): MovieDetails {
   return {
     id: tmdbMovie.id,
     type: tmdbMovie.type,
@@ -104,7 +123,7 @@ export function transformMovieDetails(tmdbMovie: TMDBMovieDetails): MovieDetails
 /**
  * Transform TMDB TV Show Details to application TVDetails type
  */
-export function transformTVDetails(tmdbTV: TMDBTVDetails): TVDetails {
+function transformTVDetails(tmdbTV: TMDBTVDetails): TVDetails {
   return {
     id: tmdbTV.id,
     type: tmdbTV.type,

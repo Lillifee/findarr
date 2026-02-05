@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
 import { searchService } from './services/api';
 import {
-  Movie,
-  MovieDetails,
   SearchResponse,
   SearchType,
-  TVDetails,
-  TVShow,
   DiscoverResponse,
+  Media,
+  MediaDetails,
 } from '../../shared/dist/types';
 import { ResultsGrid } from './components/ResultsGrid';
 import { SearchBar } from './components/SearchBar';
@@ -23,8 +21,8 @@ function App() {
   );
   const [currentSearchType, setCurrentSearchType] = useState<SearchType>('both');
   const [loading, setLoading] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<Movie | TVShow | null>(null);
-  const [selectedDetails, setSelectedDetails] = useState<MovieDetails | TVDetails | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Media | null>(null);
+  const [selectedDetails, setSelectedDetails] = useState<MediaDetails | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [recentDays, setRecentDays] = useState<number>(365); // Default to 30 days (last month)
@@ -162,14 +160,13 @@ function App() {
     }, 100); // Small delay to ensure content is loaded
   };
 
-  const handleSelectItem = async (item: Movie | TVShow) => {
+  const handleSelectItem = async (item: Media) => {
     setSelectedItem(item);
     setSelectedDetails(null);
     setDetailsLoading(true);
 
     try {
-      const type = isMovie(item) ? 'movie' : 'tv';
-      const details = await searchService.detailsMedia({ id: item.id, type });
+      const details = await searchService.detailsMedia({ id: item.id, type: item.type });
       setSelectedDetails(details);
     } catch (error) {
       console.error('Failed to fetch details:', error);

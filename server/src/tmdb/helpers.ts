@@ -1,4 +1,4 @@
-import type { RegionGroupId, Movie, TVShow } from '@findarr/shared';
+import type { RegionGroupId, Media } from '@findarr/shared';
 
 /**
  * Region groups for TMDB API filtering
@@ -269,7 +269,7 @@ export interface FilterCriteria {
  * Filter media items by criteria
  * Used for post-fetch filtering when TMDB API doesn't support certain filters
  */
-export function filterByCriteria(item: Movie | TVShow, filters: FilterCriteria): boolean {
+export function filterByCriteria(item: Media, filters: FilterCriteria): boolean {
   // Media type filter
   if (filters.type !== 'both' && item.type !== filters.type) {
     return false;

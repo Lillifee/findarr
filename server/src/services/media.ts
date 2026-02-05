@@ -4,16 +4,14 @@ import type {
   PopularQuery,
   DetailsQuery,
   GenresQuery,
-  MovieDetails,
-  TVDetails,
   SearchResponse,
   DiscoverResponse,
   Genre,
-  Movie,
-  TVShow,
+  Media,
+  MediaDetails,
 } from '@findarr/shared';
 import type { TMDBService } from '../tmdb/service';
-import { calculateCustomPopularity, createTrendingScoreMap } from './scoring';
+import { calculateCustomPopularity } from './scoring';
 import { buildRegionFilters, filterByCriteria } from '../tmdb/helpers';
 
 /**
@@ -27,7 +25,7 @@ export function createMediaService(tmdbService: TMDBService) {
   // Popular cache: stores final scored and deduplicated results
   let popularCache:
     | {
-        results: (Movie | TVShow)[]; // Already scored, deduplicated, and sorted
+        results: Media[]; // Already scored, deduplicated, and sorted
         fetchedAt: Date;
         language: string;
       }
@@ -54,46 +52,34 @@ export function createMediaService(tmdbService: TMDBService) {
   /**
    * Internal: Fetch both trending and discover, apply scoring, and cache the result
    */
-  async function fetchAndCachePopular(language: string): Promise<(Movie | TVShow)[]> {
+  async function fetchAndCachePopular(language: string): Promise<Media[]> {
     // Fetch 5 pages each from trending and discover
-    const [trendingResults, discoverResult] = await Promise.all([
+    const [trendingResult, discoverResult] = await Promise.all([
       tmdbService.fetchTrending([1, 2, 3, 4, 5]),
       tmdbService.fetchDiscover({ type: 'both', language, recent_days: 30 }, [1, 2, 3, 4, 5]),
     ]);
 
+    const trendingResults = trendingResult.results;
     const discoverResults = discoverResult.results;
-
-    // Create trending score map
-    const trendingScoreMap = createTrendingScoreMap(trendingResults);
 
     // Apply custom scoring to all results
     const allResultsWithScoring = [...trendingResults, ...discoverResults].map(item => {
-      const trendingData = trendingScoreMap.get(item.id);
-      const customPopularity = calculateCustomPopularity(
-        item,
-        trendingData?.trending_rank,
-        trendingData?.trending_boost
-      );
-
-      return {
-        ...item,
-        custom_popularity: customPopularity,
-        is_trending: !!trendingData,
-        trending_rank: trendingData?.trending_rank,
-      };
+      const customPopularity = calculateCustomPopularity(item);
+      return { ...item, custom_popularity: customPopularity };
     });
 
     // Remove duplicates (prefer trending version if exists)
-    const uniqueResults = allResultsWithScoring.reduce<(Movie | TVShow)[]>((acc, item) => {
-      const existing = acc.find(u => u.id === item.id);
-      if (!existing) {
-        acc.push(item);
-      } else if (item.is_trending && !existing.is_trending) {
-        const index = acc.indexOf(existing);
-        acc[index] = item;
-      }
-      return acc;
-    }, []);
+    const uniqueResults = Array.from(
+      allResultsWithScoring
+        .reduce((map, item) => {
+          const existing = map.get(item.id);
+          if (!existing || item.trending_rank) {
+            map.set(item.id, item);
+          }
+          return map;
+        }, new Map<number, Media>())
+        .values()
+    );
 
     // Sort by custom popularity
     const sortedResults = uniqueResults.sort(
@@ -163,7 +149,7 @@ export function createMediaService(tmdbService: TMDBService) {
    * Get detailed information about a media item
    * Currently delegates to TMDB
    */
-  async function getDetails(params: DetailsQuery): Promise<MovieDetails | TVDetails> {
+  async function getDetails(params: DetailsQuery): Promise<MediaDetails> {
     return tmdbService.getDetails(params);
   }
 
