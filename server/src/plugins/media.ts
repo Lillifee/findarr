@@ -1,8 +1,8 @@
 import type { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import fp from 'fastify-plugin';
 import type { ServerEnv } from '@findarr/shared';
-import { createTMDBClient, createTMDBService } from '../tmdb';
-import { createMediaService, type MediaService } from '../services';
+import { createTMDBClient, createTMDBService } from '../tmdb/index.js';
+import { createMediaService, type MediaService } from '../services/media.js';
 
 // Extend Fastify instance with media service
 declare module 'fastify' {

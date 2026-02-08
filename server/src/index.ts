@@ -1,8 +1,8 @@
 import 'dotenv/config';
 import fastify from 'fastify';
 import cors from '@fastify/cors';
-import { mediaPlugin } from './plugins/media';
-import { mediaRoutes } from './routes/media';
+import { mediaPlugin } from './plugins/media.js';
+import { mediaRoutes } from './routes/media.js';
 import { ServerEnvSchema } from '@findarr/shared';
 
 // Validate environment variables

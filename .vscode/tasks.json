@@ -30,9 +30,19 @@
 			]
 		},
 		{
+			"label": "Code Fix",
+			"type": "shell",
+			"command": "npm run code:fix",
+			"group": "test",
+			"problemMatcher": [
+				"$tsc",
+				"$eslint-stylish"
+			]
+		},
+		{
 			"label": "Test",
 			"type": "shell",
-			"command": "npm run test:fix",
+			"command": "npm run test",
 			"group": "test",
 			"problemMatcher": [
 				"$tsc",

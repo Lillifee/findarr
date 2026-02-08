@@ -6,7 +6,7 @@ import {
   DetailsQuerySchema,
   ServerEnvSchema,
   GenresQuerySchema,
-} from './schemas';
+} from './schemas.js';
 
 // ============================================================================
 // Application Types - Media (Movies and TV Shows)
@@ -37,7 +37,7 @@ export interface Media {
   vote_count: number;
   popularity: number;
   original_language: string;
-  origin_country?: string[]; // TV-specific field - undefined for movies
+  origin_country: string[] | undefined; // TV-specific field - empty array for movies
   genres: Genre[];
 
   // Custom enrichment fields added by server

@@ -6,7 +6,7 @@ import {
   regionGroupKeys,
   DiscoverQuery,
 } from '@findarr/shared';
-import { TMDBDiscoverParams } from './schemas';
+import { TMDBDiscoverParams } from './schemas.js';
 
 /**
  * Build region filters from selected region groups
@@ -50,7 +50,8 @@ export const buildDateParams = (recentDays: number | undefined, type: 'movie' | 
   if (!recentDays) return {};
 
   const { pastDate, futureDate } = getDateRangeFromDays(recentDays);
-  const formatDate = (date: Date) => date.toISOString().split('T')[0];
+
+  const formatDate = (date: Date) => date.toISOString().split('T')[0] || '';
 
   const dateParams: Record<string, string> = {};
 
@@ -77,7 +78,7 @@ export const buildDiscoverParams = (params: DiscoverQuery): TMDBDiscoverParams =
     page = 1,
   } = params;
 
-  const region = language.includes('-') ? language.split('-')[1] : 'US';
+  const region = language.includes('-') ? (language.split('-')[1] ?? 'US') : 'US';
   const { languageFilter, countryFilter } = buildRegionFilters(regionGroups);
   const genreFilter = buildGenreFilter(withGenres);
   const dateParams = buildDateParams(recentDays, type);

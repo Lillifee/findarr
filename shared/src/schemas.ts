@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { genreKeys, regionGroupKeys } from '.';
+import { genreKeys, regionGroupKeys } from './constants.js';
 
 const arrayParam = <T extends z.ZodTypeAny>(schema: T) =>
   z.preprocess(val => {

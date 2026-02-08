@@ -15,10 +15,19 @@ const TIME_PERIODS = [
 
 export function TimeRangeSlider({ value, onChange }: TimeRangeSliderProps) {
   const currentIndex = TIME_PERIODS.findIndex(period => period.days === value);
+  const currentPeriod = TIME_PERIODS[currentIndex];
+
+  // Fallback if period not found
+  if (!currentPeriod) {
+    return null;
+  }
 
   const handleSliderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const index = parseInt(event.target.value);
-    onChange(TIME_PERIODS[index].days);
+    const period = TIME_PERIODS[index];
+    if (period) {
+      onChange(period.days);
+    }
   };
 
   return (
@@ -57,7 +66,7 @@ export function TimeRangeSlider({ value, onChange }: TimeRangeSliderProps) {
             fontWeight: '500',
           }}
         >
-          {TIME_PERIODS[currentIndex].label}
+          {currentPeriod.label}
         </span>
       </div>
 
@@ -110,8 +119,7 @@ export function TimeRangeSlider({ value, onChange }: TimeRangeSliderProps) {
           textAlign: 'center',
         }}
       >
-        Discover movies and TV shows from {TIME_PERIODS[currentIndex].label.toLowerCase()} to next
-        week
+        Discover movies and TV shows from {currentPeriod.label.toLowerCase()} to next week
       </div>
     </div>
   );

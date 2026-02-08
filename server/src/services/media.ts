@@ -10,9 +10,9 @@ import type {
   Media,
   MediaDetails,
 } from '@findarr/shared';
-import type { TMDBService } from '../tmdb/service';
-import { calculateCustomPopularity } from './scoring';
-import { filterByCriteria } from './filter';
+import type { TMDBService } from '../tmdb/service.js';
+import { calculateCustomPopularity } from './scoring.js';
+import { filterByCriteria } from './filter.js';
 
 /**
  * Media service - orchestrates multiple data sources and applies business logic

@@ -4,24 +4,28 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
-    "type-check": "tsc --noEmit"
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "type-check": "tsc --noEmit",
+    "clean": "rimraf dist *.tsbuildinfo"
   },
   "dependencies": {
     "@findarr/shared": "*",
     "axios": "^1.13.2",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "zod": "^4.3.5"
   },
   "devDependencies": {
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.2",
+    "rimraf": "^6.1.2",
     "typescript": "^5.9.3",
-    "vite": "^7.3.1"
-  },
-  "peerDependencies": {
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3"
+    "vite": "^7.3.1",
+    "vitest": "^4.0.18"
   }
 }

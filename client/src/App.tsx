@@ -303,7 +303,7 @@ function App() {
                     }}
                   >
                     ({selectedRegions.length} region{selectedRegions.length !== 1 ? 's' : ''},{' '}
-                    {language.split('-')[0].toUpperCase()})
+                    {(language.split('-')[0] ?? 'EN').toUpperCase()})
                   </span>
                 )}
               </span>

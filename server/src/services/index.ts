@@ -1,1 +1,1 @@
-export { createMediaService, type MediaService } from './media';
+export { createMediaService, type MediaService } from './media.js';

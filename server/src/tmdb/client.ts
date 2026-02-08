@@ -1,16 +1,16 @@
 import axios from 'axios';
 import {
+  TMDBSearchParams,
+  TMDBTVSearchParams,
   TMDBSearchResponseSchema,
+  TMDBDiscoverParams,
+  TMDBTrendingParams,
+  TMDBDetailsParams,
   TMDBMovieDetailsSchema,
   TMDBTVDetailsSchema,
+  TMDBGenresParams,
   TMDBGenresResponseSchema,
-  type TMDBSearchParams,
-  type TMDBTVSearchParams,
-  type TMDBDiscoverParams,
-  type TMDBTrendingParams,
-  type TMDBDetailsParams,
-  type TMDBGenresParams,
-} from './schemas';
+} from './schemas.js';
 
 /**
  * Create a TMDB API client with configured axios instance

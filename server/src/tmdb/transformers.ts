@@ -2,9 +2,8 @@
  * Transformers to convert TMDB API responses to application types
  * These functions map the raw TMDB data structure to our unified application structure
  */
-
-import type { TMDBMovie, TMDBTVShow, TMDBMovieDetails, TMDBTVDetails } from './schemas';
 import type { Movie, TVShow, MovieDetails, TVDetails, Genre, Media } from '@findarr/shared';
+import { TMDBMovie, TMDBTVShow, TMDBMovieDetails, TMDBTVDetails } from './schemas.js';
 
 /**
  * Custom enrichment fields that can be added to transformed items
@@ -51,6 +50,7 @@ function transformMovie(
     vote_count: tmdbMovie.vote_count,
     popularity: tmdbMovie.popularity,
     original_language: tmdbMovie.original_language,
+    origin_country: undefined, // Movies don't have origin_country, set to empty array
     genres,
     ...customFields,
   };
@@ -87,7 +87,7 @@ function transformTVShow(
 }
 
 /**
- * Transform TMDB Movie to application Movie type
+ * Transform TMDB Movie Details or TV Show Details to application type
  */
 export function transformDetails(item: TMDBMovieDetails | TMDBTVDetails) {
   return item.type === 'movie' ? transformMovieDetails(item) : transformTVDetails(item);
@@ -108,8 +108,8 @@ function transformMovieDetails(tmdbMovie: TMDBMovieDetails): MovieDetails {
     vote_count: tmdbMovie.vote_count,
     popularity: tmdbMovie.popularity,
     original_language: tmdbMovie.original_language,
-    genres: tmdbMovie.genres,
     origin_country: undefined,
+    genres: tmdbMovie.genres,
     tagline: tmdbMovie.tagline,
     runtime: tmdbMovie.runtime,
     budget: tmdbMovie.budget,
@@ -135,8 +135,8 @@ function transformTVDetails(tmdbTV: TMDBTVDetails): TVDetails {
     vote_count: tmdbTV.vote_count,
     popularity: tmdbTV.popularity,
     original_language: tmdbTV.original_language,
-    genres: tmdbTV.genres,
     origin_country: tmdbTV.origin_country,
+    genres: tmdbTV.genres,
     original_name: tmdbTV.original_name,
     episode_run_time: tmdbTV.episode_run_time,
     show_type: tmdbTV.show_type,

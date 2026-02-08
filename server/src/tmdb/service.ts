@@ -8,8 +8,10 @@ import type {
   DiscoverResponse,
   MediaDetails,
 } from '@findarr/shared';
-import type { TMDBClient } from './client';
-import { transformMedia, transformDetails, TMDBTrendingParams, buildDiscoverParams } from './';
+import { TMDBClient } from './client.js';
+import { buildDiscoverParams } from './helpers.js';
+import { TMDBTrendingParams } from './schemas.js';
+import { transformMedia, transformDetails } from './transformers.js';
 
 /**
  * TMDB Service - handles data fetching from TMDB API
