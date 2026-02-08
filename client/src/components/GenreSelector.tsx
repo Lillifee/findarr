@@ -1,93 +1,25 @@
-import { useState, useEffect, useMemo } from 'react';
-import { searchService } from '../services/api';
-
-interface Genre {
-  id: number;
-  name: string;
-}
+import { useState } from 'react';
+import { GenreKey, objectEntries, unifiedGenres } from '../../../shared/dist';
 
 interface Props {
-  type: 'movie' | 'tv' | 'both';
-  selectedGenres: number[];
-  onGenreChange: (genres: number[]) => void;
+  selectedGenres: GenreKey[];
+  onGenreChange: (genres: GenreKey[]) => void;
 }
 
-export default function GenreSelector({ type, selectedGenres, onGenreChange }: Props) {
-  const [movieGenres, setMovieGenres] = useState<Genre[]>([]);
-  const [tvGenres, setTvGenres] = useState<Genre[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+export default function GenreSelector({ selectedGenres, onGenreChange }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
-    const loadGenres = async () => {
-      setIsLoading(true);
-      try {
-        if (type === 'movie' || type === 'both') {
-          const movieData = await searchService.getGenres({ type: 'movie' });
-          setMovieGenres(movieData.genres);
-        }
-        if (type === 'tv' || type === 'both') {
-          const tvData = await searchService.getGenres({ type: 'tv' });
-          setTvGenres(tvData.genres);
-        }
-      } catch (error) {
-        console.error('Failed to load genres:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const handleGenreToggle = (genreKey: GenreKey) => {
+    const updatedKeys = selectedGenres.includes(genreKey)
+      ? selectedGenres.filter(k => k !== genreKey)
+      : [...selectedGenres, genreKey];
 
-    loadGenres();
-  }, [type]);
-
-  // When both types are selected, combine and deduplicate genres
-  const availableGenres = useMemo(() => {
-    const genres =
-      type === 'both'
-        ? [...movieGenres, ...tvGenres].reduce((acc, genre) => {
-            if (!acc.find(g => g.id === genre.id)) {
-              acc.push(genre);
-            }
-            return acc;
-          }, [] as Genre[])
-        : type === 'movie'
-          ? movieGenres
-          : tvGenres;
-
-    return [...genres].sort((a, b) => a.name.localeCompare(b.name));
-  }, [type, movieGenres, tvGenres]);
-
-  const handleGenreToggle = (genreId: number) => {
-    const updatedGenres = selectedGenres.includes(genreId)
-      ? selectedGenres.filter(id => id !== genreId)
-      : [...selectedGenres, genreId];
-    onGenreChange(updatedGenres);
+    onGenreChange(updatedKeys);
   };
 
   const clearAllGenres = () => {
     onGenreChange([]);
   };
-
-  if (isLoading) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        <label style={{ fontSize: '0.875rem', fontWeight: '500', color: '#6c757d' }}>Genres</label>
-        <div
-          style={{
-            padding: '0.75rem',
-            fontSize: '1rem',
-            border: '2px solid #ddd',
-            borderRadius: '6px',
-            backgroundColor: '#f8f9fa',
-            minWidth: '180px',
-            color: '#666',
-          }}
-        >
-          Loading genres...
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -168,12 +100,12 @@ export default function GenreSelector({ type, selectedGenres, onGenreChange }: P
                 Clear all
               </button>
             </div>
-            {availableGenres.map(genre => {
-              const isSelected = selectedGenres.includes(genre.id);
+            {objectEntries(unifiedGenres).map(([key, genre]) => {
+              const isSelected = selectedGenres.includes(key);
               return (
                 <div
-                  key={genre.id}
-                  onClick={() => handleGenreToggle(genre.id)}
+                  key={key}
+                  onClick={() => handleGenreToggle(key)}
                   style={{
                     padding: '0.5rem 0.75rem',
                     cursor: 'pointer',

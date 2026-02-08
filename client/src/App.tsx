@@ -13,7 +13,7 @@ import { MediaView } from './components/MediaView';
 import { TimeRangeSlider } from './components/TimeRangeSlider';
 import { RegionSelector } from './components/RegionSelector';
 import GenreSelector from './components/GenreSelector';
-import { RegionGroupId, isSearchResponse, isMovie } from '@findarr/shared';
+import { RegionGroupId, GenreKey } from '@findarr/shared';
 
 function App() {
   const [searchResults, setSearchResults] = useState<SearchResponse | DiscoverResponse | null>(
@@ -33,7 +33,7 @@ function App() {
   const [currentQuery, setCurrentQuery] = useState<string>('');
   const [viewMode, setViewMode] = useState<'popular' | 'discover'>('popular');
 
-  const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
+  const [selectedGenres, setSelectedGenres] = useState<GenreKey[]>([]);
 
   // Load popular content on initial render or when back to discovery mode
   useEffect(() => {
@@ -47,17 +47,14 @@ function App() {
           type: currentSearchType,
           page: currentPage,
           language,
-          region_groups: selectedRegions,
-          with_genres: selectedGenres.length > 0 ? selectedGenres.join('|') : undefined,
+          regionGroups: selectedRegions,
+          withGenres: selectedGenres,
         };
 
         const discoveryResults =
           viewMode === 'popular'
             ? await searchService.popularMedia(baseParams)
-            : await searchService.discoverMedia({
-                ...baseParams,
-                recent_days: recentDays,
-              });
+            : await searchService.discoverMedia({ ...baseParams, recentDays });
 
         setSearchResults(discoveryResults);
       } catch (error) {
@@ -103,7 +100,7 @@ function App() {
     setSearchResults(null); // Clear existing results for fresh filtered content
   };
 
-  const handleGenreChange = (genres: number[]) => {
+  const handleGenreChange = (genres: GenreKey[]) => {
     setSelectedGenres(genres);
     setCurrentPage(1); // Reset to first page when changing genres
     setSearchResults(null); // Clear existing results for fresh filtered content
@@ -263,11 +260,7 @@ function App() {
 
             {/* Right: Genre Selector (takes remaining space) */}
             <div style={{ minWidth: 0 }}>
-              <GenreSelector
-                type={currentSearchType}
-                selectedGenres={selectedGenres}
-                onGenreChange={handleGenreChange}
-              />
+              <GenreSelector selectedGenres={selectedGenres} onGenreChange={handleGenreChange} />
             </div>
           </div>
 
@@ -476,7 +469,7 @@ function App() {
                     </button>
                   )}
                 </div>
-                {isSearchResponse(searchResults) && (
+                {searchResults && searchResults.total_results && (
                   <span style={{ color: '#666', fontSize: '0.9rem' }}>
                     {searchResults.total_results.toLocaleString()} results
                   </span>
@@ -669,8 +662,9 @@ function App() {
             <MediaView
               media={selectedDetails}
               onRequest={() => {
-                const mediaType = isMovie(selectedItem) ? 'Movie' : 'TV Show';
-                const service = isMovie(selectedItem) ? 'Jellyseer/Radarr' : 'Jellyseer/Sonarr';
+                const mediaType = selectedItem.type === 'movie' ? 'Movie' : 'TV Show';
+                const service =
+                  selectedItem.type === 'movie' ? 'Jellyseer/Radarr' : 'Jellyseer/Sonarr';
                 alert(
                   `${mediaType} request functionality coming soon! This will integrate with ${service}.`
                 );

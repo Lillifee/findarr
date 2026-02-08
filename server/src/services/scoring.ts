@@ -4,7 +4,7 @@ import type { Media } from '@findarr/shared';
  * Calculate custom popularity score for a media item
  * Applies trending boosts, vote-based quality scoring, and age-based adjustments
  */
-export function calculateCustomPopularity(item: Media): number {
+export const calculateCustomPopularity = (item: Media) => {
   const basePop = item.popularity || 0;
   const voteAverage = item.vote_average || 0;
   const voteCount = item.vote_count || 0;
@@ -63,27 +63,4 @@ export function calculateCustomPopularity(item: Media): number {
   }
 
   return customPopularity;
-}
-
-/**
- * Create a map of trending scores based on ranking
- */
-export function createTrendingScoreMap(
-  trendingResults: Media[]
-): Map<number, { trending_boost: number; trending_rank: number }> {
-  const scoreMap = new Map<number, { trending_boost: number; trending_rank: number }>();
-
-  const MAX_TRENDING_BOOST = 500;
-  const TRENDING_DECAY_PER_RANK = 10;
-
-  trendingResults.forEach((item, index) => {
-    const trendingBoost = Math.max(0, MAX_TRENDING_BOOST - index * TRENDING_DECAY_PER_RANK);
-
-    scoreMap.set(item.id, {
-      trending_boost: trendingBoost,
-      trending_rank: index + 1,
-    });
-  });
-
-  return scoreMap;
-}
+};

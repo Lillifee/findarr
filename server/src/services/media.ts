@@ -12,7 +12,7 @@ import type {
 } from '@findarr/shared';
 import type { TMDBService } from '../tmdb/service';
 import { calculateCustomPopularity } from './scoring';
-import { buildRegionFilters, filterByCriteria } from '../tmdb/helpers';
+import { filterByCriteria } from './filter';
 
 /**
  * Media service - orchestrates multiple data sources and applies business logic
@@ -25,7 +25,7 @@ export function createMediaService(tmdbService: TMDBService) {
   // Popular cache: stores final scored and deduplicated results
   let popularCache:
     | {
-        results: Media[]; // Already scored, deduplicated, and sorted
+        results: Media[];
         fetchedAt: Date;
         language: string;
       }
@@ -50,13 +50,37 @@ export function createMediaService(tmdbService: TMDBService) {
   }
 
   /**
+   * Discover media - direct TMDB passthrough for browse mode
+   * Allows custom date ranges and filters without caching
+   */
+  async function discover(params: DiscoverQuery): Promise<DiscoverResponse> {
+    return await tmdbService.fetchDiscover(params);
+  }
+
+  /**
+   * Get detailed information about a media item
+   * Currently delegates to TMDB
+   */
+  async function getDetails(params: DetailsQuery): Promise<MediaDetails> {
+    return tmdbService.getDetails(params);
+  }
+
+  /**
+   * Get all available genres
+   * Currently delegates to TMDB
+   */
+  async function getGenres(params: GenresQuery): Promise<{ genres: Genre[] }> {
+    return tmdbService.getGenres(params);
+  }
+
+  /**
    * Internal: Fetch both trending and discover, apply scoring, and cache the result
    */
   async function fetchAndCachePopular(language: string): Promise<Media[]> {
     // Fetch 5 pages each from trending and discover
     const [trendingResult, discoverResult] = await Promise.all([
-      tmdbService.fetchTrending([1, 2, 3, 4, 5]),
-      tmdbService.fetchDiscover({ type: 'both', language, recent_days: 30 }, [1, 2, 3, 4, 5]),
+      tmdbService.fetchTrending({ language, time_window: 'week' }, [1, 2, 3, 4, 5]),
+      tmdbService.fetchDiscover({ language, type: 'both', recentDays: 30 }, [1, 2, 3, 4, 5]),
     ]);
 
     const trendingResults = trendingResult.results;
@@ -112,16 +136,14 @@ export function createMediaService(tmdbService: TMDBService) {
         ? popularCache?.results
         : await fetchAndCachePopular(language);
 
-    // Filter by type, region, and genre
-    const { languageFilter, countryFilter } = buildRegionFilters(params.region_groups || []);
-    const filters = {
-      type,
-      languageFilter,
-      countryFilter,
-      genresFilter: params.with_genres,
-    };
-
-    const filteredResults = allResults.filter(item => filterByCriteria(item, filters));
+    // Apply post-fetch filtering
+    const filteredResults = allResults.filter(item =>
+      filterByCriteria(item, {
+        type,
+        regions: params.regionGroups || [],
+        genres: params.withGenres || [],
+      })
+    );
 
     // Paginate (20 items per page)
     const ITEMS_PER_PAGE = 20;
@@ -135,30 +157,6 @@ export function createMediaService(tmdbService: TMDBService) {
       total_pages: Math.ceil(filteredResults.length / ITEMS_PER_PAGE),
       total_results: filteredResults.length,
     };
-  }
-
-  /**
-   * Discover media - direct TMDB passthrough for browse mode
-   * Allows custom date ranges and filters without caching
-   */
-  async function discover(params: DiscoverQuery): Promise<DiscoverResponse> {
-    return await tmdbService.fetchDiscover(params);
-  }
-
-  /**
-   * Get detailed information about a media item
-   * Currently delegates to TMDB
-   */
-  async function getDetails(params: DetailsQuery): Promise<MediaDetails> {
-    return tmdbService.getDetails(params);
-  }
-
-  /**
-   * Get all available genres
-   * Currently delegates to TMDB
-   */
-  async function getGenres(params: GenresQuery): Promise<{ genres: Genre[] }> {
-    return tmdbService.getGenres(params);
   }
 
   return { initialize, search, popular, discover, getDetails, getGenres };

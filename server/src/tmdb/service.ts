@@ -9,7 +9,7 @@ import type {
   MediaDetails,
 } from '@findarr/shared';
 import type { TMDBClient } from './client';
-import { buildRegionFilters, buildDateParams, transformMedia, transformDetails } from './';
+import { transformMedia, transformDetails, TMDBTrendingParams, buildDiscoverParams } from './';
 
 /**
  * TMDB Service - handles data fetching from TMDB API
@@ -67,36 +67,16 @@ export function createTMDBService(tmdbClient: TMDBClient) {
    * Fetches specified pages and transforms to application format
    */
   async function fetchDiscover(params: DiscoverQuery, pages?: number[]): Promise<DiscoverResponse> {
-    const {
-      type = 'both',
-      language = 'en-US',
-      recent_days,
-      region_groups = [],
-      with_genres,
-      page = 1,
-    } = params;
+    const { type = 'both', page = 1 } = params;
 
-    const region = language.includes('-') ? language.split('-')[1] : 'US';
-    const { languageFilter, countryFilter } = buildRegionFilters(region_groups);
-    const dateParams = buildDateParams(recent_days, type);
     const discoverTypes = type === 'both' ? (['movie', 'tv'] as const) : ([type] as const);
     const pagesToFetch = pages ?? [page];
 
+    const discoverParams = buildDiscoverParams(params);
     const discoverPromises = discoverTypes.flatMap(discoverType =>
-      pagesToFetch.map(pageNum => {
-        const baseParams = {
-          page: pageNum,
-          region,
-          language,
-          watch_region: region,
-          ...(languageFilter && { with_original_language: languageFilter }),
-          ...(countryFilter && { with_origin_country: countryFilter }),
-          ...(with_genres && { with_genres }),
-          ...dateParams,
-        };
-
-        return tmdbClient.discover(discoverType, baseParams);
-      })
+      pagesToFetch.map(pageNum =>
+        tmdbClient.discover(discoverType, { ...discoverParams, page: pageNum })
+      )
     );
 
     const responses = await Promise.all(discoverPromises);
@@ -116,13 +96,18 @@ export function createTMDBService(tmdbClient: TMDBClient) {
    * Fetch trending results from TMDB
    * Fetches specified pages and transforms to application format
    */
-  async function fetchTrending(pages?: number[]): Promise<DiscoverResponse> {
+  async function fetchTrending(
+    params: TMDBTrendingParams = {},
+    pages?: number[]
+  ): Promise<DiscoverResponse> {
+    const { language = 'en-US', time_window = 'week' } = params;
+
     const pagesToFetch = pages ?? [1];
     const ranks: Record<'movie' | 'tv', number> = { movie: 0, tv: 0 };
 
     const responses = await Promise.all(
       (['movie', 'tv'] as const).flatMap(type =>
-        pagesToFetch.map(page => tmdbClient.getTrending(type, { time_window: 'week', page }))
+        pagesToFetch.map(page => tmdbClient.getTrending(type, { language, time_window, page }))
       )
     );
 

@@ -1,9 +1,9 @@
 import {
   SearchQuerySchema,
-  DiscoverQuerySchema,
   PopularQuerySchema,
   DetailsQuerySchema,
   GenresQuerySchema,
+  DiscoverQuerySchema,
 } from '@findarr/shared';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { ZodError, type z } from 'zod';

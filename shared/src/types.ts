@@ -108,33 +108,6 @@ export interface DiscoverResponse {
 }
 
 // ============================================================================
-// Type Guards
-// ============================================================================
-
-/**
- * Type guard to check if media item is a Movie
- */
-export function isMovie(item: Media): item is Movie {
-  return item.type === 'movie';
-}
-
-/**
- * Type guard to check if media item is a TVShow
- */
-export function isTVShow(item: Media): item is TVShow {
-  return item.type === 'tv';
-}
-
-/**
- * Type guard to check if response is a SearchResponse
- */
-export function isSearchResponse(
-  response: SearchResponse | DiscoverResponse
-): response is SearchResponse {
-  return 'page' in response && 'total_pages' in response && 'total_results' in response;
-}
-
-// ============================================================================
 // Server Configuration Types
 // ============================================================================
 

@@ -1,10 +1,12 @@
 import { z } from 'zod';
+import { genreKeys, regionGroupKeys } from '.';
 
-/**
- * Shared validation schemas for API requests
- * Application types (Movie, TVShow, etc.) are in types/media.ts
- * TMDB API schemas are in server/src/schemas/tmdb.ts
- */
+const arrayParam = <T extends z.ZodTypeAny>(schema: T) =>
+  z.preprocess(val => {
+    if (typeof val === 'string') return val === '' ? [] : [val];
+    if (Array.isArray(val)) return val;
+    return [];
+  }, schema);
 
 // Server environment schema
 export const ServerEnvSchema = z.object({
@@ -29,37 +31,23 @@ export const SearchQuerySchema = BaseQuerySchema.extend({
   type: z.enum(['movie', 'tv', 'both']).default('both'),
 });
 
-// Application-level region group IDs (mapping to TMDB handled server-side)
-export type RegionGroupId =
-  | 'western'
-  | 'eastern-europe'
-  | 'asian'
-  | 'latin-america'
-  | 'middle-east-africa';
-
 // Application-level discover query (clean, minimal)
 export const DiscoverQuerySchema = BaseQuerySchema.extend({
   page: z.coerce.number().int().min(1).max(1000).optional(),
   type: z.enum(['movie', 'tv', 'both']).optional(),
 
   // Recent content filter - number of days to look back
-  recent_days: z.coerce.number().int().min(1).max(3650).optional(), // Max 10 years
+  recentDays: z.coerce.number().int().min(1).max(3650).optional(), // Max 10 years
 
-  // Region-based filtering (client sends IDs, server handles TMDB mapping)
-  region_groups: z
-    .preprocess(
-      val => {
-        if (typeof val === 'string') return val === '' ? [] : [val];
-        if (Array.isArray(val)) return val;
-        return [];
-      },
-      z.array(z.enum(['western', 'eastern-europe', 'asian', 'latin-america', 'middle-east-africa']))
-    )
+  // Region-based filtering
+  regionGroups: arrayParam(z.array(z.enum(regionGroupKeys)))
     .default([])
     .optional(),
 
   // Genre filtering
-  with_genres: z.string().optional(), // comma-separated genre IDs
+  withGenres: arrayParam(z.array(z.enum(genreKeys)))
+    .default([])
+    .optional(),
 });
 
 // Popular query extends discover with required pagination

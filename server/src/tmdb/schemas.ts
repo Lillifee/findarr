@@ -362,9 +362,9 @@ export function createAppendToResponse(...values: AppendToResponseValue[]): stri
  * Trending parameters
  */
 export interface TMDBTrendingParams {
-  time_window?: 'day' | 'week';
   page?: number;
   language?: string;
+  time_window?: 'day' | 'week';
 }
 
 /**
