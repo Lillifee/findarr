@@ -1,4 +1,10 @@
-import { GenreKey, Media, RegionGroupId, regionGroups, unifiedGenres } from '@findarr/shared';
+import {
+  type GenreKey,
+  type Media,
+  type RegionGroupId,
+  regionGroups,
+  unifiedGenres,
+} from '@findarr/shared';
 
 /**
  * Filter criteria for TMDB results

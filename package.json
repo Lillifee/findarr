@@ -10,13 +10,13 @@
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace=@findarr/shared\" \"npm run dev --workspace=@findarr/server\" \"npm run dev --workspace=@findarr/client\"",
+    "dev:shared": "npm run dev --workspace=@findarr/shared",
+    "dev:server": "npm run dev --workspace=@findarr/server",
+    "dev:client": "npm run dev --workspace=@findarr/client",
     "build": "npm run build --workspace=@findarr/shared && npm run build --workspace=@findarr/client && npm run build --workspace=@findarr/server",
     "build:shared": "npm run build --workspace=@findarr/shared",
     "build:server": "npm run build --workspace=@findarr/server",
     "build:client": "npm run build --workspace=@findarr/client",
-    "dev:shared": "npm run dev --workspace=@findarr/shared",
-    "dev:server": "npm run dev --workspace=@findarr/server",
-    "dev:client": "npm run dev --workspace=@findarr/client",
     "test": "npm run test:run --workspace=@findarr/shared && npm run test:run --workspace=@findarr/server && npm run test:run --workspace=@findarr/client",
     "test:coverage": "npm run test:coverage --workspace=@findarr/shared && npm run test:coverage --workspace=@findarr/server && npm run test:coverage --workspace=@findarr/client",
     "code:check": "npm run type-check && npm run lint && npm run format:check && npm run build",
@@ -26,22 +26,21 @@
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "format": "prettier --write --log-level silent .",
     "format:check": "prettier --check .",
-    "clean": "rimraf node_modules shared/dist server/dist client/dist **/*.tsbuildinfo",
+    "clean": "del-cli node_modules shared/dist server/dist client/dist **/*.tsbuildinfo",
     "ci": "npm run type-check && npm run lint && npm run format:check && npm run build",
-    "update": "npx npm-check-updates -u --workspaces && npm install",
-    "postinstall": "npm run build:shared"
+    "update": "npx npm-check-updates -u --workspaces && npm install"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
-    "eslint": "^9.20.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-react": "^7.36.1",
-    "eslint-plugin-react-hooks": "^5.0.1",
-    "globals": "^17.0.0",
-    "npm-check-updates": "^19.3.1",
-    "prettier": "^3.4.2",
-    "rimraf": "^6.1.2",
+    "del-cli": "^7.0.0",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "globals": "^17.3.0",
+    "npm-check-updates": "^19.3.2",
+    "prettier": "^3.8.1",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.53.0"
+    "typescript-eslint": "^8.54.0"
   }
 }

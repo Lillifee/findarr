@@ -1,5 +1,5 @@
 import React from 'react';
-import { Media } from '../../../shared/dist/types';
+import type { Media } from '../../../shared/dist/types';
 
 interface ResultsGridProps {
   results: Media[];

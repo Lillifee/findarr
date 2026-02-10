@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { searchService } from './services/api';
-import {
+import type {
   SearchResponse,
   SearchType,
   DiscoverResponse,
@@ -13,7 +13,7 @@ import { MediaView } from './components/MediaView';
 import { TimeRangeSlider } from './components/TimeRangeSlider';
 import { RegionSelector } from './components/RegionSelector';
 import GenreSelector from './components/GenreSelector';
-import { RegionGroupId, GenreKey } from '@findarr/shared';
+import type { RegionGroupId, GenreKey } from '@findarr/shared';
 
 function App() {
   const [searchResults, setSearchResults] = useState<SearchResponse | DiscoverResponse | null>(
@@ -163,7 +163,11 @@ function App() {
     setDetailsLoading(true);
 
     try {
-      const details = await searchService.detailsMedia({ id: item.id, type: item.type });
+      const details = await searchService.detailsMedia({
+        id: item.id,
+        type: item.type,
+        language,
+      });
       setSelectedDetails(details);
     } catch (error) {
       console.error('Failed to fetch details:', error);

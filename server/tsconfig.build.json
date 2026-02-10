@@ -7,8 +7,11 @@
     "outDir": "dist",
     "rootDir": "src",
     "declaration": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "composite": true,
+    "incremental": true
   },
-  "include": ["src"],
-  "exclude": ["src/**/*.test.ts"]
+  "references": [{ "path": "../shared/tsconfig.build.json" }],
+  "include": ["src/**/*"],
+  "exclude": ["src/**/*.test.ts", "dist", "node_modules"]
 }

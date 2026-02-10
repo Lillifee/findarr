@@ -30,6 +30,12 @@
 			]
 		},
 		{
+			"label": "Clean",
+			"type": "shell",
+			"command": "npm run clean",
+			"group": "build",
+		},
+		{
 			"label": "Code Fix",
 			"type": "shell",
 			"command": "npm run code:fix",

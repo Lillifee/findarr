@@ -1,12 +1,12 @@
 import {
   type RegionGroupId,
   regionGroups,
-  GenreKey,
+  type GenreKey,
   unifiedGenres,
   regionGroupKeys,
-  DiscoverQuery,
+  type DiscoverQuery,
 } from '@findarr/shared';
-import { TMDBDiscoverParams } from './schemas.js';
+import type { TMDBDiscoverParams } from './schemas.js';
 
 /**
  * Build region filters from selected region groups

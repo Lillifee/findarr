@@ -3,7 +3,7 @@
  * These functions map the raw TMDB data structure to our unified application structure
  */
 import type { Movie, TVShow, MovieDetails, TVDetails, Genre, Media } from '@findarr/shared';
-import { TMDBMovie, TMDBTVShow, TMDBMovieDetails, TMDBTVDetails } from './schemas.js';
+import type { TMDBMovie, TMDBTVShow, TMDBMovieDetails, TMDBTVDetails } from './schemas.js';
 
 /**
  * Custom enrichment fields that can be added to transformed items

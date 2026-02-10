@@ -3,18 +3,10 @@
   "compilerOptions": {
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "Bundler",
     "jsx": "react-jsx",
     "noEmit": true,
-    "isolatedModules": true,
-    "allowImportingTsExtensions": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "baseUrl": ".",
-    "paths": {
-      "@findarr/shared": ["../shared/src"]
-    }
+    "allowImportingTsExtensions": true
   },
   "include": ["src"]
 }

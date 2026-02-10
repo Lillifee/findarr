@@ -1,14 +1,14 @@
 import axios from 'axios';
 import {
-  TMDBSearchParams,
-  TMDBTVSearchParams,
+  type TMDBSearchParams,
+  type TMDBTVSearchParams,
   TMDBSearchResponseSchema,
-  TMDBDiscoverParams,
-  TMDBTrendingParams,
-  TMDBDetailsParams,
+  type TMDBDiscoverParams,
+  type TMDBTrendingParams,
+  type TMDBDetailsParams,
   TMDBMovieDetailsSchema,
   TMDBTVDetailsSchema,
-  TMDBGenresParams,
+  type TMDBGenresParams,
   TMDBGenresResponseSchema,
 } from './schemas.js';
 

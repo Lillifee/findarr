@@ -21,7 +21,7 @@
     "clean": "rimraf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "zod": "^4.3.5"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "rimraf": "^6.1.2",

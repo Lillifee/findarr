@@ -1,4 +1,4 @@
-import { MovieDetails, TVDetails } from '@findarr/shared';
+import type { MovieDetails, TVDetails } from '@findarr/shared';
 
 interface MediaDetailsProps {
   media: MovieDetails | TVDetails;

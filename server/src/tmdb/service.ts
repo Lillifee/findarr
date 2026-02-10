@@ -8,9 +8,9 @@ import type {
   DiscoverResponse,
   MediaDetails,
 } from '@findarr/shared';
-import { TMDBClient } from './client.js';
+import type { TMDBClient } from './client.js';
 import { buildDiscoverParams } from './helpers.js';
-import { TMDBTrendingParams } from './schemas.js';
+import type { TMDBTrendingParams } from './schemas.js';
 import { transformMedia, transformDetails } from './transformers.js';
 
 /**

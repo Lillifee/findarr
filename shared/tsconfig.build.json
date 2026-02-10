@@ -6,10 +6,12 @@
     "moduleResolution": "NodeNext",
     "declaration": true,
     "declarationMap": true,
+    "sourceMap": true,
     "outDir": "dist",
     "rootDir": "src",
-    "composite": true
+    "composite": true,
+    "incremental": true
   },
-  "include": ["src"],
-  "exclude": ["src/**/*.test.ts"]
+  "include": ["src/**/*"],
+  "exclude": ["src/**/*.test.ts", "dist", "node_modules"]
 }

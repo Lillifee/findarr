@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { GenreKey, objectEntries, unifiedGenres } from '../../../shared/dist';
+import type { GenreKey } from '../../../shared/src/constants';
 
 interface Props {
   selectedGenres: GenreKey[];
