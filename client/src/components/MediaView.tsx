@@ -118,10 +118,10 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
           >
             <span>📺 {media.type}</span>
             <span>
-              🏠 {media.number_of_seasons} Season{media.number_of_seasons !== 1 ? 's' : ''}
+              🏠 {media.number_of_seasons} Season{media.number_of_seasons === 1 ? '' : 's'}
             </span>
             <span>
-              📽️ {media.number_of_episodes} Episode{media.number_of_episodes !== 1 ? 's' : ''}
+              📽️ {media.number_of_episodes} Episode{media.number_of_episodes === 1 ? '' : 's'}
             </span>
           </div>
         )}

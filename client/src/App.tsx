@@ -1,5 +1,5 @@
+import type { RegionGroupId, GenreKey, User } from '@findarr/shared';
 import { useState, useEffect } from 'react';
-import { searchService } from './services/api';
 import type {
   SearchResponse,
   SearchType,
@@ -7,15 +7,157 @@ import type {
   Media,
   MediaDetails,
 } from '../../shared/dist/types';
+import { RequestManagement } from './components/admin/RequestManagement';
+import { UserManagement } from './components/admin/UserManagement';
+import GenreSelector from './components/GenreSelector';
+import { LoginForm } from './components/LoginForm';
+import { MediaView } from './components/MediaView';
+import { MyRequests } from './components/MyRequests';
+import { RegionSelector } from './components/RegionSelector';
 import { ResultsGrid } from './components/ResultsGrid';
 import { SearchBar } from './components/SearchBar';
-import { MediaView } from './components/MediaView';
 import { TimeRangeSlider } from './components/TimeRangeSlider';
-import { RegionSelector } from './components/RegionSelector';
-import GenreSelector from './components/GenreSelector';
-import type { RegionGroupId, GenreKey } from '@findarr/shared';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { searchService, requestService } from './services/api';
 
-function App() {
+function MainApp() {
+  const { isAuthenticated, isAdmin, isLoading: authLoading, logout, user } = useAuth();
+  const [currentView, setCurrentView] = useState<
+    'browse' | 'myRequests' | 'adminUsers' | 'adminRequests'
+  >('browse');
+
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div
+        style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}
+      >
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  // Show login form if not authenticated
+  if (!isAuthenticated) {
+    return <LoginForm />;
+  }
+
+  // Render admin/request views
+  if (currentView !== 'browse') {
+    return (
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
+        {/* Navigation Bar */}
+        <nav
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '2rem',
+            padding: '1rem',
+            backgroundColor: '#f8f9fa',
+            borderRadius: '8px',
+          }}
+        >
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button
+              onClick={() => setCurrentView('browse')}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: 'transparent',
+                color: '#007bff',
+                border: '1px solid #007bff',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              Browse
+            </button>
+            <button
+              onClick={() => setCurrentView('myRequests')}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: currentView === 'myRequests' ? '#007bff' : 'transparent',
+                color: currentView === 'myRequests' ? 'white' : '#007bff',
+                border: currentView === 'myRequests' ? 'none' : '1px solid #007bff',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              My Requests
+            </button>
+            {isAdmin && (
+              <>
+                <button
+                  onClick={() => setCurrentView('adminUsers')}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: currentView === 'adminUsers' ? '#ffc107' : 'transparent',
+                    color: currentView === 'adminUsers' ? 'white' : '#ffc107',
+                    border: currentView === 'adminUsers' ? 'none' : '1px solid #ffc107',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Users
+                </button>
+                <button
+                  onClick={() => setCurrentView('adminRequests')}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: currentView === 'adminRequests' ? '#ffc107' : 'transparent',
+                    color: currentView === 'adminRequests' ? 'white' : '#ffc107',
+                    border: currentView === 'adminRequests' ? 'none' : '1px solid #ffc107',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Manage Requests
+                </button>
+              </>
+            )}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <span style={{ color: '#666' }}>Welcome, {user?.display_name}</span>
+            <button
+              onClick={logout}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#dc3545',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              Logout
+            </button>
+          </div>
+        </nav>
+
+        {currentView === 'myRequests' && <MyRequests />}
+        {currentView === 'adminUsers' && <UserManagement />}
+        {currentView === 'adminRequests' && <RequestManagement />}
+      </div>
+    );
+  }
+
+  // Render browse view (wrapped in BrowseView component)
+  return (
+    <BrowseView user={user} isAdmin={isAdmin} logout={logout} setCurrentView={setCurrentView} />
+  );
+}
+
+function BrowseView({
+  user,
+  isAdmin,
+  logout,
+  setCurrentView,
+}: {
+  user: User | null;
+  isAdmin: boolean;
+  logout: () => void;
+  setCurrentView: (view: 'browse' | 'myRequests' | 'adminUsers' | 'adminRequests') => void;
+}) {
   const [searchResults, setSearchResults] = useState<SearchResponse | DiscoverResponse | null>(
     null
   );
@@ -150,7 +292,7 @@ function App() {
 
     // Scroll to results section after page change
     setTimeout(() => {
-      const resultsSection = document.getElementById('results-section');
+      const resultsSection = document.querySelector('#results-section');
       if (resultsSection) {
         resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
@@ -190,6 +332,93 @@ function App() {
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", roboto, sans-serif',
       }}
     >
+      {/* Navigation Bar */}
+      <nav
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '2rem',
+          padding: '1rem',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '8px',
+        }}
+      >
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <button
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+            }}
+          >
+            Browse
+          </button>
+          <button
+            onClick={() => setCurrentView('myRequests')}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: 'transparent',
+              color: '#007bff',
+              border: '1px solid #007bff',
+              borderRadius: '4px',
+              cursor: 'pointer',
+            }}
+          >
+            My Requests
+          </button>
+          {isAdmin && (
+            <>
+              <button
+                onClick={() => setCurrentView('adminUsers')}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'transparent',
+                  color: '#ffc107',
+                  border: '1px solid #ffc107',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                }}
+              >
+                Users
+              </button>
+              <button
+                onClick={() => setCurrentView('adminRequests')}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'transparent',
+                  color: '#ffc107',
+                  border: '1px solid #ffc107',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                }}
+              >
+                Manage Requests
+              </button>
+            </>
+          )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <span style={{ color: '#666' }}>Welcome, {user?.display_name}</span>
+          <button
+            onClick={logout}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#dc3545',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+            }}
+          >
+            Logout
+          </button>
+        </div>
+      </nav>
+
       <header style={{ textAlign: 'center', marginBottom: '3rem' }}>
         <h1
           style={{
@@ -306,7 +535,7 @@ function App() {
                       marginLeft: '0.5rem',
                     }}
                   >
-                    ({selectedRegions.length} region{selectedRegions.length !== 1 ? 's' : ''},{' '}
+                    ({selectedRegions.length} region{selectedRegions.length === 1 ? '' : 's'},{' '}
                     {(language.split('-')[0] ?? 'EN').toUpperCase()})
                   </span>
                 )}
@@ -665,13 +894,20 @@ function App() {
           {selectedDetails && !detailsLoading && (
             <MediaView
               media={selectedDetails}
-              onRequest={() => {
-                const mediaType = selectedItem.type === 'movie' ? 'Movie' : 'TV Show';
-                const service =
-                  selectedItem.type === 'movie' ? 'Jellyseer/Radarr' : 'Jellyseer/Sonarr';
-                alert(
-                  `${mediaType} request functionality coming soon! This will integrate with ${service}.`
-                );
+              onRequest={async () => {
+                if (!selectedItem || !selectedDetails) return;
+
+                try {
+                  await requestService.createRequest({
+                    mediaType: selectedItem.type,
+                    tmdbId: selectedDetails.id,
+                    title: selectedDetails.name || 'Unknown',
+                    posterPath: selectedDetails.poster_path || null,
+                  });
+                  alert(`✅ Request submitted! Check "My Requests" to track its status.`);
+                } catch {
+                  alert('Failed to submit request. Please try again.');
+                }
               }}
             />
           )}
@@ -690,6 +926,15 @@ function App() {
         </div>
       )}
     </div>
+  );
+}
+
+// Main App Component with Authentication
+function App() {
+  return (
+    <AuthProvider>
+      <MainApp />
+    </AuthProvider>
   );
 }
 

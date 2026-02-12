@@ -23,7 +23,7 @@ export function TimeRangeSlider({ value, onChange }: TimeRangeSliderProps) {
   }
 
   const handleSliderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const index = parseInt(event.target.value);
+    const index = Number.parseInt(event.target.value);
     const period = TIME_PERIODS[index];
     if (period) {
       onChange(period.days);

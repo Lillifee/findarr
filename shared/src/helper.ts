@@ -3,3 +3,6 @@ export const objectEntries = <T extends object, K extends keyof T>(object: T) =>
 
 export const objectKeys = <T extends object, K extends keyof T>(object: T) =>
   Object.keys(object) as K[];
+
+export const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);

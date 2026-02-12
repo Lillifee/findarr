@@ -29,9 +29,9 @@ export function createTMDBService(tmdbClient: TMDBClient) {
       tmdbClient.getGenres('tv', { language: 'en-US' }),
     ]);
 
-    [...movieGenres.genres, ...tvGenres.genres].forEach(genre => {
+    for (const genre of [...movieGenres.genres, ...tvGenres.genres]) {
       genreMap.set(genre.id, genre);
-    });
+    }
   }
 
   /**
@@ -142,7 +142,7 @@ export function createTMDBService(tmdbClient: TMDBClient) {
    * Get all genres
    */
   async function getGenres(_params: GenresQuery): Promise<{ genres: Genre[] }> {
-    const allGenres = Array.from(genreMap.values());
+    const allGenres = [...genreMap.values()];
     return { genres: allGenres };
   }
 

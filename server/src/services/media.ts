@@ -11,8 +11,8 @@ import type {
   MediaDetails,
 } from '@findarr/shared';
 import type { TMDBService } from '../tmdb/service.js';
-import { calculateCustomPopularity } from './scoring.js';
 import { filterByCriteria } from './filter.js';
+import { calculateCustomPopularity } from './scoring.js';
 
 /**
  * Media service - orchestrates multiple data sources and applies business logic
@@ -93,8 +93,8 @@ export function createMediaService(tmdbService: TMDBService) {
     });
 
     // Remove duplicates (prefer trending version if exists)
-    const uniqueResults = Array.from(
-      allResultsWithScoring
+    const uniqueResults = [
+      ...allResultsWithScoring
         .reduce((map, item) => {
           const existing = map.get(item.id);
           if (!existing || item.trending_rank) {
@@ -102,8 +102,8 @@ export function createMediaService(tmdbService: TMDBService) {
           }
           return map;
         }, new Map<number, Media>())
-        .values()
-    );
+        .values(),
+    ];
 
     // Sort by custom popularity
     const sortedResults = uniqueResults.sort(

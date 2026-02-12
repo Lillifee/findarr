@@ -208,33 +208,33 @@ export interface UnifiedGenre {
 
 export const unifiedGenres = {
   // --- Core (movie + tv) ---
-  Action: { name: 'Action', ids: [28, 10759] }, // Action / Action & Adventure
-  Adventure: { name: 'Adventure', ids: [12, 10759] }, // Adventure / Action & Adventure
+  Action: { name: 'Action', ids: [28, 10_759] }, // Action / Action & Adventure
+  Adventure: { name: 'Adventure', ids: [12, 10_759] }, // Adventure / Action & Adventure
   Animation: { name: 'Animation', ids: [16] },
   Comedy: { name: 'Comedy', ids: [35] },
   Crime: { name: 'Crime', ids: [80] },
   Documentary: { name: 'Documentary', ids: [99] },
   Drama: { name: 'Drama', ids: [18] },
-  Family: { name: 'Family', ids: [10751, 10762] }, // Family / Kids
-  Fantasy: { name: 'Fantasy', ids: [14, 10765] }, // Fantasy / Sci-Fi & Fantasy
-  ScienceFiction: { name: 'Science Fiction', ids: [878, 10765] },
+  Family: { name: 'Family', ids: [10_751, 10_762] }, // Family / Kids
+  Fantasy: { name: 'Fantasy', ids: [14, 10_765] }, // Fantasy / Sci-Fi & Fantasy
+  ScienceFiction: { name: 'Science Fiction', ids: [878, 10_765] },
   Mystery: { name: 'Mystery', ids: [9648] },
-  Romance: { name: 'Romance', ids: [10749] },
+  Romance: { name: 'Romance', ids: [10_749] },
   Thriller: { name: 'Thriller', ids: [53] },
   Horror: { name: 'Horror', ids: [27] },
-  WarPolitics: { name: 'War & Politics', ids: [10752, 10768] },
+  WarPolitics: { name: 'War & Politics', ids: [10_752, 10_768] },
   Western: { name: 'Western', ids: [37] },
 
   // --- Movie-only ---
   History: { name: 'History', ids: [36] },
-  Music: { name: 'Music', ids: [10402] },
-  TvMovie: { name: 'TV Movie', ids: [10770] },
+  Music: { name: 'Music', ids: [10_402] },
+  TvMovie: { name: 'TV Movie', ids: [10_770] },
 
   // --- TV-only ---
-  News: { name: 'News', ids: [10763] },
-  Reality: { name: 'Reality', ids: [10764] },
-  Soap: { name: 'Soap', ids: [10766] },
-  Talk: { name: 'Talk', ids: [10767] },
+  News: { name: 'News', ids: [10_763] },
+  Reality: { name: 'Reality', ids: [10_764] },
+  Soap: { name: 'Soap', ids: [10_766] },
+  Talk: { name: 'Talk', ids: [10_767] },
 } as const satisfies Record<string, UnifiedGenre>;
 
 export type GenreKey = keyof typeof unifiedGenres;

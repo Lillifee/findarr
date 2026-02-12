@@ -6,6 +6,11 @@ import type {
   DetailsQuerySchema,
   ServerEnvSchema,
   GenresQuerySchema,
+  LoginSchema,
+  CreateUserSchema,
+  UserSchema,
+  DeleteUserSchema,
+  CreateMediaRequestSchema,
 } from './schemas.js';
 
 // ============================================================================
@@ -132,3 +137,38 @@ export type DiscoverQuery = z.infer<typeof DiscoverQuerySchema>;
 export type PopularQuery = z.infer<typeof PopularQuerySchema>;
 export type DetailsQuery = z.infer<typeof DetailsQuerySchema>;
 export type GenresQuery = z.infer<typeof GenresQuerySchema>;
+
+// ============================================================================
+// Authentication & User Types
+// ============================================================================
+
+export type Login = z.infer<typeof LoginSchema>;
+export type User = z.infer<typeof UserSchema>;
+
+export type CreateUser = z.infer<typeof CreateUserSchema>;
+export type DeleteUser = z.infer<typeof DeleteUserSchema>;
+
+// ============================================================================
+// Media Request Types
+// ============================================================================
+
+export type CreateMediaRequest = z.infer<typeof CreateMediaRequestSchema>;
+
+export type RequestStatus = 'pending' | 'approved' | 'rejected' | 'available';
+
+export interface MediaRequest {
+  id: number;
+  user_id: number;
+  media_type: 'movie' | 'tv';
+  tmdb_id: number;
+  title: string;
+  poster_path: string | null;
+  status: RequestStatus;
+  requested_at: number;
+  updated_at: number;
+}
+
+export interface MediaRequestWithUser extends MediaRequest {
+  user_email: string;
+  user_display_name: string;
+}

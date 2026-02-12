@@ -1,5 +1,5 @@
-import React from 'react';
 import { type RegionGroupId } from '@findarr/shared';
+import React from 'react';
 
 // Region metadata for UI display (TMDB mapping handled server-side)
 const REGION_INFO: Record<RegionGroupId, { name: string; description: string }> = {

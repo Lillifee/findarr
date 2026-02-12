@@ -1,14 +1,21 @@
 import 'dotenv/config';
-import fastify from 'fastify';
 import cors from '@fastify/cors';
-import { mediaPlugin } from './plugins/media.js';
-import { mediaRoutes } from './routes/media.js';
+import rateLimit from '@fastify/rate-limit';
 import { ServerEnvSchema } from '@findarr/shared';
+import Fastify from 'fastify';
+import authPlugin from './plugins/auth.js';
+import databasePlugin from './plugins/database.js';
+import mediaPlugin from './plugins/media.js';
+import adminRoutes from './routes/admin.js';
+import authRoutes from './routes/auth.js';
+import { registerErrorHandler } from './routes/common.js';
+import { mediaRoutes } from './routes/media.js';
+import { requestRoutes, adminRequestRoutes } from './routes/requests.js';
 
 // Validate environment variables
 const env = ServerEnvSchema.parse(process.env);
 
-const server = fastify({
+const server = Fastify({
   logger:
     env.NODE_ENV === 'development'
       ? {
@@ -29,12 +36,24 @@ const server = fastify({
 
 async function start() {
   try {
-    // Register CORS
+    // Register global error handler
+    registerErrorHandler(server);
+
+    // Register CORS with credentials support
     await server.register(cors, {
       origin: env.NODE_ENV === 'development' ? ['http://localhost:5173'] : false,
+      credentials: true,
     });
 
-    // Register media service
+    // Register rate limiting
+    await server.register(rateLimit, {
+      max: 100,
+      timeWindow: '1 minute',
+    });
+
+    // Register plugins
+    await server.register(databasePlugin, { env });
+    await server.register(authPlugin, { env });
     await server.register(mediaPlugin, { env });
 
     // Health check endpoint
@@ -44,6 +63,10 @@ async function start() {
     }));
 
     // Register API routes
+    await server.register(authRoutes, { prefix: '/api/auth' });
+    await server.register(adminRoutes, { prefix: '/api/admin' });
+    await server.register(requestRoutes, { prefix: '/api/requests' });
+    await server.register(adminRequestRoutes, { prefix: '/api/admin/requests' });
     await server.register(mediaRoutes, { prefix: '/api' });
 
     // Start server
@@ -53,8 +76,8 @@ async function start() {
     });
 
     server.log.info(`Server listening at ${address}`);
-  } catch (err) {
-    server.log.error(err);
+  } catch (error) {
+    server.log.error(error);
     process.exit(1);
   }
 }

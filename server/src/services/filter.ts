@@ -48,10 +48,12 @@ export const filterByCriteria = (item: Media, filters: FilterCriteria) => {
   // --- Genres ---
   const allowedGenreIds = new Set(filters.genres.flatMap<number>(g => unifiedGenres[g]?.ids ?? []));
 
-  if (allowedGenreIds.size > 0 && item.genres) {
-    if (!item.genres.some(g => allowedGenreIds.has(g.id))) {
-      return false;
-    }
+  if (
+    allowedGenreIds.size > 0 &&
+    item.genres &&
+    !item.genres.some(g => allowedGenreIds.has(g.id))
+  ) {
+    return false;
   }
 
   return true;

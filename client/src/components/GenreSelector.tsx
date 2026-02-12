@@ -1,3 +1,4 @@
+import { objectEntries, unifiedGenres } from '@findarr/shared';
 import { useState } from 'react';
 import type { GenreKey } from '../../../shared/src/constants';
 
@@ -47,7 +48,7 @@ export default function GenreSelector({ selectedGenres, onGenreChange }: Props) 
           <span style={{ color: selectedGenres.length === 0 ? '#999' : '#333' }}>
             {selectedGenres.length === 0
               ? 'Select genres...'
-              : `${selectedGenres.length} genre${selectedGenres.length !== 1 ? 's' : ''} selected`}
+              : `${selectedGenres.length} genre${selectedGenres.length === 1 ? '' : 's'} selected`}
           </span>
           <span
             style={{

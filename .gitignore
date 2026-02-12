@@ -21,4 +21,5 @@ npm-debug.log*
 # Temporary files
 *.tmp
 
-
+# Database 
+data/

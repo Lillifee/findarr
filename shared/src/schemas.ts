@@ -8,17 +8,21 @@ const arrayParam = <T extends z.ZodTypeAny>(schema: T) =>
     return [];
   }, schema);
 
-// Server environment schema
+// ============================================================================
+// Server environment ENV Schemas
+// ============================================================================
+
 export const ServerEnvSchema = z.object({
   TMDB_ACCESS_TOKEN: z.string(),
   TMDB_BASE_URL: z.url().default('https://api.themoviedb.org/3'),
-  PORT: z.coerce.number().int().min(1).max(65535).default(3000),
+  PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
   HOST: z.string().default('0.0.0.0'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('production'),
+  SESSION_SECRET: z.string().min(32),
 });
 
 // ============================================================================
-// Request Validation Schemas
+// Media Request Validation Schemas
 // ============================================================================
 
 const BaseQuerySchema = z.object({
@@ -60,4 +64,51 @@ export const DetailsQuerySchema = BaseQuerySchema.extend({
 
 export const GenresQuerySchema = z.object({
   type: z.enum(['movie', 'tv']),
+});
+
+// ============================================================================
+// Authentication Schemas
+// ============================================================================
+
+export const LoginSchema = z.object({
+  email: z.email(),
+  password: z.string().min(1),
+});
+
+export const UserSchema = z.object({
+  id: z.coerce.number().int().positive(),
+  email: z.email(),
+  display_name: z.string(),
+  role: z.enum(['user', 'admin']),
+  created_at: z.number(),
+});
+
+export const CreateUserSchema = z.object({
+  email: z.email(),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  displayName: z.string().min(1),
+  role: z.enum(['user', 'admin']).default('user'),
+});
+
+export const DeleteUserSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});
+
+// ============================================================================
+// Media Request Schemas
+// ============================================================================
+
+export const CreateMediaRequestSchema = z.object({
+  mediaType: z.enum(['movie', 'tv']),
+  tmdbId: z.number().int().positive(),
+  title: z.string().min(1),
+  posterPath: z.string().nullable(),
+});
+
+export const UpdateRequestStatusSchema = z.object({
+  status: z.enum(['pending', 'approved', 'rejected', 'available']),
+});
+
+export const RequestIdSchema = z.object({
+  id: z.coerce.number().int().positive(),
 });

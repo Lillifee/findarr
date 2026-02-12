@@ -2,6 +2,8 @@ import js from '@eslint/js';
 import tsEslint from 'typescript-eslint';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
+import importX from 'eslint-plugin-import-x';
+import unicorn from 'eslint-plugin-unicorn';
 import prettierConfig from 'eslint-config-prettier';
 import globals from 'globals';
 
@@ -23,7 +25,10 @@ export default [
   /* Base JS + TS rules (ALL packages) */
   /* -------------------------------------------------- */
   js.configs.recommended,
-  ...tsEslint.configs.recommended,
+  ...tsEslint.configs.strict,
+  importX.flatConfigs.recommended,
+  importX.flatConfigs.typescript,
+  unicorn.configs.recommended,
   prettierConfig,
 
   {
@@ -31,6 +36,16 @@ export default [
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
+    },
+    settings: {
+      'import-x/resolver': {
+        typescript: {
+          alwaysTryTypes: true,
+          project: ['./tsconfig.base.json', './*/tsconfig.json'],
+          noWarnOnMultipleProjects: true,
+        },
+        node: true,
+      },
     },
     rules: {
       // TypeScript
@@ -55,7 +70,31 @@ export default [
       'no-var': 'error',
       'prefer-template': 'error',
       'object-shorthand': 'error',
-      'no-duplicate-imports': 'error',
+      'arrow-body-style': ['error', 'as-needed'],
+
+      // Import rules
+      'no-duplicate-imports': 'off', // Handled by import-x
+      'import-x/order': [
+        'error',
+        {
+          groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+          'newlines-between': 'never',
+          alphabetize: { order: 'asc', caseInsensitive: true },
+        },
+      ],
+      'import-x/no-duplicates': 'error',
+      'import-x/no-unresolved': 'off', // TypeScript handles this
+
+      // Unicorn rules (disable overly strict ones)
+      'unicorn/prevent-abbreviations': 'off',
+      'unicorn/no-null': 'off',
+      'unicorn/prefer-top-level-await': 'off',
+      'unicorn/filename-case': 'off',
+      'unicorn/no-array-reduce': 'off',
+      'unicorn/no-await-expression-member': 'off',
+      'unicorn/import-style': 'off',
+      'unicorn/consistent-function-scoping': 'off',
+      'unicorn/no-array-sort': 'off', // Sort is fine for SQLite result mutation
     },
   },
 
@@ -78,6 +117,9 @@ export default [
       globals: {
         ...globals.node,
       },
+    },
+    rules: {
+      'unicorn/no-process-exit': 'off', // Allow process.exit in server entry points
     },
   },
 
@@ -105,6 +147,11 @@ export default [
       // Hooks
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
+
+      // React 18+ uses JSX transform, no default import needed
+      'import-x/default': 'off',
+      'import-x/no-named-as-default': 'off',
+      'import-x/no-named-as-default-member': 'off',
     },
     settings: {
       react: { version: 'detect' },
