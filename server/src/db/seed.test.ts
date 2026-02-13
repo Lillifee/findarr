@@ -1,4 +1,3 @@
-import type { ServerEnvSeed } from '@findarr/shared';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { getUserByEmail } from '../services/user.js';
@@ -10,9 +9,9 @@ describe('seed', () => {
   let app: FastifyInstance;
   let db: DB;
 
-  const serverEnvSeed: ServerEnvSeed = {
-    ADMIN_EMAIL: 'admin@findarr.local',
-    ADMIN_PASSWORD: 'changeme',
+  const settings = {
+    email: 'admin@findarr.local',
+    password: 'changeme',
   };
 
   beforeEach(() => {
@@ -25,19 +24,19 @@ describe('seed', () => {
   });
 
   it('creates an admin user if not present', async () => {
-    const adminBefore = getUserByEmail(db, serverEnvSeed.ADMIN_EMAIL);
+    const adminBefore = getUserByEmail(db, settings.email);
     expect(adminBefore).toBeFalsy();
-    await seed(app, db, serverEnvSeed);
-    const adminAfter = getUserByEmail(db, serverEnvSeed.ADMIN_EMAIL);
+    await seed(app, db, settings.email, settings.password);
+    const adminAfter = getUserByEmail(db, settings.email);
     expect(adminAfter).toBeDefined();
     expect(adminAfter?.role).toBe('admin');
   });
 
   it('does not create duplicate admin user', async () => {
-    await seed(app, db, serverEnvSeed);
-    const admin1 = getUserByEmail(db, serverEnvSeed.ADMIN_EMAIL);
-    await seed(app, db, serverEnvSeed);
-    const admin2 = getUserByEmail(db, serverEnvSeed.ADMIN_EMAIL);
+    await seed(app, db, settings.email, settings.password);
+    const admin1 = getUserByEmail(db, settings.email);
+    await seed(app, db, settings.email, settings.password);
+    const admin2 = getUserByEmail(db, settings.email);
     expect(admin1?.id).toBe(admin2?.id);
   });
 });

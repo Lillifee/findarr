@@ -1,5 +1,4 @@
 import 'dotenv/config';
-
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import { ServerEnvSchema } from '@findarr/shared';
@@ -41,7 +40,7 @@ async function start() {
   // Check for setup argument
   if (process.argv.includes('--setup')) {
     const db = createDatabase(env.DB_PATH);
-    await seed(server, db, env);
+    await seed(server, db, env.ADMIN_EMAIL, env.ADMIN_PASSWORD);
     db.close();
 
     process.exit(0);
@@ -64,9 +63,12 @@ async function start() {
     });
 
     // Register plugins
-    await server.register(databasePlugin, { env });
-    await server.register(authPlugin, { env });
-    await server.register(mediaPlugin, { env });
+    await server.register(databasePlugin, { dbPath: env.DB_PATH });
+    await server.register(authPlugin, { sessionSecret: env.SESSION_SECRET });
+    await server.register(mediaPlugin, {
+      tmdbAccessToken: env.TMDB_ACCESS_TOKEN,
+      tmdbBaseUrl: env.TMDB_BASE_URL,
+    });
 
     // Health check endpoint
     server.get('/health', async () => ({

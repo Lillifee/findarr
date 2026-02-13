@@ -1,6 +1,5 @@
 import type { FastifyPluginAsync, FastifyPluginOptions } from 'fastify';
 import fp from 'fastify-plugin';
-import type { ServerEnv } from '../../../shared/dist/types.js';
 import { createDatabase, type DB } from '../db/setup.js';
 
 declare module 'fastify' {
@@ -10,11 +9,11 @@ declare module 'fastify' {
 }
 
 interface DatabasePluginOptions extends FastifyPluginOptions {
-  env: ServerEnv;
+  dbPath: string;
 }
 
 const databasePlugin: FastifyPluginAsync<DatabasePluginOptions> = async (fastify, options) => {
-  const dbPath = options.dbPath || './data/findarr.db';
+  const dbPath = options.dbPath;
   const db = createDatabase(dbPath);
 
   fastify.log.info({ dbPath }, 'Database initialized');

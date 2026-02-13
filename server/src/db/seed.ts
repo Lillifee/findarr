@@ -1,27 +1,27 @@
-import { getErrorMessage, type CreateUser, type ServerEnvSeed } from '@findarr/shared';
+import { getErrorMessage, type CreateUser } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
 import { createUser, getUserByEmail } from '../services/user.js';
 import type { DB } from './setup.js';
 
-export async function seed(fastify: FastifyInstance, db: DB, env: ServerEnvSeed) {
+export async function seed(fastify: FastifyInstance, db: DB, email: string, password: string) {
   try {
     fastify.log.info('Seeding database...');
 
     // Check if admin already exists
-    const existingAdmin = getUserByEmail(db, env.ADMIN_EMAIL);
+    const existingAdmin = getUserByEmail(db, email);
 
     if (existingAdmin) {
       fastify.log.info('Admin user already exists');
-      fastify.log.info(`Email: ${env.ADMIN_EMAIL}`);
+      fastify.log.info(`Email: ${email}`);
       return;
     }
 
     // Create admin user
     const userData: CreateUser = {
+      email,
+      password,
       role: 'admin',
       displayName: 'admin',
-      email: env.ADMIN_EMAIL,
-      password: env.ADMIN_PASSWORD,
     };
 
     const admin = await createUser(db, userData);
@@ -32,8 +32,8 @@ export async function seed(fastify: FastifyInstance, db: DB, env: ServerEnvSeed)
 
     fastify.log.info('Admin user created successfully!');
     fastify.log.info('');
-    fastify.log.info(`   Email: ${admin.email}`);
-    fastify.log.info(`   Password: ${env.ADMIN_PASSWORD}`);
+    fastify.log.info(`   Email: ${email}`);
+    fastify.log.info(`   Password: ${password}`);
     fastify.log.info('');
     fastify.log.warn('!!! Please change the default password after first login !!!');
     fastify.log.info('Database setup and seed complete.');

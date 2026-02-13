@@ -1,4 +1,3 @@
-import type { ServerEnv } from '@findarr/shared';
 import type { FastifyPluginAsync, FastifyPluginOptions } from 'fastify';
 import fp from 'fastify-plugin';
 import { createMediaService, type MediaService } from '../services/media.js';
@@ -13,14 +12,15 @@ declare module 'fastify' {
 }
 
 interface MediaPluginOptions extends FastifyPluginOptions {
-  env: ServerEnv;
+  tmdbAccessToken: string;
+  tmdbBaseUrl: string;
 }
 
 const mediaPlugin: FastifyPluginAsync<MediaPluginOptions> = async (fastify, options) => {
-  const { env } = options;
+  const { tmdbAccessToken, tmdbBaseUrl } = options;
 
   // Create TMDB client and service
-  const tmdbClient = createTMDBClient(env.TMDB_ACCESS_TOKEN, env.TMDB_BASE_URL);
+  const tmdbClient = createTMDBClient(tmdbAccessToken, tmdbBaseUrl);
   const tmdbService = createTMDBService(tmdbClient);
   const mediaService = createMediaService(tmdbService);
 

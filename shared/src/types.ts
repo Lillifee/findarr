@@ -11,7 +11,6 @@ import type {
   UserSchema,
   DeleteUserSchema,
   CreateMediaRequestSchema,
-  ServerEnvSeedSchema,
 } from './schemas.js';
 
 // ============================================================================
@@ -119,7 +118,6 @@ export interface DiscoverResponse {
 
 // Server configuration types
 export type ServerEnv = z.infer<typeof ServerEnvSchema>;
-export type ServerEnvSeed = z.infer<typeof ServerEnvSeedSchema>;
 
 // ============================================================================
 // Core Application Types

@@ -1,6 +1,6 @@
 import cookie from '@fastify/cookie';
 import secureSession from '@fastify/secure-session';
-import type { ServerEnv, User } from '@findarr/shared';
+import type { User } from '@findarr/shared';
 import type {
   FastifyPluginAsync,
   FastifyRequest,
@@ -29,7 +29,7 @@ declare module 'fastify' {
 }
 
 interface AuthPluginOptions extends FastifyPluginOptions {
-  env: ServerEnv;
+  sessionSecret: string;
 }
 
 const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, options) => {
@@ -38,7 +38,7 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, option
 
   // Register secure session
   await fastify.register(secureSession, {
-    secret: options.env.SESSION_SECRET,
+    secret: options.sessionSecret,
     salt: 'findarr-salt-016', // Exactly 16 characters
     cookie: {
       path: '/',

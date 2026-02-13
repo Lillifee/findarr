@@ -12,12 +12,7 @@ const arrayParam = <T extends z.ZodTypeAny>(schema: T) =>
 // Server environment ENV Schemas
 // ============================================================================
 
-export const ServerEnvSeedSchema = z.object({
-  ADMIN_EMAIL: z.email().default('admin@findarr.local'),
-  ADMIN_PASSWORD: z.string().default('changeme'),
-});
-
-export const ServerEnvSchema = ServerEnvSeedSchema.extend({
+export const ServerEnvSchema = z.object({
   TMDB_ACCESS_TOKEN: z.string(),
   SESSION_SECRET: z.string().min(32),
   TMDB_BASE_URL: z.url().default('https://api.themoviedb.org/3'),
@@ -25,6 +20,8 @@ export const ServerEnvSchema = ServerEnvSeedSchema.extend({
   HOST: z.string().default('0.0.0.0'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('production'),
   DB_PATH: z.string().default('./data/findarr.db'),
+  ADMIN_EMAIL: z.email().default('admin@findarr.local'),
+  ADMIN_PASSWORD: z.string().default('changeme'),
 });
 
 // ============================================================================
