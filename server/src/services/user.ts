@@ -53,8 +53,8 @@ export const getUserById = (db: DB, id: number) => {
   return stmt.get(id);
 };
 
-export const listAllUsers = (db: DB) => {
-  const stmt = db.prepare<[], User[]>(`
+export const listAllUsers = (db: DB): User[] => {
+  const stmt = db.prepare<[], User>(`
     SELECT id, email, display_name, role, created_at FROM users
     ORDER BY created_at DESC
   `);

@@ -3,7 +3,7 @@ import { genreKeys, regionGroupKeys } from './constants.js';
 
 const arrayParam = <T extends z.ZodTypeAny>(schema: T) =>
   z.preprocess(val => {
-    if (typeof val === 'string') return val === '' ? [] : [val];
+    if (typeof val === 'string') return val ? [val] : [];
     if (Array.isArray(val)) return val;
     return [];
   }, schema);
@@ -103,7 +103,7 @@ export const DeleteUserSchema = z.object({
 
 export const CreateMediaRequestSchema = z.object({
   mediaType: z.enum(['movie', 'tv']),
-  tmdbId: z.number().int().positive(),
+  tmdbId: z.coerce.number().int().positive(),
   title: z.string().min(1),
   posterPath: z.string().nullish(),
 });

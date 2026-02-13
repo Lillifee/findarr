@@ -17,15 +17,15 @@ const requestRoutes: FastifyPluginAsync = async fastify => {
   fastify.addHook('preHandler', fastify.requireAuth);
 
   // Create a new media request
-  fastify.post('/', async request =>
+  fastify.post('/', request =>
     createRequest(fastify.db, CreateMediaRequestSchema.parse(request.body), request.user?.id)
   );
 
   // Get user's own requests
-  fastify.get('/', async request => getUserRequests(fastify.db, request.user?.id));
+  fastify.get('/', request => getUserRequests(fastify.db, request.user?.id));
 
   // Get request by ID (owner or admin)
-  fastify.get('/:id', async request =>
+  fastify.get('/:id', request =>
     getUserRequestById(
       fastify.db,
       RequestIdSchema.parse(request.params).id,
@@ -40,7 +40,7 @@ const adminRequestRoutes: FastifyPluginAsync = async fastify => {
   fastify.addHook('preHandler', fastify.requireAdmin);
 
   // Get all requests (admin only)
-  fastify.get('/', async () => getAllRequests(fastify.db));
+  fastify.get('/', () => getAllRequests(fastify.db));
 
   // Update request status (admin only)
   fastify.patch('/:id', async request =>

@@ -7,13 +7,13 @@ const adminRoutes: FastifyPluginAsync = async fastify => {
   fastify.addHook('preHandler', fastify.requireAdmin);
 
   // List all users
-  fastify.get('/users', async () => listAllUsers(fastify.db));
+  fastify.get('/users', () => listAllUsers(fastify.db));
 
   // Create new user
-  fastify.post('/users', async r => await createUser(fastify.db, CreateUserSchema.parse(r.body)));
+  fastify.post('/users', r => createUser(fastify.db, CreateUserSchema.parse(r.body)));
 
   // Delete user
-  fastify.delete('/users/:id', async r =>
+  fastify.delete('/users/:id', r =>
     deleteUser(fastify.db, DeleteUserSchema.parse(r.params).id, r.user?.id)
   );
 };

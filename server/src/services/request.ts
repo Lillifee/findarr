@@ -103,6 +103,8 @@ export const getUserRequestById = (
   if (userId !== mediaRequest.user_id && userRole !== 'admin') {
     throw Forbidden('Access denied');
   }
+
+  return mediaRequest;
 };
 
 export const getRequestById = (db: DB, requestId: number) =>

@@ -16,5 +16,6 @@ describe('helper', () => {
   it('should return error message from Error object', () => {
     const error = new Error('Test error');
     expect(getErrorMessage(error)).toBe('Test error');
+    expect(getErrorMessage('error')).toBe('error');
   });
 });

@@ -12,17 +12,17 @@ export async function mediaRoutes(fastify: FastifyInstance) {
   fastify.addHook('preHandler', fastify.requireAuth);
 
   // Search endpoint: GET /search?query=batman&type=both
-  fastify.get('/search', async r => fastify.media.search(SearchQuerySchema.parse(r.query)));
+  fastify.get('/search', r => fastify.media.search(SearchQuerySchema.parse(r.query)));
 
   // Popular endpoint: GET /popular?page=1&type=both (cached with custom scoring)
-  fastify.get('/popular', async r => fastify.media.popular(PopularQuerySchema.parse(r.query)));
+  fastify.get('/popular', r => fastify.media.popular(PopularQuerySchema.parse(r.query)));
 
   // Discover endpoint: GET /discover?type=both&recent_days=30 (direct TMDB passthrough)
-  fastify.get('/discover', async r => fastify.media.discover(DiscoverQuerySchema.parse(r.query)));
+  fastify.get('/discover', r => fastify.media.discover(DiscoverQuerySchema.parse(r.query)));
 
   // Details endpoint: GET /details?id=123&type=movie&language=en-US
-  fastify.get('/details', async r => fastify.media.getDetails(DetailsQuerySchema.parse(r.query)));
+  fastify.get('/details', r => fastify.media.getDetails(DetailsQuerySchema.parse(r.query)));
 
   // Genres endpoint: GET /genres?type=movie
-  fastify.get('/genres', async r => fastify.media.getGenres(GenresQuerySchema.parse(r.query)));
+  fastify.get('/genres', r => fastify.media.getGenres(GenresQuerySchema.parse(r.query)));
 }

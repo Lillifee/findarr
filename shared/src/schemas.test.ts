@@ -8,6 +8,9 @@ import {
   CreateMediaRequestSchema,
   UpdateRequestStatusSchema,
   RequestIdSchema,
+  DiscoverQuerySchema,
+  regionGroupKeys,
+  genreKeys,
 } from './index.js';
 
 describe('schemas', () => {
@@ -124,6 +127,80 @@ describe('schemas', () => {
     });
   });
 
+  describe('DiscoverQuerySchema', () => {
+    it('should accept empty object and apply defaults', () => {
+      const result = DiscoverQuerySchema.parse({});
+      expect(result.page).toBeUndefined(); // optional
+      expect(result.type).toBeUndefined(); // optional
+      expect(result.recentDays).toBeUndefined(); // optional
+      expect(result.regionGroups).toEqual([]); // default applied
+      expect(result.withGenres).toEqual([]); // default applied
+    });
+
+    it('should coerce string numbers to numbers for page and recentDays', () => {
+      const result = DiscoverQuerySchema.parse({
+        page: '5',
+        recentDays: '30',
+      });
+      expect(result.page).toBe(5);
+      expect(result.recentDays).toBe(30);
+    });
+
+    it('should reject invalid page numbers', () => {
+      expect(DiscoverQuerySchema.safeParse({ page: 0 }).success).toBe(false);
+      expect(DiscoverQuerySchema.safeParse({ page: 1001 }).success).toBe(false);
+      expect(DiscoverQuerySchema.safeParse({ page: 'abc' }).success).toBe(false);
+    });
+
+    it('should reject invalid recentDays', () => {
+      expect(DiscoverQuerySchema.safeParse({ recentDays: 0 }).success).toBe(false);
+      expect(DiscoverQuerySchema.safeParse({ recentDays: 5000 }).success).toBe(false);
+      expect(DiscoverQuerySchema.safeParse({ recentDays: 'abc' }).success).toBe(false);
+    });
+
+    it('should accept valid type values', () => {
+      expect(DiscoverQuerySchema.safeParse({ type: 'movie' }).success).toBe(true);
+      expect(DiscoverQuerySchema.safeParse({ type: 'tv' }).success).toBe(true);
+      expect(DiscoverQuerySchema.safeParse({ type: 'both' }).success).toBe(true);
+      expect(DiscoverQuerySchema.safeParse({ type: 'invalid' }).success).toBe(false);
+    });
+
+    it('should accept valid regionGroups and withGenres arrays', () => {
+      const validRegion = regionGroupKeys[0];
+      const validGenre = genreKeys[0];
+
+      expect(DiscoverQuerySchema.safeParse({ regionGroups: [validRegion] }).success).toBe(true);
+      expect(DiscoverQuerySchema.safeParse({ withGenres: [validGenre] }).success).toBe(true);
+
+      // invalid values should fail
+      expect(DiscoverQuerySchema.safeParse({ regionGroups: ['invalid'] }).success).toBe(false);
+      expect(DiscoverQuerySchema.safeParse({ withGenres: ['invalid'] }).success).toBe(false);
+
+      // single value without array should be coerced to a valid array
+      const singleValue = DiscoverQuerySchema.safeParse({ regionGroups: validRegion });
+      expect(singleValue.data?.regionGroups).toEqual([validRegion]);
+
+      // invalid types should be coerced to empty arrays
+      const invalidType = DiscoverQuerySchema.safeParse({ regionGroups: 42 });
+      expect(invalidType.data?.regionGroups).toEqual([]);
+
+      // empty string should be coerced to empty array
+      const emptyValue = DiscoverQuerySchema.safeParse({ regionGroups: '' });
+      expect(emptyValue.data?.regionGroups).toEqual([]);
+    });
+
+    it('should handle full valid input', () => {
+      const input = {
+        page: 10,
+        type: 'movie',
+        recentDays: 30,
+        regionGroups: [regionGroupKeys[0]],
+        withGenres: [genreKeys[0]],
+      };
+      const result = DiscoverQuerySchema.parse(input);
+      expect(result).toEqual(input);
+    });
+  });
   describe('DetailsQuerySchema', () => {
     it('should require id and type', () => {
       expect(DetailsQuerySchema.safeParse({}).success).toBe(false);
