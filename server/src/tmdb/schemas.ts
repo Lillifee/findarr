@@ -8,9 +8,9 @@ import { z } from 'zod';
 // Base fields shared between movies and TV shows
 const TMDBBaseFieldsSchema = z.object({
   id: z.number(),
-  overview: z.string().nullable(),
-  poster_path: z.string().nullable(),
-  backdrop_path: z.string().nullable(),
+  overview: z.string().nullish(),
+  poster_path: z.string().nullish(),
+  backdrop_path: z.string().nullish(),
   vote_average: z.number(),
   vote_count: z.number(),
   popularity: z.number(),
@@ -22,7 +22,7 @@ const TMDBBaseFieldsSchema = z.object({
 // TMDB Movie schema (search/discover results)
 export const TMDBMovieSchema = TMDBBaseFieldsSchema.extend({
   title: z.string(),
-  release_date: z.string().nullable(),
+  release_date: z.string().nullish(),
   original_title: z.string(),
   adult: z.boolean().optional(),
   video: z.boolean().optional(),
@@ -34,7 +34,7 @@ export const TMDBMovieSchema = TMDBBaseFieldsSchema.extend({
 // TMDB TV Show schema (search/discover results)
 export const TMDBTVSchema = TMDBBaseFieldsSchema.extend({
   name: z.string(),
-  first_air_date: z.string().nullable(),
+  first_air_date: z.string().nullish(),
   original_name: z.string(),
 }).transform(data => ({
   type: 'tv' as const,
@@ -56,7 +56,7 @@ const TMDBCastMemberSchema = z.object({
   id: z.number(),
   name: z.string(),
   character: z.string(),
-  profile_path: z.string().nullable(),
+  profile_path: z.string().nullish(),
   order: z.number(),
 });
 
@@ -65,7 +65,7 @@ const TMDBCrewMemberSchema = z.object({
   name: z.string(),
   job: z.string(),
   department: z.string(),
-  profile_path: z.string().nullable(),
+  profile_path: z.string().nullish(),
 });
 
 const TMDBCreditsSchema = z.object({
@@ -130,16 +130,16 @@ const TMDBAppendFieldsSchema = {
 export const TMDBMovieDetailsSchema = TMDBBaseFieldsSchema.omit({ genre_ids: true })
   .extend({
     title: z.string(),
-    release_date: z.string().nullable(),
+    release_date: z.string().nullish(),
     original_title: z.string(),
     genres: z.array(TMDBGenreSchema),
-    runtime: z.number().nullable(),
+    runtime: z.number().nullish(),
     budget: z.number(),
     revenue: z.number(),
     status: z.string(),
-    tagline: z.string().nullable(),
-    homepage: z.string().nullable(),
-    imdb_id: z.string().nullable(),
+    tagline: z.string().nullish(),
+    homepage: z.string().nullish(),
+    imdb_id: z.string().nullish(),
     adult: z.boolean().optional(),
     // Append-to-response fields
     ...TMDBAppendFieldsSchema,
@@ -154,7 +154,7 @@ export const TMDBMovieDetailsSchema = TMDBBaseFieldsSchema.omit({ genre_ids: tru
 export const TMDBTVDetailsSchema = TMDBBaseFieldsSchema.omit({ genre_ids: true })
   .extend({
     name: z.string(),
-    first_air_date: z.string().nullable(),
+    first_air_date: z.string().nullish(),
     original_name: z.string(),
     genres: z.array(TMDBGenreSchema),
     episode_run_time: z.array(z.number()),
@@ -162,7 +162,7 @@ export const TMDBTVDetailsSchema = TMDBBaseFieldsSchema.omit({ genre_ids: true }
     number_of_seasons: z.number(),
     status: z.string(),
     type: z.string(),
-    homepage: z.string().nullable(),
+    homepage: z.string().nullish(),
     // Append-to-response fields
     ...TMDBAppendFieldsSchema,
     keywords: TMDBTVKeywordsSchema.optional(),

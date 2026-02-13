@@ -1,5 +1,5 @@
 import type { CreateUser, User } from '@findarr/shared';
-import type { DB } from '../db/index.js';
+import type { DB } from '../db/setup.js';
 import { BadRequest, Forbidden, NotFound } from '../utils/errors.js';
 import { hashPassword } from './auth.js';
 

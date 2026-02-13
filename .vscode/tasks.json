@@ -33,7 +33,7 @@
 			"label": "Clean",
 			"type": "shell",
 			"command": "npm run clean",
-			"group": "build",
+			"group": "build"
 		},
 		{
 			"label": "Code Fix",
@@ -47,13 +47,10 @@
 		},
 		{
 			"label": "Test",
-			"type": "shell",
-			"command": "npm run test",
+			"type": "npm",
+			"script": "test:update",
 			"group": "test",
-			"problemMatcher": [
-				"$tsc",
-				"$eslint-stylish"
-			]
-		},
+			"problemMatcher": []
+		}
 	]
 }

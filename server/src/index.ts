@@ -1,8 +1,11 @@
 import 'dotenv/config';
+
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import { ServerEnvSchema } from '@findarr/shared';
 import Fastify from 'fastify';
+import { seed } from './db/seed.js';
+import { createDatabase } from './db/setup.js';
 import authPlugin from './plugins/auth.js';
 import databasePlugin from './plugins/database.js';
 import mediaPlugin from './plugins/media.js';
@@ -35,6 +38,15 @@ const server = Fastify({
 });
 
 async function start() {
+  // Check for setup argument
+  if (process.argv.includes('--setup')) {
+    const db = createDatabase(env.DB_PATH);
+    await seed(server, db, env);
+    db.close();
+
+    process.exit(0);
+  }
+
   try {
     // Register global error handler
     registerErrorHandler(server);

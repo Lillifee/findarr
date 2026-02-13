@@ -11,6 +11,7 @@ import type {
   UserSchema,
   DeleteUserSchema,
   CreateMediaRequestSchema,
+  ServerEnvSeedSchema,
 } from './schemas.js';
 
 // ============================================================================
@@ -35,9 +36,9 @@ export interface Media {
   id: number;
   type: 'movie' | 'tv';
   name: string;
-  date: string | null;
-  poster_path: string | null;
-  overview: string | null;
+  date: string | undefined;
+  poster_path: string | undefined;
+  overview: string | undefined;
   vote_average: number;
   vote_count: number;
   popularity: number;
@@ -68,13 +69,13 @@ export interface TVShow extends Media {
  * Movie Details - extends Movie with additional fields
  */
 export interface MovieDetails extends Movie {
-  tagline: string | null;
-  runtime: number | null;
+  tagline: string | undefined;
+  runtime: number | undefined;
   budget: number;
   revenue: number;
   status: string;
-  homepage: string | null;
-  imdb_id: string | null;
+  homepage: string | undefined;
+  imdb_id: string | undefined;
 }
 
 /**
@@ -87,7 +88,7 @@ export interface TVDetails extends TVShow {
   number_of_seasons: number;
   number_of_episodes: number;
   status: string;
-  homepage: string | null;
+  homepage: string | undefined;
 }
 
 export type MediaDetails = MovieDetails | TVDetails;
@@ -118,6 +119,7 @@ export interface DiscoverResponse {
 
 // Server configuration types
 export type ServerEnv = z.infer<typeof ServerEnvSchema>;
+export type ServerEnvSeed = z.infer<typeof ServerEnvSeedSchema>;
 
 // ============================================================================
 // Core Application Types
@@ -162,7 +164,7 @@ export interface MediaRequest {
   media_type: 'movie' | 'tv';
   tmdb_id: number;
   title: string;
-  poster_path: string | null;
+  poster_path: string | undefined;
   status: RequestStatus;
   requested_at: number;
   updated_at: number;

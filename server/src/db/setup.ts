@@ -33,7 +33,7 @@ CREATE INDEX IF NOT EXISTS idx_requests_user_id ON media_requests(user_id);
 CREATE INDEX IF NOT EXISTS idx_requests_status ON media_requests(status);
 `;
 
-export function createDatabase(dbPath: string = './data/findarr.db'): SqlDatabase.Database {
+export function createDatabase(dbPath: string): SqlDatabase.Database {
   // Ensure data directory exists
   const dataDir = dirname(dbPath);
   mkdirSync(dataDir, { recursive: true });

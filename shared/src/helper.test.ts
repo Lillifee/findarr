@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { objectEntries, objectKeys } from './helper.js';
+import { getErrorMessage, objectEntries, objectKeys } from './helper.js';
 
 describe('helper', () => {
   it('should return a typed version of Object.keys', () => {
@@ -11,5 +11,10 @@ describe('helper', () => {
       ['a', 1],
       ['b', 2],
     ]);
+  });
+
+  it('should return error message from Error object', () => {
+    const error = new Error('Test error');
+    expect(getErrorMessage(error)).toBe('Test error');
   });
 });

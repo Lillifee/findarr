@@ -4,7 +4,7 @@ import type {
   MediaRequestWithUser,
   RequestStatus,
 } from '@findarr/shared';
-import type { DB } from '../db/index.js';
+import type { DB } from '../db/setup.js';
 import { Conflict, Forbidden, NotFound } from '../utils/errors.js';
 
 // ============================================================================

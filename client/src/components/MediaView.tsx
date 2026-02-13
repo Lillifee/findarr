@@ -13,7 +13,7 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
   const buttonColor = media.type === 'movie' ? '#28a745' : '#17a2b8';
 
   // Format helpers
-  const formatRuntime = (value: number | number[] | null) => {
+  const formatRuntime = (value: number | number[] | undefined) => {
     if (!value) return 'Unknown';
     if (Array.isArray(value)) {
       if (value.length === 0) return 'Unknown';

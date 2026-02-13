@@ -1,6 +1,6 @@
 import type { Login } from '@findarr/shared';
 import { hash, verify } from '@node-rs/argon2';
-import type { DB } from '../db/index.js';
+import type { DB } from '../db/setup.js';
 import { Unauthorized } from '../utils/errors.js';
 import { getUserByEmail, removePasswordHash } from './user.js';
 
