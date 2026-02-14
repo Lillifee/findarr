@@ -37,7 +37,8 @@ export function createMediaService(tmdbService: TMDBService) {
   async function initialize() {
     await tmdbService.loadGenres();
 
-    // Pre-warm popular cache with de-DE
+    // Pre-warm popular cache
+    // TODO - use setting
     await fetchAndCachePopular('de-DE');
   }
 
@@ -46,7 +47,7 @@ export function createMediaService(tmdbService: TMDBService) {
    * Currently delegates to TMDB
    */
   async function search(params: SearchQuery): Promise<SearchResponse> {
-    return tmdbService.search(params);
+    return await tmdbService.search(params);
   }
 
   /**
@@ -62,7 +63,7 @@ export function createMediaService(tmdbService: TMDBService) {
    * Currently delegates to TMDB
    */
   async function getDetails(params: DetailsQuery): Promise<MediaDetails> {
-    return tmdbService.getDetails(params);
+    return await tmdbService.getDetails(params);
   }
 
   /**
@@ -70,7 +71,7 @@ export function createMediaService(tmdbService: TMDBService) {
    * Currently delegates to TMDB
    */
   async function getGenres(params: GenresQuery): Promise<{ genres: Genre[] }> {
-    return tmdbService.getGenres(params);
+    return await tmdbService.getGenres(params);
   }
 
   /**

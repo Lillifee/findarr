@@ -2,7 +2,7 @@ import type { Media } from '@findarr/shared';
 import { describe, it, expect } from 'vitest';
 import { filterByCriteria } from './filter.js';
 
-describe('filter', () => {
+describe('filter service', () => {
   const baseItem: Media = {
     id: 123,
     type: 'movie',

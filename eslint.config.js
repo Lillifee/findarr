@@ -15,6 +15,7 @@ export default [
     ignores: [
       '**/node_modules/**',
       '**/dist/**',
+      '**/coverage/**',
       '**/*.d.ts',
       '**/*.tsbuildinfo',
       'eslint.config.js',

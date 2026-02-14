@@ -1,11 +1,12 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { type MediaService } from '../services/media.js';
-import { mockUser } from '../utils/testHelper.js';
+import { createUser } from '../utils/testHelper.js';
 import { mediaRoutes } from './media.js';
 
 describe('mediaRoutes', () => {
   let app: FastifyInstance;
+  const user = createUser();
 
   const mockMedia: MediaService = {
     search: vi.fn().mockResolvedValue({ results: [], total_pages: 1 }),
@@ -25,7 +26,7 @@ describe('mediaRoutes', () => {
 
     // inject authenticated user
     app.addHook('preHandler', async req => {
-      req.user = mockUser;
+      req.user = user;
     });
 
     await mediaRoutes(app);

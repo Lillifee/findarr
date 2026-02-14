@@ -1,28 +1,37 @@
-import type { MediaRequest, MediaRequestWithUser, User } from '@findarr/shared';
+import type {
+  Media,
+  MediaRequest,
+  MediaRequestWithUser,
+  MovieDetails,
+  User,
+} from '@findarr/shared';
 import type { DB } from '../db/setup.js';
 import type { UserWithPassword } from '../services/user.js';
 
 export const mockDb = {} as unknown as DB;
 
-export const mockUser: User = {
+export const createUser = (props?: Partial<User>): User => ({
   id: 1,
   email: 'user@test.com',
   display_name: 'user',
   role: 'user',
   created_at: Date.now(),
-};
+  ...props,
+});
 
-export const mockAdminUser: User = {
-  ...mockUser,
+export const createAdminUser = (props?: Partial<User>): User => ({
+  ...createUser(),
   role: 'admin',
-};
+  ...props,
+});
 
-export const mockUserWithPassword: UserWithPassword = {
-  ...mockUser,
+export const createUserWithPassword = (props?: Partial<UserWithPassword>): UserWithPassword => ({
+  ...createUser(),
   password_hash: 'hashed',
-};
+  ...props,
+});
 
-export const mockMediaRequest: MediaRequest = {
+export const createMediaRequest = (props?: Partial<MediaRequest>): MediaRequest => ({
   id: 1,
   user_id: 1,
   media_type: 'movie',
@@ -32,10 +41,43 @@ export const mockMediaRequest: MediaRequest = {
   status: 'pending',
   requested_at: Date.now(),
   updated_at: Date.now(),
-};
+  ...props,
+});
 
-export const mockMediaRequestWithUser: MediaRequestWithUser = {
-  ...mockMediaRequest,
-  user_email: mockUser.email,
-  user_display_name: mockUser.display_name,
-};
+export const createMediaRequestWithUser = (
+  props?: Partial<MediaRequestWithUser>
+): MediaRequestWithUser => ({
+  ...createMediaRequest(),
+  user_email: 'user@test.com',
+  user_display_name: 'user',
+  ...props,
+});
+
+export const createMedia = (props?: Partial<Media>): Media => ({
+  id: 0,
+  type: 'movie',
+  name: 'Test Movie',
+  date: '2026-01-28',
+  poster_path: '/path/to/poster.jpg',
+  overview: 'Test overview',
+  vote_average: 0,
+  vote_count: 0,
+  popularity: 100,
+  original_language: 'en',
+  origin_country: ['US'],
+  genres: [],
+  ...props,
+});
+
+export const createMediaDetail = (props?: Partial<MovieDetails>): MovieDetails => ({
+  ...createMedia(),
+  type: 'movie',
+  tagline: 'Test tagline',
+  runtime: 120,
+  budget: 12,
+  revenue: 34,
+  status: 'Released',
+  homepage: 'https://example.com',
+  imdb_id: 'tt1234567',
+  ...props,
+});
