@@ -1,21 +1,12 @@
-import { type CreateUser, type User } from '@findarr/shared';
+import { type CreateUser } from '@findarr/shared';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { DB } from '../db/setup.js';
 import * as userService from '../services/user.js';
+import { mockDb, mockUser } from '../utils/testHelper.js';
 import adminRoutes from './admin.js';
 
 describe('adminRoutes', () => {
   let app: FastifyInstance;
-
-  const mockDb = {} as unknown as DB;
-  const mockUser: User = {
-    id: 1,
-    email: 'admin@test.com',
-    display_name: 'admin',
-    role: 'admin',
-    created_at: Date.now(),
-  };
 
   beforeEach(async () => {
     app = Fastify();

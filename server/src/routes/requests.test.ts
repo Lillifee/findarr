@@ -1,40 +1,16 @@
-import type { MediaRequest, MediaRequestWithUser, User } from '@findarr/shared';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { DB } from '../db/setup.js';
 import * as requestService from '../services/request.js';
+import {
+  mockDb,
+  mockMediaRequest,
+  mockMediaRequestWithUser,
+  mockUser,
+} from '../utils/testHelper.js';
 import { requestRoutes, adminRequestRoutes } from './requests.js';
 
 describe('requestRoutes', () => {
   let app: FastifyInstance;
-
-  const mockDb = {} as unknown as DB;
-
-  const mockUser: User = {
-    id: 1,
-    email: 'user@test.com',
-    display_name: 'Test User',
-    role: 'user',
-    created_at: Date.now(),
-  };
-
-  const mediaRequest: MediaRequest = {
-    id: 1,
-    user_id: 1,
-    media_type: 'movie',
-    tmdb_id: 123,
-    title: 'Test Movie',
-    poster_path: '/path/to/poster.jpg',
-    status: 'pending',
-    requested_at: Date.now(),
-    updated_at: Date.now(),
-  };
-
-  const mediaRequestWithUser: MediaRequestWithUser = {
-    ...mediaRequest,
-    user_email: mockUser.email,
-    user_display_name: mockUser.display_name,
-  };
 
   beforeEach(async () => {
     app = Fastify();
@@ -50,11 +26,11 @@ describe('requestRoutes', () => {
     });
 
     // mock services
-    vi.spyOn(requestService, 'createRequest').mockResolvedValue(mediaRequest);
-    vi.spyOn(requestService, 'getUserRequests').mockResolvedValue([mediaRequest]);
-    vi.spyOn(requestService, 'getAllRequests').mockResolvedValue([mediaRequestWithUser]);
+    vi.spyOn(requestService, 'createRequest').mockResolvedValue(mockMediaRequest);
+    vi.spyOn(requestService, 'getUserRequests').mockResolvedValue([mockMediaRequest]);
+    vi.spyOn(requestService, 'getAllRequests').mockResolvedValue([mockMediaRequestWithUser]);
     vi.spyOn(requestService, 'updateRequestStatus').mockResolvedValue();
-    vi.spyOn(requestService, 'getUserRequestById').mockResolvedValue(mediaRequest);
+    vi.spyOn(requestService, 'getUserRequestById').mockResolvedValue(mockMediaRequest);
 
     await app.register(requestRoutes, { prefix: '/requests' });
     await app.register(adminRequestRoutes, { prefix: '/requests/admin' });

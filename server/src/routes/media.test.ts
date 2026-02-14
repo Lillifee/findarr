@@ -1,7 +1,7 @@
-import type { User } from '@findarr/shared';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { type MediaService } from '../services/media.js';
+import { mockUser } from '../utils/testHelper.js';
 import { mediaRoutes } from './media.js';
 
 describe('mediaRoutes', () => {
@@ -15,14 +15,6 @@ describe('mediaRoutes', () => {
     getGenres: vi.fn().mockResolvedValue([]),
     initialize: vi.fn(),
   } as unknown as MediaService;
-
-  const mockUser: User = {
-    id: 1,
-    email: 'admin@test.com',
-    display_name: 'admin',
-    role: 'admin',
-    created_at: Date.now(),
-  };
 
   beforeEach(async () => {
     app = Fastify();

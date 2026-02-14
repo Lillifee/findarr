@@ -16,45 +16,62 @@ export interface FilterCriteria {
 }
 
 /**
- * Filter media items by criteria
- * Used for post-fetch filtering when TMDB API doesn't support certain filters
+ * Check if the media item matches the requested type.
+ * - "both" bypasses type filtering.
  */
-export const filterByCriteria = (item: Media, filters: FilterCriteria) => {
-  // --- Type ---
-  if (filters.type !== 'both' && item.type !== filters.type) {
-    return false;
-  }
+const typeMatches = (item: Media, type: FilterCriteria['type']): boolean =>
+  type === 'both' || item.type === type;
 
-  // --- Regions ---
-  const regionGroupsSelected = filters.regions.map(rg => regionGroups[rg]);
+/**
+ * Check if the media item matches region filters.
+ *
+ * Applies:
+ * - Language filtering
+ * - Country filtering
+ *
+ * If no regions are selected, always returns true.
+ */
+const regionMatches = (item: Media, regions: RegionGroupId[]): boolean => {
+  const regionGroupsSelected = regions.map(rg => regionGroups[rg]).filter(Boolean);
+
   const allowedLanguages = new Set(regionGroupsSelected.flatMap<string>(rg => rg.languages));
 
-  if (allowedLanguages.size > 0 && !allowedLanguages.has(item.original_language)) {
-    return false;
-  }
+  const languageMatches =
+    allowedLanguages.size === 0 || allowedLanguages.has(item.original_language);
 
   const allowedCountries = new Set(regionGroupsSelected.flatMap<string>(rg => rg.countries));
 
-  if (allowedCountries.size > 0 && item.origin_country) {
-    const itemCountries = Array.isArray(item.origin_country)
-      ? item.origin_country
-      : [item.origin_country];
+  const countryMatches =
+    allowedCountries.size === 0 ||
+    !item.origin_country ||
+    item.origin_country.some(c => allowedCountries.has(c));
 
-    if (!itemCountries.some(c => allowedCountries.has(c))) {
-      return false;
-    }
-  }
-
-  // --- Genres ---
-  const allowedGenreIds = new Set(filters.genres.flatMap<number>(g => unifiedGenres[g]?.ids ?? []));
-
-  if (
-    allowedGenreIds.size > 0 &&
-    item.genres &&
-    !item.genres.some(g => allowedGenreIds.has(g.id))
-  ) {
-    return false;
-  }
-
-  return true;
+  return languageMatches && countryMatches;
 };
+
+/**
+ * Check if the media item matches selected genres.
+ *
+ * Converts unified genre keys into TMDB genre IDs
+ * and ensures the item contains at least one allowed ID.
+ *
+ * If no genres are selected, always returns true.
+ */
+const genreMatches = (item: Media, genres: GenreKey[]): boolean => {
+  const allowedGenreIds = new Set(genres.flatMap<number>(g => unifiedGenres[g].ids));
+
+  return (
+    allowedGenreIds.size === 0 || !item.genres || item.genres.some(g => allowedGenreIds.has(g.id))
+  );
+};
+
+/**
+ * Main filter function.
+ *
+ * Combines type, region, and genre filters.
+ * Returns true only if the item satisfies all criteria.
+ */
+export const filterByCriteria = (item: Media, filters: FilterCriteria): boolean =>
+  typeMatches(item, filters.type) &&
+  regionMatches(item, filters.regions) &&
+  genreMatches(item, filters.genres);

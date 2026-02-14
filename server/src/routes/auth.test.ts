@@ -1,21 +1,12 @@
-import { type Login, type User } from '@findarr/shared';
+import { type Login } from '@findarr/shared';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { DB } from '../db/setup.js';
 import * as authService from '../services/auth.js';
+import { mockDb, mockUser } from '../utils/testHelper.js';
 import authRoutes from './auth.js';
 
 describe('authRoutes', () => {
   let app: FastifyInstance;
-
-  const mockDb = {} as unknown as DB;
-  const mockUser: User = {
-    id: 1,
-    email: 'user@test.com',
-    display_name: 'Test User',
-    role: 'user',
-    created_at: Date.now(),
-  };
 
   // simple in-memory session store
   let sessionStore: Record<string, number> = {};

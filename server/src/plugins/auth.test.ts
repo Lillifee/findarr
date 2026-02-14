@@ -3,20 +3,8 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import fp from 'fastify-plugin';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as userService from '../services/user.js';
+import { mockAdminUser, mockUser } from '../utils/testHelper.js';
 import authPlugin from './auth.js';
-
-const adminUser: User = {
-  id: 1,
-  email: 'admin@test.com',
-  display_name: 'Admin',
-  role: 'admin',
-  created_at: Date.now(),
-};
-
-const normalUser: User = {
-  ...adminUser,
-  role: 'user',
-};
 
 const fakeDbPlugin = fp(
   async x => {
@@ -77,7 +65,7 @@ describe('authPlugin integration', () => {
   });
 
   it('should allow user to access protected route', async () => {
-    const cookies = await login(normalUser);
+    const cookies = await login(mockUser);
     const res = await app.inject({ method: 'GET', url: '/protected', cookies });
 
     expect(res.statusCode).toBe(200);
@@ -85,7 +73,7 @@ describe('authPlugin integration', () => {
   });
 
   it('should return status code forbidden (403) when user is not admin', async () => {
-    const cookies = await login(normalUser);
+    const cookies = await login(mockUser);
     const res = await app.inject({ method: 'GET', url: '/admin', cookies });
 
     expect(res.statusCode).toBe(403);
@@ -93,7 +81,7 @@ describe('authPlugin integration', () => {
   });
 
   it('should allow admin user to access admin route', async () => {
-    const cookies = await login(adminUser);
+    const cookies = await login(mockAdminUser);
     const res = await app.inject({ method: 'GET', url: '/admin', cookies });
 
     expect(res.statusCode).toBe(200);

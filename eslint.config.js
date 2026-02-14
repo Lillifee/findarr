@@ -95,6 +95,7 @@ export default [
       'unicorn/import-style': 'off',
       'unicorn/consistent-function-scoping': 'off',
       'unicorn/no-array-sort': 'off', // Sort is fine for SQLite result mutation
+      'unicorn/no-useless-undefined': 'off',
     },
   },
 
