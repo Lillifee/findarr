@@ -6,19 +6,19 @@ import type { Media } from '@findarr/shared';
  */
 export const calculateCustomPopularity = (item: Media) => {
   const basePop = item.popularity || 0;
-  const voteAverage = item.vote_average || 0;
-  const voteCount = item.vote_count || 0;
+  const voteAverage = item.voteAverage || 0;
+  const voteCount = item.voteCount || 0;
 
   let customPopularity = basePop;
 
   // Apply trending boost
-  if (item.trending_rank) {
-    const trendingBoost = Math.max(0, 500 - (item.trending_rank - 1) * 10);
+  if (item.trendingRank) {
+    const trendingBoost = Math.max(0, 500 - (item.trendingRank - 1) * 10);
 
     customPopularity += trendingBoost;
-    if (item.trending_rank <= 10) customPopularity += 200;
-    if (item.trending_rank <= 5) customPopularity += 150;
-    if (item.trending_rank === 1) customPopularity += 200;
+    if (item.trendingRank <= 10) customPopularity += 200;
+    if (item.trendingRank <= 5) customPopularity += 150;
+    if (item.trendingRank === 1) customPopularity += 200;
   }
 
   // Apply vote-based quality boost

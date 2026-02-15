@@ -73,10 +73,10 @@ describe('tmdb/transformers', () => {
         origin_country: ['US'],
       };
 
-      const result = transformMedia(tv, genreMap, { trending_rank: 1 });
+      const result = transformMedia(tv, genreMap, { trendingRank: 1 });
 
       expect(result.type).toBe('tv');
-      expect(result.trending_rank).toBe(1);
+      expect(result.trendingRank).toBe(1);
     });
 
     it('should apply custom fields when provided', () => {
@@ -98,9 +98,9 @@ describe('tmdb/transformers', () => {
         video: false,
       };
 
-      const result = transformMedia(movie, genreMap, { custom_popularity: 999 });
+      const result = transformMedia(movie, genreMap, { customPopularity: 999 });
 
-      expect(result.custom_popularity).toBe(999);
+      expect(result.customPopularity).toBe(999);
     });
   });
 

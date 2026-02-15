@@ -37,14 +37,14 @@ const regionMatches = (item: Media, regions: RegionGroupId[]): boolean => {
   const allowedLanguages = new Set(regionGroupsSelected.flatMap<string>(rg => rg.languages));
 
   const languageMatches =
-    allowedLanguages.size === 0 || allowedLanguages.has(item.original_language);
+    allowedLanguages.size === 0 || allowedLanguages.has(item.originalLanguage);
 
   const allowedCountries = new Set(regionGroupsSelected.flatMap<string>(rg => rg.countries));
 
   const countryMatches =
     allowedCountries.size === 0 ||
-    !item.origin_country ||
-    item.origin_country.some(c => allowedCountries.has(c));
+    !item.originCountry ||
+    item.originCountry.some(c => allowedCountries.has(c));
 
   return languageMatches && countryMatches;
 };

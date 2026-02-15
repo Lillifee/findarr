@@ -57,8 +57,8 @@ describe('TMDBService', () => {
       const result = await service.fetchDiscover({ type: 'movie' });
 
       expect(mockClient.discover).toHaveBeenCalledTimes(1);
-      expect(result.total_pages).toBe(2);
-      expect(result.total_results).toBe(5);
+      expect(result.totalPages).toBe(2);
+      expect(result.totalResults).toBe(5);
     });
 
     it('should aggregate results for both types and multiple pages', async () => {
@@ -100,8 +100,8 @@ describe('TMDBService', () => {
       const result = await service.fetchDiscover({ type: 'both', page: 1 }, [1, 2]);
 
       expect(mockClient.discover).toHaveBeenCalledTimes(4);
-      expect(result.total_pages).toBe(5); // max
-      expect(result.total_results).toBe(10); // sum
+      expect(result.totalPages).toBe(5); // max
+      expect(result.totalResults).toBe(10); // sum
     });
   });
 
@@ -130,7 +130,7 @@ describe('TMDBService', () => {
       });
 
       expect(result.results.length).toBe(2);
-      expect(result.total_results).toBe(2);
+      expect(result.totalResults).toBe(2);
     });
 
     it('should search only one type when specified', async () => {
@@ -150,7 +150,7 @@ describe('TMDBService', () => {
       });
 
       expect(mockClient.search).toHaveBeenCalledTimes(1);
-      expect(result.total_results).toBe(1);
+      expect(result.totalResults).toBe(1);
     });
 
     it('should fallback to US region if language has no region part', async () => {
@@ -236,8 +236,8 @@ describe('TMDBService', () => {
       const result = await service.fetchTrending();
 
       expect(result.results.length).toBe(2);
-      expect(result.results[0]?.trending_rank).toBe(1);
-      expect(result.results[1]?.trending_rank).toBe(1);
+      expect(result.results[0]?.trendingRank).toBe(1);
+      expect(result.results[1]?.trendingRank).toBe(1);
     });
 
     it('should handle empty trending results', async () => {

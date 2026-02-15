@@ -90,7 +90,7 @@ export function createMediaService(tmdbService: TMDBService) {
     // Apply custom scoring to all results
     const allResultsWithScoring = [...trendingResults, ...discoverResults].map(item => {
       const customPopularity = calculateCustomPopularity(item);
-      return { ...item, custom_popularity: customPopularity };
+      return { ...item, customPopularity };
     });
 
     // Remove duplicates (prefer trending version if exists)
@@ -98,7 +98,7 @@ export function createMediaService(tmdbService: TMDBService) {
       ...allResultsWithScoring
         .reduce((map, item) => {
           const existing = map.get(item.id);
-          if (!existing || item.trending_rank) {
+          if (!existing || item.trendingRank) {
             map.set(item.id, item);
           }
           return map;
@@ -108,7 +108,7 @@ export function createMediaService(tmdbService: TMDBService) {
 
     // Sort by custom popularity
     const sortedResults = uniqueResults.sort(
-      (a, b) => (b.custom_popularity || 0) - (a.custom_popularity || 0)
+      (a, b) => (b.customPopularity || 0) - (a.customPopularity || 0)
     );
 
     // Update cache
@@ -155,8 +155,8 @@ export function createMediaService(tmdbService: TMDBService) {
     return {
       results: paginatedResults,
       page,
-      total_pages: Math.ceil(filteredResults.length / ITEMS_PER_PAGE),
-      total_results: filteredResults.length,
+      totalPages: Math.ceil(filteredResults.length / ITEMS_PER_PAGE),
+      totalResults: filteredResults.length,
     };
   }
 

@@ -702,9 +702,9 @@ function BrowseView({
                     </button>
                   )}
                 </div>
-                {searchResults && searchResults.total_results && (
+                {searchResults && searchResults.totalResults && (
                   <span style={{ color: '#666', fontSize: '0.9rem' }}>
-                    {searchResults.total_results.toLocaleString()} results
+                    {searchResults.totalResults.toLocaleString()} results
                   </span>
                 )}
               </div>
@@ -712,7 +712,7 @@ function BrowseView({
               <ResultsGrid results={searchResults.results} onSelectItem={handleSelectItem} />
 
               {/* Pagination Controls */}
-              {searchResults.total_pages && searchResults.total_pages > 1 && (
+              {searchResults.totalPages && searchResults.totalPages > 1 && (
                 <div
                   style={{
                     textAlign: 'center',
@@ -773,10 +773,10 @@ function BrowseView({
 
                       {/* Current page and neighbors */}
                       {Array.from(
-                        { length: Math.min(5, searchResults.total_pages ?? 1) },
+                        { length: Math.min(5, searchResults.totalPages ?? 1) },
                         (_, i) => {
                           const pageStart = Math.max(1, currentPage - 2);
-                          const pageEnd = Math.min(searchResults.total_pages ?? 1, pageStart + 4);
+                          const pageEnd = Math.min(searchResults.totalPages ?? 1, pageStart + 4);
                           const adjustedStart = Math.max(1, pageEnd - 4);
                           const pageNum = adjustedStart + i;
 
@@ -805,13 +805,13 @@ function BrowseView({
                       )}
 
                       {/* Last page */}
-                      {currentPage < (searchResults.total_pages ?? 1) - 2 && (
+                      {currentPage < (searchResults.totalPages ?? 1) - 2 && (
                         <>
-                          {currentPage < (searchResults.total_pages ?? 1) - 3 && (
+                          {currentPage < (searchResults.totalPages ?? 1) - 3 && (
                             <span style={{ color: '#6c757d' }}>...</span>
                           )}
                           <button
-                            onClick={() => handlePageChange(searchResults.total_pages ?? 1)}
+                            onClick={() => handlePageChange(searchResults.totalPages ?? 1)}
                             disabled={loading}
                             style={{
                               padding: '0.5rem 0.75rem',
@@ -823,7 +823,7 @@ function BrowseView({
                               fontSize: '0.875rem',
                             }}
                           >
-                            {searchResults.total_pages}
+                            {searchResults.totalPages}
                           </button>
                         </>
                       )}
@@ -832,17 +832,16 @@ function BrowseView({
                     {/* Next button */}
                     <button
                       onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage >= (searchResults.total_pages ?? 1) || loading}
+                      disabled={currentPage >= (searchResults.totalPages ?? 1) || loading}
                       style={{
                         padding: '0.5rem 1rem',
                         backgroundColor:
-                          currentPage >= (searchResults.total_pages ?? 1) ? '#f8f9fa' : '#007bff',
-                        color:
-                          currentPage >= (searchResults.total_pages ?? 1) ? '#6c757d' : 'white',
+                          currentPage >= (searchResults.totalPages ?? 1) ? '#f8f9fa' : '#007bff',
+                        color: currentPage >= (searchResults.totalPages ?? 1) ? '#6c757d' : 'white',
                         border: 'none',
                         borderRadius: '4px',
                         cursor:
-                          currentPage >= (searchResults.total_pages ?? 1) || loading
+                          currentPage >= (searchResults.totalPages ?? 1) || loading
                             ? 'not-allowed'
                             : 'pointer',
                         fontSize: '0.875rem',
@@ -853,8 +852,8 @@ function BrowseView({
                   </div>
 
                   <div style={{ marginTop: '0.75rem', fontSize: '0.875rem', color: '#6c757d' }}>
-                    Page {currentPage} of {searchResults.total_pages} (
-                    {searchResults.total_results?.toLocaleString()} total results)
+                    Page {currentPage} of {searchResults.totalPages} (
+                    {searchResults.totalResults?.toLocaleString()} total results)
                   </div>
                 </div>
               )}
@@ -902,7 +901,7 @@ function BrowseView({
                     mediaType: selectedItem.type,
                     tmdbId: selectedDetails.id,
                     title: selectedDetails.name || 'Unknown',
-                    posterPath: selectedDetails.poster_path || null,
+                    posterPath: selectedDetails.posterPath || null,
                   });
                   alert(`✅ Request submitted! Check "My Requests" to track its status.`);
                 } catch {

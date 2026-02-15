@@ -59,8 +59,8 @@ export function createTMDBService(tmdbClient: TMDBClient) {
     return {
       page,
       results: sortedResults,
-      total_pages: totalPages,
-      total_results: totalResults,
+      totalPages,
+      totalResults,
     };
   }
 
@@ -88,10 +88,10 @@ export function createTMDBService(tmdbClient: TMDBClient) {
     );
 
     // Aggregate pagination metadata (max of both types)
-    const total_pages = Math.max(...responses.map(r => r.total_pages));
-    const total_results = responses.reduce((sum, r) => sum + r.total_results, 0);
+    const totalPages = Math.max(...responses.map(r => r.total_pages));
+    const totalResults = responses.reduce((sum, r) => sum + r.total_results, 0);
 
-    return { results, page, total_pages, total_results };
+    return { results, page, totalPages, totalResults };
   }
 
   /**
@@ -116,16 +116,16 @@ export function createTMDBService(tmdbClient: TMDBClient) {
     const results = responses.flatMap(({ results }) =>
       results.map(item => {
         const type = item.type as 'movie' | 'tv';
-        const trending_rank = ++ranks[type];
+        const trendingRank = ++ranks[type];
 
-        return transformMedia(item, genreMap, { trending_rank });
+        return transformMedia(item, genreMap, { trendingRank });
       })
     );
 
-    const total_pages = Math.max(...responses.map(r => r.total_pages));
-    const total_results = responses.reduce((sum, r) => sum + r.total_results, 0);
+    const totalPages = Math.max(...responses.map(r => r.total_pages));
+    const totalResults = responses.reduce((sum, r) => sum + r.total_results, 0);
 
-    return { results, page: 1, total_pages, total_results };
+    return { results, page: 1, totalPages, totalResults };
   }
 
   /**

@@ -8,21 +8,21 @@ describe('filter service', () => {
     type: 'movie',
     name: 'The Wrecking Crew',
     date: '2026-01-28',
-    poster_path: '/theImage.jpg',
+    posterPath: '/theImage.jpg',
     overview: 'description',
-    vote_average: 6.838,
-    vote_count: 546,
+    voteAverage: 6.838,
+    voteCount: 546,
     popularity: 242.0676,
-    original_language: 'en',
-    origin_country: ['US'],
+    originalLanguage: 'en',
+    originCountry: ['US'],
     genres: [
       { id: 28, name: 'Action' },
       { id: 35, name: 'Comedy' },
       { id: 80, name: 'Crime' },
       { id: 9648, name: 'Mystery' },
     ],
-    trending_rank: 17,
-    custom_popularity: 630.4476,
+    trendingRank: 17,
+    customPopularity: 630.4476,
   };
 
   it('should pass when all filters match', () => {
@@ -57,7 +57,7 @@ describe('filter service', () => {
 
   it('should filter by language if region selected', () => {
     const result = filterByCriteria(
-      { ...baseItem, original_language: 'ja' },
+      { ...baseItem, originalLanguage: 'ja' },
       {
         type: 'both',
         regions: ['western'],
@@ -70,7 +70,7 @@ describe('filter service', () => {
 
   it('should filter by country if region selected', () => {
     const result = filterByCriteria(
-      { ...baseItem, origin_country: ['JP'] },
+      { ...baseItem, originCountry: ['JP'] },
       {
         type: 'both',
         regions: ['western'],

@@ -32,13 +32,13 @@ describe('calculateCustomPopularity', () => {
   // ============================================================
 
   it('should apply trending boost', () => {
-    const item = createMedia({ trending_rank: 20 });
+    const item = createMedia({ trendingRank: 20 });
     const result = calculateCustomPopularity(item);
     expect(result).toBeGreaterThan(100); // boost applied
   });
 
   it('should apply strong boost for top 1 trending', () => {
-    const item = createMedia({ trending_rank: 1 });
+    const item = createMedia({ trendingRank: 1 });
     const result = calculateCustomPopularity(item);
     expect(result).toBeGreaterThan(900); // large boost for rank 1
   });
@@ -49,8 +49,8 @@ describe('calculateCustomPopularity', () => {
 
   it('should apply quality boost for high vote average', () => {
     const item = createMedia({
-      vote_average: 8,
-      vote_count: 100,
+      voteAverage: 8,
+      voteCount: 100,
     });
 
     const result = calculateCustomPopularity(item);
@@ -60,8 +60,8 @@ describe('calculateCustomPopularity', () => {
 
   it('should cap vote boost at 50', () => {
     const item = createMedia({
-      vote_average: 10,
-      vote_count: 1_000_000,
+      voteAverage: 10,
+      voteCount: 1_000_000,
       date: '2025-01-01',
     });
 
@@ -72,8 +72,8 @@ describe('calculateCustomPopularity', () => {
 
   it('should apply exceptional boost for >=8.5 rating and >=500 votes', () => {
     const item = createMedia({
-      vote_average: 8.6,
-      vote_count: 1000,
+      voteAverage: 8.6,
+      voteCount: 1000,
     });
 
     const result = calculateCustomPopularity(item);
@@ -82,8 +82,8 @@ describe('calculateCustomPopularity', () => {
 
   it('should apply recency boost for recent content (<=5 years)', () => {
     const item = createMedia({
-      vote_average: 7,
-      vote_count: 100,
+      voteAverage: 7,
+      voteCount: 100,
       date: '2024-01-01', // 1 year old
     });
 
@@ -97,8 +97,8 @@ describe('calculateCustomPopularity', () => {
 
   it('should apply age penalty for content >=8 years old', () => {
     const item = createMedia({
-      vote_average: 8,
-      vote_count: 1000,
+      voteAverage: 8,
+      voteCount: 1000,
       date: '2017-01-01', // 9 years old
     });
 
@@ -108,8 +108,8 @@ describe('calculateCustomPopularity', () => {
 
   it('should apply age penalty for content >=15 years old', () => {
     const item = createMedia({
-      vote_average: 8,
-      vote_count: 1000,
+      voteAverage: 8,
+      voteCount: 1000,
       date: '2010-01-01', // 16 years old
     });
 
@@ -119,8 +119,8 @@ describe('calculateCustomPopularity', () => {
 
   it('should apply age penalty for content >=20 years old', () => {
     const item = createMedia({
-      vote_average: 8,
-      vote_count: 1000,
+      voteAverage: 8,
+      voteCount: 1000,
       date: '2005-01-01', // 21 years old
     });
 
@@ -130,8 +130,8 @@ describe('calculateCustomPopularity', () => {
 
   it('should apply age penalty for content >=30 years old', () => {
     const item = createMedia({
-      vote_average: 8,
-      vote_count: 1000,
+      voteAverage: 8,
+      voteCount: 1000,
       date: '1995-01-01', // 31 years old
     });
 
@@ -143,20 +143,20 @@ describe('calculateCustomPopularity', () => {
   // Edge cases
   // ============================================================
 
-  it('should not apply vote logic if vote_count is 0', () => {
+  it('should not apply vote logic if voteCount is 0', () => {
     const item = createMedia({
-      vote_average: 9,
-      vote_count: 0,
+      voteAverage: 9,
+      voteCount: 0,
     });
 
     const result = calculateCustomPopularity(item);
     expect(result).toBe(100);
   });
 
-  it('should not apply vote logic if vote_average is 0', () => {
+  it('should not apply vote logic if voteAverage is 0', () => {
     const item = createMedia({
-      vote_average: 0,
-      vote_count: 100,
+      voteAverage: 0,
+      voteCount: 100,
     });
 
     const result = calculateCustomPopularity(item);

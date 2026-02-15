@@ -36,18 +36,18 @@ export interface Media {
   type: 'movie' | 'tv';
   name: string;
   date: string | undefined;
-  poster_path: string | undefined;
+  posterPath: string | undefined;
   overview: string | undefined;
-  vote_average: number;
-  vote_count: number;
+  voteAverage: number;
+  voteCount: number;
   popularity: number;
-  original_language: string;
-  origin_country: string[] | undefined; // TV-specific field - empty array for movies
+  originalLanguage: string;
+  originCountry: string[] | undefined; // TV-specific field - empty array for movies
   genres: Genre[];
 
   // Custom enrichment fields added by server
-  trending_rank?: number;
-  custom_popularity?: number;
+  trendingRank?: number;
+  customPopularity?: number;
 }
 
 /**
@@ -74,18 +74,18 @@ export interface MovieDetails extends Movie {
   revenue: number;
   status: string;
   homepage: string | undefined;
-  imdb_id: string | undefined;
+  imdbId: string | undefined;
 }
 
 /**
  * TV Show Details - extends TVShow with additional fields
  */
 export interface TVDetails extends TVShow {
-  original_name: string;
-  episode_run_time: number[];
-  show_type: string;
-  number_of_seasons: number;
-  number_of_episodes: number;
+  originalName: string;
+  episodeRunTime: number[];
+  showType: string;
+  numberOfSeasons: number;
+  numberOfEpisodes: number;
   status: string;
   homepage: string | undefined;
 }
@@ -98,8 +98,8 @@ export type MediaDetails = MovieDetails | TVDetails;
 export interface SearchResponse {
   results: Media[];
   page: number;
-  total_pages: number;
-  total_results: number;
+  totalPages: number;
+  totalResults: number;
 }
 
 /**
@@ -108,8 +108,8 @@ export interface SearchResponse {
 export interface DiscoverResponse {
   results: Media[];
   page?: number;
-  total_pages?: number;
-  total_results?: number;
+  totalPages?: number;
+  totalResults?: number;
 }
 
 // ============================================================================

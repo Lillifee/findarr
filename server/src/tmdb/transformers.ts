@@ -9,8 +9,8 @@ import type { TMDBMovie, TMDBTVShow, TMDBMovieDetails, TMDBTVDetails } from './s
  * Custom enrichment fields that can be added to transformed items
  */
 interface CustomFields {
-  trending_rank?: number;
-  custom_popularity?: number;
+  trendingRank?: number;
+  customPopularity?: number;
 }
 
 /**
@@ -44,13 +44,13 @@ function transformMovie(
     type: tmdbMovie.type,
     name: tmdbMovie.title,
     date: tmdbMovie.release_date ?? undefined,
-    poster_path: tmdbMovie.poster_path ?? undefined,
+    posterPath: tmdbMovie.poster_path ?? undefined,
     overview: tmdbMovie.overview ?? undefined,
-    vote_average: tmdbMovie.vote_average,
-    vote_count: tmdbMovie.vote_count,
+    voteAverage: tmdbMovie.vote_average,
+    voteCount: tmdbMovie.vote_count,
     popularity: tmdbMovie.popularity,
-    original_language: tmdbMovie.original_language,
-    origin_country: undefined, // Movies don't have origin_country, set to empty array
+    originalLanguage: tmdbMovie.original_language,
+    originCountry: undefined, // Movies don't have origin_country
     genres,
     ...customFields,
   };
@@ -74,13 +74,13 @@ function transformTVShow(
     type: tmdbTV.type,
     name: tmdbTV.name,
     date: tmdbTV.first_air_date ?? undefined,
-    poster_path: tmdbTV.poster_path ?? undefined,
+    posterPath: tmdbTV.poster_path ?? undefined,
     overview: tmdbTV.overview ?? undefined,
-    vote_average: tmdbTV.vote_average,
-    vote_count: tmdbTV.vote_count,
+    voteAverage: tmdbTV.vote_average,
+    voteCount: tmdbTV.vote_count,
     popularity: tmdbTV.popularity,
-    original_language: tmdbTV.original_language,
-    origin_country: tmdbTV.origin_country,
+    originalLanguage: tmdbTV.original_language,
+    originCountry: tmdbTV.origin_country,
     genres,
     ...customFields,
   };
@@ -102,13 +102,13 @@ function transformMovieDetails(tmdbMovie: TMDBMovieDetails): MovieDetails {
     type: tmdbMovie.type,
     name: tmdbMovie.title,
     date: tmdbMovie.release_date ?? undefined,
-    poster_path: tmdbMovie.poster_path ?? undefined,
+    posterPath: tmdbMovie.poster_path ?? undefined,
     overview: tmdbMovie.overview ?? undefined,
-    vote_average: tmdbMovie.vote_average,
-    vote_count: tmdbMovie.vote_count,
+    voteAverage: tmdbMovie.vote_average,
+    voteCount: tmdbMovie.vote_count,
     popularity: tmdbMovie.popularity,
-    original_language: tmdbMovie.original_language,
-    origin_country: undefined,
+    originalLanguage: tmdbMovie.original_language,
+    originCountry: undefined,
     genres: tmdbMovie.genres,
     tagline: tmdbMovie.tagline ?? undefined,
     runtime: tmdbMovie.runtime ?? undefined,
@@ -116,7 +116,7 @@ function transformMovieDetails(tmdbMovie: TMDBMovieDetails): MovieDetails {
     revenue: tmdbMovie.revenue,
     status: tmdbMovie.status,
     homepage: tmdbMovie.homepage ?? undefined,
-    imdb_id: tmdbMovie.imdb_id ?? undefined,
+    imdbId: tmdbMovie.imdb_id ?? undefined,
   };
 }
 
@@ -129,19 +129,19 @@ function transformTVDetails(tmdbTV: TMDBTVDetails): TVDetails {
     type: tmdbTV.type,
     name: tmdbTV.name,
     date: tmdbTV.first_air_date ?? undefined,
-    poster_path: tmdbTV.poster_path ?? undefined,
+    posterPath: tmdbTV.poster_path ?? undefined,
     overview: tmdbTV.overview ?? undefined,
-    vote_average: tmdbTV.vote_average,
-    vote_count: tmdbTV.vote_count,
+    voteAverage: tmdbTV.vote_average,
+    voteCount: tmdbTV.vote_count,
     popularity: tmdbTV.popularity,
-    original_language: tmdbTV.original_language,
-    origin_country: tmdbTV.origin_country,
+    originalLanguage: tmdbTV.original_language,
+    originCountry: tmdbTV.origin_country,
     genres: tmdbTV.genres,
-    original_name: tmdbTV.original_name,
-    episode_run_time: tmdbTV.episode_run_time,
-    show_type: tmdbTV.show_type,
-    number_of_seasons: tmdbTV.number_of_seasons,
-    number_of_episodes: tmdbTV.number_of_episodes,
+    originalName: tmdbTV.original_name,
+    episodeRunTime: tmdbTV.episode_run_time,
+    showType: tmdbTV.show_type,
+    numberOfSeasons: tmdbTV.number_of_seasons,
+    numberOfEpisodes: tmdbTV.number_of_episodes,
     status: tmdbTV.status,
     homepage: tmdbTV.homepage ?? undefined,
   };

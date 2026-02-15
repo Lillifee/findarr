@@ -9,9 +9,9 @@ describe('mediaRoutes', () => {
   const user = createUser();
 
   const mockMedia: MediaService = {
-    search: vi.fn().mockResolvedValue({ results: [], total_pages: 1 }),
-    popular: vi.fn().mockResolvedValue({ results: [], total_pages: 1 }),
-    discover: vi.fn().mockResolvedValue({ results: [], total_pages: 1 }),
+    search: vi.fn().mockResolvedValue({ results: [], totalPages: 1 }),
+    popular: vi.fn().mockResolvedValue({ results: [], totalPages: 1 }),
+    discover: vi.fn().mockResolvedValue({ results: [], totalPages: 1 }),
     getDetails: vi.fn().mockResolvedValue({}),
     getGenres: vi.fn().mockResolvedValue([]),
     initialize: vi.fn(),

@@ -41,7 +41,7 @@ describe('media service', () => {
   });
 
   it('should delegate discover, getDetails, getGenres', async () => {
-    const searchResult: SearchResponse = { results: [], total_pages: 1, page: 0, total_results: 0 };
+    const searchResult: SearchResponse = { results: [], totalPages: 1, page: 0, totalResults: 0 };
     const fetchResult: DiscoverResponse = { results: [createMedia({ id: 1 })] };
     const detailsResult: MediaDetails = createMediaDetail({ id: 1 });
     const genresResult = { genres: [] };
@@ -73,8 +73,8 @@ describe('media service', () => {
     // first call warms the cache
     const firstPage = await mediaService.popular({ page: 1 });
     expect(firstPage.results.length).toBe(20);
-    expect(firstPage.total_results).toBe(50);
-    expect(firstPage.total_pages).toBe(3);
+    expect(firstPage.totalResults).toBe(50);
+    expect(firstPage.totalPages).toBe(3);
 
     // second call uses cache
     const secondPage = await mediaService.popular({ page: 2 });

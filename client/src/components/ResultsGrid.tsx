@@ -50,7 +50,7 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
             }}
           >
             {/* Trending Badge */}
-            {item.trending_rank && (
+            {item.trendingRank && (
               <div
                 style={{
                   position: 'absolute',
@@ -73,9 +73,9 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
               </div>
             )}
 
-            {item.poster_path ? (
+            {item.posterPath ? (
               <img
-                src={`${TMDB_IMAGE_BASE}${item.poster_path}`}
+                src={`${TMDB_IMAGE_BASE}${item.posterPath}`}
                 alt={title}
                 style={{
                   width: '100%',
@@ -124,9 +124,9 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
               >
                 <span>{year}</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span>⭐ {item.vote_average.toFixed(1)}</span>
-                  <span style={{ fontSize: '0.75rem', color: '#999' }}>
-                    ({item.vote_count.toLocaleString()} votes)
+                  <span>⭐ {item.voteAverage.toFixed(1)}</span>
+                  <span style={{ fontSize: '12px', color: '#999' }}>
+                    ({item.voteCount.toLocaleString()} votes)
                   </span>
                 </div>
               </div>
@@ -150,13 +150,13 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
                     title="Original Language"
                     style={{ textTransform: 'uppercase', fontWeight: '500' }}
                   >
-                    {item.original_language}
+                    {item.originalLanguage}
                   </span>
                 </div>
               </div>
 
               {/* Custom Score Row */}
-              {item.custom_popularity && (
+              {item.customPopularity && (
                 <div
                   style={{
                     fontSize: '0.75rem',
@@ -168,12 +168,10 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
                   }}
                 >
                   <span title="Custom Score (Trending + Quality + Recency)">
-                    📊 Custom: {Math.round(item.custom_popularity || 0)}
+                    📊 Custom: {Math.round(item.customPopularity || 0)}
                   </span>
-                  {item.trending_rank && (
-                    <span title={`Trending Rank #${item.trending_rank}`}>
-                      #{item.trending_rank}
-                    </span>
+                  {item.trendingRank && (
+                    <span title={`Trending Rank #${item.trendingRank}`}>#{item.trendingRank}</span>
                   )}
                 </div>
               )}

@@ -43,9 +43,9 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
         alignItems: 'start',
       }}
     >
-      {media.poster_path && (
+      {media.posterPath && (
         <img
-          src={`https://image.tmdb.org/t/p/w500${media.poster_path}`}
+          src={`https://image.tmdb.org/t/p/w500${media.posterPath}`}
           alt={title}
           style={{
             width: '300px',
@@ -72,7 +72,7 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
           </p>
         )}
 
-        {media.type === 'tv' && media.original_name !== media.name && (
+        {media.type === 'tv' && media.originalName !== media.name && (
           <p
             style={{
               fontStyle: 'italic',
@@ -81,7 +81,7 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
               fontSize: '1.1rem',
             }}
           >
-            Original: {media.original_name}
+            Original: {media.originalName}
           </p>
         )}
 
@@ -96,11 +96,11 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
           }}
         >
           <span>
-            ⭐ {media.vote_average.toFixed(1)} ({media.vote_count.toLocaleString()} votes)
+            ⭐ {media.voteAverage.toFixed(1)} ({media.voteCount.toLocaleString()} votes)
           </span>
           <span>📅 {releaseDate}</span>
           <span>
-            ⏱️ {formatRuntime(media.type === 'movie' ? media.runtime : media.episode_run_time)}
+            ⏱️ {formatRuntime(media.type === 'movie' ? media.runtime : media.episodeRunTime)}
           </span>
           <span>🎭 {media.status}</span>
         </div>
@@ -118,10 +118,10 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
           >
             <span>📺 {media.type}</span>
             <span>
-              🏠 {media.number_of_seasons} Season{media.number_of_seasons === 1 ? '' : 's'}
+              🏠 {media.numberOfSeasons} Season{media.numberOfSeasons === 1 ? '' : 's'}
             </span>
             <span>
-              📽️ {media.number_of_episodes} Episode{media.number_of_episodes === 1 ? '' : 's'}
+              📽️ {media.numberOfEpisodes} Episode{media.numberOfEpisodes === 1 ? '' : 's'}
             </span>
           </div>
         )}
@@ -150,11 +150,11 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
         )}
 
         {/* TV-specific origin countries */}
-        {media.type === 'tv' && media.origin_country && media.origin_country.length > 0 && (
+        {media.type === 'tv' && media.originCountry && media.originCountry.length > 0 && (
           <div style={{ marginBottom: '1.5rem' }}>
             <h3 style={{ margin: '0 0 0.5rem 0' }}>Origin Country</h3>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-              {media.origin_country.map((country, index) => (
+              {media.originCountry.map((country, index) => (
                 <span
                   key={index}
                   style={{
@@ -212,7 +212,7 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
               <div>
                 <strong>Show Type:</strong>
                 <br />
-                {media.show_type}
+                {media.showType}
               </div>
               <div>
                 <strong>Popularity:</strong>
@@ -225,15 +225,15 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
           <div>
             <strong>Original Language:</strong>
             <br />
-            {media.original_language?.toUpperCase()}
+            {media.originalLanguage?.toUpperCase()}
           </div>
 
-          {media.type === 'movie' && media.imdb_id && (
+          {media.type === 'movie' && media.imdbId && (
             <div>
               <strong>IMDB:</strong>
               <br />
               <a
-                href={`https://www.imdb.com/title/${media.imdb_id}`}
+                href={`https://www.imdb.com/title/${media.imdbId}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ color: '#007bff', textDecoration: 'none' }}
