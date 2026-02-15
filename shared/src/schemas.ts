@@ -79,9 +79,9 @@ export const LoginSchema = z.object({
 export const UserSchema = z.object({
   id: z.coerce.number().int().positive(),
   email: z.email(),
-  display_name: z.string(),
+  displayName: z.string(),
   role: z.enum(['user', 'admin']),
-  created_at: z.number(),
+  createdAt: z.number(),
 });
 
 export const CreateUserSchema = z.object({

@@ -213,7 +213,7 @@ export function UserManagement() {
           {users.map(user => (
             <tr key={user.id} style={{ borderBottom: '1px solid #dee2e6' }}>
               <td style={{ padding: '12px' }}>{user.email}</td>
-              <td style={{ padding: '12px' }}>{user.display_name}</td>
+              <td style={{ padding: '12px' }}>{user.displayName}</td>
               <td style={{ padding: '12px' }}>
                 <span
                   style={{
@@ -228,7 +228,7 @@ export function UserManagement() {
                 </span>
               </td>
               <td style={{ padding: '12px' }}>
-                {new Date(user.created_at * 1000).toLocaleDateString()}
+                {new Date(user.createdAt * 1000).toLocaleDateString()}
               </td>
               <td style={{ padding: '12px' }}>
                 <button

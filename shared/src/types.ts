@@ -158,17 +158,17 @@ export type RequestStatus = 'pending' | 'approved' | 'rejected' | 'available';
 
 export interface MediaRequest {
   id: number;
-  user_id: number;
-  media_type: 'movie' | 'tv';
-  tmdb_id: number;
+  userId: number;
+  mediaType: 'movie' | 'tv';
+  tmdbId: number;
   title: string;
-  poster_path: string | undefined;
+  posterPath: string | undefined;
   status: RequestStatus;
-  requested_at: number;
-  updated_at: number;
+  requestedAt: number;
+  updatedAt: number;
 }
 
 export interface MediaRequestWithUser extends MediaRequest {
-  user_email: string;
-  user_display_name: string;
+  userEmail: string;
+  userDisplayName: string;
 }

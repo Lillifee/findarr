@@ -23,14 +23,14 @@ describe('request service', () => {
 
   const fakeRequest: MediaRequest = {
     id: 1,
-    user_id: 1,
-    media_type: 'movie',
-    tmdb_id: 123,
+    userId: 1,
+    mediaType: 'movie',
+    tmdbId: 123,
     title: 'Test Movie',
-    poster_path: '/test.jpg',
+    posterPath: '/test.jpg',
     status: 'pending',
-    requested_at: Date.now(),
-    updated_at: Date.now(),
+    requestedAt: Date.now(),
+    updatedAt: Date.now(),
   };
 
   beforeEach(() => {

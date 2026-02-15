@@ -21,7 +21,7 @@ export const createRequest = (db: DB, data: CreateMediaRequest, userId?: number)
   }
 
   const stmt = db.prepare(`
-    INSERT INTO media_requests (user_id, media_type, tmdb_id, title, poster_path)
+    INSERT INTO media_requests (userId, mediaType, tmdbId, title, posterPath)
     VALUES (?, ?, ?, ?, ?)
   `);
 
@@ -45,7 +45,7 @@ export const updateRequestStatus = (db: DB, requestId: number, status: RequestSt
     .prepare(
       `
       UPDATE media_requests
-      SET status = ?, updated_at = unixepoch()
+      SET status = ?, updatedAt = unixepoch()
       WHERE id = ?
       `
     )
@@ -66,8 +66,8 @@ export const getUserRequests = (db: DB, userId?: number) =>
         .prepare<[number], MediaRequest>(
           `
           SELECT * FROM media_requests
-          WHERE user_id = ?
-          ORDER BY requested_at DESC
+          WHERE userId = ?
+          ORDER BY requestedAt DESC
           `
         )
         .all(userId)
@@ -79,11 +79,11 @@ export const getAllRequests = (db: DB) =>
       `
       SELECT 
         mr.*,
-        u.email as user_email,
-        u.display_name as user_display_name
+        u.email as userEmail,
+        u.displayName as userDisplayName
       FROM media_requests mr
-      JOIN users u ON mr.user_id = u.id
-      ORDER BY mr.requested_at DESC
+      JOIN users u ON mr.userId = u.id
+      ORDER BY mr.requestedAt DESC
     `
     )
     .all();
@@ -100,7 +100,7 @@ export const getUserRequestById = (
     throw NotFound('Request not found');
   }
 
-  if (userId !== mediaRequest.user_id && userRole !== 'admin') {
+  if (userId !== mediaRequest.userId && userRole !== 'admin') {
     throw Forbidden('Access denied');
   }
 
@@ -111,4 +111,4 @@ export const getRequestById = (db: DB, requestId: number) =>
   db.prepare<[number], MediaRequest>(`SELECT * FROM media_requests WHERE id = ?`).get(requestId);
 
 export const getRequestByTmdbId = (db: DB, tmdbId: number) =>
-  db.prepare<[number], MediaRequest>(`SELECT * FROM media_requests WHERE tmdb_id = ?`).get(tmdbId);
+  db.prepare<[number], MediaRequest>(`SELECT * FROM media_requests WHERE tmdbId = ?`).get(tmdbId);

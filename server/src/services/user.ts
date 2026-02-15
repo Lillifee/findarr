@@ -8,7 +8,7 @@ import { hashPassword } from './auth.js';
 // ============================================================================
 
 export interface UserWithPassword extends User {
-  password_hash: string;
+  passwordHash: string;
 }
 
 // ============================================================================
@@ -27,7 +27,7 @@ export const createUser = async (db: DB, { email, password, displayName, role }:
   const passwordHash = await hashPassword(password);
 
   const stmt = db.prepare(`
-    INSERT INTO users (email, password_hash, display_name, role)
+    INSERT INTO users (email, passwordHash, displayName, role)
     VALUES (?, ?, ?, ?)
   `);
 
@@ -47,7 +47,7 @@ export const getUserByEmail = (db: DB, email: string) =>
 
 export const getUserById = (db: DB, id: number) => {
   const stmt = db.prepare<[number], User>(
-    `SELECT id, email, display_name, role, created_at FROM users WHERE id = ?`
+    `SELECT id, email, displayName, role, createdAt FROM users WHERE id = ?`
   );
 
   return stmt.get(id);
@@ -55,8 +55,8 @@ export const getUserById = (db: DB, id: number) => {
 
 export const listAllUsers = (db: DB): User[] => {
   const stmt = db.prepare<[], User>(`
-    SELECT id, email, display_name, role, created_at FROM users
-    ORDER BY created_at DESC
+    SELECT id, email, displayName, role, createdAt FROM users
+    ORDER BY createdAt DESC
   `);
 
   return stmt.all();
@@ -84,6 +84,6 @@ export const deleteUser = (db: DB, id: number, curUserId?: number) => {
 // ============================================================================
 
 export const removePasswordHash = (user: UserWithPassword): User => {
-  const { password_hash: _hash, ...userWithoutPassword } = user;
+  const { passwordHash: _hash, ...userWithoutPassword } = user;
   return userWithoutPassword;
 };

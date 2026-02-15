@@ -13,9 +13,9 @@ export const mockDb = {} as unknown as DB;
 export const createUser = (props?: Partial<User>): User => ({
   id: 1,
   email: 'user@test.com',
-  display_name: 'user',
+  displayName: 'user',
   role: 'user',
-  created_at: Date.now(),
+  createdAt: Date.now(),
   ...props,
 });
 
@@ -27,20 +27,20 @@ export const createAdminUser = (props?: Partial<User>): User => ({
 
 export const createUserWithPassword = (props?: Partial<UserWithPassword>): UserWithPassword => ({
   ...createUser(),
-  password_hash: 'hashed',
+  passwordHash: 'hashed',
   ...props,
 });
 
 export const createMediaRequest = (props?: Partial<MediaRequest>): MediaRequest => ({
   id: 1,
-  user_id: 1,
-  media_type: 'movie',
-  tmdb_id: 123,
+  userId: 1,
+  mediaType: 'movie',
+  tmdbId: 123,
   title: 'Test Movie',
-  poster_path: '/path/to/poster.jpg',
+  posterPath: '/path/to/poster.jpg',
   status: 'pending',
-  requested_at: Date.now(),
-  updated_at: Date.now(),
+  requestedAt: Date.now(),
+  updatedAt: Date.now(),
   ...props,
 });
 
@@ -48,8 +48,8 @@ export const createMediaRequestWithUser = (
   props?: Partial<MediaRequestWithUser>
 ): MediaRequestWithUser => ({
   ...createMediaRequest(),
-  user_email: 'user@test.com',
-  user_display_name: 'user',
+  userEmail: 'user@test.com',
+  userDisplayName: 'user',
   ...props,
 });
 

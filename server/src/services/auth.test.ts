@@ -23,7 +23,7 @@ describe('auth service', () => {
         password: 'password',
       });
 
-      const { password_hash: _hash, ...expectedUser } = userWithPassword;
+      const { passwordHash: _hash, ...expectedUser } = userWithPassword;
       expect(result).toEqual(expectedUser);
     });
 

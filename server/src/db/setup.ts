@@ -7,10 +7,10 @@ const SCHEMA = `
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   email TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  display_name TEXT NOT NULL,
+  passwordHash TEXT NOT NULL,
+  displayName TEXT NOT NULL,
   role TEXT NOT NULL CHECK(role IN ('user', 'admin')),
-  created_at INTEGER NOT NULL DEFAULT (unixepoch())
+  createdAt INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
@@ -18,18 +18,18 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 -- Media requests table
 CREATE TABLE IF NOT EXISTS media_requests (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id INTEGER NOT NULL,
-  media_type TEXT NOT NULL CHECK(media_type IN ('movie', 'tv')),
-  tmdb_id INTEGER NOT NULL,
+  userId INTEGER NOT NULL,
+  mediaType TEXT NOT NULL CHECK(mediaType IN ('movie', 'tv')),
+  tmdbId INTEGER NOT NULL,
   title TEXT NOT NULL,
-  poster_path TEXT,
+  posterPath TEXT,
   status TEXT NOT NULL CHECK(status IN ('pending', 'approved', 'rejected', 'available')) DEFAULT 'pending',
-  requested_at INTEGER NOT NULL DEFAULT (unixepoch()),
-  updated_at INTEGER NOT NULL DEFAULT (unixepoch()),
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  requestedAt INTEGER NOT NULL DEFAULT (unixepoch()),
+  updatedAt INTEGER NOT NULL DEFAULT (unixepoch()),
+  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_requests_user_id ON media_requests(user_id);
+CREATE INDEX IF NOT EXISTS idx_requests_userId ON media_requests(userId);
 CREATE INDEX IF NOT EXISTS idx_requests_status ON media_requests(status);
 `;
 

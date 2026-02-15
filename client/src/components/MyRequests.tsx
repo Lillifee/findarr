@@ -70,9 +70,9 @@ export function MyRequests() {
                 backgroundColor: 'white',
               }}
             >
-              {request.poster_path && (
+              {request.posterPath && (
                 <img
-                  src={`https://image.tmdb.org/t/p/w300${request.poster_path}`}
+                  src={`https://image.tmdb.org/t/p/w300${request.posterPath}`}
                   alt={request.title}
                   style={{ width: '100%', height: '300px', objectFit: 'cover' }}
                 />
@@ -87,7 +87,7 @@ export function MyRequests() {
                     textTransform: 'capitalize',
                   }}
                 >
-                  {request.media_type}
+                  {request.mediaType}
                 </div>
                 <div
                   style={{
@@ -103,7 +103,7 @@ export function MyRequests() {
                   {statusLabels[request.status]}
                 </div>
                 <div style={{ fontSize: '12px', color: '#999' }}>
-                  Requested {new Date(request.requested_at * 1000).toLocaleDateString()}
+                  Requested {new Date(request.requestedAt * 1000).toLocaleDateString()}
                 </div>
               </div>
             </div>

@@ -8,6 +8,11 @@ describe('databasePlugin', () => {
 
   const mockDb = {
     close: vi.fn(),
+    prepare: vi.fn(() => ({
+      all: vi.fn(() => [{ id: 1, email: 'test@test.com' }]), // Return existing user to skip seeding
+      get: vi.fn(),
+      run: vi.fn(() => ({ lastInsertRowid: 1, changes: 1 })),
+    })),
   };
 
   beforeEach(async () => {

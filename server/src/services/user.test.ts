@@ -27,14 +27,14 @@ const mockCreateUser: CreateUser = {
 const fakeUser: User = {
   id: 1,
   email: 'test@example.com',
-  display_name: 'Test User',
+  displayName: 'Test User',
   role: 'user',
-  created_at: Date.now(),
+  createdAt: Date.now(),
 };
 
 const fakeUserWithPassword: UserWithPassword = {
   ...fakeUser,
-  password_hash: 'hashed-password',
+  passwordHash: 'hashed-password',
 };
 
 describe('user service', () => {
@@ -128,10 +128,10 @@ describe('user service', () => {
   });
 
   describe('removePasswordHash', () => {
-    it('should remove password_hash from user object', () => {
+    it('should remove passwordHash from user object', () => {
       const result = removePasswordHash(fakeUserWithPassword);
       expect(result).toEqual(fakeUser);
-      expect((result as UserWithPassword).password_hash).toBeUndefined();
+      expect((result as UserWithPassword).passwordHash).toBeUndefined();
     });
   });
 });

@@ -117,7 +117,7 @@ function MainApp() {
             )}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <span style={{ color: '#666' }}>Welcome, {user?.display_name}</span>
+            <span style={{ color: '#666' }}>Welcome, {user?.displayName}</span>
             <button
               onClick={logout}
               style={{
@@ -402,7 +402,7 @@ function BrowseView({
           )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <span style={{ color: '#666' }}>Welcome, {user?.display_name}</span>
+          <span style={{ color: '#666' }}>Welcome, {user?.displayName}</span>
           <button
             onClick={logout}
             style={{

@@ -107,9 +107,9 @@ export function RequestManagement() {
               <tr key={request.id} style={{ borderBottom: '1px solid #dee2e6' }}>
                 <td style={{ padding: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    {request.poster_path && (
+                    {request.posterPath && (
                       <img
-                        src={`https://image.tmdb.org/t/p/w92${request.poster_path}`}
+                        src={`https://image.tmdb.org/t/p/w92${request.posterPath}`}
                         alt={request.title}
                         style={{
                           width: '40px',
@@ -123,12 +123,12 @@ export function RequestManagement() {
                   </div>
                 </td>
                 <td style={{ padding: '12px' }}>
-                  <span style={{ textTransform: 'capitalize' }}>{request.media_type}</span>
+                  <span style={{ textTransform: 'capitalize' }}>{request.mediaType}</span>
                 </td>
                 <td style={{ padding: '12px' }}>
                   <div>
-                    <div>{request.user_display_name}</div>
-                    <div style={{ fontSize: '12px', color: '#666' }}>{request.user_email}</div>
+                    <div>{request.userDisplayName}</div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>{request.userEmail}</div>
                   </div>
                 </td>
                 <td style={{ padding: '12px' }}>
@@ -145,7 +145,7 @@ export function RequestManagement() {
                   </span>
                 </td>
                 <td style={{ padding: '12px' }}>
-                  {new Date(request.requested_at * 1000).toLocaleDateString()}
+                  {new Date(request.requestedAt * 1000).toLocaleDateString()}
                 </td>
                 <td style={{ padding: '12px' }}>
                   <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>

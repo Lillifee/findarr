@@ -13,7 +13,7 @@ export const DUMMY_HASH = '$argon2id$v=19$m=65536,t=3,p=4$C29tZVNhbHQ$C29tZUhBU0
 export const login = async (db: DB, { email, password }: Login) => {
   const user = getUserByEmail(db, email);
 
-  const passwordHash = user?.password_hash ?? DUMMY_HASH;
+  const passwordHash = user?.passwordHash ?? DUMMY_HASH;
   const isValid = await verifyPassword(passwordHash, password);
 
   if (!user || !isValid) {

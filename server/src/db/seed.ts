@@ -1,33 +1,27 @@
 import { getErrorMessage } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
-import { createUser, getUserByEmail } from '../services/user.js';
+import { createUser, listAllUsers } from '../services/user.js';
 import type { DB } from './setup.js';
 
-export async function seed(fastify: FastifyInstance, db: DB, email: string, password: string) {
+export async function seed(fastify: FastifyInstance, db: DB) {
   try {
+    const users = await listAllUsers(db);
+    if (users.length > 0) return;
+
     fastify.log.info('Seeding database...');
-
-    // Check if admin already exists
-    const existingAdmin = getUserByEmail(db, email);
-
-    if (existingAdmin) {
-      fastify.log.info('Admin user already exists');
-      fastify.log.info(`Email: ${email}`);
-      return;
-    }
 
     // Create admin user
     await createUser(db, {
-      email,
-      password,
+      email: 'admin@findarr.com',
+      password: 'changeme',
       role: 'admin',
       displayName: 'admin',
     });
 
     fastify.log.info('Admin user created successfully!');
     fastify.log.info('');
-    fastify.log.info(`   Email: ${email}`);
-    fastify.log.info(`   Password: ${password}`);
+    fastify.log.info(`   Email: admin@findarr.com`);
+    fastify.log.info(`   Password: changeme`);
     fastify.log.info('');
     fastify.log.warn('!!! Please change the default password after first login !!!');
     fastify.log.info('Database setup and seed complete.');
