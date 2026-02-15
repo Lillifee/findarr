@@ -60,7 +60,7 @@ describe('media service', () => {
     const details = await mediaService.getDetails({ id: 1, type: 'movie' });
     expect(details).toBe(detailsResult);
 
-    const genres = await mediaService.getGenres({ type: 'movie' });
+    const genres = await mediaService.getGenres({});
     expect(genres).toBe(genresResult);
   });
 

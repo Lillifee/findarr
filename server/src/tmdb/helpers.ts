@@ -78,7 +78,7 @@ export const buildDiscoverParams = (params: DiscoverQuery): TMDBDiscoverParams =
     page = 1,
   } = params;
 
-  const region = language.includes('-') ? (language.split('-')[1] ?? 'US') : 'US';
+  const region = language.split('-')[1] || 'US';
   const { languageFilter, countryFilter } = buildRegionFilters(regionGroups);
   const genreFilter = buildGenreFilter(withGenres);
   const dateParams = buildDateParams(recentDays, type);

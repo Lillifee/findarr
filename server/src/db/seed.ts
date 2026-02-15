@@ -1,4 +1,4 @@
-import { getErrorMessage, type CreateUser } from '@findarr/shared';
+import { getErrorMessage } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
 import { createUser, getUserByEmail } from '../services/user.js';
 import type { DB } from './setup.js';
@@ -17,18 +17,12 @@ export async function seed(fastify: FastifyInstance, db: DB, email: string, pass
     }
 
     // Create admin user
-    const userData: CreateUser = {
+    await createUser(db, {
       email,
       password,
       role: 'admin',
       displayName: 'admin',
-    };
-
-    const admin = await createUser(db, userData);
-    if (!admin) {
-      fastify.log.error('Failed to create admin user');
-      return;
-    }
+    });
 
     fastify.log.info('Admin user created successfully!');
     fastify.log.info('');

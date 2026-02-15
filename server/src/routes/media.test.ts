@@ -86,7 +86,7 @@ describe('mediaRoutes', () => {
   });
 
   it('should call media.getGenres', async () => {
-    const query = { type: 'movie' };
+    const query = {};
     const res = await app.inject({ method: 'GET', url: '/genres', query });
 
     expect(res.statusCode).toBe(200);

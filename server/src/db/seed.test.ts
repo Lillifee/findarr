@@ -39,4 +39,9 @@ describe('seed', () => {
     const admin2 = getUserByEmail(db, settings.email);
     expect(admin1?.id).toBe(admin2?.id);
   });
+
+  it('should throw on database errors', async () => {
+    db.close(); // Close DB to trigger error
+    await expect(seed(app, db, settings.email, settings.password)).rejects.toThrow();
+  });
 });

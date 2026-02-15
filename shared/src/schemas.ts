@@ -65,9 +65,7 @@ export const DetailsQuerySchema = BaseQuerySchema.extend({
   type: z.enum(['movie', 'tv']),
 });
 
-export const GenresQuerySchema = z.object({
-  type: z.enum(['movie', 'tv']),
-});
+export const GenresQuerySchema = z.object({});
 
 // ============================================================================
 // Authentication Schemas

@@ -39,7 +39,7 @@ export function createTMDBService(tmdbClient: TMDBClient) {
    */
   async function search(params: SearchQuery): Promise<SearchResponse> {
     const { query, type = 'both', page = 1, language = 'en-US' } = params;
-    const region = language.includes('-') ? language.split('-')[1] : 'US';
+    const region = language.split('-')[1] || 'US';
 
     const searchTypes = type === 'both' ? (['movie', 'tv'] as const) : ([type] as const);
     const promises = searchTypes.map(searchType =>

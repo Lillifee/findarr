@@ -95,15 +95,48 @@ describe('calculateCustomPopularity', () => {
   // Age penalties
   // ============================================================
 
-  it('should apply age penalty for old content (>=15 years)', () => {
+  it('should apply age penalty for content >=8 years old', () => {
     const item = createMedia({
       vote_average: 8,
       vote_count: 1000,
-      date: '2000-01-01', // 25 years old
+      date: '2017-01-01', // 9 years old
     });
 
     const result = calculateCustomPopularity(item);
-    expect(result).toBeLessThan(100 + 50); // penalty reduces boost
+    expect(result).toBeLessThan(200); // penalty applied
+  });
+
+  it('should apply age penalty for content >=15 years old', () => {
+    const item = createMedia({
+      vote_average: 8,
+      vote_count: 1000,
+      date: '2010-01-01', // 16 years old
+    });
+
+    const result = calculateCustomPopularity(item);
+    expect(result).toBeLessThan(100 + 50); // additional penalty
+  });
+
+  it('should apply age penalty for content >=20 years old', () => {
+    const item = createMedia({
+      vote_average: 8,
+      vote_count: 1000,
+      date: '2005-01-01', // 21 years old
+    });
+
+    const result = calculateCustomPopularity(item);
+    expect(result).toBeLessThan(100); // heavy penalty
+  });
+
+  it('should apply age penalty for content >=30 years old', () => {
+    const item = createMedia({
+      vote_average: 8,
+      vote_count: 1000,
+      date: '1995-01-01', // 31 years old
+    });
+
+    const result = calculateCustomPopularity(item);
+    expect(result).toBeLessThan(50); // very heavy penalty
   });
 
   // ============================================================
