@@ -14,7 +14,10 @@ const authRoutes: FastifyPluginAsync = async fastify => {
   });
 
   // Logout endpoint
-  fastify.post('/logout', r => r.session.delete());
+  fastify.post('/logout', async r => {
+    r.session.delete();
+    return { success: true };
+  });
 
   // Get current user
   fastify.get('/me', { preHandler: [fastify.requireAuth] }, r => r.user);

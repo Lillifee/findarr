@@ -23,80 +23,35 @@ export default function GenreSelector({ selectedGenres, onGenreChange }: Props) 
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-      <label style={{ fontSize: '0.875rem', fontWeight: '500', color: '#6c757d' }}>
+    <div className="flex flex-col gap-2">
+      <label className="text-sm font-medium text-gray-400">
         Genres {selectedGenres.length > 0 && `(${selectedGenres.length} selected)`}
       </label>
-      <div style={{ position: 'relative', minWidth: '180px' }}>
+      <div className="relative min-w-45">
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          style={{
-            width: '100%',
-            padding: '0.75rem',
-            fontSize: '1rem',
-            border: '2px solid #ddd',
-            borderRadius: '6px',
-            backgroundColor: 'white',
-            textAlign: 'left',
-            cursor: 'pointer',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
+          className="w-full px-3 py-3 text-base border-2 border-gray-600 rounded-lg bg-gray-700 text-left cursor-pointer flex justify-between items-center hover:border-gray-500 transition-colors"
         >
-          <span style={{ color: selectedGenres.length === 0 ? '#999' : '#333' }}>
+          <span className={selectedGenres.length === 0 ? 'text-gray-400' : 'text-white'}>
             {selectedGenres.length === 0
               ? 'Select genres...'
               : `${selectedGenres.length} genre${selectedGenres.length === 1 ? '' : 's'} selected`}
           </span>
           <span
-            style={{
-              fontSize: '1.2rem',
-              transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: 'transform 0.2s',
-              color: '#666',
-            }}
+            className={`text-xl transition-transform duration-200 text-gray-400 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
           >
             ▼
           </span>
         </button>
 
         {isOpen && (
-          <div
-            style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              right: 0,
-              marginTop: '4px',
-              backgroundColor: 'white',
-              border: '2px solid #ddd',
-              borderRadius: '6px',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-              zIndex: 1000,
-              maxHeight: '240px',
-              overflowY: 'auto',
-            }}
-          >
-            <div
-              style={{
-                padding: '0.5rem 0.75rem',
-                borderBottom: '1px solid #e9ecef',
-                backgroundColor: '#f8f9fa',
-              }}
-            >
+          <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border-2 border-gray-600 rounded-lg shadow-xl z-1000 max-h-60 overflow-y-auto">
+            <div className="px-3 py-2 border-b border-gray-700 bg-gray-750">
               <button
                 type="button"
                 onClick={clearAllGenres}
-                style={{
-                  fontSize: '0.875rem',
-                  color: '#007bff',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                }}
+                className="text-sm text-blue-400 hover:text-blue-300 bg-transparent border-none cursor-pointer p-0 transition-colors"
               >
                 Clear all
               </button>
@@ -107,36 +62,18 @@ export default function GenreSelector({ selectedGenres, onGenreChange }: Props) 
                 <div
                   key={key}
                   onClick={() => handleGenreToggle(key)}
-                  style={{
-                    padding: '0.5rem 0.75rem',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    backgroundColor: isSelected ? '#e3f2fd' : 'white',
-                    borderBottom: '1px solid #f0f0f0',
-                  }}
-                  onMouseEnter={e => {
-                    if (!isSelected) {
-                      e.currentTarget.style.backgroundColor = '#f8f9fa';
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    if (!isSelected) {
-                      e.currentTarget.style.backgroundColor = 'white';
-                    }
-                  }}
+                  className={`px-3 py-2 cursor-pointer flex items-center justify-between border-b border-gray-700 transition-colors ${
+                    isSelected
+                      ? 'bg-blue-600/30 hover:bg-blue-600/40'
+                      : 'bg-gray-800 hover:bg-gray-700'
+                  }`}
                 >
                   <span
-                    style={{
-                      fontSize: '0.875rem',
-                      fontWeight: isSelected ? '500' : '400',
-                      color: isSelected ? '#1976d2' : '#333',
-                    }}
+                    className={`text-sm ${isSelected ? 'font-medium text-blue-200' : 'font-normal text-gray-300'}`}
                   >
                     {genre.name}
                   </span>
-                  {isSelected && <span style={{ color: '#1976d2', fontSize: '1rem' }}>✓</span>}
+                  {isSelected && <span className="text-blue-400 text-base">✓</span>}
                 </div>
               );
             })}

@@ -9,8 +9,7 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
   // Common data extraction
   const title = media.name;
   const releaseDate = media.date;
-  const buttonText = media.type === 'movie' ? '📥 Request Movie' : '📥 Request TV Show';
-  const buttonColor = media.type === 'movie' ? '#28a745' : '#17a2b8';
+  const buttonText = media.type === 'movie' ? 'Request Movie' : 'Request TV Show';
 
   // Format helpers
   const formatRuntime = (value: number | number[] | undefined) => {
@@ -35,112 +34,118 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
   };
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'auto 1fr',
-        gap: '2rem',
-        alignItems: 'start',
-      }}
-    >
+    <div className="flex flex-col md:grid md:grid-cols-[auto_1fr] gap-4 md:gap-8 items-start">
       {media.posterPath && (
         <img
           src={`https://image.tmdb.org/t/p/w500${media.posterPath}`}
           alt={title}
-          style={{
-            width: '300px',
-            borderRadius: '8px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          }}
+          className="w-full md:w-75 rounded-lg shadow-xl"
         />
       )}
 
       <div>
-        <h1 style={{ margin: '0 0 0.5rem 0', fontSize: '2.5rem' }}>{title}</h1>
+        <h1 className="m-0 mb-2 text-2xl md:text-4xl font-bold text-white">{title}</h1>
 
         {/* Movie tagline or TV original name */}
         {media.type === 'movie' && media.tagline && (
-          <p
-            style={{
-              fontStyle: 'italic',
-              color: '#666',
-              marginBottom: '1rem',
-              fontSize: '1.1rem',
-            }}
-          >
-            "{media.tagline}"
-          </p>
+          <p className="italic text-gray-400 mb-4 text-lg">"{media.tagline}"</p>
         )}
 
         {media.type === 'tv' && media.originalName !== media.name && (
-          <p
-            style={{
-              fontStyle: 'italic',
-              color: '#666',
-              marginBottom: '1rem',
-              fontSize: '1.1rem',
-            }}
-          >
-            Original: {media.originalName}
-          </p>
+          <p className="italic text-gray-400 mb-4 text-lg">Original: {media.originalName}</p>
         )}
 
         {/* Common stats row */}
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '1.5rem',
-            marginBottom: '1.5rem',
-            fontSize: '0.95rem',
-          }}
-        >
-          <span>
-            ⭐ {media.voteAverage.toFixed(1)} ({media.voteCount.toLocaleString()} votes)
+        <div className="flex flex-wrap gap-3 md:gap-6 mb-4 md:mb-6 text-xs md:text-sm text-gray-300">
+          <span className="flex items-center gap-1.5">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+            {media.voteAverage.toFixed(1)} ({media.voteCount.toLocaleString()} votes)
           </span>
-          <span>📅 {releaseDate}</span>
-          <span>
-            ⏱️ {formatRuntime(media.type === 'movie' ? media.runtime : media.episodeRunTime)}
+          <span className="flex items-center gap-1.5">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            {releaseDate}
           </span>
-          <span>🎭 {media.status}</span>
+          <span className="flex items-center gap-1.5">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            {formatRuntime(media.type === 'movie' ? media.runtime : media.episodeRunTime)}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            {media.status}
+          </span>
         </div>
 
         {/* TV-specific additional stats */}
         {media.type === 'tv' && (
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '1.5rem',
-              marginBottom: '1.5rem',
-              fontSize: '0.95rem',
-            }}
-          >
-            <span>📺 {media.type}</span>
-            <span>
-              🏠 {media.numberOfSeasons} Season{media.numberOfSeasons === 1 ? '' : 's'}
+          <div className="flex flex-wrap gap-3 md:gap-6 mb-4 md:mb-6 text-xs md:text-sm text-gray-300">
+            <span className="flex items-center gap-1.5">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+              {media.type.toUpperCase()}
             </span>
-            <span>
-              📽️ {media.numberOfEpisodes} Episode{media.numberOfEpisodes === 1 ? '' : 's'}
+            <span className="flex items-center gap-1.5">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                />
+              </svg>
+              {media.numberOfSeasons} Season{media.numberOfSeasons === 1 ? '' : 's'}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"
+                />
+              </svg>
+              {media.numberOfEpisodes} Episode{media.numberOfEpisodes === 1 ? '' : 's'}
             </span>
           </div>
         )}
 
         {/* Genres */}
         {media.genres && media.genres.length > 0 && (
-          <div style={{ marginBottom: '1.5rem' }}>
-            <h3 style={{ margin: '0 0 0.5rem 0' }}>Genres</h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div className="mb-4 md:mb-6">
+            <h3 className="m-0 mb-2 text-base md:text-lg font-semibold text-white">Genres</h3>
+            <div className="flex flex-wrap gap-2">
               {media.genres.map(genre => (
                 <span
                   key={genre.id}
-                  style={{
-                    backgroundColor: '#e9ecef',
-                    padding: '0.25rem 0.75rem',
-                    borderRadius: '16px',
-                    fontSize: '0.85rem',
-                    color: '#495057',
-                  }}
+                  className="bg-amber-600/20 backdrop-blur-sm text-amber-200 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm border border-amber-500/40 shadow-md"
                 >
                   {genre.name}
                 </span>
@@ -151,19 +156,15 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
 
         {/* TV-specific origin countries */}
         {media.type === 'tv' && media.originCountry && media.originCountry.length > 0 && (
-          <div style={{ marginBottom: '1.5rem' }}>
-            <h3 style={{ margin: '0 0 0.5rem 0' }}>Origin Country</h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div className="mb-4 md:mb-6">
+            <h3 className="m-0 mb-2 text-base md:text-lg font-semibold text-white">
+              Origin Country
+            </h3>
+            <div className="flex flex-wrap gap-2">
               {media.originCountry.map((country, index) => (
                 <span
                   key={index}
-                  style={{
-                    backgroundColor: '#fff3cd',
-                    padding: '0.25rem 0.75rem',
-                    borderRadius: '16px',
-                    fontSize: '0.85rem',
-                    color: '#856404',
-                  }}
+                  className="bg-yellow-600/30 text-yellow-200 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm border border-yellow-500/50"
                 >
                   {country}
                 </span>
@@ -174,33 +175,25 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
 
         {/* Overview */}
         {media.overview && (
-          <div style={{ marginBottom: '2rem' }}>
-            <h3 style={{ margin: '0 0 0.75rem 0' }}>Overview</h3>
-            <p style={{ lineHeight: '1.6', color: '#444', fontSize: '1rem' }}>{media.overview}</p>
+          <div className="mb-6 md:mb-8">
+            <h3 className="m-0 mb-2 md:mb-3 text-base md:text-lg font-semibold text-white">
+              Overview
+            </h3>
+            <p className="leading-relaxed text-gray-300 text-sm md:text-base">{media.overview}</p>
           </div>
         )}
 
         {/* Info grid */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '1rem',
-            marginBottom: '2rem',
-            padding: '1rem',
-            backgroundColor: '#f8f9fa',
-            borderRadius: '8px',
-          }}
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 md:mb-8 p-3 md:p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
           {media.type === 'movie' && (
             <>
-              <div>
-                <strong>Budget:</strong>
+              <div className="text-gray-300 text-sm md:text-base">
+                <strong className="text-white">Budget:</strong>
                 <br />
                 {formatBudget(media.budget)}
               </div>
-              <div>
-                <strong>Revenue:</strong>
+              <div className="text-gray-300 text-sm md:text-base">
+                <strong className="text-white">Revenue:</strong>
                 <br />
                 {formatBudget(media.revenue)}
               </div>
@@ -209,34 +202,34 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
 
           {media.type === 'tv' && (
             <>
-              <div>
-                <strong>Show Type:</strong>
+              <div className="text-gray-300 text-sm md:text-base">
+                <strong className="text-white">Show Type:</strong>
                 <br />
                 {media.showType}
               </div>
-              <div>
-                <strong>Popularity:</strong>
+              <div className="text-gray-300 text-sm md:text-base">
+                <strong className="text-white">Popularity:</strong>
                 <br />
                 {media.popularity.toFixed(1)}
               </div>
             </>
           )}
 
-          <div>
-            <strong>Original Language:</strong>
+          <div className="text-gray-300 text-sm md:text-base">
+            <strong className="text-white">Original Language:</strong>
             <br />
             {media.originalLanguage?.toUpperCase()}
           </div>
 
           {media.type === 'movie' && media.imdbId && (
-            <div>
-              <strong>IMDB:</strong>
+            <div className="text-gray-300 text-sm md:text-base">
+              <strong className="text-white">IMDB:</strong>
               <br />
               <a
                 href={`https://www.imdb.com/title/${media.imdbId}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ color: '#007bff', textDecoration: 'none' }}
+                className="text-amber-400 hover:text-amber-300 no-underline transition-colors"
               >
                 View on IMDB →
               </a>
@@ -246,18 +239,30 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
 
         {/* Homepage link */}
         {media.homepage && (
-          <div style={{ marginBottom: '2rem' }}>
+          <div className="mb-6 md:mb-8">
             <a
               href={media.homepage}
               target="_blank"
               rel="noopener noreferrer"
-              style={{
-                color: '#007bff',
-                textDecoration: 'none',
-                fontSize: '0.95rem',
-              }}
+              className="inline-flex items-center gap-2 text-amber-400 hover:text-amber-300 no-underline text-xs md:text-sm transition-colors"
             >
-              🌐 Official Website →
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+                />
+              </svg>
+              <span>Official Website</span>
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
             </a>
           </div>
         )}
@@ -265,19 +270,12 @@ export function MediaView({ media, onRequest }: MediaDetailsProps) {
         {/* Request button */}
         <button
           onClick={onRequest}
-          style={{
-            padding: '0.75rem 2rem',
-            backgroundColor: buttonColor,
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            fontSize: '1rem',
-            cursor: 'pointer',
-            fontWeight: '600',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          }}
+          className="inline-flex items-center gap-2 w-full md:w-auto px-6 md:px-8 py-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white border-none rounded-lg text-sm md:text-base cursor-pointer font-semibold shadow-md transition-all duration-200 justify-center"
         >
-          {buttonText}
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span>{buttonText}</span>
         </button>
       </div>
     </div>

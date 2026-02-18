@@ -37,6 +37,7 @@ export interface Media {
   name: string;
   date: string | undefined;
   posterPath: string | undefined;
+  backdropPath: string | undefined;
   overview: string | undefined;
   voteAverage: number;
   voteCount: number;

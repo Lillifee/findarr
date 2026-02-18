@@ -65,27 +65,16 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
   const isShowingNone = selectedRegions.length === 0;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <label style={{ fontSize: '0.875rem', fontWeight: '500', color: '#6c757d' }}>
-          Content Regions
-        </label>
+    <div className="flex flex-col gap-3">
+      <div className="flex justify-between items-center">
+        <label className="text-sm font-medium text-gray-400">Content Regions</label>
 
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div className="flex gap-2">
           <button
             type="button"
             onClick={handleShowAll}
             disabled={disabled || isShowingAll}
-            style={{
-              padding: '0.25rem 0.5rem',
-              fontSize: '0.75rem',
-              backgroundColor: '#28a745',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: disabled || isShowingAll ? 'not-allowed' : 'pointer',
-              opacity: disabled || isShowingAll ? 0.6 : 1,
-            }}
+            className="px-2 py-1 text-xs bg-green-600 hover:bg-green-700 text-white border-none rounded disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
           >
             All
           </button>
@@ -93,29 +82,14 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
             type="button"
             onClick={handleHideAll}
             disabled={disabled || isShowingNone}
-            style={{
-              padding: '0.25rem 0.5rem',
-              fontSize: '0.75rem',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: disabled || isShowingNone ? 'not-allowed' : 'pointer',
-              opacity: disabled || isShowingNone ? 0.6 : 1,
-            }}
+            className="px-2 py-1 text-xs bg-red-600 hover:bg-red-700 text-white border-none rounded disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
           >
             None
           </button>
         </div>
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '0.5rem',
-        }}
-      >
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-2">
         {allRegions.map(regionId => {
           const region = REGION_INFO[regionId];
           const isSelected = selectedRegions.includes(regionId);
@@ -126,63 +100,24 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
               type="button"
               onClick={() => handleRegionToggle(regionId)}
               disabled={disabled}
-              style={{
-                padding: '0.75rem',
-                border: `2px solid ${isSelected ? '#28a745' : '#ddd'}`,
-                borderRadius: '8px',
-                backgroundColor: isSelected ? '#d4edda' : 'white',
-                cursor: disabled ? 'not-allowed' : 'pointer',
-                textAlign: 'left',
-                opacity: disabled ? 0.6 : 1,
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={e => {
-                if (!disabled && !isSelected) {
-                  e.currentTarget.style.backgroundColor = '#f8f9fa';
-                  e.currentTarget.style.borderColor = '#aaa';
-                }
-              }}
-              onMouseLeave={e => {
-                if (!disabled && !isSelected) {
-                  e.currentTarget.style.backgroundColor = 'white';
-                  e.currentTarget.style.borderColor = '#ddd';
-                }
-              }}
+              className={`p-3 border-2 rounded-lg text-left disabled:cursor-not-allowed disabled:opacity-60 transition-all duration-200 ${
+                isSelected
+                  ? 'border-green-500 bg-green-600/20 hover:bg-green-600/30'
+                  : 'border-gray-600 bg-gray-800 hover:bg-gray-700 hover:border-gray-500'
+              }`}
             >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  marginBottom: '0.25rem',
-                }}
-              >
+              <div className="flex items-center gap-2 mb-1">
                 <div
-                  style={{
-                    width: '12px',
-                    height: '12px',
-                    borderRadius: '50%',
-                    backgroundColor: isSelected ? '#28a745' : '#ddd',
-                    flexShrink: 0,
-                  }}
+                  className={`w-3 h-3 rounded-full shrink-0 ${isSelected ? 'bg-green-500' : 'bg-gray-600'}`}
                 />
                 <span
-                  style={{
-                    fontWeight: '600',
-                    fontSize: '0.875rem',
-                    color: isSelected ? '#155724' : '#333',
-                  }}
+                  className={`font-semibold text-sm ${isSelected ? 'text-green-200' : 'text-gray-200'}`}
                 >
                   {region.name}
                 </span>
               </div>
               <div
-                style={{
-                  fontSize: '0.75rem',
-                  color: isSelected ? '#155724' : '#666',
-                  lineHeight: '1.2',
-                  marginLeft: '1.5rem',
-                }}
+                className={`text-xs leading-tight ml-5 ${isSelected ? 'text-green-300' : 'text-gray-400'}`}
               >
                 {region.description}
               </div>
@@ -192,14 +127,7 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
       </div>
 
       {selectedRegions.length > 0 && selectedRegions.length < allRegions.length && (
-        <div
-          style={{
-            fontSize: '0.75rem',
-            color: '#6c757d',
-            textAlign: 'center',
-            fontStyle: 'italic',
-          }}
-        >
+        <div className="text-xs text-gray-400 text-center italic">
           Showing {selectedRegions.length} of {allRegions.length} content regions
         </div>
       )}

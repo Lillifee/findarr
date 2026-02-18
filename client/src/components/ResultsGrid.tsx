@@ -10,188 +10,83 @@ const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
 
 export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem }) => {
   if (results.length === 0) {
-    return <div style={{ textAlign: 'center', padding: '2rem' }}>No results found</div>;
+    return (
+      <div className="text-center py-16 text-gray-400">
+        <div className="flex flex-col items-center gap-4">
+          <svg
+            className="w-16 h-16 text-gray-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+          <p className="text-lg">No results found</p>
+          <p className="text-sm text-gray-500">Try adjusting your search or filters</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-        gap: '1rem',
-      }}
-    >
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
       {results.map(item => {
         const title = item.name;
         const releaseDate = item.date;
         const year = releaseDate ? new Date(releaseDate).getFullYear() : 'N/A';
-        const itemType = item.type === 'movie' ? 'Movie' : 'TV Show';
+        const posterPath = item.posterPath;
 
         return (
           <div
             key={item.id}
             onClick={() => onSelectItem(item)}
-            style={{
-              border: '1px solid #ddd',
-              borderRadius: '8px',
-              overflow: 'hidden',
-              cursor: 'pointer',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              backgroundColor: 'white',
-              position: 'relative',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
+            className="group cursor-pointer transition-all duration-300"
           >
-            {/* Trending Badge */}
-            {item.trendingRank && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '8px',
-                  right: '8px',
-                  background: 'linear-gradient(45deg, #ff6b35, #f7931e)',
-                  color: 'white',
-                  padding: '4px 8px',
-                  borderRadius: '12px',
-                  fontSize: '0.75rem',
-                  fontWeight: 'bold',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                  zIndex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '2px',
-                }}
-              >
-                🔥 TRENDING
-              </div>
-            )}
-
-            {item.posterPath ? (
-              <img
-                src={`${TMDB_IMAGE_BASE}${item.posterPath}`}
-                alt={title}
-                style={{
-                  width: '100%',
-                  height: '300px',
-                  objectFit: 'cover',
-                }}
-              />
-            ) : (
-              <div
-                style={{
-                  width: '100%',
-                  height: '300px',
-                  backgroundColor: '#f0f0f0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#666',
-                }}
-              >
-                No Image
-              </div>
-            )}
-
-            <div style={{ padding: '1rem' }}>
-              <h3
-                style={{
-                  margin: '0 0 0.5rem 0',
-                  fontSize: '1rem',
-                  fontWeight: '600',
-                  lineHeight: '1.3',
-                }}
-              >
-                {title}
-              </h3>
-
-              {/* Year and Rating Row */}
-              <div
-                style={{
-                  fontSize: '0.875rem',
-                  color: '#666',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '0.25rem',
-                }}
-              >
-                <span>{year}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span>⭐ {item.voteAverage.toFixed(1)}</span>
-                  <span style={{ fontSize: '12px', color: '#999' }}>
-                    ({item.voteCount.toLocaleString()} votes)
-                  </span>
-                </div>
-              </div>
-
-              {/* Media Type and Popularity Row */}
-              <div
-                style={{
-                  fontSize: '0.75rem',
-                  color: '#888',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '0.5rem',
-                }}
-              >
-                <span style={{ fontStyle: 'italic' }}>{itemType}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span title="Popularity Score">🔥 {Math.round(item.popularity || 0)}</span>
-
-                  <span
-                    title="Original Language"
-                    style={{ textTransform: 'uppercase', fontWeight: '500' }}
-                  >
-                    {item.originalLanguage}
-                  </span>
-                </div>
-              </div>
-
-              {/* Custom Score Row */}
-              {item.customPopularity && (
-                <div
-                  style={{
-                    fontSize: '0.75rem',
-                    color: '#666',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '0.5rem',
-                  }}
-                >
-                  <span title="Custom Score (Trending + Quality + Recency)">
-                    📊 Custom: {Math.round(item.customPopularity || 0)}
-                  </span>
-                  {item.trendingRank && (
-                    <span title={`Trending Rank #${item.trendingRank}`}>#{item.trendingRank}</span>
-                  )}
+            {/* Poster with text overlay */}
+            <div className="relative overflow-hidden shadow-lg bg-gray-900/40 backdrop-blur-sm border border-gray-700/50 group-hover:border-amber-500 transition-all duration-300 group-hover:shadow-xl rounded-lg">
+              {/* Trending Badge */}
+              {item.trendingRank && (
+                <div className="absolute top-1.5 md:top-3 right-1.5 md:right-3 bg-linear-to-r from-amber-500 to-orange-500 text-white px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-md text-xs font-bold shadow-lg z-10">
+                  #{item.trendingRank}
                 </div>
               )}
 
-              {item.overview && (
-                <p
-                  style={{
-                    fontSize: '0.8rem',
-                    color: '#888',
-                    margin: '0',
-                    lineHeight: '1.4',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 3,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {item.overview}
-                </p>
+              {posterPath ? (
+                <img
+                  src={`${TMDB_IMAGE_BASE}${posterPath}`}
+                  alt={title}
+                  className="w-full aspect-2/3 object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              ) : (
+                <div className="w-full aspect-2/3 bg-gray-700 flex items-center justify-center text-gray-500">
+                  <span className="text-sm">No Poster</span>
+                </div>
               )}
+
+              {/* Glassmorphism overlay at bottom */}
+              <div className="absolute bottom-0 left-0 right-0 p-2 md:p-4 z-10 bg-linear-to-t from-black/90 via-black/70 to-transparent backdrop-blur-md">
+                <h3 className="text-white font-bold text-sm md:text-base leading-tight mb-1 md:mb-2 line-clamp-2 group-hover:text-amber-400 transition-colors drop-shadow-lg">
+                  {title}
+                </h3>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-200 text-xs md:text-sm font-medium drop-shadow">
+                    {year}
+                  </span>
+
+                  <div className="flex items-center gap-1 md:gap-1.5 bg-black/60 backdrop-blur-sm px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-md">
+                    <span className="text-yellow-400 text-xs md:text-sm">★</span>
+                    <span className="text-white text-xs md:text-sm font-semibold">
+                      {item.voteAverage.toFixed(1)}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         );

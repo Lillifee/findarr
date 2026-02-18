@@ -1,0 +1,20 @@
+@import 'tailwindcss';
+
+/* Ensure proper scrolling behavior with fixed navigation */
+html,
+body,
+#root {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  background-color: #111827; /* bg-gray-900 */
+}
+
+/* Safe area inset for mobile devices with notches */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

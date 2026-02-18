@@ -46,26 +46,15 @@ export function RequestManagement() {
   const filteredRequests = filter === 'all' ? requests : requests.filter(r => r.status === filter);
 
   return (
-    <div style={{ padding: '20px' }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '20px',
-        }}
-      >
-        <h2>Request Management</h2>
-        <div>
-          <label style={{ marginRight: '10px' }}>Filter:</label>
+    <div className="p-4 md:p-5">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 md:mb-5">
+        <h2 className="m-0 text-white text-xl md:text-2xl">Request Management</h2>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <label className="mr-2 text-gray-300 text-sm md:text-base">Filter:</label>
           <select
             value={filter}
             onChange={e => setFilter(e.target.value as RequestStatus | 'all')}
-            style={{
-              padding: '8px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-            }}
+            className="flex-1 sm:flex-initial px-2 py-2 border border-gray-600 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
           >
             <option value="all">All</option>
             <option value="pending">Pending</option>
@@ -77,132 +66,171 @@ export function RequestManagement() {
       </div>
 
       {filteredRequests.length === 0 ? (
-        <p style={{ textAlign: 'center', color: '#666', padding: '40px' }}>No requests found</p>
+        <p className="text-center text-gray-400 py-10">No requests found</p>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#f8f9fa' }}>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>
-                Title
-              </th>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>
-                Type
-              </th>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>
-                Requested By
-              </th>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>
-                Status
-              </th>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>
-                Requested
-              </th>
-              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredRequests.map(request => (
-              <tr key={request.id} style={{ borderBottom: '1px solid #dee2e6' }}>
-                <td style={{ padding: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    {request.posterPath && (
-                      <img
-                        src={`https://image.tmdb.org/t/p/w92${request.posterPath}`}
-                        alt={request.title}
+        <>
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-800">
+                  <th className="p-3 text-left border-b-2 border-gray-700 text-gray-300">Title</th>
+                  <th className="p-3 text-left border-b-2 border-gray-700 text-gray-300">Type</th>
+                  <th className="p-3 text-left border-b-2 border-gray-700 text-gray-300">
+                    Requested By
+                  </th>
+                  <th className="p-3 text-left border-b-2 border-gray-700 text-gray-300">Status</th>
+                  <th className="p-3 text-left border-b-2 border-gray-700 text-gray-300">
+                    Requested
+                  </th>
+                  <th className="p-3 text-left border-b-2 border-gray-700 text-gray-300">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredRequests.map(request => (
+                  <tr key={request.id} className="border-b border-gray-700">
+                    <td className="p-3">
+                      <div className="flex items-center gap-3">
+                        {request.posterPath && (
+                          <img
+                            src={`https://image.tmdb.org/t/p/w92${request.posterPath}`}
+                            alt={request.title}
+                            className="w-10 h-15 object-cover rounded"
+                          />
+                        )}
+                        <span className="text-gray-300">{request.title}</span>
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <span className="capitalize text-gray-300">{request.mediaType}</span>
+                    </td>
+                    <td className="p-3">
+                      <div>
+                        <div className="text-gray-300">{request.userDisplayName}</div>
+                        <div className="text-xs text-gray-500">{request.userEmail}</div>
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <span
                         style={{
-                          width: '40px',
-                          height: '60px',
-                          objectFit: 'cover',
-                          borderRadius: '4px',
+                          backgroundColor: statusColors[request.status],
                         }}
-                      />
-                    )}
-                    <span>{request.title}</span>
+                        className="px-2 py-1 rounded text-white text-xs"
+                      >
+                        {statusLabels[request.status]}
+                      </span>
+                    </td>
+                    <td className="p-3 text-gray-300">
+                      {new Date(request.requestedAt * 1000).toLocaleDateString()}
+                    </td>
+                    <td className="p-3">
+                      <div className="flex gap-1 flex-wrap">
+                        {request.status !== 'approved' && (
+                          <button
+                            onClick={() => updateStatus(request.id, 'approved')}
+                            className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors cursor-pointer text-xs"
+                          >
+                            Approve
+                          </button>
+                        )}
+                        {request.status !== 'rejected' && (
+                          <button
+                            onClick={() => updateStatus(request.id, 'rejected')}
+                            className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors cursor-pointer text-xs"
+                          >
+                            Reject
+                          </button>
+                        )}
+                        {request.status === 'approved' && (
+                          <button
+                            onClick={() => updateStatus(request.id, 'available')}
+                            className="px-2 py-1 bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors cursor-pointer text-xs"
+                          >
+                            Mark Available
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-4">
+            {filteredRequests.map(request => (
+              <div
+                key={request.id}
+                className="bg-gray-800 border border-gray-700 rounded-lg p-4 space-y-3"
+              >
+                <div className="flex gap-3">
+                  {request.posterPath && (
+                    <img
+                      src={`https://image.tmdb.org/t/p/w92${request.posterPath}`}
+                      alt={request.title}
+                      className="w-12 h-18 object-cover rounded shrink-0"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-white font-semibold text-sm mb-1 line-clamp-2">
+                      {request.title}
+                    </h3>
+                    <div className="text-xs text-gray-400 capitalize">{request.mediaType}</div>
                   </div>
-                </td>
-                <td style={{ padding: '12px' }}>
-                  <span style={{ textTransform: 'capitalize' }}>{request.mediaType}</span>
-                </td>
-                <td style={{ padding: '12px' }}>
-                  <div>
-                    <div>{request.userDisplayName}</div>
-                    <div style={{ fontSize: '12px', color: '#666' }}>{request.userEmail}</div>
-                  </div>
-                </td>
-                <td style={{ padding: '12px' }}>
+                </div>
+
+                <div className="flex items-center gap-2">
                   <span
                     style={{
-                      padding: '4px 8px',
-                      borderRadius: '4px',
                       backgroundColor: statusColors[request.status],
-                      color: 'white',
-                      fontSize: '12px',
                     }}
+                    className="px-2 py-1 rounded text-white text-xs font-medium"
                   >
                     {statusLabels[request.status]}
                   </span>
-                </td>
-                <td style={{ padding: '12px' }}>
-                  {new Date(request.requestedAt * 1000).toLocaleDateString()}
-                </td>
-                <td style={{ padding: '12px' }}>
-                  <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                    {request.status !== 'approved' && (
-                      <button
-                        onClick={() => updateStatus(request.id, 'approved')}
-                        style={{
-                          padding: '4px 8px',
-                          backgroundColor: '#28a745',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '12px',
-                        }}
-                      >
-                        Approve
-                      </button>
-                    )}
-                    {request.status !== 'rejected' && (
-                      <button
-                        onClick={() => updateStatus(request.id, 'rejected')}
-                        style={{
-                          padding: '4px 8px',
-                          backgroundColor: '#dc3545',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '12px',
-                        }}
-                      >
-                        Reject
-                      </button>
-                    )}
-                    {request.status === 'approved' && (
-                      <button
-                        onClick={() => updateStatus(request.id, 'available')}
-                        style={{
-                          padding: '4px 8px',
-                          backgroundColor: '#17a2b8',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '12px',
-                        }}
-                      >
-                        Mark Available
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
+                  <span className="text-xs text-gray-400">
+                    {new Date(request.requestedAt * 1000).toLocaleDateString()}
+                  </span>
+                </div>
+
+                <div className="text-xs text-gray-300">
+                  <div className="font-medium">{request.userDisplayName}</div>
+                  <div className="text-gray-500">{request.userEmail}</div>
+                </div>
+
+                <div className="flex gap-2 flex-wrap">
+                  {request.status !== 'approved' && (
+                    <button
+                      onClick={() => updateStatus(request.id, 'approved')}
+                      className="flex-1 px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors cursor-pointer text-xs font-medium"
+                    >
+                      Approve
+                    </button>
+                  )}
+                  {request.status !== 'rejected' && (
+                    <button
+                      onClick={() => updateStatus(request.id, 'rejected')}
+                      className="flex-1 px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors cursor-pointer text-xs font-medium"
+                    >
+                      Reject
+                    </button>
+                  )}
+                  {request.status === 'approved' && (
+                    <button
+                      onClick={() => updateStatus(request.id, 'available')}
+                      className="w-full px-3 py-2 bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors cursor-pointer text-xs font-medium"
+                    >
+                      Mark Available
+                    </button>
+                  )}
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </>
       )}
     </div>
   );
