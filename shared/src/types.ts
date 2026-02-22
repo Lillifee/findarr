@@ -28,6 +28,15 @@ export interface Genre {
   name: string;
 }
 
+export interface MediaScore {
+  recencyScore: number;
+  trendingScore: number;
+  popularityScore: number;
+  weightedRating: number;
+  baseScore: number;
+  finalScore: number;
+}
+
 /**
  * Base fields common to Movie and TVShow
  */
@@ -48,7 +57,7 @@ export interface Media {
 
   // Custom enrichment fields added by server
   trendingRank?: number;
-  customPopularity?: number;
+  score?: MediaScore;
 }
 
 /**

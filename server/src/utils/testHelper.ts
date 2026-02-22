@@ -59,6 +59,7 @@ export const createMedia = (props?: Partial<Media>): Media => ({
   name: 'Test Movie',
   date: '2026-01-28',
   posterPath: '/path/to/poster.jpg',
+  backdropPath: '/path/to/backdrop.jpg',
   overview: 'Test overview',
   voteAverage: 0,
   voteCount: 0,

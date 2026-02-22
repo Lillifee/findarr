@@ -7,12 +7,12 @@ import type {
   SearchResponse,
   DiscoverResponse,
   Genre,
-  Media,
   MediaDetails,
+  Media,
 } from '@findarr/shared';
 import type { TMDBService } from '../tmdb/service.js';
-import { filterByCriteria } from './filter.js';
-import { calculateCustomPopularity } from './scoring.js';
+import { filterByCriteria, deduplicateMedia } from './filter.js';
+import { scoreMediaItems } from './scoring.js';
 
 /**
  * Media service - orchestrates multiple data sources and applies business logic
@@ -75,69 +75,51 @@ export function createMediaService(tmdbService: TMDBService) {
   }
 
   /**
-   * Internal: Fetch both trending and discover, apply scoring, and cache the result
+   * Fetch, score, and cache popular media
    */
   async function fetchAndCachePopular(language: string): Promise<Media[]> {
-    // Fetch 5 pages each from trending and discover
+    // Fetch both trending and recent releases
     const [trendingResult, discoverResult] = await Promise.all([
-      tmdbService.fetchTrending({ language, time_window: 'week' }, [1, 2, 3, 4, 5]),
-      tmdbService.fetchDiscover({ language, type: 'both', recentDays: 30 }, [1, 2, 3, 4, 5]),
+      tmdbService.fetchTrending({ language, time_window: 'week' }, [1, 2, 3, 4, 5, 6, 7, 8]),
+      tmdbService.fetchDiscover(
+        { language, type: 'both', recentDays: 365 },
+        [1, 2, 3, 4, 5, 6, 7, 8]
+      ),
     ]);
 
-    const trendingResults = trendingResult.results;
-    const discoverResults = discoverResult.results;
+    const merged = [...trendingResult.results, ...discoverResult.results];
 
-    // Apply custom scoring to all results
-    const allResultsWithScoring = [...trendingResults, ...discoverResults].map(item => {
-      const customPopularity = calculateCustomPopularity(item);
-      return { ...item, customPopularity };
-    });
+    // Dedupe and score
+    const deduped = deduplicateMedia(merged);
+    const scored = scoreMediaItems(deduped);
 
-    // Remove duplicates (prefer trending version if exists)
-    const uniqueResults = [
-      ...allResultsWithScoring
-        .reduce((map, item) => {
-          const existing = map.get(item.id);
-          if (!existing || item.trendingRank) {
-            map.set(item.id, item);
-          }
-          return map;
-        }, new Map<number, Media>())
-        .values(),
-    ];
-
-    // Sort by custom popularity
-    const sortedResults = uniqueResults.sort(
-      (a, b) => (b.customPopularity || 0) - (a.customPopularity || 0)
-    );
-
-    // Update cache
+    // Cache the results
     popularCache = {
-      results: sortedResults,
+      results: scored,
       fetchedAt: new Date(),
       language,
     };
 
-    return sortedResults;
+    return scored;
   }
 
   /**
-   * Popular media - cached discover + trending with custom scoring
-   * Uses pre-fetched and scored pools for instant filtering and pagination
+   * Popular media - cached discover + trending with balanced scoring
+   * Ensures a good mix of movies and TV shows on each page
    */
   async function popular(params: PopularQuery): Promise<DiscoverResponse> {
     const { page = 1, type = 'both', language = 'en-US' } = params;
     const now = new Date();
 
-    // Fetch and cache if needed, otherwise use cached results
+    // Get or refresh cache
     const allResults =
       popularCache &&
       popularCache.language === language &&
       now.getTime() - popularCache.fetchedAt.getTime() < CACHE_TTL
-        ? popularCache?.results
+        ? popularCache.results
         : await fetchAndCachePopular(language);
 
-    // Apply post-fetch filtering
+    // Filter by user criteria (type, genres, regions)
     const filteredResults = allResults.filter(item =>
       filterByCriteria(item, {
         type,
@@ -146,7 +128,7 @@ export function createMediaService(tmdbService: TMDBService) {
       })
     );
 
-    // Paginate (20 items per page)
+    // Paginate
     const ITEMS_PER_PAGE = 20;
     const startIndex = (page - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;

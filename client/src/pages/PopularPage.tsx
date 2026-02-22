@@ -260,7 +260,7 @@ export function PopularPage() {
 
             {/* Pagination Controls */}
             {searchResults.totalPages && searchResults.totalPages > 1 && (
-              <div className="text-center mt-6 md:mt-8 pt-4 md:pt-6 border-t border-gray-700">
+              <div className="text-center mt-6 md:mt-8 pt-4 md:pt-6 pb-20 md:pb-0 border-t border-gray-700">
                 <div className="flex justify-center items-center gap-2 md:gap-3 flex-wrap">
                   {/* Previous button */}
                   <button

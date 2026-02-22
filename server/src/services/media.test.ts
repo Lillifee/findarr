@@ -32,11 +32,11 @@ describe('media service', () => {
     expect(tmdbServiceMock.loadGenres).toHaveBeenCalled();
     expect(tmdbServiceMock.fetchTrending).toHaveBeenCalledWith(
       { language: 'de-DE', time_window: 'week' },
-      [1, 2, 3, 4, 5]
+      [1, 2, 3, 4, 5, 6, 7, 8]
     );
     expect(tmdbServiceMock.fetchDiscover).toHaveBeenCalledWith(
       { language: 'de-DE', type: 'both', recentDays: 30 },
-      [1, 2, 3, 4, 5]
+      [1, 2, 3, 4, 5, 6, 7, 8]
     );
   });
 

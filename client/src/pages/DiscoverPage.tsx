@@ -101,11 +101,31 @@ export function DiscoverPage() {
     setSearchResults(null);
   };
 
-  const handleTypeChange = (type: SearchType) => {
+  const handleTypeChange = async (type: SearchType) => {
     setCurrentSearchType(type);
     setCurrentPage(1);
-    setSearchParams({ type, page: '1' });
     setSearchResults(null);
+
+    // If we're in search mode, re-run the search with the new type
+    if (hasSearched && currentQuery) {
+      setSearchParams({ type, page: '1', q: currentQuery });
+      setLoading(true);
+      try {
+        const results = await searchService.searchMedia({
+          query: currentQuery,
+          page: 1,
+          language,
+          type,
+        });
+        setSearchResults(results);
+      } catch (error) {
+        console.error('Search failed:', error);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setSearchParams({ type, page: '1' });
+    }
   };
 
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -179,7 +199,13 @@ export function DiscoverPage() {
       {/* Search Bar - Full Width */}
       <div className="bg-gray-800/90 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 md:px-8 pt-4 md:pt-6 pb-3">
-          <SearchBar onSearch={handleSearch} loading={loading} />
+          <SearchBar
+            onSearch={handleSearch}
+            onClear={handleBackToDiscovery}
+            loading={loading}
+            hasSearched={hasSearched}
+            initialQuery={currentQuery}
+          />
         </div>
       </div>
 
@@ -333,22 +359,7 @@ export function DiscoverPage() {
                       : 'Movies & TV Shows'
                   : 'Movies & TV Shows'}
               </h2>
-              {hasSearched && (
-                <button
-                  onClick={handleBackToDiscovery}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white rounded-lg text-xs md:text-sm font-medium transition-all shadow-md cursor-pointer whitespace-nowrap"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                    />
-                  </svg>
-                  <span>Back</span>
-                </button>
-              )}
+
               {searchResults && searchResults.totalResults && (
                 <span className="text-gray-400 text-xs md:text-sm">
                   {searchResults.totalResults.toLocaleString()} results
@@ -360,7 +371,7 @@ export function DiscoverPage() {
 
             {/* Pagination Controls */}
             {searchResults.totalPages && searchResults.totalPages > 1 && (
-              <div className="text-center mt-6 md:mt-8 pt-4 md:pt-6 border-t border-gray-700">
+              <div className="text-center mt-6 md:mt-8 pt-4 md:pt-6 pb-20 md:pb-0 border-t border-gray-700">
                 <div className="flex justify-center items-center gap-2 md:gap-3 flex-wrap">
                   {/* Previous button */}
                   <button

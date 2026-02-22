@@ -9,6 +9,7 @@ describe('filter service', () => {
     name: 'The Wrecking Crew',
     date: '2026-01-28',
     posterPath: '/theImage.jpg',
+    backdropPath: '/theBackdrop.jpg',
     overview: 'description',
     voteAverage: 6.838,
     voteCount: 546,

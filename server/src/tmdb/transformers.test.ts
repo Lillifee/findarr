@@ -13,9 +13,9 @@ describe('tmdb/transformers', () => {
         title: 'Movie',
         release_date: '2024-01-01',
         original_title: 'Movie',
-        overview: null,
-        poster_path: null,
-        backdrop_path: null,
+        overview: 'Test overview',
+        poster_path: '/path/to/poster.jpg',
+        backdrop_path: '/path/to/backdrop.jpg',
         vote_average: 8,
         vote_count: 100,
         popularity: 50,
@@ -27,8 +27,28 @@ describe('tmdb/transformers', () => {
 
       const result = transformMedia(movie, genreMap);
 
-      expect(result.type).toBe('movie');
-      expect(result.genres[0]?.name).toBe('Action');
+      expect(result).toMatchInlineSnapshot(`
+        {
+          "backdropPath": "/path/to/backdrop.jpg",
+          "date": "2024-01-01",
+          "genres": [
+            {
+              "id": 1,
+              "name": "Action",
+            },
+          ],
+          "id": 1,
+          "name": "Movie",
+          "originCountry": undefined,
+          "originalLanguage": "en",
+          "overview": "Test overview",
+          "popularity": 50,
+          "posterPath": "/path/to/poster.jpg",
+          "type": "movie",
+          "voteAverage": 8,
+          "voteCount": 100,
+        }
+      `);
     });
 
     it('should transform TMDB movie with no genre_ids', () => {
@@ -62,9 +82,9 @@ describe('tmdb/transformers', () => {
         name: 'Show',
         first_air_date: '2023-01-01',
         original_name: 'Show',
-        overview: null,
-        poster_path: null,
-        backdrop_path: null,
+        overview: 'Test overview',
+        poster_path: '/path/to/poster.jpg',
+        backdrop_path: '/path/to/backdrop.jpg',
         vote_average: 7,
         vote_count: 50,
         popularity: 40,
@@ -75,8 +95,31 @@ describe('tmdb/transformers', () => {
 
       const result = transformMedia(tv, genreMap, { trendingRank: 1 });
 
-      expect(result.type).toBe('tv');
-      expect(result.trendingRank).toBe(1);
+      expect(result).toMatchInlineSnapshot(`
+        {
+          "backdropPath": "/path/to/backdrop.jpg",
+          "date": "2023-01-01",
+          "genres": [
+            {
+              "id": 1,
+              "name": "Action",
+            },
+          ],
+          "id": 2,
+          "name": "Show",
+          "originCountry": [
+            "US",
+          ],
+          "originalLanguage": "en",
+          "overview": "Test overview",
+          "popularity": 40,
+          "posterPath": "/path/to/poster.jpg",
+          "trendingRank": 1,
+          "type": "tv",
+          "voteAverage": 7,
+          "voteCount": 50,
+        }
+      `);
     });
 
     it('should apply custom fields when provided', () => {
@@ -110,11 +153,11 @@ describe('tmdb/transformers', () => {
         id: 1,
         type: 'movie',
         title: 'Movie',
-        release_date: null,
+        release_date: '2024-01-01',
         original_title: 'Movie',
-        overview: null,
-        poster_path: null,
-        backdrop_path: null,
+        overview: 'Test overview',
+        poster_path: '/path/to/poster.jpg',
+        backdrop_path: '/path/to/backdrop.jpg',
         vote_average: 8,
         vote_count: 100,
         popularity: 50,
@@ -124,13 +167,36 @@ describe('tmdb/transformers', () => {
         budget: 0,
         revenue: 0,
         status: 'Released',
-        tagline: null,
-        homepage: null,
-        imdb_id: null,
+        tagline: 'Test tagline',
+        homepage: 'https://example.com',
+        imdb_id: 'tt1234567',
       };
 
       const result = transformDetails(details);
-      expect(result.type).toBe('movie');
+      expect(result).toMatchInlineSnapshot(`
+        {
+          "backdropPath": "/path/to/backdrop.jpg",
+          "budget": 0,
+          "date": "2024-01-01",
+          "genres": [],
+          "homepage": "https://example.com",
+          "id": 1,
+          "imdbId": "tt1234567",
+          "name": "Movie",
+          "originCountry": undefined,
+          "originalLanguage": "en",
+          "overview": "Test overview",
+          "popularity": 50,
+          "posterPath": "/path/to/poster.jpg",
+          "revenue": 0,
+          "runtime": undefined,
+          "status": "Released",
+          "tagline": "Test tagline",
+          "type": "movie",
+          "voteAverage": 8,
+          "voteCount": 100,
+        }
+      `);
     });
 
     it('should transform TMDB TV details to application TV details', () => {
@@ -158,7 +224,34 @@ describe('tmdb/transformers', () => {
       };
 
       const result = transformDetails(details);
-      expect(result.type).toBe('tv');
+      expect(result).toMatchInlineSnapshot(`
+        {
+          "backdropPath": undefined,
+          "date": undefined,
+          "episodeRunTime": [
+            45,
+          ],
+          "genres": [],
+          "homepage": undefined,
+          "id": 2,
+          "name": "Show",
+          "numberOfEpisodes": 10,
+          "numberOfSeasons": 1,
+          "originCountry": [
+            "US",
+          ],
+          "originalLanguage": "en",
+          "originalName": "Show",
+          "overview": undefined,
+          "popularity": 40,
+          "posterPath": undefined,
+          "showType": "Scripted",
+          "status": "Ended",
+          "type": "tv",
+          "voteAverage": 7,
+          "voteCount": 50,
+        }
+      `);
     });
   });
 });

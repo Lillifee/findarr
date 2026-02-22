@@ -69,7 +69,7 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
               )}
 
               {/* Glassmorphism overlay at bottom */}
-              <div className="absolute bottom-0 left-0 right-0 p-2 md:p-4 z-10 bg-linear-to-t from-black/90 via-black/70 to-transparent backdrop-blur-md">
+              <div className="absolute bottom-0 left-0 right-0 p-2 md:p-4 z-10 bg-linear-to-t from-black/20 via-black/20 to-transparent backdrop-blur-md">
                 <h3 className="text-white font-bold text-sm md:text-base leading-tight mb-1 md:mb-2 line-clamp-2 group-hover:text-amber-400 transition-colors drop-shadow-lg">
                   {title}
                 </h3>
@@ -85,6 +85,12 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
                       {item.voteAverage.toFixed(1)}
                     </span>
                   </div>
+
+                  {item.customPopularity && (
+                    <span className="text-gray-200 text-xs md:text-sm font-medium drop-shadow">
+                      {item.customPopularity?.toFixed(1)}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

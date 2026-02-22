@@ -181,13 +181,6 @@ export const TMDBSearchResponseSchema = z.object({
   total_results: z.number(),
 });
 
-export const TMDBDiscoverResponseSchema = z.object({
-  page: z.number().optional(),
-  results: z.array(z.union([TMDBMovieSchema, TMDBTVSchema])),
-  total_pages: z.number().optional(),
-  total_results: z.number().optional(),
-});
-
 export const TMDBGenresResponseSchema = z.object({
   genres: z.array(TMDBGenreSchema),
 });
@@ -403,5 +396,4 @@ export type TMDBMovieDetails = z.infer<typeof TMDBMovieDetailsSchema>;
 export type TMDBTVDetails = z.infer<typeof TMDBTVDetailsSchema>;
 export type TMDBGenre = z.infer<typeof TMDBGenreSchema>;
 export type TMDBSearchResponse = z.infer<typeof TMDBSearchResponseSchema>;
-export type TMDBDiscoverResponse = z.infer<typeof TMDBDiscoverResponseSchema>;
 export type TMDBGenresResponse = z.infer<typeof TMDBGenresResponseSchema>;

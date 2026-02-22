@@ -15,7 +15,7 @@ function MainApp() {
   // Show loading state while checking authentication
   if (authLoading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-amber-900/20">
+      <div className="flex justify-center items-center h-screen bg-linear-to-br from-gray-900 via-gray-900 to-amber-900/20">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
           <p className="text-gray-400">Loading...</p>
@@ -31,10 +31,9 @@ function MainApp() {
 
   // Render main layout with navigation and routes
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-amber-900/20">
+    <div className="min-h-screen bg-linear-to-br from-gray-900 via-gray-900 to-amber-900/20">
       <Navigation
         onLogout={() => {
-          console.log('Logout button clicked');
           logout().catch(console.error);
         }}
         user={user}

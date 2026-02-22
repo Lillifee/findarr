@@ -75,3 +75,19 @@ export const filterByCriteria = (item: Media, filters: FilterCriteria): boolean 
   typeMatches(item, filters.type) &&
   regionMatches(item, filters.regions) &&
   genreMatches(item, filters.genres);
+
+/**
+ * Remove duplicate media items based on their ID.
+ */
+export function deduplicateMedia(items: Media[]): Media[] {
+  const map = new Map<number, Media>();
+
+  for (const item of items) {
+    const existing = map.get(item.id);
+    if (!existing || item.trendingRank) {
+      map.set(item.id, item);
+    }
+  }
+
+  return [...map.values()];
+}
