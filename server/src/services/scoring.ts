@@ -7,27 +7,27 @@ type TypeStats = {
   maxPopularity: number;
   minVoteCount: number;
   maxVoteCount: number;
+  ratingSum: number;
+  ratingCount: number;
 };
 
 const clamp = (v: number) => Math.max(0, Math.min(1, v));
 
-const normalizeMinMax = (value: number, min: number, max: number) => {
-  if (max === min) return 0;
-  return (value - min) / (max - min);
-};
+function scoreMedia(
+  item: Media,
+  stats: TypeStats,
+  maxTrendingRank: number,
+  globalAverage: number
+): MediaScore {
+  const popularityScore = Math.log10(item.popularity + 1) / Math.log10(stats.maxPopularity + 1);
 
-function scoreMedia(item: Media, stats: TypeStats, maxTrendingRank: number): MediaScore {
-  const popularityScore = normalizeMinMax(
-    item.popularity,
-    stats.minPopularity,
-    stats.maxPopularity
-  );
+  const MIN_VOTES = 300;
 
-  const ratingScore = clamp(((item.voteAverage || 0) - 5) / 5);
+  const bayes =
+    (item.voteCount / (item.voteCount + MIN_VOTES)) * (item.voteAverage || 0) +
+    (MIN_VOTES / (item.voteCount + MIN_VOTES)) * globalAverage;
 
-  const voteConfidence = normalizeMinMax(item.voteCount, stats.minVoteCount, stats.maxVoteCount);
-
-  const weightedRating = ratingScore * voteConfidence;
+  const weightedRating = bayes / 10;
 
   const trendingScore = item.trendingRank
     ? clamp(1 - (item.trendingRank - 1) / maxTrendingRank)
@@ -56,6 +56,8 @@ export function scoreMediaItems(items: Media[]): Media[] {
     maxPopularity: 0,
     minVoteCount: Infinity,
     maxVoteCount: 0,
+    ratingSum: 0,
+    ratingCount: 0,
   });
 
   const movieStats: TypeStats = createTypeStats();
@@ -77,6 +79,10 @@ export function scoreMediaItems(items: Media[]): Media[] {
     stats.minVoteCount = Math.min(stats.minVoteCount, voteCount);
     stats.maxVoteCount = Math.max(stats.maxVoteCount, voteCount);
 
+    if (item.voteAverage) {
+      stats.ratingSum += item.voteAverage;
+      stats.ratingCount++;
+    }
     if (trendingRank > maxTrendingRank) {
       maxTrendingRank = trendingRank;
     }
@@ -89,13 +95,18 @@ export function scoreMediaItems(items: Media[]): Media[] {
   if (tvStats.minPopularity === Infinity) tvStats.minPopularity = 0;
   if (tvStats.minVoteCount === Infinity) tvStats.minVoteCount = 0;
 
+  const movieGlobalAverage =
+    movieStats.ratingCount > 0 ? movieStats.ratingSum / movieStats.ratingCount : 0;
+
+  const tvGlobalAverage = tvStats.ratingCount > 0 ? tvStats.ratingSum / tvStats.ratingCount : 0;
+
   // 2️⃣ Score
   const scored = items.map<Media>(item => {
     const typeStats = item.type === 'movie' ? movieStats : tvStats;
-
+    const globalAverage = item.type === 'movie' ? movieGlobalAverage : tvGlobalAverage;
     return {
       ...item,
-      score: scoreMedia(item, typeStats, maxTrendingRank),
+      score: scoreMedia(item, typeStats, maxTrendingRank, globalAverage),
     };
   });
 

@@ -23,7 +23,6 @@ describe('filter service', () => {
       { id: 9648, name: 'Mystery' },
     ],
     trendingRank: 17,
-    customPopularity: 630.4476,
   };
 
   it('should pass when all filters match', () => {

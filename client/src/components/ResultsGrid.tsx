@@ -86,10 +86,30 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
                     </span>
                   </div>
 
-                  {item.customPopularity && (
-                    <span className="text-gray-200 text-xs md:text-sm font-medium drop-shadow">
-                      {item.customPopularity?.toFixed(1)}
-                    </span>
+                  {item.score && (
+                    <React.Fragment>
+                      <span className="text-gray-200 text-xs md:text-sm font-medium drop-shadow">
+                        {item.score.baseScore?.toFixed(2)}
+                      </span>
+                      {/* <div>
+                        <div className="text-gray-200 text-xs md:text-sm font-medium drop-shadow">
+                          {item.score.popularityScore?.toFixed(1)}- popularityScore
+                          <progress value={item.score.popularityScore} max={1}></progress>
+                        </div>
+                        <div className="text-gray-200 text-xs md:text-sm font-medium drop-shadow">
+                          {item.score.trendingScore?.toFixed(1)}- trendingScore
+                          <progress value={item.score.trendingScore} max={1}></progress>
+                        </div>
+                        <div className="text-gray-200 text-xs md:text-sm font-medium drop-shadow">
+                          {item.score.weightedRating?.toFixed(1)}- weightedRating
+                          <progress value={item.score.weightedRating} max={1}></progress>
+                        </div>
+                        <div className="text-gray-200 text-xs md:text-sm font-medium drop-shadow">
+                          {item.score.recencyScore?.toFixed(1)}- recencyScore
+                          <progress value={item.score.recencyScore} max={1}></progress>
+                        </div>
+                      </div> */}
+                    </React.Fragment>
                   )}
                 </div>
               </div>
