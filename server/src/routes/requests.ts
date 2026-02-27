@@ -6,8 +6,8 @@ import {
 import type { FastifyPluginAsync } from 'fastify';
 import {
   createRequest,
-  getUserRequests,
-  getAllRequests,
+  getUserRequestsEnriched,
+  getAllRequestsEnriched,
   updateRequestStatus,
   getUserRequestById,
 } from '../services/request.js';
@@ -21,8 +21,8 @@ const requestRoutes: FastifyPluginAsync = async fastify => {
     createRequest(fastify.db, CreateMediaRequestSchema.parse(request.body), request.user?.id)
   );
 
-  // Get user's own requests
-  fastify.get('/', request => getUserRequests(fastify.db, request.user?.id));
+  // Get user's own requests - enriched with TMDB data
+  fastify.get('/', request => getUserRequestsEnriched(fastify.tmdb, fastify.db, request.user?.id));
 
   // Get request by ID (owner or admin)
   fastify.get('/:id', request =>
@@ -39,8 +39,8 @@ const requestRoutes: FastifyPluginAsync = async fastify => {
 const adminRequestRoutes: FastifyPluginAsync = async fastify => {
   fastify.addHook('preHandler', fastify.requireAdmin);
 
-  // Get all requests (admin only)
-  fastify.get('/', () => getAllRequests(fastify.db));
+  // Get all requests (admin only) - enriched with TMDB data
+  fastify.get('/', () => getAllRequestsEnriched(fastify.tmdb, fastify.db));
 
   // Update request status (admin only)
   fastify.patch('/:id', async request =>

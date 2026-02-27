@@ -22,7 +22,9 @@ describe('filter service', () => {
       { id: 80, name: 'Crime' },
       { id: 9648, name: 'Mystery' },
     ],
-    trendingRank: 17,
+    state: {
+      trendingRank: 17,
+    },
   };
 
   it('should pass when all filters match', () => {

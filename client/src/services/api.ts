@@ -10,8 +10,7 @@ import type {
   MediaDetails,
   User,
   RequestStatus,
-  MediaRequest,
-  MediaRequestWithUser,
+  Media,
   Login,
   CreateUser,
   CreateMediaRequest,
@@ -96,7 +95,7 @@ export const adminUserService = {
 
 // Admin request management service
 export const adminRequestService = {
-  listAllRequests: async (): Promise<MediaRequestWithUser[]> => {
+  listAllRequests: async (): Promise<Media[]> => {
     const response = await api.get('/admin/requests');
     return response.data;
   },
@@ -108,13 +107,37 @@ export const adminRequestService = {
 
 // User request service
 export const requestService = {
-  createRequest: async (request: CreateMediaRequest): Promise<MediaRequest> => {
+  createRequest: async (request: CreateMediaRequest): Promise<Media> => {
     const response = await api.post('/requests', request);
     return response.data;
   },
 
-  getUserRequests: async (): Promise<MediaRequest[]> => {
+  getUserRequests: async (): Promise<Media[]> => {
     const response = await api.get('/requests');
+    return response.data;
+  },
+};
+
+// User interaction service (likes, dislikes)
+export const interactionService = {
+  dislikeMedia: async (tmdbId: number, mediaType: 'movie' | 'tv'): Promise<void> => {
+    await api.post('/interactions/dislike', { tmdbId, mediaType });
+  },
+
+  undislikeMedia: async (tmdbId: number, mediaType: 'movie' | 'tv'): Promise<void> => {
+    await api.delete(`/interactions/dislike/${tmdbId}/${mediaType}`);
+  },
+
+  likeMedia: async (tmdbId: number, mediaType: 'movie' | 'tv'): Promise<void> => {
+    await api.post('/interactions/like', { tmdbId, mediaType });
+  },
+
+  unlikeMedia: async (tmdbId: number, mediaType: 'movie' | 'tv'): Promise<void> => {
+    await api.delete(`/interactions/like/${tmdbId}/${mediaType}`);
+  },
+
+  getMyInteractions: async () => {
+    const response = await api.get('/interactions/my');
     return response.data;
   },
 };

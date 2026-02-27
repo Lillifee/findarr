@@ -29,8 +29,8 @@ function scoreMedia(
 
   const weightedRating = bayes / 10;
 
-  const trendingScore = item.trendingRank
-    ? clamp(1 - (item.trendingRank - 1) / maxTrendingRank)
+  const trendingScore = item.state?.trendingRank
+    ? clamp(1 - (item.state.trendingRank - 1) / maxTrendingRank)
     : 0;
 
   const recencyScore = item.date
@@ -71,7 +71,7 @@ export function scoreMediaItems(items: Media[]): Media[] {
 
     const popularity = item.popularity;
     const voteCount = item.voteCount;
-    const trendingRank = item.trendingRank || 0;
+    const trendingRank = item.state?.trendingRank || 0;
 
     stats.minPopularity = Math.min(stats.minPopularity, popularity);
     stats.maxPopularity = Math.max(stats.maxPopularity, popularity);
@@ -104,14 +104,12 @@ export function scoreMediaItems(items: Media[]): Media[] {
   const scored = items.map<Media>(item => {
     const typeStats = item.type === 'movie' ? movieStats : tvStats;
     const globalAverage = item.type === 'movie' ? movieGlobalAverage : tvGlobalAverage;
-    return {
-      ...item,
-      score: scoreMedia(item, typeStats, maxTrendingRank, globalAverage),
-    };
+    const score = scoreMedia(item, typeStats, maxTrendingRank, globalAverage);
+    return { ...item, state: { ...item.state, score } };
   });
 
   // 3️⃣ Sort
-  scored.sort((a, b) => (b.score?.baseScore || 0) - (a.score?.baseScore || 0));
+  scored.sort((a, b) => (b.state?.score?.baseScore || 0) - (a.state?.score?.baseScore || 0));
 
   return scored;
 }

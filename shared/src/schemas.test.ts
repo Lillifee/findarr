@@ -18,6 +18,8 @@ describe('schemas', () => {
     const validEnv = {
       TMDB_ACCESS_TOKEN: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
       SESSION_SECRET: 'a'.repeat(32),
+      JELLYFIN_URL: 'http://localhost:8096',
+      JELLYFIN_API_KEY: 'test-api-key',
     };
 
     it('should require TMDB_ACCESS_TOKEN and SESSION_SECRET', () => {
@@ -78,6 +80,8 @@ describe('schemas', () => {
         DB_PATH: './data/dev.db',
         ADMIN_EMAIL: 'admin@findarr.local',
         ADMIN_PASSWORD: 'changeme',
+        JELLYFIN_URL: 'http://localhost:8096',
+        JELLYFIN_API_KEY: 'test-api-key',
       };
 
       const result = ServerEnvSchema.parse(fullConfig);
@@ -280,17 +284,14 @@ describe('schemas', () => {
     const validRequest = {
       mediaType: 'movie' as const,
       tmdbId: 550,
-      title: 'Fight Club',
-      posterPath: '/poster.jpg',
     };
 
-    it('should require mediaType, tmdbId, and title', () => {
+    it('should require mediaType and tmdbId', () => {
       expect(CreateMediaRequestSchema.safeParse({}).success).toBe(false);
       expect(CreateMediaRequestSchema.safeParse({ mediaType: 'movie' }).success).toBe(false);
-      expect(
-        CreateMediaRequestSchema.safeParse({ mediaType: 'movie', tmdbId: 123, title: 'Test' })
-          .success
-      ).toBe(true);
+      expect(CreateMediaRequestSchema.safeParse({ mediaType: 'movie', tmdbId: 123 }).success).toBe(
+        true
+      );
     });
 
     it('should only accept movie or tv mediaType', () => {

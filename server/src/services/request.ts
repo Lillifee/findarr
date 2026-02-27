@@ -1,11 +1,21 @@
-import type {
-  CreateMediaRequest,
-  MediaRequest,
-  MediaRequestWithUser,
-  RequestStatus,
-} from '@findarr/shared';
+import type { CreateMediaRequest, RequestStatus, Media } from '@findarr/shared';
 import type { DB } from '../db/setup.js';
+import type { TMDBService } from '../tmdb/service.js';
 import { Conflict, Forbidden, NotFound } from '../utils/errors.js';
+import { fetchTMDBDetails, addInteractions, addAllInteractions } from './enrichment.js';
+import { addInteraction, hasInteraction } from './interactions.js';
+import {
+  type MediaDbRow,
+  getMediaById,
+  getMediaByTmdbId,
+  createMedia,
+  updateMediaStatus,
+} from './media.js';
+
+// ============================================================================
+// Request Service - User request workflow and business logic
+// Uses mediaRepository for database operations and interactions for tracking
+// ============================================================================
 
 // ============================================================================
 // Create Operations
@@ -14,101 +24,128 @@ import { Conflict, Forbidden, NotFound } from '../utils/errors.js';
 export const createRequest = (db: DB, data: CreateMediaRequest, userId?: number) => {
   if (!userId) return;
 
-  const existing = getRequestByTmdbId(db, data.tmdbId);
+  // Start transaction
+  const transaction = db.transaction(() => {
+    // Check if media already exists
+    let mediaId: number;
+    const existingMedia = getMediaByTmdbId(db, data.tmdbId, data.mediaType);
 
-  if (existing) {
-    throw Conflict('Media already requested');
-  }
+    if (existingMedia) {
+      mediaId = existingMedia.id;
 
-  const stmt = db.prepare(`
-    INSERT INTO media_requests (userId, mediaType, tmdbId, title, posterPath)
-    VALUES (?, ?, ?, ?, ?)
-  `);
+      // Check if this user already requested it
+      if (hasInteraction(db, userId, mediaId, 'requested')) {
+        throw Conflict('You have already requested this media');
+      }
+    } else {
+      // Create new media entry
+      mediaId = createMedia(db, data.tmdbId, data.mediaType, 'pending');
+    }
 
-  const { lastInsertRowid } = stmt.run(
-    userId,
-    data.mediaType,
-    data.tmdbId,
-    data.title,
-    data.posterPath
-  );
+    // Add interaction
+    addInteraction(db, userId, mediaId, 'requested');
 
-  return getRequestById(db, lastInsertRowid as number);
+    // Return the media with interaction info
+    return getMediaById(db, mediaId);
+  });
+
+  return transaction();
 };
 
 // ============================================================================
 // Update Operations
 // ============================================================================
 
-export const updateRequestStatus = (db: DB, requestId: number, status: RequestStatus) => {
-  const update = db
-    .prepare(
-      `
-      UPDATE media_requests
-      SET status = ?, updatedAt = unixepoch()
-      WHERE id = ?
-      `
-    )
-    .run(status, requestId);
-
-  if (update.changes === 0) {
-    throw NotFound('Request not found');
-  }
+export const updateRequestStatus = (db: DB, mediaId: number, status: RequestStatus): void => {
+  updateMediaStatus(db, mediaId, status);
 };
 
 // ============================================================================
 // Read / Query Operations
 // ============================================================================
 
+// Get all media that the user has requested
 export const getUserRequests = (db: DB, userId?: number) =>
   userId
     ? db
-        .prepare<[number], MediaRequest>(
+        .prepare<[number], MediaDbRow>(
           `
-          SELECT * FROM media_requests
-          WHERE userId = ?
-          ORDER BY requestedAt DESC
+          SELECT m.*
+          FROM media m
+          INNER JOIN user_media_interactions i ON m.id = i.mediaId
+          WHERE i.userId = ? AND i.action = 'requested'
+          ORDER BY i.createdAt DESC
           `
         )
         .all(userId)
     : undefined;
 
-export const getAllRequests = (db: DB) =>
+// Get all media that has been requested (for admin view)
+export const getAllRequests = (db: DB): MediaDbRow[] =>
   db
-    .prepare<[], MediaRequestWithUser>(
+    .prepare<[], MediaDbRow>(
       `
-      SELECT 
-        mr.*,
-        u.email as userEmail,
-        u.displayName as userDisplayName
-      FROM media_requests mr
-      JOIN users u ON mr.userId = u.id
-      ORDER BY mr.requestedAt DESC
+      SELECT DISTINCT m.*
+      FROM media m
+      INNER JOIN user_media_interactions i ON m.id = i.mediaId
+      WHERE i.action = 'requested'
+      ORDER BY m.createdAt DESC
     `
     )
     .all();
 
 export const getUserRequestById = (
   db: DB,
-  requestId: number,
+  mediaId: number,
   userId?: number,
   userRole?: string
-) => {
-  const mediaRequest = getRequestById(db, requestId);
+): MediaDbRow => {
+  const media = getMediaById(db, mediaId);
 
-  if (!mediaRequest) {
+  if (!media) {
     throw NotFound('Request not found');
   }
 
-  if (userId !== mediaRequest.userId && userRole !== 'admin') {
+  // Check if user has requested this media
+  if (userId && !hasInteraction(db, userId, mediaId, 'requested') && userRole !== 'admin') {
     throw Forbidden('Access denied');
   }
 
-  return mediaRequest;
+  return media;
 };
 
-export const getRequestById = (db: DB, requestId: number) =>
-  db.prepare<[number], MediaRequest>(`SELECT * FROM media_requests WHERE id = ?`).get(requestId);
+// ============================================================================
+// Enriched Query Operations - Include TMDB metadata
+// ============================================================================
 
-export const getRequestByTmdbId = (db: DB, tmdbId: number) =>
-  db.prepare<[number], MediaRequest>(`SELECT * FROM media_requests WHERE tmdbId = ?`).get(tmdbId);
+/**
+ * Get user's requests enriched with TMDB metadata and interactions
+ */
+export async function getUserRequestsEnriched(
+  tmdbService: TMDBService,
+  db: DB,
+  userId?: number
+): Promise<Media[]> {
+  const dbRecords = getUserRequests(db, userId);
+  if (!dbRecords) return [];
+
+  // Fetch TMDB details for all requests
+  const enrichedMedia = await fetchTMDBDetails(tmdbService, dbRecords);
+
+  // Add user interactions
+  return userId ? addInteractions(db, enrichedMedia, userId) : enrichedMedia;
+}
+
+/**
+ * Get all requests enriched with TMDB metadata and all user interactions
+ */
+export async function getAllRequestsEnriched(tmdbService: TMDBService, db: DB): Promise<Media[]> {
+  const dbRecords = getAllRequests(db);
+  if (dbRecords.length === 0) return [];
+
+  // Fetch TMDB details for all requests
+  const enrichedMedia = await fetchTMDBDetails(tmdbService, dbRecords);
+
+  // Add all interactions with user info (admin view shows who requested what)
+  return addAllInteractions(db, enrichedMedia);
+}

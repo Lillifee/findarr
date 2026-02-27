@@ -1,7 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { getErrorMessage, objectEntries, objectKeys } from './helper.js';
+import { getErrorMessage, isDefined, objectEntries, objectKeys } from './helper.js';
 
 describe('helper', () => {
+  it('should return true for defined values and false for undefined or null', () => {
+    expect(isDefined('abc')).toEqual(true);
+    expect(isDefined(undefined)).toEqual(false);
+    expect(isDefined(null)).toEqual(false);
+  });
+
   it('should return a typed version of Object.keys', () => {
     expect(objectKeys({ a: 1, b: 2 })).toEqual(['a', 'b']);
   });

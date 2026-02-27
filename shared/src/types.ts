@@ -28,6 +28,9 @@ export interface Genre {
   name: string;
 }
 
+export type RequestStatus = 'pending' | 'approved' | 'rejected' | 'available';
+export type InteractionAction = 'requested' | 'liked' | 'disliked';
+
 export interface MediaScore {
   recencyScore: number;
   trendingScore: number;
@@ -35,6 +38,58 @@ export interface MediaScore {
   weightedRating: number;
   baseScore: number;
   finalScore: number;
+}
+
+/**
+ * Database media record (from 'media' table)
+ */
+export interface MediaRecord {
+  id: number;
+  status: RequestStatus;
+  jellyfinId: string | null;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/**
+ * User interaction with media (from 'user_media_interactions' table)
+ */
+export interface MediaInteraction {
+  action: InteractionAction;
+  createdAt: number;
+}
+
+/**
+ * User information (for interactions with user details)
+ */
+export interface UserInfo {
+  userId: number;
+  userEmail: string;
+  userDisplayName: string;
+}
+
+/**
+ * User interaction with user details (for admin views)
+ */
+export interface MediaInteractionWithUser extends MediaInteraction, UserInfo {}
+
+/**
+ * Server-computed and database state for media
+ * All fields optional - added progressively by server enrichment
+ */
+export interface MediaState {
+  // Computed ranking/scoring
+  score?: MediaScore;
+  trendingRank?: number;
+
+  // Database record (if media exists in our system)
+  record?: MediaRecord;
+
+  // Current user's interactions (requires userId)
+  interactions?: MediaInteraction[];
+
+  // All users' interactions (admin-only)
+  allInteractions?: MediaInteractionWithUser[];
 }
 
 /**
@@ -55,9 +110,8 @@ export interface Media {
   originCountry: string[] | undefined; // TV-specific field - empty array for movies
   genres: Genre[];
 
-  // Custom enrichment fields added by server
-  trendingRank?: number;
-  score?: MediaScore;
+  // Server-added state (computed scores, database records, user interactions)
+  state?: MediaState;
 }
 
 /**
@@ -163,22 +217,3 @@ export type DeleteUser = z.infer<typeof DeleteUserSchema>;
 // ============================================================================
 
 export type CreateMediaRequest = z.infer<typeof CreateMediaRequestSchema>;
-
-export type RequestStatus = 'pending' | 'approved' | 'rejected' | 'available';
-
-export interface MediaRequest {
-  id: number;
-  userId: number;
-  mediaType: 'movie' | 'tv';
-  tmdbId: number;
-  title: string;
-  posterPath: string | undefined;
-  status: RequestStatus;
-  requestedAt: number;
-  updatedAt: number;
-}
-
-export interface MediaRequestWithUser extends MediaRequest {
-  userEmail: string;
-  userDisplayName: string;
-}

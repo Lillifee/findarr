@@ -1,17 +1,23 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as requestService from '../services/request.js';
-import {
-  createMediaRequestWithUser,
-  mockDb,
-  createMediaRequest,
-  createUser,
-} from '../utils/testHelper.js';
+import { createMedia, mockDb, createUser } from '../utils/testHelper.js';
 import { requestRoutes, adminRequestRoutes } from './requests.js';
 
 describe('requestRoutes', () => {
   let app: FastifyInstance;
   const user = createUser();
+  const enrichedMedia = createMedia({
+    state: {
+      record: {
+        id: 1,
+        status: 'pending',
+        jellyfinId: null,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      },
+    },
+  });
 
   beforeEach(async () => {
     app = Fastify();
@@ -21,17 +27,53 @@ describe('requestRoutes', () => {
     app.decorate('requireAuth', async () => {});
     app.decorate('requireAdmin', async () => {});
 
+    // Mock tmdb service
+    app.decorate('tmdb', {
+      loadGenres: vi.fn().mockResolvedValue(undefined),
+      search: vi.fn(),
+      fetchDiscover: vi.fn(),
+      fetchTrending: vi.fn(),
+      getGenres: vi.fn().mockReturnValue([]),
+      getDetails: vi.fn(),
+    });
+
+    // Mock catalog service
+    app.decorate('catalog', {
+      initialize: vi.fn().mockResolvedValue(undefined),
+      search: vi.fn(),
+      popular: vi.fn(),
+      discover: vi.fn(),
+      getDetails: vi.fn(),
+      getGenres: vi.fn(),
+    });
+
     // inject authenticated user
     app.addHook('preHandler', async req => {
       req.user = user;
     });
 
-    // mock services
-    vi.spyOn(requestService, 'createRequest').mockResolvedValue(createMediaRequest());
-    vi.spyOn(requestService, 'getUserRequests').mockResolvedValue([createMediaRequest()]);
-    vi.spyOn(requestService, 'getAllRequests').mockResolvedValue([createMediaRequestWithUser()]);
+    // Mock service methods
+    vi.spyOn(requestService, 'createRequest').mockResolvedValue({
+      id: 1,
+      tmdbId: 123,
+      mediaType: 'movie',
+      jellyfinId: null,
+      status: 'pending',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+    vi.spyOn(requestService, 'getUserRequestsEnriched').mockResolvedValue([enrichedMedia]);
+    vi.spyOn(requestService, 'getAllRequestsEnriched').mockResolvedValue([enrichedMedia]);
     vi.spyOn(requestService, 'updateRequestStatus').mockResolvedValue();
-    vi.spyOn(requestService, 'getUserRequestById').mockResolvedValue(createMediaRequest());
+    vi.spyOn(requestService, 'getUserRequestById').mockReturnValue({
+      id: 1,
+      tmdbId: 123,
+      mediaType: 'movie',
+      jellyfinId: null,
+      status: 'pending',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
 
     await app.register(requestRoutes, { prefix: '/requests' });
     await app.register(adminRequestRoutes, { prefix: '/requests/admin' });
@@ -47,8 +89,6 @@ describe('requestRoutes', () => {
     const payload = {
       mediaType: 'movie',
       tmdbId: 123,
-      title: 'Test Movie',
-      posterPath: '/path/to/poster.jpg',
     };
     const res = await app.inject({ method: 'POST', url: '/requests', payload });
 
@@ -60,7 +100,7 @@ describe('requestRoutes', () => {
     const res = await app.inject({ method: 'GET', url: '/requests' });
 
     expect(res.statusCode).toBe(200);
-    expect(requestService.getUserRequests).toHaveBeenCalledWith(mockDb, user.id);
+    expect(requestService.getUserRequestsEnriched).toHaveBeenCalled();
   });
 
   it('should return user request by ID', async () => {
@@ -74,7 +114,7 @@ describe('requestRoutes', () => {
     const res = await app.inject({ method: 'GET', url: '/requests/admin' });
 
     expect(res.statusCode).toBe(200);
-    expect(requestService.getAllRequests).toHaveBeenCalledWith(mockDb);
+    expect(requestService.getAllRequestsEnriched).toHaveBeenCalled();
   });
 
   it('should update request status (admin)', async () => {

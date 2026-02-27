@@ -4,13 +4,16 @@ import rateLimit from '@fastify/rate-limit';
 import { ServerEnvSchema } from '@findarr/shared';
 import Fastify from 'fastify';
 import authPlugin from './plugins/auth.js';
+import catalogPlugin from './plugins/catalog.js';
 import databasePlugin from './plugins/database.js';
-import mediaPlugin from './plugins/media.js';
+import jellyfinPlugin from './plugins/jellyfin.js';
+import tmdbPlugin from './plugins/tmdb.js';
 import adminRoutes from './routes/admin.js';
 import authRoutes from './routes/auth.js';
+import { catalogRoutes } from './routes/catalog.js';
 import { registerErrorHandler } from './routes/common.js';
-import { mediaRoutes } from './routes/media.js';
-import { requestRoutes, adminRequestRoutes } from './routes/requests.js';
+import { adminRequestRoutes, requestRoutes } from './routes/requests.js';
+import { startSyncScheduler } from './services/jellyfin.js';
 
 // Validate environment variables
 const env = ServerEnvSchema.parse(process.env);
@@ -54,10 +57,15 @@ async function start() {
     // Register plugins
     await server.register(databasePlugin, { dbPath: env.DB_PATH });
     await server.register(authPlugin, { sessionSecret: env.SESSION_SECRET });
-    await server.register(mediaPlugin, {
-      tmdbAccessToken: env.TMDB_ACCESS_TOKEN,
+    await server.register(tmdbPlugin, {
       tmdbBaseUrl: env.TMDB_BASE_URL,
+      tmdbAccessToken: env.TMDB_ACCESS_TOKEN,
     });
+    await server.register(jellyfinPlugin, {
+      jellyfinUrl: env.JELLYFIN_URL,
+      jellyfinApiKey: env.JELLYFIN_API_KEY,
+    });
+    await server.register(catalogPlugin);
 
     // Health check endpoint
     server.get('/health', async () => ({
@@ -70,7 +78,19 @@ async function start() {
     await server.register(adminRoutes, { prefix: '/api/admin' });
     await server.register(requestRoutes, { prefix: '/api/requests' });
     await server.register(adminRequestRoutes, { prefix: '/api/admin/requests' });
-    await server.register(mediaRoutes, { prefix: '/api' });
+    await server.register(catalogRoutes, { prefix: '/api' });
+
+    // Initial Jellyfin sync
+    // await syncJellyfinLibrary(server);
+
+    // Start Jellyfin sync scheduler
+    const syncTimer = startSyncScheduler(server, env.JELLYFIN_SYNC_INTERVAL_MIN);
+
+    // Cleanup on server close
+    server.addHook('onClose', async () => {
+      server.log.info('Shutting down Jellyfin sync scheduler...');
+      clearInterval(syncTimer);
+    });
 
     // Start server
     const address = await server.listen({

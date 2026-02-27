@@ -1,11 +1,6 @@
-import type {
-  Media,
-  MediaRequest,
-  MediaRequestWithUser,
-  MovieDetails,
-  User,
-} from '@findarr/shared';
+import type { Media, MovieDetails, User } from '@findarr/shared';
 import type { DB } from '../db/setup.js';
+import type { MediaDbRow } from '../services/media.js';
 import type { UserWithPassword } from '../services/user.js';
 
 export const mockDb = {} as unknown as DB;
@@ -31,25 +26,14 @@ export const createUserWithPassword = (props?: Partial<UserWithPassword>): UserW
   ...props,
 });
 
-export const createMediaRequest = (props?: Partial<MediaRequest>): MediaRequest => ({
+export const createMediaDbRow = (props?: Partial<MediaDbRow>): MediaDbRow => ({
   id: 1,
-  userId: 1,
   mediaType: 'movie',
   tmdbId: 123,
-  title: 'Test Movie',
-  posterPath: '/path/to/poster.jpg',
+  jellyfinId: null,
   status: 'pending',
-  requestedAt: Date.now(),
+  createdAt: Date.now(),
   updatedAt: Date.now(),
-  ...props,
-});
-
-export const createMediaRequestWithUser = (
-  props?: Partial<MediaRequestWithUser>
-): MediaRequestWithUser => ({
-  ...createMediaRequest(),
-  userEmail: 'user@test.com',
-  userDisplayName: 'user',
   ...props,
 });
 

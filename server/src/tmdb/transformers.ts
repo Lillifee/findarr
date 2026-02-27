@@ -6,11 +6,10 @@ import type { Movie, TVShow, MovieDetails, TVDetails, Genre, Media } from '@find
 import type { TMDBMovie, TMDBTVShow, TMDBMovieDetails, TMDBTVDetails } from './schemas.js';
 
 /**
- * Custom enrichment fields that can be added to transformed items
+ * Custom state fields that can be added to transformed items
  */
-interface CustomFields {
+interface CustomStateFields {
   trendingRank?: number;
-  customPopularity?: number;
 }
 
 /**
@@ -19,11 +18,11 @@ interface CustomFields {
 export function transformMedia(
   item: TMDBMovie | TMDBTVShow,
   genreMap: Map<number, Genre>,
-  customFields?: CustomFields
+  customState?: CustomStateFields
 ): Media {
   return item.type === 'movie'
-    ? transformMovie(item as TMDBMovie, genreMap, customFields)
-    : transformTVShow(item as TMDBTVShow, genreMap, customFields);
+    ? transformMovie(item as TMDBMovie, genreMap, customState)
+    : transformTVShow(item as TMDBTVShow, genreMap, customState);
 }
 
 /**
@@ -32,7 +31,7 @@ export function transformMedia(
 function transformMovie(
   tmdbMovie: TMDBMovie,
   genreMap: Map<number, Genre>,
-  customFields?: CustomFields
+  customState?: CustomStateFields
 ): Movie {
   // Map genre_ids to full genre objects
   const genres = tmdbMovie.genre_ids
@@ -53,7 +52,7 @@ function transformMovie(
     originalLanguage: tmdbMovie.original_language,
     originCountry: undefined, // Movies don't have origin_country
     genres,
-    ...customFields,
+    ...(customState && { state: customState }),
   };
 }
 
@@ -63,7 +62,7 @@ function transformMovie(
 function transformTVShow(
   tmdbTV: TMDBTVShow,
   genreMap: Map<number, Genre>,
-  customFields?: CustomFields
+  customState?: CustomStateFields
 ): TVShow {
   // Map genre_ids to full genre objects
   const genres = tmdbTV.genre_ids
@@ -84,7 +83,7 @@ function transformTVShow(
     originalLanguage: tmdbTV.original_language,
     originCountry: tmdbTV.origin_country,
     genres,
-    ...customFields,
+    ...(customState && { state: customState }),
   };
 }
 

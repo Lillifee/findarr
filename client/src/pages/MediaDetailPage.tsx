@@ -119,8 +119,6 @@ export function MediaDetailPage() {
               await requestService.createRequest({
                 mediaType: details.type,
                 tmdbId: details.id,
-                title: details.name || 'Unknown',
-                posterPath: details.posterPath || null,
               });
               alert('Request submitted! Check "My Requests" to track its status.');
             } catch {

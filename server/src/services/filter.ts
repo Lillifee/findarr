@@ -84,7 +84,7 @@ export function deduplicateMedia(items: Media[]): Media[] {
 
   for (const item of items) {
     const existing = map.get(item.id);
-    if (!existing || item.trendingRank) {
+    if (!existing || item.state?.trendingRank) {
       map.set(item.id, item);
     }
   }

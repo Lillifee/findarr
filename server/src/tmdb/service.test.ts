@@ -236,8 +236,8 @@ describe('TMDBService', () => {
       const result = await service.fetchTrending();
 
       expect(result.results.length).toBe(2);
-      expect(result.results[0]?.trendingRank).toBe(1);
-      expect(result.results[1]?.trendingRank).toBe(1);
+      expect(result.results[0]?.state?.trendingRank).toBe(1);
+      expect(result.results[1]?.state?.trendingRank).toBe(1);
     });
 
     it('should handle empty trending results', async () => {

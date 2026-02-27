@@ -1,4 +1,4 @@
-import type { RequestStatus, MediaRequest } from '@findarr/shared';
+import type { RequestStatus, Media } from '@findarr/shared';
 import { useState, useEffect } from 'react';
 import { requestService } from '../services/api';
 
@@ -71,7 +71,7 @@ function getStatusIcon(status: RequestStatus): React.ReactElement {
 }
 
 export function MyRequests() {
-  const [requests, setRequests] = useState<MediaRequest[]>([]);
+  const [requests, setRequests] = useState<Media[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -126,31 +126,28 @@ export function MyRequests() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-5 mt-5">
           {requests.map(request => (
             <div
-              key={request.id}
+              key={`${request.id}-${request.type}`}
               className="border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40 backdrop-blur-sm shadow-lg hover:border-amber-500 hover:shadow-xl transition-all duration-300 cursor-pointer"
             >
               {request.posterPath && (
                 <img
                   src={`https://image.tmdb.org/t/p/w300${request.posterPath}`}
-                  alt={request.title}
+                  alt={request.name}
                   className="w-full h-75 object-cover"
                 />
               )}
               <div className="p-3 md:p-4">
                 <h3 className="m-0 mb-2 md:mb-2.5 text-sm md:text-base font-semibold text-white line-clamp-2">
-                  {request.title}
+                  {request.name}
                 </h3>
                 <div className="mb-2 md:mb-2.5 text-xs md:text-sm text-gray-400 capitalize">
-                  {request.mediaType}
+                  {request.type}
                 </div>
                 <div
-                  className={`flex items-center justify-center gap-1.5 px-2 md:px-2.5 py-1 md:py-1.5 rounded-full text-xs text-center mb-2 md:mb-2.5 font-medium ${statusStyles[request.status]}`}
+                  className={`flex items-center justify-center gap-1.5 px-2 md:px-2.5 py-1 md:py-1.5 rounded-full text-xs text-center mb-2 md:mb-2.5 font-medium ${statusStyles[request.state?.record?.status || 'pending']}`}
                 >
-                  {getStatusIcon(request.status)}
-                  <span>{statusLabels[request.status]}</span>
-                </div>
-                <div className="text-xs text-gray-500">
-                  Requested {new Date(request.requestedAt * 1000).toLocaleDateString()}
+                  {getStatusIcon(request.state?.record?.status || 'pending')}
+                  <span>{statusLabels[request.state?.record?.status || 'pending']}</span>
                 </div>
               </div>
             </div>

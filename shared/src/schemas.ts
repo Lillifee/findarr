@@ -22,6 +22,9 @@ export const ServerEnvSchema = z.object({
   DB_PATH: z.string().default('./data/findarr.db'),
   ADMIN_EMAIL: z.email().default('admin@findarr.local'),
   ADMIN_PASSWORD: z.string().default('changeme'),
+  JELLYFIN_URL: z.url(),
+  JELLYFIN_API_KEY: z.string(),
+  JELLYFIN_SYNC_INTERVAL_MIN: z.coerce.number().int().min(1).default(30),
 });
 
 // ============================================================================
@@ -102,8 +105,6 @@ export const DeleteUserSchema = z.object({
 export const CreateMediaRequestSchema = z.object({
   mediaType: z.enum(['movie', 'tv']),
   tmdbId: z.coerce.number().int().positive(),
-  title: z.string().min(1),
-  posterPath: z.string().nullish(),
 });
 
 export const UpdateRequestStatusSchema = z.object({

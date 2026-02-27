@@ -1,27 +1,27 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { type MediaService } from '../services/media.js';
+import { type CatalogService } from '../services/catalog.js';
 import { createUser } from '../utils/testHelper.js';
-import { mediaRoutes } from './media.js';
+import { catalogRoutes } from './catalog.js';
 
-describe('mediaRoutes', () => {
+describe('catalogRoutes', () => {
   let app: FastifyInstance;
   const user = createUser();
 
-  const mockMedia: MediaService = {
+  const mockCatalog: CatalogService = {
     search: vi.fn().mockResolvedValue({ results: [], totalPages: 1 }),
     popular: vi.fn().mockResolvedValue({ results: [], totalPages: 1 }),
     discover: vi.fn().mockResolvedValue({ results: [], totalPages: 1 }),
     getDetails: vi.fn().mockResolvedValue({}),
     getGenres: vi.fn().mockResolvedValue([]),
     initialize: vi.fn(),
-  } as unknown as MediaService;
+  } as unknown as CatalogService;
 
   beforeEach(async () => {
     app = Fastify();
 
-    // decorate media and auth hook
-    app.decorate('media', mockMedia);
+    // decorate catalog and auth hook
+    app.decorate('catalog', mockCatalog);
     app.decorate('requireAuth', async () => {});
 
     // inject authenticated user
@@ -29,7 +29,7 @@ describe('mediaRoutes', () => {
       req.user = user;
     });
 
-    await mediaRoutes(app);
+    await catalogRoutes(app);
     await app.ready();
   });
 
@@ -38,15 +38,15 @@ describe('mediaRoutes', () => {
     vi.restoreAllMocks();
   });
 
-  it('should call media.search', async () => {
+  it('should call catalog.search', async () => {
     const query = { query: 'batman', type: 'both', page: '1' };
     const res = await app.inject({ method: 'GET', url: '/search', query });
 
     expect(res.statusCode).toBe(200);
-    expect(mockMedia.search).toHaveBeenCalledWith({ ...query, page: 1 });
+    expect(mockCatalog.search).toHaveBeenCalledWith({ ...query, page: 1 }, user.id);
   });
 
-  it('should call media.popular', async () => {
+  it('should call catalog.popular', async () => {
     const query = {
       page: '1',
       type: 'both',
@@ -56,40 +56,46 @@ describe('mediaRoutes', () => {
     const res = await app.inject({ method: 'GET', url: '/popular', query });
 
     expect(res.statusCode).toBe(200);
-    expect(mockMedia.popular).toHaveBeenCalledWith({
-      ...query,
-      page: 1,
-      regionGroups: ['western', 'asian'],
-      withGenres: ['Fantasy', 'Music'],
-    });
+    expect(mockCatalog.popular).toHaveBeenCalledWith(
+      {
+        ...query,
+        page: 1,
+        regionGroups: ['western', 'asian'],
+        withGenres: ['Fantasy', 'Music'],
+      },
+      user.id
+    );
   });
 
-  it('should call media.discover', async () => {
+  it('should call catalog.discover', async () => {
     const query = { type: 'both', recentDays: '24' };
     const res = await app.inject({ method: 'GET', url: '/discover', query });
 
     expect(res.statusCode).toBe(200);
-    expect(mockMedia.discover).toHaveBeenCalledWith({
-      ...query,
-      recentDays: 24,
-      regionGroups: [],
-      withGenres: [],
-    });
+    expect(mockCatalog.discover).toHaveBeenCalledWith(
+      {
+        ...query,
+        recentDays: 24,
+        regionGroups: [],
+        withGenres: [],
+      },
+      user.id
+    );
   });
 
-  it('should call media.getDetails', async () => {
+  it('should call catalog.getDetails', async () => {
     const query = { id: '123', type: 'movie', language: 'en-US' };
     const res = await app.inject({ method: 'GET', url: '/details', query });
 
     expect(res.statusCode).toBe(200);
-    expect(mockMedia.getDetails).toHaveBeenCalledWith({ ...query, id: 123 });
+    expect(mockCatalog.getDetails).toHaveBeenCalledWith({ ...query, id: 123 });
   });
 
-  it('should call media.getGenres', async () => {
+  it('should call catalog.getGenres', async () => {
     const query = {};
     const res = await app.inject({ method: 'GET', url: '/genres', query });
 
     expect(res.statusCode).toBe(200);
-    expect(mockMedia.getGenres).toHaveBeenCalledWith(query);
+    expect(mockCatalog.getGenres).toHaveBeenCalledWith(query);
   });
 });

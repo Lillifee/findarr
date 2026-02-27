@@ -114,7 +114,9 @@ describe('tmdb/transformers', () => {
           "overview": "Test overview",
           "popularity": 40,
           "posterPath": "/path/to/poster.jpg",
-          "trendingRank": 1,
+          "state": {
+            "trendingRank": 1,
+          },
           "type": "tv",
           "voteAverage": 7,
           "voteCount": 50,
@@ -141,9 +143,9 @@ describe('tmdb/transformers', () => {
         video: false,
       };
 
-      const result = transformMedia(movie, genreMap, { customPopularity: 999 });
+      const result = transformMedia(movie, genreMap, { trendingRank: 999 });
 
-      expect(result.customPopularity).toBe(999);
+      expect(result.state?.trendingRank).toBe(999);
     });
   });
 

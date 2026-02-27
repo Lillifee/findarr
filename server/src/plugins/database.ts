@@ -22,6 +22,7 @@ const databasePlugin: FastifyPluginAsync<DatabasePluginOptions> = async (fastify
 
   // Decorate Fastify instance with database
   fastify.decorate('db', db);
+  fastify.log.info('Database plugin registered');
 
   // Close database connection on shutdown
   fastify.addHook('onClose', async () => {

@@ -50,9 +50,15 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
             {/* Poster with text overlay */}
             <div className="relative overflow-hidden shadow-lg bg-gray-900/40 backdrop-blur-sm border border-gray-700/50 group-hover:border-amber-500 transition-all duration-300 group-hover:shadow-xl rounded-lg">
               {/* Trending Badge */}
-              {item.trendingRank && (
+              {item.state?.trendingRank && (
                 <div className="absolute top-1.5 md:top-3 right-1.5 md:right-3 bg-linear-to-r from-amber-500 to-orange-500 text-white px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-md text-xs font-bold shadow-lg z-10">
-                  #{item.trendingRank}
+                  #{item.state.trendingRank}
+                </div>
+              )}
+
+              {item.state?.record?.status === 'available' && (
+                <div className="absolute top-1.5 md:top-3 right-1.5 md:right-3 bg-linear-to-r from-amber-500 to-orange-500 text-white px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-md text-xs font-bold shadow-lg z-10">
+                  AVAILABLE
                 </div>
               )}
 
@@ -86,27 +92,27 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
                     </span>
                   </div>
 
-                  {item.score && (
+                  {item.state?.score && (
                     <React.Fragment>
                       <span className="text-gray-200 text-xs md:text-sm font-medium drop-shadow">
-                        {item.score.baseScore?.toFixed(2)}
+                        {item.state.score.baseScore?.toFixed(2)}
                       </span>
                       {/* <div>
                         <div className="text-gray-200 text-xs md:text-sm font-medium drop-shadow">
-                          {item.score.popularityScore?.toFixed(1)}- popularityScore
-                          <progress value={item.score.popularityScore} max={1}></progress>
+                          {item.state.score.popularityScore?.toFixed(1)}- popularityScore
+                          <progress value={item.state.score.popularityScore} max={1}></progress>
                         </div>
                         <div className="text-gray-200 text-xs md:text-sm font-medium drop-shadow">
-                          {item.score.trendingScore?.toFixed(1)}- trendingScore
-                          <progress value={item.score.trendingScore} max={1}></progress>
+                          {item.state.score.trendingScore?.toFixed(1)}- trendingScore
+                          <progress value={item.state.score.trendingScore} max={1}></progress>
                         </div>
                         <div className="text-gray-200 text-xs md:text-sm font-medium drop-shadow">
-                          {item.score.weightedRating?.toFixed(1)}- weightedRating
-                          <progress value={item.score.weightedRating} max={1}></progress>
+                          {item.state.score.weightedRating?.toFixed(1)}- weightedRating
+                          <progress value={item.state.score.weightedRating} max={1}></progress>
                         </div>
                         <div className="text-gray-200 text-xs md:text-sm font-medium drop-shadow">
-                          {item.score.recencyScore?.toFixed(1)}- recencyScore
-                          <progress value={item.score.recencyScore} max={1}></progress>
+                          {item.state.score.recencyScore?.toFixed(1)}- recencyScore
+                          <progress value={item.state.score.recencyScore} max={1}></progress>
                         </div>
                       </div> */}
                     </React.Fragment>

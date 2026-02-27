@@ -1,93 +1,144 @@
-import type { DiscoverResponse, MediaDetails, SearchResponse } from '@findarr/shared';
-import { describe, it, expect, vi, beforeEach, type Mocked } from 'vitest';
-import type { TMDBService } from '../tmdb/service.js';
-import { createMedia, createMediaDetail } from '../utils/testHelper.js';
-import { createMediaService } from './media.js';
+import SqlDatabase from 'better-sqlite3';
+import { describe, it, expect, beforeEach } from 'vitest';
+import type { DB } from '../db/setup.js';
+import {
+  getMediaById,
+  getMediaByTmdbId,
+  createMedia,
+  updateMediaStatus,
+  type MediaDbRow,
+} from './media.js';
 
-describe('media service', () => {
-  let tmdbServiceMock: Mocked<TMDBService>;
-  let mediaService: ReturnType<typeof createMediaService>;
+// Schema for in-memory database
+const SCHEMA = `
+CREATE TABLE IF NOT EXISTS media (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tmdbId INTEGER NOT NULL,
+  mediaType TEXT NOT NULL CHECK(mediaType IN ('movie', 'tv')),
+  jellyfinId TEXT,
+  status TEXT NOT NULL CHECK(status IN ('pending', 'approved', 'available', 'rejected')) DEFAULT 'pending',
+  createdAt INTEGER NOT NULL DEFAULT (unixepoch()),
+  updatedAt INTEGER NOT NULL DEFAULT (unixepoch()),
+  UNIQUE(tmdbId, mediaType)
+);
+`;
+
+describe('mediaRepository', () => {
+  let db: DB;
 
   beforeEach(() => {
-    vi.clearAllMocks();
-
-    tmdbServiceMock = {
-      loadGenres: vi.fn().mockResolvedValue(undefined),
-      search: vi.fn(),
-      fetchDiscover: vi.fn(),
-      fetchTrending: vi.fn(),
-      getDetails: vi.fn(),
-      getGenres: vi.fn(),
-    };
-
-    mediaService = createMediaService(tmdbServiceMock);
+    db = new SqlDatabase(':memory:');
+    db.pragma('foreign_keys = ON');
+    db.exec(SCHEMA);
   });
 
-  it('should call TMDB loadGenres and pre-warm popular cache on initialize', async () => {
-    tmdbServiceMock.fetchTrending.mockResolvedValue({ results: [] });
-    tmdbServiceMock.fetchDiscover.mockResolvedValue({ results: [] });
+  describe('createMedia', () => {
+    it('should create a new media record', () => {
+      const mediaId = createMedia(db, 123, 'movie', 'pending');
 
-    await mediaService.initialize();
+      expect(mediaId).toBe(1);
 
-    expect(tmdbServiceMock.loadGenres).toHaveBeenCalled();
-    expect(tmdbServiceMock.fetchTrending).toHaveBeenCalledWith(
-      { language: 'de-DE', time_window: 'week' },
-      [1, 2, 3, 4, 5, 6, 7, 8]
-    );
-    expect(tmdbServiceMock.fetchDiscover).toHaveBeenCalledWith(
-      { language: 'de-DE', type: 'both', recentDays: 30 },
-      [1, 2, 3, 4, 5, 6, 7, 8]
-    );
+      const media = getMediaById(db, mediaId);
+      expect(media).toMatchObject({
+        id: 1,
+        tmdbId: 123,
+        mediaType: 'movie',
+        status: 'pending',
+        jellyfinId: null,
+      });
+    });
+
+    it('should use default status of pending', () => {
+      const mediaId = createMedia(db, 456, 'tv');
+
+      const media = getMediaById(db, mediaId);
+      expect(media?.status).toBe('pending');
+    });
+
+    it('should allow custom status', () => {
+      const mediaId = createMedia(db, 789, 'movie', 'available');
+
+      const media = getMediaById(db, mediaId);
+      expect(media?.status).toBe('available');
+    });
   });
 
-  it('should delegate discover, getDetails, getGenres', async () => {
-    const searchResult: SearchResponse = { results: [], totalPages: 1, page: 0, totalResults: 0 };
-    const fetchResult: DiscoverResponse = { results: [createMedia({ id: 1 })] };
-    const detailsResult: MediaDetails = createMediaDetail({ id: 1 });
-    const genresResult = { genres: [] };
+  describe('getMediaById', () => {
+    it('should return media by id', () => {
+      const mediaId = createMedia(db, 123, 'movie');
 
-    tmdbServiceMock.search.mockResolvedValue(searchResult);
-    tmdbServiceMock.fetchDiscover.mockResolvedValue(fetchResult);
-    tmdbServiceMock.getDetails.mockResolvedValue(detailsResult);
-    tmdbServiceMock.getGenres.mockResolvedValue(genresResult);
+      const media = getMediaById(db, mediaId);
 
-    const search = await mediaService.search({ query: 'test', type: 'movie', page: 0 });
-    expect(search).toBe(searchResult);
+      expect(media).toMatchObject({
+        id: mediaId,
+        tmdbId: 123,
+        mediaType: 'movie',
+      });
+    });
 
-    const discover = await mediaService.discover({ type: 'movie', page: 1 });
-    expect(discover).toBe(fetchResult);
+    it('should return undefined for non-existent id', () => {
+      const media = getMediaById(db, 999);
 
-    const details = await mediaService.getDetails({ id: 1, type: 'movie' });
-    expect(details).toBe(detailsResult);
-
-    const genres = await mediaService.getGenres({});
-    expect(genres).toBe(genresResult);
+      expect(media).toBeUndefined();
+    });
   });
 
-  it('should return cached popular results and filter/paginate', async () => {
-    const trendingResult = Array.from({ length: 50 }, (_, i) => createMedia({ id: i + 1 }));
-    const discoverResult = Array.from({ length: 20 }, (_, i) => createMedia({ id: i + 1 }));
-    tmdbServiceMock.fetchTrending.mockResolvedValue({ results: trendingResult });
-    tmdbServiceMock.fetchDiscover.mockResolvedValue({ results: discoverResult });
+  describe('getMediaByTmdbId', () => {
+    it('should return media by tmdbId and type', () => {
+      createMedia(db, 123, 'movie');
 
-    // first call warms the cache
-    const firstPage = await mediaService.popular({ page: 1 });
-    expect(firstPage.results.length).toBe(20);
-    expect(firstPage.totalResults).toBe(50);
-    expect(firstPage.totalPages).toBe(3);
+      const media = getMediaByTmdbId(db, 123, 'movie');
 
-    // second call uses cache
-    const secondPage = await mediaService.popular({ page: 2 });
-    expect(secondPage.results[0]?.id).toBe(21);
+      expect(media).toMatchObject({
+        tmdbId: 123,
+        mediaType: 'movie',
+      });
+    });
+
+    it('should return undefined for non-existent tmdbId', () => {
+      const media = getMediaByTmdbId(db, 999, 'movie');
+
+      expect(media).toBeUndefined();
+    });
+
+    it('should distinguish between movie and tv with same tmdbId', () => {
+      createMedia(db, 123, 'movie');
+      createMedia(db, 123, 'tv');
+
+      const movie = getMediaByTmdbId(db, 123, 'movie');
+      const tv = getMediaByTmdbId(db, 123, 'tv');
+
+      expect(movie?.mediaType).toBe('movie');
+      expect(tv?.mediaType).toBe('tv');
+      expect(movie?.id).not.toBe(tv?.id);
+    });
   });
 
-  it('should respect type, region, and genre filters in popular', async () => {
-    const items = [createMedia({ id: 1 }), createMedia({ id: 2, type: 'tv' })];
-    tmdbServiceMock.fetchTrending.mockResolvedValue({ results: items });
-    tmdbServiceMock.fetchDiscover.mockResolvedValue({ results: [] });
+  describe('updateMediaStatus', () => {
+    it('should update media status', () => {
+      const mediaId = createMedia(db, 123, 'movie', 'pending');
 
-    const result = await mediaService.popular({ page: 1, type: 'tv' });
-    expect(result.results.length).toBe(1);
-    expect(result.results[0]?.type).toBe('tv');
+      updateMediaStatus(db, mediaId, 'approved');
+
+      const media = getMediaById(db, mediaId);
+      expect(media?.status).toBe('approved');
+    });
+
+    it('should update timestamp when status changes', () => {
+      const mediaId = createMedia(db, 123, 'movie');
+      const originalMedia = getMediaById(db, mediaId) as MediaDbRow;
+
+      updateMediaStatus(db, mediaId, 'approved');
+
+      const updatedMedia = getMediaById(db, mediaId) as MediaDbRow;
+      expect(updatedMedia.updatedAt).toBeGreaterThanOrEqual(originalMedia.createdAt);
+      expect(updatedMedia.status).toBe('approved');
+    });
+
+    it('should throw NotFound for non-existent media', () => {
+      expect(() => {
+        updateMediaStatus(db, 999, 'approved');
+      }).toThrow('Media not found');
+    });
   });
 });

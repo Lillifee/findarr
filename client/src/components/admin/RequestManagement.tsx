@@ -1,4 +1,4 @@
-import type { RequestStatus, MediaRequestWithUser } from '@findarr/shared';
+import type { RequestStatus, Media } from '@findarr/shared';
 import { useState, useEffect } from 'react';
 import { adminRequestService } from '../../services/api';
 
@@ -17,7 +17,7 @@ const statusLabels: Record<RequestStatus, string> = {
 };
 
 export function RequestManagement() {
-  const [requests, setRequests] = useState<MediaRequestWithUser[]>([]);
+  const [requests, setRequests] = useState<Media[]>([]);
   const [filter, setFilter] = useState<RequestStatus | 'all'>('all');
 
   useEffect(() => {
@@ -43,7 +43,8 @@ export function RequestManagement() {
     }
   }
 
-  const filteredRequests = filter === 'all' ? requests : requests.filter(r => r.status === filter);
+  const filteredRequests =
+    filter === 'all' ? requests : requests.filter(r => r.state?.record?.status === filter);
 
   return (
     <div className="p-4 md:p-5">
@@ -89,146 +90,155 @@ export function RequestManagement() {
                 </tr>
               </thead>
               <tbody>
-                {filteredRequests.map(request => (
-                  <tr key={request.id} className="border-b border-gray-700">
-                    <td className="p-3">
-                      <div className="flex items-center gap-3">
-                        {request.posterPath && (
-                          <img
-                            src={`https://image.tmdb.org/t/p/w92${request.posterPath}`}
-                            alt={request.title}
-                            className="w-10 h-15 object-cover rounded"
-                          />
-                        )}
-                        <span className="text-gray-300">{request.title}</span>
-                      </div>
-                    </td>
-                    <td className="p-3">
-                      <span className="capitalize text-gray-300">{request.mediaType}</span>
-                    </td>
-                    <td className="p-3">
-                      <div>
-                        <div className="text-gray-300">{request.userDisplayName}</div>
-                        <div className="text-xs text-gray-500">{request.userEmail}</div>
-                      </div>
-                    </td>
-                    <td className="p-3">
-                      <span
-                        style={{
-                          backgroundColor: statusColors[request.status],
-                        }}
-                        className="px-2 py-1 rounded text-white text-xs"
-                      >
-                        {statusLabels[request.status]}
-                      </span>
-                    </td>
-                    <td className="p-3 text-gray-300">
-                      {new Date(request.requestedAt * 1000).toLocaleDateString()}
-                    </td>
-                    <td className="p-3">
-                      <div className="flex gap-1 flex-wrap">
-                        {request.status !== 'approved' && (
-                          <button
-                            onClick={() => updateStatus(request.id, 'approved')}
-                            className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors cursor-pointer text-xs"
-                          >
-                            Approve
-                          </button>
-                        )}
-                        {request.status !== 'rejected' && (
-                          <button
-                            onClick={() => updateStatus(request.id, 'rejected')}
-                            className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors cursor-pointer text-xs"
-                          >
-                            Reject
-                          </button>
-                        )}
-                        {request.status === 'approved' && (
-                          <button
-                            onClick={() => updateStatus(request.id, 'available')}
-                            className="px-2 py-1 bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors cursor-pointer text-xs"
-                          >
-                            Mark Available
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {filteredRequests.map(request => {
+                  const status = request.state?.record?.status || 'pending';
+                  const dbId = request.state?.record?.id || 0;
+                  const userInfo = request.state?.allInteractions?.[0];
+
+                  return (
+                    <tr key={`${request.id}-${request.type}`} className="border-b border-gray-700">
+                      <td className="p-3">
+                        <div className="flex items-center gap-3">
+                          {request.posterPath && (
+                            <img
+                              src={`https://image.tmdb.org/t/p/w92${request.posterPath}`}
+                              alt={request.name}
+                              className="w-10 h-15 object-cover rounded"
+                            />
+                          )}
+                          <span className="text-gray-300">{request.name}</span>
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        <span className="capitalize text-gray-300">{request.type}</span>
+                      </td>
+                      <td className="p-3">
+                        <div>
+                          <div className="text-gray-300">
+                            {userInfo?.userDisplayName || 'Unknown'}
+                          </div>
+                          <div className="text-xs text-gray-500">{userInfo?.userEmail || ''}</div>
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        <span
+                          style={{
+                            backgroundColor: statusColors[status],
+                          }}
+                          className="px-2 py-1 rounded text-white text-xs"
+                        >
+                          {statusLabels[status]}
+                        </span>
+                      </td>
+
+                      <td className="p-3">
+                        <div className="flex gap-1 flex-wrap">
+                          {status !== 'approved' && (
+                            <button
+                              onClick={() => updateStatus(dbId, 'approved')}
+                              className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors cursor-pointer text-xs"
+                            >
+                              Approve
+                            </button>
+                          )}
+                          {status !== 'rejected' && (
+                            <button
+                              onClick={() => updateStatus(dbId, 'rejected')}
+                              className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors cursor-pointer text-xs"
+                            >
+                              Reject
+                            </button>
+                          )}
+                          {status === 'approved' && (
+                            <button
+                              onClick={() => updateStatus(dbId, 'available')}
+                              className="px-2 py-1 bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors cursor-pointer text-xs"
+                            >
+                              Mark Available
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
 
           {/* Mobile Card View */}
           <div className="md:hidden space-y-4">
-            {filteredRequests.map(request => (
-              <div
-                key={request.id}
-                className="bg-gray-800 border border-gray-700 rounded-lg p-4 space-y-3"
-              >
-                <div className="flex gap-3">
-                  {request.posterPath && (
-                    <img
-                      src={`https://image.tmdb.org/t/p/w92${request.posterPath}`}
-                      alt={request.title}
-                      className="w-12 h-18 object-cover rounded shrink-0"
-                    />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-white font-semibold text-sm mb-1 line-clamp-2">
-                      {request.title}
-                    </h3>
-                    <div className="text-xs text-gray-400 capitalize">{request.mediaType}</div>
+            {filteredRequests.map(request => {
+              const status = request.state?.record?.status || 'pending';
+              const dbId = request.state?.record?.id || 0;
+              const userInfo = request.state?.allInteractions?.[0];
+
+              return (
+                <div
+                  key={`${request.id}-${request.type}`}
+                  className="bg-gray-800 border border-gray-700 rounded-lg p-4 space-y-3"
+                >
+                  <div className="flex gap-3">
+                    {request.posterPath && (
+                      <img
+                        src={`https://image.tmdb.org/t/p/w92${request.posterPath}`}
+                        alt={request.name}
+                        className="w-12 h-18 object-cover rounded shrink-0"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-white font-semibold text-sm mb-1 line-clamp-2">
+                        {request.name}
+                      </h3>
+                      <div className="text-xs text-gray-400 capitalize">{request.type}</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span
+                      style={{
+                        backgroundColor: statusColors[status],
+                      }}
+                      className="px-2 py-1 rounded text-white text-xs font-medium"
+                    >
+                      {statusLabels[status]}
+                    </span>
+                  </div>
+
+                  <div className="text-xs text-gray-300">
+                    <div className="font-medium">{userInfo?.userDisplayName || 'Unknown'}</div>
+                    <div className="text-gray-500">{userInfo?.userEmail || ''}</div>
+                  </div>
+
+                  <div className="flex gap-2 flex-wrap">
+                    {status !== 'approved' && (
+                      <button
+                        onClick={() => updateStatus(dbId, 'approved')}
+                        className="flex-1 px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors cursor-pointer text-xs font-medium"
+                      >
+                        Approve
+                      </button>
+                    )}
+                    {status !== 'rejected' && (
+                      <button
+                        onClick={() => updateStatus(dbId, 'rejected')}
+                        className="flex-1 px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors cursor-pointer text-xs font-medium"
+                      >
+                        Reject
+                      </button>
+                    )}
+                    {status === 'approved' && (
+                      <button
+                        onClick={() => updateStatus(dbId, 'available')}
+                        className="w-full px-3 py-2 bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors cursor-pointer text-xs font-medium"
+                      >
+                        Mark Available
+                      </button>
+                    )}
                   </div>
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <span
-                    style={{
-                      backgroundColor: statusColors[request.status],
-                    }}
-                    className="px-2 py-1 rounded text-white text-xs font-medium"
-                  >
-                    {statusLabels[request.status]}
-                  </span>
-                  <span className="text-xs text-gray-400">
-                    {new Date(request.requestedAt * 1000).toLocaleDateString()}
-                  </span>
-                </div>
-
-                <div className="text-xs text-gray-300">
-                  <div className="font-medium">{request.userDisplayName}</div>
-                  <div className="text-gray-500">{request.userEmail}</div>
-                </div>
-
-                <div className="flex gap-2 flex-wrap">
-                  {request.status !== 'approved' && (
-                    <button
-                      onClick={() => updateStatus(request.id, 'approved')}
-                      className="flex-1 px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors cursor-pointer text-xs font-medium"
-                    >
-                      Approve
-                    </button>
-                  )}
-                  {request.status !== 'rejected' && (
-                    <button
-                      onClick={() => updateStatus(request.id, 'rejected')}
-                      className="flex-1 px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors cursor-pointer text-xs font-medium"
-                    >
-                      Reject
-                    </button>
-                  )}
-                  {request.status === 'approved' && (
-                    <button
-                      onClick={() => updateStatus(request.id, 'available')}
-                      className="w-full px-3 py-2 bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors cursor-pointer text-xs font-medium"
-                    >
-                      Mark Available
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </>
       )}

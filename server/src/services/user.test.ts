@@ -52,6 +52,7 @@ describe('user service', () => {
 
     dbMock = {
       prepare: vi.fn().mockReturnValue(stmtMock),
+      transaction: (fn: () => unknown) => () => fn(),
     } as unknown as DB;
   });
 

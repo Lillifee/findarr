@@ -22,10 +22,12 @@ describe('setup', () => {
     expect(users).toBeTruthy();
   });
 
-  it('creates media_requests table', () => {
-    // Check media_requests table exists
+  it('creates user_media_interactions table', () => {
+    // Check user_media_interactions table exists
     const requests = db
-      .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='media_requests'")
+      .prepare(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='user_media_interactions'"
+      )
       .get();
     expect(requests).toBeTruthy();
   });
