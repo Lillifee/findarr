@@ -1,7 +1,7 @@
 import type { Media, MovieDetails, User } from '@findarr/shared';
+import type { UserWithPassword } from '../auth/repository.js';
 import type { DB } from '../db/setup.js';
-import type { MediaDbRow } from '../services/media.js';
-import type { UserWithPassword } from '../services/user.js';
+import type { MediaDbRow } from '../media/repository.js';
 
 export const mockDb = {} as unknown as DB;
 

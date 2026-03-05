@@ -1,6 +1,6 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { getUserByEmail } from '../services/user.js';
+import { getUserByEmail } from '../auth/repository.js';
 import { seed } from './seed.js';
 import { createDatabase } from './setup.js';
 import type { DB } from './setup.js';

@@ -1,6 +1,6 @@
 import { getErrorMessage } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
-import { createUser, listAllUsers } from '../services/user.js';
+import { createUser, listAllUsers } from '../auth/repository.js';
 import type { DB } from './setup.js';
 
 export async function seed(fastify: FastifyInstance, db: DB) {

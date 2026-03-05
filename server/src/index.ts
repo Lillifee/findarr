@@ -3,17 +3,17 @@ import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import { ServerEnvSchema } from '@findarr/shared';
 import Fastify from 'fastify';
-import authPlugin from './plugins/auth.js';
-import catalogPlugin from './plugins/catalog.js';
-import databasePlugin from './plugins/database.js';
-import jellyfinPlugin from './plugins/jellyfin.js';
-import tmdbPlugin from './plugins/tmdb.js';
-import adminRoutes from './routes/admin.js';
-import authRoutes from './routes/auth.js';
-import { catalogRoutes } from './routes/catalog.js';
-import { registerErrorHandler } from './routes/common.js';
-import { adminInteractionRoutes, interactionRoutes } from './routes/interaction.js';
-import { startSyncScheduler } from './services/jellyfin.js';
+import { adminRoutes } from './admin/routes.js';
+import authPlugin from './auth/plugin.js';
+import authRoutes from './auth/routes.js';
+import catalogPlugin from './catalog/plugin.js';
+import { catalogRoutes } from './catalog/routes.js';
+import databasePlugin from './db/plugin.js';
+import { interactionRoutes } from './interaction/routes.js';
+import jellyfinPlugin from './jellyfin/plugin.js';
+import { startSyncScheduler, syncJellyfinLibrary } from './jellyfin/sync.js';
+import tmdbPlugin from './tmdb/plugin.js';
+import { registerErrorHandler } from './utils/errors.js';
 
 // Validate environment variables
 const env = ServerEnvSchema.parse(process.env);
@@ -77,11 +77,10 @@ async function start() {
     await server.register(authRoutes, { prefix: '/api/auth' });
     await server.register(adminRoutes, { prefix: '/api/admin' });
     await server.register(interactionRoutes, { prefix: '/api/interactions' });
-    await server.register(adminInteractionRoutes, { prefix: '/api/admin/interactions' });
     await server.register(catalogRoutes, { prefix: '/api' });
 
     // Initial Jellyfin sync
-    // await syncJellyfinLibrary(server);
+    await syncJellyfinLibrary(server);
 
     // Start Jellyfin sync scheduler
     const syncTimer = startSyncScheduler(server, env.JELLYFIN_SYNC_INTERVAL_MIN);
