@@ -10,7 +10,7 @@ import type {
   CreateUserSchema,
   UserSchema,
   DeleteUserSchema,
-  CreateMediaRequestSchema,
+  CreateInteractionSchema,
 } from './schemas.js';
 
 // ============================================================================
@@ -28,8 +28,8 @@ export interface Genre {
   name: string;
 }
 
-export type RequestStatus = 'pending' | 'approved' | 'rejected' | 'available';
-export type InteractionAction = 'requested' | 'liked' | 'disliked';
+export type MediaStatus = 'pending' | 'requested' | 'available';
+export type InteractionAction = 'liked' | 'disliked';
 
 export interface MediaScore {
   recencyScore: number;
@@ -45,10 +45,19 @@ export interface MediaScore {
  */
 export interface MediaRecord {
   id: number;
-  status: RequestStatus;
+  status: MediaStatus;
   jellyfinId: string | null;
   createdAt: number;
   updatedAt: number;
+}
+
+/**
+ * User information (for interactions with user details)
+ */
+export interface UserInfo {
+  id: number;
+  email: string;
+  displayName: string;
 }
 
 /**
@@ -59,19 +68,17 @@ export interface MediaInteraction {
   createdAt: number;
 }
 
-/**
- * User information (for interactions with user details)
- */
-export interface UserInfo {
-  userId: number;
-  userEmail: string;
-  userDisplayName: string;
+// /**
+//  * User interaction with user details (for admin views)
+//  */
+export interface MediaInteractionWithUser extends MediaInteraction {
+  userInfo?: UserInfo;
 }
 
-/**
- * User interaction with user details (for admin views)
- */
-export interface MediaInteractionWithUser extends MediaInteraction, UserInfo {}
+export interface MediaVotes {
+  likes?: number;
+  dislikes?: number;
+}
 
 /**
  * Server-computed and database state for media
@@ -85,11 +92,11 @@ export interface MediaState {
   // Database record (if media exists in our system)
   record?: MediaRecord;
 
-  // Current user's interactions (requires userId)
-  interactions?: MediaInteraction[];
+  // Current user's interactions
+  interactions?: MediaInteractionWithUser[];
 
-  // All users' interactions (admin-only)
-  allInteractions?: MediaInteractionWithUser[];
+  // Vote counts
+  votes?: MediaVotes;
 }
 
 /**
@@ -213,7 +220,7 @@ export type CreateUser = z.infer<typeof CreateUserSchema>;
 export type DeleteUser = z.infer<typeof DeleteUserSchema>;
 
 // ============================================================================
-// Media Request Types
+// Media Interaction Types
 // ============================================================================
 
-export type CreateMediaRequest = z.infer<typeof CreateMediaRequestSchema>;
+export type CreateMediaInteraction = z.infer<typeof CreateInteractionSchema>;

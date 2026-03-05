@@ -5,9 +5,8 @@ import {
   DetailsQuerySchema,
   LoginSchema,
   CreateUserSchema,
-  CreateMediaRequestSchema,
-  UpdateRequestStatusSchema,
-  RequestIdSchema,
+  CreateInteractionSchema,
+  InteractionIdSchema,
   DiscoverQuerySchema,
   regionGroupKeys,
   genreKeys,
@@ -280,75 +279,60 @@ describe('schemas', () => {
     });
   });
 
-  describe('CreateMediaRequestSchema', () => {
+  describe('CreateMediaInteractionSchema', () => {
     const validRequest = {
       mediaType: 'movie' as const,
       tmdbId: 550,
+      action: 'liked' as const,
     };
 
     it('should require mediaType and tmdbId', () => {
-      expect(CreateMediaRequestSchema.safeParse({}).success).toBe(false);
-      expect(CreateMediaRequestSchema.safeParse({ mediaType: 'movie' }).success).toBe(false);
-      expect(CreateMediaRequestSchema.safeParse({ mediaType: 'movie', tmdbId: 123 }).success).toBe(
-        true
-      );
+      expect(CreateInteractionSchema.safeParse({}).success).toBe(false);
+      expect(CreateInteractionSchema.safeParse({ mediaType: 'movie' }).success).toBe(false);
+      expect(
+        CreateInteractionSchema.safeParse({ mediaType: 'movie', tmdbId: 123, action: 'liked' })
+          .success
+      ).toBe(true);
     });
 
     it('should only accept movie or tv mediaType', () => {
       expect(
-        CreateMediaRequestSchema.safeParse({ ...validRequest, mediaType: 'movie' }).success
+        CreateInteractionSchema.safeParse({ ...validRequest, mediaType: 'movie' }).success
       ).toBe(true);
-      expect(CreateMediaRequestSchema.safeParse({ ...validRequest, mediaType: 'tv' }).success).toBe(
+      expect(CreateInteractionSchema.safeParse({ ...validRequest, mediaType: 'tv' }).success).toBe(
         true
       );
       expect(
-        CreateMediaRequestSchema.safeParse({ ...validRequest, mediaType: 'person' }).success
+        CreateInteractionSchema.safeParse({ ...validRequest, mediaType: 'person' }).success
       ).toBe(false);
     });
 
     it('should require positive integer tmdbId', () => {
-      expect(CreateMediaRequestSchema.safeParse({ ...validRequest, tmdbId: 0 }).success).toBe(
+      expect(CreateInteractionSchema.safeParse({ ...validRequest, tmdbId: 0 }).success).toBe(false);
+      expect(CreateInteractionSchema.safeParse({ ...validRequest, tmdbId: -1 }).success).toBe(
         false
       );
-      expect(CreateMediaRequestSchema.safeParse({ ...validRequest, tmdbId: -1 }).success).toBe(
-        false
-      );
-      expect(CreateMediaRequestSchema.safeParse({ ...validRequest, tmdbId: 1 }).success).toBe(true);
+      expect(CreateInteractionSchema.safeParse({ ...validRequest, tmdbId: 1 }).success).toBe(true);
     });
   });
 
-  describe('UpdateRequestStatusSchema', () => {
-    it('should require status', () => {
-      expect(UpdateRequestStatusSchema.safeParse({}).success).toBe(false);
-      expect(UpdateRequestStatusSchema.safeParse({ status: 'pending' }).success).toBe(true);
-    });
-
-    it('should only accept valid status values', () => {
-      expect(UpdateRequestStatusSchema.safeParse({ status: 'pending' }).success).toBe(true);
-      expect(UpdateRequestStatusSchema.safeParse({ status: 'approved' }).success).toBe(true);
-      expect(UpdateRequestStatusSchema.safeParse({ status: 'rejected' }).success).toBe(true);
-      expect(UpdateRequestStatusSchema.safeParse({ status: 'available' }).success).toBe(true);
-      expect(UpdateRequestStatusSchema.safeParse({ status: 'cancelled' }).success).toBe(false);
-    });
-  });
-
-  describe('RequestIdSchema', () => {
+  describe('InteractionIdSchema', () => {
     it('should require id', () => {
-      expect(RequestIdSchema.safeParse({}).success).toBe(false);
-      expect(RequestIdSchema.safeParse({ id: 1 }).success).toBe(true);
+      expect(InteractionIdSchema.safeParse({}).success).toBe(false);
+      expect(InteractionIdSchema.safeParse({ id: 1 }).success).toBe(true);
     });
 
     it('should coerce id from string to number', () => {
-      const result = RequestIdSchema.parse({ id: '123' });
+      const result = InteractionIdSchema.parse({ id: '123' });
       expect(result.id).toBe(123);
       expect(typeof result.id).toBe('number');
     });
 
     it('should require positive integer id', () => {
-      expect(RequestIdSchema.safeParse({ id: 0 }).success).toBe(false);
-      expect(RequestIdSchema.safeParse({ id: -1 }).success).toBe(false);
-      expect(RequestIdSchema.safeParse({ id: 1.5 }).success).toBe(false);
-      expect(RequestIdSchema.safeParse({ id: 1 }).success).toBe(true);
+      expect(InteractionIdSchema.safeParse({ id: 0 }).success).toBe(false);
+      expect(InteractionIdSchema.safeParse({ id: -1 }).success).toBe(false);
+      expect(InteractionIdSchema.safeParse({ id: 1.5 }).success).toBe(false);
+      expect(InteractionIdSchema.safeParse({ id: 1 }).success).toBe(true);
     });
   });
 });

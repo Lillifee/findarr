@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Media } from '../../../shared/dist/types';
+import { LikeDislikeButton } from './LikeDislikeButton';
 
 interface ResultsGridProps {
   results: Media[];
@@ -80,7 +81,7 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
                   {title}
                 </h3>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-2">
                   <span className="text-gray-200 text-xs md:text-sm font-medium drop-shadow">
                     {year}
                   </span>
@@ -91,32 +92,22 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
                       {item.voteAverage.toFixed(1)}
                     </span>
                   </div>
+                </div>
 
-                  {item.state?.score && (
-                    <React.Fragment>
-                      <span className="text-gray-200 text-xs md:text-sm font-medium drop-shadow">
-                        {item.state.score.baseScore?.toFixed(2)}
-                      </span>
-                      {/* <div>
-                        <div className="text-gray-200 text-xs md:text-sm font-medium drop-shadow">
-                          {item.state.score.popularityScore?.toFixed(1)}- popularityScore
-                          <progress value={item.state.score.popularityScore} max={1}></progress>
-                        </div>
-                        <div className="text-gray-200 text-xs md:text-sm font-medium drop-shadow">
-                          {item.state.score.trendingScore?.toFixed(1)}- trendingScore
-                          <progress value={item.state.score.trendingScore} max={1}></progress>
-                        </div>
-                        <div className="text-gray-200 text-xs md:text-sm font-medium drop-shadow">
-                          {item.state.score.weightedRating?.toFixed(1)}- weightedRating
-                          <progress value={item.state.score.weightedRating} max={1}></progress>
-                        </div>
-                        <div className="text-gray-200 text-xs md:text-sm font-medium drop-shadow">
-                          {item.state.score.recencyScore?.toFixed(1)}- recencyScore
-                          <progress value={item.state.score.recencyScore} max={1}></progress>
-                        </div>
-                      </div> */}
-                    </React.Fragment>
-                  )}
+                {/* Like/Dislike Buttons */}
+                <div className="flex justify-center" onClick={e => e.stopPropagation()}>
+                  <LikeDislikeButton
+                    tmdbId={item.id}
+                    mediaType={item.type}
+                    initialAction={
+                      item.state?.interactions?.find(i => i.action === 'liked')
+                        ? 'liked'
+                        : item.state?.interactions?.find(i => i.action === 'disliked')
+                          ? 'disliked'
+                          : null
+                    }
+                    compact
+                  />
                 </div>
               </div>
             </div>

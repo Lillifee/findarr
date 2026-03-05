@@ -1,11 +1,14 @@
+import type { Media } from '@findarr/shared';
 import SqlDatabase from 'better-sqlite3';
 import { describe, it, expect, beforeEach } from 'vitest';
 import type { DB } from '../db/setup.js';
+import { createMedia as createMediaTestHelper } from '../utils/testHelper.js';
 import {
   getMediaById,
   getMediaByTmdbId,
   createMedia,
   updateMediaStatus,
+  getMediaRecordsBatch,
   type MediaDbRow,
 } from './media.js';
 
@@ -16,7 +19,7 @@ CREATE TABLE IF NOT EXISTS media (
   tmdbId INTEGER NOT NULL,
   mediaType TEXT NOT NULL CHECK(mediaType IN ('movie', 'tv')),
   jellyfinId TEXT,
-  status TEXT NOT NULL CHECK(status IN ('pending', 'approved', 'available', 'rejected')) DEFAULT 'pending',
+  status TEXT NOT NULL CHECK(status IN ('pending', 'requested', 'available')) DEFAULT 'pending',
   createdAt INTEGER NOT NULL DEFAULT (unixepoch()),
   updatedAt INTEGER NOT NULL DEFAULT (unixepoch()),
   UNIQUE(tmdbId, mediaType)
@@ -34,11 +37,10 @@ describe('mediaRepository', () => {
 
   describe('createMedia', () => {
     it('should create a new media record', () => {
-      const mediaId = createMedia(db, 123, 'movie', 'pending');
+      const media = createMedia(db, 123, 'movie');
 
-      expect(mediaId).toBe(1);
+      expect(media.id).toBe(1);
 
-      const media = getMediaById(db, mediaId);
       expect(media).toMatchObject({
         id: 1,
         tmdbId: 123,
@@ -49,24 +51,19 @@ describe('mediaRepository', () => {
     });
 
     it('should use default status of pending', () => {
-      const mediaId = createMedia(db, 456, 'tv');
-
-      const media = getMediaById(db, mediaId);
+      const media = createMedia(db, 456, 'tv');
       expect(media?.status).toBe('pending');
     });
 
     it('should allow custom status', () => {
-      const mediaId = createMedia(db, 789, 'movie', 'available');
-
-      const media = getMediaById(db, mediaId);
+      const media = createMedia(db, 789, 'movie', 'available');
       expect(media?.status).toBe('available');
     });
   });
 
   describe('getMediaById', () => {
     it('should return media by id', () => {
-      const mediaId = createMedia(db, 123, 'movie');
-
+      const mediaId = createMedia(db, 123, 'movie').id;
       const media = getMediaById(db, mediaId);
 
       expect(media).toMatchObject({
@@ -116,29 +113,112 @@ describe('mediaRepository', () => {
 
   describe('updateMediaStatus', () => {
     it('should update media status', () => {
-      const mediaId = createMedia(db, 123, 'movie', 'pending');
+      const newMedia = createMedia(db, 123, 'movie', 'requested');
 
-      updateMediaStatus(db, mediaId, 'approved');
+      updateMediaStatus(db, newMedia.id, 'available');
 
-      const media = getMediaById(db, mediaId);
-      expect(media?.status).toBe('approved');
+      const media = getMediaById(db, newMedia.id);
+      expect(media?.status).toBe('available');
     });
 
     it('should update timestamp when status changes', () => {
-      const mediaId = createMedia(db, 123, 'movie');
-      const originalMedia = getMediaById(db, mediaId) as MediaDbRow;
+      const media = createMedia(db, 123, 'movie');
+      const originalMedia = getMediaById(db, media.id) as MediaDbRow;
 
-      updateMediaStatus(db, mediaId, 'approved');
+      updateMediaStatus(db, media.id, 'available');
 
-      const updatedMedia = getMediaById(db, mediaId) as MediaDbRow;
+      const updatedMedia = getMediaById(db, media.id) as MediaDbRow;
       expect(updatedMedia.updatedAt).toBeGreaterThanOrEqual(originalMedia.createdAt);
-      expect(updatedMedia.status).toBe('approved');
+      expect(updatedMedia.status).toBe('available');
     });
 
     it('should throw NotFound for non-existent media', () => {
       expect(() => {
-        updateMediaStatus(db, 999, 'approved');
+        updateMediaStatus(db, 999, 'available');
       }).toThrow('Media not found');
+    });
+  });
+
+  describe('getMediaRecordsBatch', () => {
+    it('should return empty map for empty input', () => {
+      const result = getMediaRecordsBatch(db, []);
+      expect(result.size).toBe(0);
+    });
+
+    it('should fetch media records for multiple media items', () => {
+      // Create some database records
+      createMedia(db, 123, 'movie', 'requested');
+      createMedia(db, 456, 'tv', 'available');
+
+      const mediaItems: Media[] = [
+        createMediaTestHelper({ id: 123, type: 'movie' }),
+        createMediaTestHelper({ id: 456, type: 'tv' }),
+      ];
+
+      const result = getMediaRecordsBatch(db, mediaItems);
+
+      expect(result.size).toBe(2);
+      expect(result.get('123_movie')).toMatchObject({
+        id: 1,
+        status: 'requested',
+        jellyfinId: null,
+      });
+      expect(result.get('456_tv')).toMatchObject({
+        id: 2,
+        status: 'available',
+        jellyfinId: null,
+      });
+    });
+
+    it('should only return records that exist in database', () => {
+      createMedia(db, 123, 'movie', 'requested');
+
+      const mediaItems: Media[] = [
+        createMediaTestHelper({ id: 123, type: 'movie' }),
+        createMediaTestHelper({ id: 999, type: 'tv' }), // Doesn't exist in DB
+      ];
+
+      const result = getMediaRecordsBatch(db, mediaItems);
+
+      expect(result.size).toBe(1);
+      expect(result.get('123_movie')).toBeDefined();
+      expect(result.get('999_tv')).toBeUndefined();
+    });
+
+    it('should handle media with same tmdbId but different types', () => {
+      createMedia(db, 123, 'movie', 'requested');
+      createMedia(db, 123, 'tv', 'available');
+
+      const mediaItems: Media[] = [
+        createMediaTestHelper({ id: 123, type: 'movie' }),
+        createMediaTestHelper({ id: 123, type: 'tv' }),
+      ];
+
+      const result = getMediaRecordsBatch(db, mediaItems);
+
+      expect(result.size).toBe(2);
+      expect(result.get('123_movie')?.status).toBe('requested');
+      expect(result.get('123_tv')?.status).toBe('available');
+    });
+
+    it('should include all record fields', () => {
+      const media = createMedia(db, 123, 'movie', 'available');
+
+      // Update jellyfinId
+      db.prepare('UPDATE media SET jellyfinId = ? WHERE id = ?').run('jf-abc-123', media.id);
+
+      const mediaItems: Media[] = [createMediaTestHelper({ id: 123, type: 'movie' })];
+
+      const result = getMediaRecordsBatch(db, mediaItems);
+      const record = result.get('123_movie');
+
+      expect(record).toMatchObject({
+        id: 1,
+        status: 'available',
+        jellyfinId: 'jf-abc-123',
+      });
+      expect(record?.createdAt).toBeDefined();
+      expect(record?.updatedAt).toBeDefined();
     });
   });
 });

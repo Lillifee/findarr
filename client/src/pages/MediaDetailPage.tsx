@@ -2,7 +2,7 @@ import type { MediaDetails } from '@findarr/shared';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { MediaView } from '../components/MediaView';
-import { searchService, requestService } from '../services/api';
+import { searchService } from '../services/api';
 
 export function MediaDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -109,24 +109,7 @@ export function MediaDetailPage() {
         </div>
       )}
 
-      {details && !loading && (
-        <MediaView
-          media={details}
-          onRequest={async () => {
-            if (!details) return;
-
-            try {
-              await requestService.createRequest({
-                mediaType: details.type,
-                tmdbId: details.id,
-              });
-              alert('Request submitted! Check "My Requests" to track its status.');
-            } catch {
-              alert('Failed to submit request. Please try again.');
-            }
-          }}
-        />
-      )}
+      {details && !loading && <MediaView media={details} />}
     </div>
   );
 }

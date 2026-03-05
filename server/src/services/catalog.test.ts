@@ -7,8 +7,8 @@ import * as enrichmentModule from './enrichment.js';
 
 // Mock enrichment module
 vi.mock('./enrichment.js', () => ({
-  addDatabaseRecords: vi.fn((_db, items) => items),
-  addInteractions: vi.fn((_db, items) => items),
+  enrichWithRecords: vi.fn((_db, items) => items),
+  enrichWithInteractions: vi.fn((_db, items) => items),
 }));
 
 describe('catalog service', () => {
@@ -110,12 +110,12 @@ describe('catalog service', () => {
     // Call without userId to hit the else branch of enrichResults
     await catalogService.search({ query: 'test', type: 'movie', page: 1 });
 
-    const mockAddDatabaseRecords = vi.mocked(enrichmentModule.addDatabaseRecords);
-    const mockAddInteractions = vi.mocked(enrichmentModule.addInteractions);
+    const mockEnrichWithRecords = vi.mocked(enrichmentModule.enrichWithRecords);
+    const mockEnrichWithInteractions = vi.mocked(enrichmentModule.enrichWithInteractions);
 
-    // Should call addDatabaseRecords but NOT addInteractions when userId is undefined
-    expect(mockAddDatabaseRecords).toHaveBeenCalled();
-    expect(mockAddInteractions).not.toHaveBeenCalled();
+    // Should call enrichWithRecords but NOT enrichWithInteractions when userId is undefined
+    expect(mockEnrichWithRecords).toHaveBeenCalled();
+    expect(mockEnrichWithInteractions).not.toHaveBeenCalled();
   });
 
   it('should enrich results with interactions when userId is provided', async () => {
@@ -127,14 +127,14 @@ describe('catalog service', () => {
       totalResults: 1,
     });
 
-    const mockAddDatabaseRecords = vi.mocked(enrichmentModule.addDatabaseRecords);
-    const mockAddInteractions = vi.mocked(enrichmentModule.addInteractions);
+    const mockEnrichWithRecords = vi.mocked(enrichmentModule.enrichWithRecords);
+    const mockEnrichWithInteractions = vi.mocked(enrichmentModule.enrichWithInteractions);
 
     // Call with userId to hit the if branch
     await catalogService.search({ query: 'test', type: 'movie', page: 1 }, 42);
 
-    // Should call both addDatabaseRecords AND addInteractions when userId is provided
-    expect(mockAddDatabaseRecords).toHaveBeenCalled();
-    expect(mockAddInteractions).toHaveBeenCalledWith(mockDb, items, 42);
+    // Should call both enrichWithRecords AND enrichWithInteractions when userId is provided
+    expect(mockEnrichWithRecords).toHaveBeenCalled();
+    expect(mockEnrichWithInteractions).toHaveBeenCalledWith(mockDb, items, 42);
   });
 });

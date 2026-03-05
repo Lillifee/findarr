@@ -12,7 +12,7 @@ import adminRoutes from './routes/admin.js';
 import authRoutes from './routes/auth.js';
 import { catalogRoutes } from './routes/catalog.js';
 import { registerErrorHandler } from './routes/common.js';
-import { adminRequestRoutes, requestRoutes } from './routes/requests.js';
+import { adminInteractionRoutes, interactionRoutes } from './routes/interaction.js';
 import { startSyncScheduler } from './services/jellyfin.js';
 
 // Validate environment variables
@@ -76,8 +76,8 @@ async function start() {
     // Register API routes
     await server.register(authRoutes, { prefix: '/api/auth' });
     await server.register(adminRoutes, { prefix: '/api/admin' });
-    await server.register(requestRoutes, { prefix: '/api/requests' });
-    await server.register(adminRequestRoutes, { prefix: '/api/admin/requests' });
+    await server.register(interactionRoutes, { prefix: '/api/interactions' });
+    await server.register(adminInteractionRoutes, { prefix: '/api/admin/interactions' });
     await server.register(catalogRoutes, { prefix: '/api' });
 
     // Initial Jellyfin sync

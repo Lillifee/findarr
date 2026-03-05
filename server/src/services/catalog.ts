@@ -12,7 +12,7 @@ import type {
 } from '@findarr/shared';
 import type { DB } from '../db/setup.js';
 import type { TMDBService } from '../tmdb/service.js';
-import { addDatabaseRecords, addInteractions as addInteractions } from './enrichment.js';
+import { enrichWithRecords, enrichWithInteractions } from './enrichment.js';
 import { filterByCriteria, deduplicateMedia } from './filter.js';
 import { scoreMediaItems } from './scoring.js';
 
@@ -156,9 +156,9 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
    * Adds media records first, then optionally user interactions
    */
   function enrichResults(items: Media[], userId?: number): Media[] {
-    let enriched = addDatabaseRecords(db, items);
+    let enriched = enrichWithRecords(db, items);
     if (userId) {
-      enriched = addInteractions(db, enriched, userId);
+      enriched = enrichWithInteractions(db, enriched, userId);
     }
     return enriched;
   }

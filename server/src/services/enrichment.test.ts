@@ -1,15 +1,10 @@
-import type { Media, MediaInteraction, MediaInteractionWithUser } from '@findarr/shared';
+import type { Media, MediaInteraction, UserInfo } from '@findarr/shared';
 import type { Statement } from 'better-sqlite3';
 import { describe, it, expect, beforeEach, vi, type Mocked } from 'vitest';
 import type { DB } from '../db/setup.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { createMedia } from '../utils/testHelper.js';
-import {
-  addDatabaseRecords,
-  addInteractions,
-  addAllInteractions,
-  fetchTMDBDetails,
-} from './enrichment.js';
+import { enrichWithRecords, enrichWithInteractions, fetchTMDBDetails } from './enrichment.js';
 import type { MediaDbRow } from './media.js';
 
 describe('enrichment service', () => {
@@ -25,7 +20,7 @@ describe('enrichment service', () => {
     id: 1,
     tmdbId: 123,
     mediaType: 'movie',
-    status: 'pending',
+    status: 'requested',
     jellyfinId: null,
     createdAt: Date.now(),
     updatedAt: Date.now(),
@@ -46,9 +41,9 @@ describe('enrichment service', () => {
     } as unknown as DB;
   });
 
-  describe('addDatabaseRecords', () => {
+  describe('enrichWithRecords', () => {
     it('should return empty array for empty input', () => {
-      const result = addDatabaseRecords(dbMock, []);
+      const result = enrichWithRecords(dbMock, []);
       expect(result).toEqual([]);
     });
 
@@ -63,7 +58,7 @@ describe('enrichment service', () => {
           id: 1,
           tmdbId: 123,
           mediaType: 'movie',
-          status: 'pending',
+          status: 'requested',
           jellyfinId: null,
           createdAt: 1000,
           updatedAt: 1000,
@@ -72,7 +67,7 @@ describe('enrichment service', () => {
           id: 2,
           tmdbId: 456,
           mediaType: 'tv',
-          status: 'approved',
+          status: 'available',
           jellyfinId: 'jf-123',
           createdAt: 2000,
           updatedAt: 2000,
@@ -81,18 +76,18 @@ describe('enrichment service', () => {
 
       stmtMock.all = vi.fn().mockReturnValue(dbRecords);
 
-      const result = addDatabaseRecords(dbMock, mediaItems);
+      const result = enrichWithRecords(dbMock, mediaItems);
 
       expect(result[0]?.state?.record).toEqual({
         id: 1,
-        status: 'pending',
+        status: 'requested',
         jellyfinId: null,
         createdAt: 1000,
         updatedAt: 1000,
       });
       expect(result[1]?.state?.record).toEqual({
         id: 2,
-        status: 'approved',
+        status: 'available',
         jellyfinId: 'jf-123',
         createdAt: 2000,
         updatedAt: 2000,
@@ -104,14 +99,14 @@ describe('enrichment service', () => {
 
       stmtMock.all = vi.fn().mockReturnValue([]);
 
-      const result = addDatabaseRecords(dbMock, mediaItems);
+      const result = enrichWithRecords(dbMock, mediaItems);
 
       expect(result[0]?.state?.record).toBeUndefined();
     });
   });
 
-  describe('addInteractions', () => {
-    it('should add user interactions to media items', () => {
+  describe('enrichWithInteractions', () => {
+    it('should enrich with user-specific interactions when userId is provided', () => {
       const mediaItems: Media[] = [
         createMedia({
           id: 123,
@@ -119,7 +114,7 @@ describe('enrichment service', () => {
           state: {
             record: {
               id: 1,
-              status: 'pending',
+              status: 'requested',
               jellyfinId: null,
               createdAt: 1000,
               updatedAt: 1000,
@@ -129,41 +124,21 @@ describe('enrichment service', () => {
       ];
 
       const interactions: (MediaInteraction & { mediaId: number })[] = [
-        { mediaId: 1, action: 'requested', createdAt: 1000 },
+        { mediaId: 1, action: 'liked', createdAt: 1000 },
         { mediaId: 1, action: 'liked', createdAt: 2000 },
       ];
 
       stmtMock.all = vi.fn().mockReturnValue(interactions);
 
-      const result = addInteractions(dbMock, mediaItems, 42);
+      const result = enrichWithInteractions(dbMock, mediaItems, 42);
 
       expect(result[0]?.state?.interactions).toEqual([
-        { action: 'requested', createdAt: 1000 },
+        { action: 'liked', createdAt: 1000 },
         { action: 'liked', createdAt: 2000 },
       ]);
     });
 
-    it('should skip items without database records', () => {
-      const mediaItems: Media[] = [createMedia({ id: 123, type: 'movie' })];
-
-      stmtMock.all = vi.fn().mockReturnValue([]);
-
-      const result = addInteractions(dbMock, mediaItems, 42);
-
-      expect(result[0]?.state?.interactions).toBeUndefined();
-    });
-
-    it('should return empty interactions map when no media IDs', () => {
-      const mediaItems: Media[] = [createMedia({ id: 123, type: 'movie' })];
-
-      addInteractions(dbMock, mediaItems, 42);
-
-      expect(dbMock.prepare).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('addAllInteractions', () => {
-    it('should add all interactions with user info', () => {
+    it('should enrich with all interactions including user info when userId is undefined', () => {
       const mediaItems: Media[] = [
         createMedia({
           id: 123,
@@ -171,7 +146,7 @@ describe('enrichment service', () => {
           state: {
             record: {
               id: 1,
-              status: 'pending',
+              status: 'requested',
               jellyfinId: null,
               createdAt: 1000,
               updatedAt: 1000,
@@ -180,28 +155,30 @@ describe('enrichment service', () => {
         }),
       ];
 
-      const allInteractions: (MediaInteractionWithUser & { mediaId: number })[] = [
+      const allInteractions: (MediaInteraction & UserInfo & { mediaId: number })[] = [
         {
           mediaId: 1,
-          action: 'requested',
+          action: 'liked',
           createdAt: 1000,
-          userId: 42,
-          userEmail: 'user@example.com',
-          userDisplayName: 'John Doe',
+          id: 42,
+          email: 'user@example.com',
+          displayName: 'John Doe',
         },
       ];
 
       stmtMock.all = vi.fn().mockReturnValue(allInteractions);
 
-      const result = addAllInteractions(dbMock, mediaItems);
+      const result = enrichWithInteractions(dbMock, mediaItems);
 
-      expect(result[0]?.state?.allInteractions).toEqual([
+      expect(result[0]?.state?.interactions).toEqual([
         {
-          action: 'requested',
+          action: 'liked',
           createdAt: 1000,
-          userId: 42,
-          userEmail: 'user@example.com',
-          userDisplayName: 'John Doe',
+          userInfo: {
+            id: 42,
+            email: 'user@example.com',
+            displayName: 'John Doe',
+          },
         },
       ]);
     });
@@ -211,15 +188,15 @@ describe('enrichment service', () => {
 
       stmtMock.all = vi.fn().mockReturnValue([]);
 
-      const result = addAllInteractions(dbMock, mediaItems);
+      const result = enrichWithInteractions(dbMock, mediaItems, 42);
 
-      expect(result[0]?.state?.allInteractions).toBeUndefined();
+      expect(result[0]?.state?.interactions).toBeUndefined();
     });
 
-    it('should return empty map when no media IDs', () => {
+    it('should return empty interactions map when no media IDs', () => {
       const mediaItems: Media[] = [createMedia({ id: 123, type: 'movie' })];
 
-      addAllInteractions(dbMock, mediaItems);
+      enrichWithInteractions(dbMock, mediaItems, 42);
 
       expect(dbMock.prepare).not.toHaveBeenCalled();
     });
@@ -243,7 +220,7 @@ describe('enrichment service', () => {
         state: {
           record: {
             id: 1,
-            status: 'pending',
+            status: 'requested',
             jellyfinId: null,
             createdAt: mockDbRow.createdAt,
             updatedAt: mockDbRow.updatedAt,

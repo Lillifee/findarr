@@ -99,18 +99,15 @@ export const DeleteUserSchema = z.object({
 });
 
 // ============================================================================
-// Media Request Schemas
+// Media Interaction Schemas
 // ============================================================================
 
-export const CreateMediaRequestSchema = z.object({
+export const CreateInteractionSchema = z.object({
   mediaType: z.enum(['movie', 'tv']),
   tmdbId: z.coerce.number().int().positive(),
+  action: z.enum(['liked', 'disliked']),
 });
 
-export const UpdateRequestStatusSchema = z.object({
-  status: z.enum(['pending', 'approved', 'rejected', 'available']),
-});
-
-export const RequestIdSchema = z.object({
+export const InteractionIdSchema = z.object({
   id: z.coerce.number().int().positive(),
 });

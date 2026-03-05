@@ -1,6 +1,6 @@
-import type { RequestStatus } from '@findarr/shared';
+import type { MediaStatus, Media, MediaRecord } from '@findarr/shared';
 import type { DB } from '../db/setup.js';
-import { NotFound } from '../utils/errors.js';
+import { Conflict, NotFound } from '../utils/errors.js';
 
 /**
  * Database row from 'media' table (internal use)
@@ -12,7 +12,7 @@ export interface MediaDbRow {
   tmdbId: number;
   mediaType: 'movie' | 'tv';
   jellyfinId: string | null;
-  status: RequestStatus;
+  status: MediaStatus;
   createdAt: number;
   updatedAt: number;
 }
@@ -61,21 +61,25 @@ export const createMedia = (
   db: DB,
   tmdbId: number,
   mediaType: 'movie' | 'tv',
-  status: RequestStatus = 'pending'
-): number => {
+  status: MediaStatus = 'pending'
+) => {
   const insertMedia = db.prepare(`
     INSERT INTO media (tmdbId, mediaType, status)
     VALUES (?, ?, ?)
   `);
 
   const result = insertMedia.run(tmdbId, mediaType, status);
-  return result.lastInsertRowid as number;
+
+  const media = getMediaById(db, result.lastInsertRowid as number);
+  if (!media) throw Conflict('Failed to create media record');
+
+  return media;
 };
 
 /**
  * Update the status of a media record
  */
-export const updateMediaStatus = (db: DB, mediaId: number, status: RequestStatus): void => {
+export const updateMediaStatus = (db: DB, mediaId: number, status: MediaStatus): void => {
   const update = db
     .prepare(
       `
@@ -90,3 +94,37 @@ export const updateMediaStatus = (db: DB, mediaId: number, status: RequestStatus
     throw NotFound('Media not found');
   }
 };
+
+/**
+ * Batch query for media records by TMDB IDs and types
+ * Used for enriching multiple media items at once
+ */
+export function getMediaRecordsBatch(db: DB, mediaItems: Media[]): Map<string, MediaRecord> {
+  const mediaRecords = new Map<string, MediaRecord>();
+  if (mediaItems.length === 0) return mediaRecords;
+
+  const conditions = mediaItems.map(() => '(tmdbId = ? AND mediaType = ?)').join(' OR ');
+  const params = mediaItems.flatMap(item => [item.id, item.type]);
+
+  const query = `
+    SELECT 
+      id,
+      tmdbId,
+      mediaType,
+      status,
+      jellyfinId,
+      createdAt,
+      updatedAt
+    FROM media
+    WHERE ${conditions}
+  `;
+
+  const rows = db.prepare<unknown[], MediaDbRow>(query).all(...params);
+
+  for (const { tmdbId, mediaType, id, status, jellyfinId, createdAt, updatedAt } of rows) {
+    const key = `${tmdbId}_${mediaType}`;
+    mediaRecords.set(key, { id, status, jellyfinId, createdAt, updatedAt });
+  }
+
+  return mediaRecords;
+}

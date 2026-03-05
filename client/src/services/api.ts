@@ -9,11 +9,10 @@ import type {
   Genre,
   MediaDetails,
   User,
-  RequestStatus,
   Media,
   Login,
   CreateUser,
-  CreateMediaRequest,
+  CreateMediaInteraction,
 } from '@findarr/shared';
 import axios from 'axios';
 
@@ -93,51 +92,41 @@ export const adminUserService = {
   },
 };
 
-// Admin request management service
-export const adminRequestService = {
-  listAllRequests: async (): Promise<Media[]> => {
-    const response = await api.get('/admin/requests');
-    return response.data;
-  },
-
-  updateRequestStatus: async (requestId: number, status: RequestStatus): Promise<void> => {
-    await api.patch(`/admin/requests/${requestId}`, { status });
-  },
-};
-
-// User request service
-export const requestService = {
-  createRequest: async (request: CreateMediaRequest): Promise<Media> => {
-    const response = await api.post('/requests', request);
-    return response.data;
-  },
-
-  getUserRequests: async (): Promise<Media[]> => {
-    const response = await api.get('/requests');
-    return response.data;
-  },
-};
-
-// User interaction service (likes, dislikes)
+// User interaction service
 export const interactionService = {
-  dislikeMedia: async (tmdbId: number, mediaType: 'movie' | 'tv'): Promise<void> => {
-    await api.post('/interactions/dislike', { tmdbId, mediaType });
+  // Toggle like/dislike on media (automatically creates media record if needed)
+  toggleInteraction: async (
+    tmdbId: number,
+    mediaType: 'movie' | 'tv',
+    action: 'liked' | 'disliked'
+  ): Promise<Media> => {
+    const response = await api.post('/interactions', { tmdbId, mediaType, action });
+    return response.data;
   },
 
-  undislikeMedia: async (tmdbId: number, mediaType: 'movie' | 'tv'): Promise<void> => {
-    await api.delete(`/interactions/dislike/${tmdbId}/${mediaType}`);
+  // Get user's voted media (both likes and dislikes)
+  listLiked: async (): Promise<Media[]> => {
+    const response = await api.get('/interactions');
+    return response.data;
   },
 
-  likeMedia: async (tmdbId: number, mediaType: 'movie' | 'tv'): Promise<void> => {
-    await api.post('/interactions/like', { tmdbId, mediaType });
+  // Legacy support - kept for backwards compatibility
+  create: async (interaction: CreateMediaInteraction): Promise<Media> => {
+    const response = await api.post('/interactions', interaction);
+    return response.data;
   },
 
-  unlikeMedia: async (tmdbId: number, mediaType: 'movie' | 'tv'): Promise<void> => {
-    await api.delete(`/interactions/like/${tmdbId}/${mediaType}`);
+  list: async (): Promise<Media[]> => {
+    const response = await api.get('/interactions');
+    return response.data;
   },
+};
 
-  getMyInteractions: async () => {
-    const response = await api.get('/interactions/my');
+// Admin interaction management service
+export const adminInteractionService = {
+  // Get all media with any interactions (pending, requested, or available)
+  listAll: async (): Promise<Media[]> => {
+    const response = await api.get('/admin/interactions');
     return response.data;
   },
 };

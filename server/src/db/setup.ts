@@ -2,7 +2,7 @@ import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import SqlDatabase from 'better-sqlite3';
 
-const SCHEMA = `
+export const SCHEMA = `
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS media (
   tmdbId INTEGER NOT NULL,
   mediaType TEXT NOT NULL CHECK(mediaType IN ('movie', 'tv')),
   jellyfinId TEXT,
-  status TEXT NOT NULL CHECK(status IN ('pending', 'approved', 'available', 'rejected')) DEFAULT 'pending',
+  status TEXT NOT NULL CHECK(status IN ('pending', 'requested', 'available')) DEFAULT 'pending',
   createdAt INTEGER NOT NULL DEFAULT (unixepoch()),
   updatedAt INTEGER NOT NULL DEFAULT (unixepoch()),
   UNIQUE(tmdbId, mediaType)
@@ -31,12 +31,12 @@ CREATE INDEX IF NOT EXISTS idx_media_tmdb ON media(tmdbId, mediaType);
 CREATE INDEX IF NOT EXISTS idx_media_status ON media(status);
 CREATE INDEX IF NOT EXISTS idx_media_jellyfin ON media(jellyfinId);
 
--- User media interactions table (user actions: requested, liked, disliked)
+-- User media interactions table (user actions: liked, disliked)
 CREATE TABLE IF NOT EXISTS user_media_interactions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   mediaId INTEGER NOT NULL,
   userId INTEGER NOT NULL,
-  action TEXT NOT NULL CHECK(action IN ('requested', 'liked', 'disliked')),
+  action TEXT NOT NULL CHECK(action IN ('liked', 'disliked')),
   createdAt INTEGER NOT NULL DEFAULT (unixepoch()),
   UNIQUE(mediaId, userId, action),
   FOREIGN KEY (mediaId) REFERENCES media(id) ON DELETE CASCADE,

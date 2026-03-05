@@ -1,13 +1,13 @@
-import {
-  type Media,
-  type MediaRecord,
-  type MediaInteraction,
-  isDefined,
-  type MediaInteractionWithUser,
-} from '@findarr/shared';
+import { type Media, isDefined } from '@findarr/shared';
 import type { DB } from '../db/setup.js';
 import type { TMDBService } from '../tmdb/service.js';
+import {
+  getInteractionsBatch,
+  getAllInteractionsWithUsersBatch,
+  getVoteCountsBatch,
+} from './interaction.js';
 import type { MediaDbRow } from './media.js';
+import { getMediaRecordsBatch } from './media.js';
 
 // ============================================================================
 // Enrichment Utilities - Add database state to TMDB media items
@@ -15,16 +15,16 @@ import type { MediaDbRow } from './media.js';
 // ============================================================================
 
 /**
- * Add database records (status, jellyfinId) to TMDB media items
+ * Enrich TMDB media items with database records (status, jellyfinId)
  *
  * @param db Database instance
  * @param mediaItems Media items from TMDB
  * @returns Media items enriched with state.record
  */
-export function addDatabaseRecords(db: DB, mediaItems: Media[]): Media[] {
+export function enrichWithRecords(db: DB, mediaItems: Media[]): Media[] {
   if (mediaItems.length === 0) return mediaItems;
 
-  const mediaRecords = getMediaRecords(db, mediaItems);
+  const mediaRecords = getMediaRecordsBatch(db, mediaItems);
 
   return mediaItems.map(item => {
     const key = `${item.id}_${item.type}`;
@@ -37,150 +37,42 @@ export function addDatabaseRecords(db: DB, mediaItems: Media[]): Media[] {
 }
 
 /**
- * Add user interactions (liked, disliked, requested) to media items
+ * Enrich media items with user interactions and vote counts
  * Requires items to already have state.record with database IDs
+ * Uses separate optimized batch queries for interactions and vote counts
+ *
+ * @param db Database instance
+ * @param mediaItems Media items to enrich
+ * @param userId Optional user ID. If provided, returns user-specific interactions (liked, disliked, requested).
+ *               If undefined, returns all interactions with user info (for admin views)
  */
-export function addInteractions(db: DB, mediaItems: Media[], userId: number): Media[] {
-  const interactionsMap = getInteractions(db, mediaItems, userId);
+export function enrichWithInteractions(db: DB, mediaItems: Media[], userId?: number): Media[] {
+  const isAdminView = userId === undefined;
+
+  // Fetch interactions (user-specific or all with user info)
+  const interactionsMap = isAdminView
+    ? getAllInteractionsWithUsersBatch(db, mediaItems)
+    : getInteractionsBatch(db, mediaItems, userId);
+
+  // Fetch vote counts (always aggregated across all users)
+  const votesMap = getVoteCountsBatch(db, mediaItems);
 
   return mediaItems.map(item => {
     const mediaId = item.state?.record?.id;
     if (!mediaId) return item;
 
     const interactions = interactionsMap.get(mediaId);
-    if (!interactions) return item;
+    const votes = votesMap.get(mediaId);
 
-    return { ...item, state: { ...item.state, interactions } };
+    return {
+      ...item,
+      state: {
+        ...item.state,
+        ...(interactions && { interactions }),
+        ...(votes && { votes }),
+      },
+    };
   });
-}
-
-/**
- * Add all interactions with user info (for admin views)
- * Requires items to already have state.record with database IDs
- */
-export function addAllInteractions(db: DB, mediaItems: Media[]): Media[] {
-  const allInteractionsMap = getAllInteractionsWithUsers(db, mediaItems);
-
-  return mediaItems.map(item => {
-    const mediaId = item.state?.record?.id;
-    if (!mediaId) return item;
-
-    const allInteractions = allInteractionsMap.get(mediaId);
-    if (!allInteractions) return item;
-
-    return { ...item, state: { ...item.state, allInteractions } };
-  });
-}
-
-/**
- * Query media records from database
- */
-function getMediaRecords(db: DB, mediaItems: Media[]): Map<string, MediaRecord> {
-  const mediaRecords = new Map<string, MediaRecord>();
-  if (mediaItems.length === 0) return mediaRecords;
-
-  const conditions = mediaItems.map(() => '(tmdbId = ? AND mediaType = ?)').join(' OR ');
-  const params = mediaItems.flatMap(item => [item.id, item.type]);
-
-  const query = `
-    SELECT 
-      id,
-      tmdbId,
-      mediaType,
-      status,
-      jellyfinId,
-      createdAt,
-      updatedAt
-    FROM media
-    WHERE ${conditions}
-  `;
-
-  const rows = db.prepare<unknown[], MediaDbRow>(query).all(...params);
-
-  for (const { tmdbId, mediaType, id, status, jellyfinId, createdAt, updatedAt } of rows) {
-    const key = `${tmdbId}_${mediaType}`;
-    mediaRecords.set(key, { id, status, jellyfinId, createdAt, updatedAt });
-  }
-
-  return mediaRecords;
-}
-
-/**
- * Query user interactions for media items
- * Only queries for items that have a database record ID
- */
-function getInteractions(
-  db: DB,
-  mediaItems: Media[],
-  userId: number
-): Map<number, MediaInteraction[]> {
-  const interactionsMap = new Map<number, MediaInteraction[]>();
-
-  // Extract media IDs from items that have records
-  const mediaIds = mediaItems.map(item => item.state?.record?.id).filter(x => isDefined(x));
-  if (mediaIds.length === 0) return interactionsMap;
-
-  const placeholders = mediaIds.map(() => '?').join(',');
-  const query = `
-    SELECT 
-      mediaId,
-      action,
-      createdAt
-    FROM user_media_interactions
-    WHERE userId = ? AND mediaId IN (${placeholders})
-  `;
-
-  const rows = db
-    .prepare<unknown[], { mediaId: number } & MediaInteraction>(query)
-    .all(userId, ...mediaIds);
-
-  for (const { mediaId, action, createdAt } of rows) {
-    const interactions = interactionsMap.get(mediaId) || [];
-    interactions.push({ action, createdAt });
-    interactionsMap.set(mediaId, interactions);
-  }
-
-  return interactionsMap;
-}
-
-/**
- * Query ALL interactions for media items with user info (for admin views)
- */
-function getAllInteractionsWithUsers(
-  db: DB,
-  mediaItems: Media[]
-): Map<number, Array<MediaInteractionWithUser>> {
-  const allInteractionsMap = new Map<number, Array<MediaInteractionWithUser>>();
-
-  const mediaIds = mediaItems.map(item => item.state?.record?.id).filter(x => isDefined(x));
-  if (mediaIds.length === 0) return allInteractionsMap;
-
-  const placeholders = mediaIds.map(() => '?').join(',');
-  const query = `
-    SELECT 
-      i.mediaId,
-      i.action,
-      i.createdAt,
-      i.userId,
-      u.email as userEmail,
-      u.displayName as userDisplayName
-    FROM user_media_interactions i
-    INNER JOIN users u ON i.userId = u.id
-    WHERE i.mediaId IN (${placeholders})
-    ORDER BY i.createdAt DESC
-  `;
-
-  const rows = db
-    .prepare<unknown[], { mediaId: number } & MediaInteractionWithUser>(query)
-    .all(...mediaIds);
-
-  for (const { mediaId, action, createdAt, userId, userEmail, userDisplayName } of rows) {
-    const interactions = allInteractionsMap.get(mediaId) || [];
-    interactions.push({ action, createdAt, userId, userEmail, userDisplayName });
-    allInteractionsMap.set(mediaId, interactions);
-  }
-
-  return allInteractionsMap;
 }
 
 /**
