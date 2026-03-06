@@ -1,12 +1,12 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { createUser } from '../utils/testHelper.js';
+import { createTestUser } from '../utils/testHelper.js';
 import { catalogRoutes } from './routes.js';
 import { type CatalogService } from './service.js';
 
 describe('catalogRoutes', () => {
   let app: FastifyInstance;
-  const user = createUser();
+  const user = createTestUser();
 
   const mockCatalog: CatalogService = {
     search: vi.fn().mockResolvedValue({ results: [], totalPages: 1 }),

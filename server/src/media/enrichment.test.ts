@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { DB } from '../db/setup.js';
 import * as interactionRepository from '../interaction/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
-import { createMedia } from '../utils/testHelper.js';
+import { createTestMedia } from '../utils/testHelper.js';
 import { enrichWithRecords, enrichWithInteractions, fetchTMDBDetails } from './enrichment.js';
 import type { MediaDbRow } from './repository.js';
 import * as mediaRepository from './repository.js';
@@ -11,7 +11,7 @@ import * as mediaRepository from './repository.js';
 describe('enrichment service', () => {
   let dbMock: DB;
 
-  const mockMediaItem: Media = createMedia({
+  const mockMediaItem: Media = createTestMedia({
     id: 123,
     type: 'movie',
   });
@@ -48,8 +48,8 @@ describe('enrichment service', () => {
 
     it('should add database records to media items', () => {
       const mediaItems: Media[] = [
-        createMedia({ id: 123, type: 'movie' }),
-        createMedia({ id: 456, type: 'tv' }),
+        createTestMedia({ id: 123, type: 'movie' }),
+        createTestMedia({ id: 456, type: 'tv' }),
       ];
 
       const dbRecordsMap = new Map([
@@ -96,7 +96,7 @@ describe('enrichment service', () => {
     });
 
     it('should handle media items without database records', () => {
-      const mediaItems: Media[] = [createMedia({ id: 123, type: 'movie' })];
+      const mediaItems: Media[] = [createTestMedia({ id: 123, type: 'movie' })];
 
       vi.mocked(mediaRepository.getMediaRecordsBatch).mockReturnValue(new Map());
 
@@ -109,7 +109,7 @@ describe('enrichment service', () => {
   describe('enrichWithInteractions', () => {
     it('should enrich with user-specific interactions when userId is provided', () => {
       const mediaItems: Media[] = [
-        createMedia({
+        createTestMedia({
           id: 123,
           type: 'movie',
           state: {
@@ -150,7 +150,7 @@ describe('enrichment service', () => {
 
     it('should enrich with all interactions including user info when userId is undefined', () => {
       const mediaItems: Media[] = [
-        createMedia({
+        createTestMedia({
           id: 123,
           type: 'movie',
           state: {
@@ -206,7 +206,7 @@ describe('enrichment service', () => {
     });
 
     it('should skip items without database records', () => {
-      const mediaItems: Media[] = [createMedia({ id: 123, type: 'movie' })];
+      const mediaItems: Media[] = [createTestMedia({ id: 123, type: 'movie' })];
 
       vi.mocked(interactionRepository.getInteractionsBatch).mockReturnValue(new Map());
       vi.mocked(interactionRepository.getVoteCountsBatch).mockReturnValue(new Map());
@@ -217,7 +217,7 @@ describe('enrichment service', () => {
     });
 
     it('should return empty interactions map when no media IDs', () => {
-      const mediaItems: Media[] = [createMedia({ id: 123, type: 'movie' })];
+      const mediaItems: Media[] = [createTestMedia({ id: 123, type: 'movie' })];
 
       enrichWithInteractions(dbMock, mediaItems, 42);
 

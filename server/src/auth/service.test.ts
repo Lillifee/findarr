@@ -1,13 +1,14 @@
 import * as argon2 from '@node-rs/argon2';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mockDb, createUserWithPassword } from '../utils/testHelper.js';
+import { mockDb, createTestUser } from '../utils/testHelper.js';
 import * as userService from './repository.js';
+import type { UserWithPassword } from './repository.js';
 import { login, DUMMY_HASH, verifyPassword } from './service.js';
 
 vi.mock('@node-rs/argon2');
 
 describe('auth service', () => {
-  const userWithPassword = createUserWithPassword();
+  const userWithPassword: UserWithPassword = { ...createTestUser(), passwordHash: 'hashed' };
 
   beforeEach(() => {
     vi.clearAllMocks();

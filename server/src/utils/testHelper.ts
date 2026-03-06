@@ -1,11 +1,25 @@
-import type { Media, MovieDetails, User } from '@findarr/shared';
-import type { UserWithPassword } from '../auth/repository.js';
+import {
+  isDefined,
+  type CreateUser,
+  type Media,
+  type MovieDetails,
+  type User,
+} from '@findarr/shared';
+import * as authRepository from '../auth/repository.js';
 import type { DB } from '../db/setup.js';
-import type { MediaDbRow } from '../media/repository.js';
-
 export const mockDb = {} as unknown as DB;
 
-export const createUser = (props?: Partial<User>): User => ({
+// Utility functions to assert
+
+export function assertDefined<T>(value: T): asserts value is NonNullable<T> {
+  if (!isDefined(value)) {
+    throw new Error(`Expected value to be defined, but got ${value}`);
+  }
+}
+
+// Factory functions to create test data
+
+export const createTestUser = (props?: Partial<User>): User => ({
   id: 1,
   email: 'user@test.com',
   displayName: 'user',
@@ -14,30 +28,7 @@ export const createUser = (props?: Partial<User>): User => ({
   ...props,
 });
 
-export const createAdminUser = (props?: Partial<User>): User => ({
-  ...createUser(),
-  role: 'admin',
-  ...props,
-});
-
-export const createUserWithPassword = (props?: Partial<UserWithPassword>): UserWithPassword => ({
-  ...createUser(),
-  passwordHash: 'hashed',
-  ...props,
-});
-
-export const createMediaDbRow = (props?: Partial<MediaDbRow>): MediaDbRow => ({
-  id: 1,
-  mediaType: 'movie',
-  tmdbId: 123,
-  jellyfinId: null,
-  status: 'pending',
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
-  ...props,
-});
-
-export const createMedia = (props?: Partial<Media>): Media => ({
+export const createTestMedia = (props?: Partial<Media>): Media => ({
   id: 0,
   type: 'movie',
   name: 'Test Movie',
@@ -54,8 +45,8 @@ export const createMedia = (props?: Partial<Media>): Media => ({
   ...props,
 });
 
-export const createMediaDetail = (props?: Partial<MovieDetails>): MovieDetails => ({
-  ...createMedia(),
+export const createTestMediaDetail = (props?: Partial<MovieDetails>): MovieDetails => ({
+  ...createTestMedia(),
   type: 'movie',
   tagline: 'Test tagline',
   runtime: 120,
@@ -66,3 +57,14 @@ export const createMediaDetail = (props?: Partial<MovieDetails>): MovieDetails =
   imdbId: 'tt1234567',
   ...props,
 });
+
+// Factory function to create data in the database for testing
+
+export const createTestUserInDb = (db: DB, props?: Partial<CreateUser>) =>
+  authRepository.createUser(db, {
+    email: 'user@test.com',
+    password: 'password',
+    displayName: 'Test User',
+    role: 'user',
+    ...props,
+  });

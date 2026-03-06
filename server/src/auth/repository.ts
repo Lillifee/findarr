@@ -35,7 +35,12 @@ export const createUser = async (db: DB, { email, password, displayName, role }:
   const id = result.lastInsertRowid as number;
 
   // Retrieve the created user to get database-generated values
-  return getUserById(db, id);
+  const user = getUserById(db, id);
+  if (!user) {
+    throw NotFound('User could not be created');
+  }
+
+  return user;
 };
 
 // ============================================================================

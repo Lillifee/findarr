@@ -2,7 +2,7 @@ import type { User } from '@findarr/shared';
 import Fastify, { type FastifyInstance } from 'fastify';
 import fp from 'fastify-plugin';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { createAdminUser, createUser } from '../utils/testHelper.js';
+import { createTestUser } from '../utils/testHelper.js';
 import authPlugin from './plugin.js';
 import * as userService from './repository.js';
 
@@ -65,7 +65,7 @@ describe('authPlugin integration', () => {
   });
 
   it('should allow user to access protected route', async () => {
-    const cookies = await login(createUser());
+    const cookies = await login(createTestUser());
     const res = await app.inject({ method: 'GET', url: '/protected', cookies });
 
     expect(res.statusCode).toBe(200);
@@ -73,7 +73,7 @@ describe('authPlugin integration', () => {
   });
 
   it('should return status code forbidden (403) when user is not admin', async () => {
-    const cookies = await login(createUser());
+    const cookies = await login(createTestUser());
     const res = await app.inject({ method: 'GET', url: '/admin', cookies });
 
     expect(res.statusCode).toBe(403);
@@ -81,7 +81,7 @@ describe('authPlugin integration', () => {
   });
 
   it('should allow admin user to access admin route', async () => {
-    const cookies = await login(createAdminUser());
+    const cookies = await login({ ...createTestUser(), role: 'admin' });
     const res = await app.inject({ method: 'GET', url: '/admin', cookies });
 
     expect(res.statusCode).toBe(200);

@@ -3,13 +3,13 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as userService from '../auth/repository.js';
 import * as interactionService from '../interaction/service.js';
-import { createMedia, mockDb, createUser } from '../utils/testHelper.js';
+import { createTestMedia, mockDb, createTestUser } from '../utils/testHelper.js';
 import { adminRoutes } from './routes.js';
 
 describe('adminRoutes', () => {
   let app: FastifyInstance;
-  const user = createUser();
-  const enrichedMedia = createMedia({
+  const user = createTestUser();
+  const enrichedMedia = createTestMedia({
     state: {
       record: {
         id: 1,

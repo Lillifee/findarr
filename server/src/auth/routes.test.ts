@@ -1,13 +1,13 @@
 import { type Login } from '@findarr/shared';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { mockDb, createUser } from '../utils/testHelper.js';
+import { mockDb, createTestUser } from '../utils/testHelper.js';
 import authRoutes from './routes.js';
 import * as authService from './service.js';
 
 describe('authRoutes', () => {
   let app: FastifyInstance;
-  const user = createUser();
+  const user = createTestUser();
 
   // simple in-memory session store
   let sessionStore: Record<string, number> = {};

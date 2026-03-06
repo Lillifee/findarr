@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { Media } from '../../../shared/dist/types.js';
-import { createMedia } from '../utils/testHelper.js';
+import { createTestMedia } from '../utils/testHelper.js';
 import { scoreMediaItems } from './scoring.js';
 
 const mockNow = new Date('2026-01-01').getTime();
@@ -13,7 +13,7 @@ beforeEach(() => {
 describe('scoreMediaItems', () => {
   const createMovie = (props?: Partial<Media>): Media => {
     const { state, ...rest } = props || {};
-    return createMedia({
+    return createTestMedia({
       type: 'movie',
       popularity: 10,
       voteAverage: 7,

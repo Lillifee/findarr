@@ -2,7 +2,7 @@ import type { Media } from '@findarr/shared';
 import SqlDatabase from 'better-sqlite3';
 import { describe, it, expect, beforeEach } from 'vitest';
 import type { DB } from '../db/setup.js';
-import { createMedia as createMediaTestHelper } from '../utils/testHelper.js';
+import { createTestMedia as createMediaTestHelper } from '../utils/testHelper.js';
 import {
   getMediaById,
   getMediaByTmdbId,

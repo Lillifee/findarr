@@ -2,7 +2,7 @@ import type { DiscoverResponse, MediaDetails, SearchResponse } from '@findarr/sh
 import { describe, it, expect, vi, beforeEach, type Mocked } from 'vitest';
 import * as enrichmentModule from '../media/enrichment.js';
 import type { TMDBService } from '../tmdb/service.js';
-import { createMedia, createMediaDetail, mockDb } from '../utils/testHelper.js';
+import { createTestMedia, createTestMediaDetail, mockDb } from '../utils/testHelper.js';
 import { createCatalogService } from './service.js';
 
 // Mock enrichment module
@@ -49,8 +49,8 @@ describe('catalog service', () => {
 
   it('should delegate discover, getDetails, getGenres', async () => {
     const searchResult: SearchResponse = { results: [], totalPages: 1, page: 0, totalResults: 0 };
-    const fetchResult: DiscoverResponse = { results: [createMedia({ id: 1 })] };
-    const detailsResult: MediaDetails = createMediaDetail({ id: 1 });
+    const fetchResult: DiscoverResponse = { results: [createTestMedia({ id: 1 })] };
+    const detailsResult: MediaDetails = createTestMediaDetail({ id: 1 });
     const genresResult = { genres: [] };
 
     tmdbServiceMock.search.mockResolvedValue(searchResult);
@@ -72,8 +72,8 @@ describe('catalog service', () => {
   });
 
   it('should return cached popular results and filter/paginate', async () => {
-    const trendingResult = Array.from({ length: 50 }, (_, i) => createMedia({ id: i + 1 }));
-    const discoverResult = Array.from({ length: 20 }, (_, i) => createMedia({ id: i + 1 }));
+    const trendingResult = Array.from({ length: 50 }, (_, i) => createTestMedia({ id: i + 1 }));
+    const discoverResult = Array.from({ length: 20 }, (_, i) => createTestMedia({ id: i + 1 }));
     tmdbServiceMock.fetchTrending.mockResolvedValue({ results: trendingResult });
     tmdbServiceMock.fetchDiscover.mockResolvedValue({ results: discoverResult });
 
@@ -89,7 +89,7 @@ describe('catalog service', () => {
   });
 
   it('should respect type, region, and genre filters in popular', async () => {
-    const items = [createMedia({ id: 1 }), createMedia({ id: 2, type: 'tv' })];
+    const items = [createTestMedia({ id: 1 }), createTestMedia({ id: 2, type: 'tv' })];
     tmdbServiceMock.fetchTrending.mockResolvedValue({ results: items });
     tmdbServiceMock.fetchDiscover.mockResolvedValue({ results: [] });
 
@@ -99,7 +99,7 @@ describe('catalog service', () => {
   });
 
   it('should enrich results without userId when not provided', async () => {
-    const items = [createMedia({ id: 1 })];
+    const items = [createTestMedia({ id: 1 })];
     tmdbServiceMock.search.mockResolvedValue({
       results: items,
       totalPages: 1,
@@ -119,7 +119,7 @@ describe('catalog service', () => {
   });
 
   it('should enrich results with interactions when userId is provided', async () => {
-    const items = [createMedia({ id: 1 })];
+    const items = [createTestMedia({ id: 1 })];
     tmdbServiceMock.search.mockResolvedValue({
       results: items,
       totalPages: 1,
