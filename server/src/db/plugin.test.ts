@@ -6,7 +6,7 @@ import * as setupModule from './setup.js';
 describe('databasePlugin', () => {
   let app: FastifyInstance;
 
-  const mockDb = {
+  const mockSqliteDb = {
     close: vi.fn(),
     prepare: vi.fn(() => ({
       all: vi.fn(() => [{ id: 1, email: 'test@test.com' }]), // Return existing user to skip seeding
@@ -15,10 +15,22 @@ describe('databasePlugin', () => {
     })),
   };
 
+  const mockDb = {
+    query: {
+      users: {
+        findMany: vi.fn(() => Promise.resolve([{ id: 1, email: 'test@test.com' }])),
+      },
+    },
+  } as unknown as setupModule.DB;
+
   beforeEach(async () => {
     app = Fastify();
 
-    vi.spyOn(setupModule, 'createDatabase').mockReturnValue(mockDb as unknown as setupModule.DB);
+    vi.spyOn(setupModule, 'createDatabase').mockReturnValue({
+      db: mockDb,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      sqliteDb: mockSqliteDb as any,
+    });
   });
 
   afterEach(async () => {
@@ -41,6 +53,6 @@ describe('databasePlugin', () => {
     await app.ready();
     await app.close();
 
-    expect(mockDb.close).toHaveBeenCalled();
+    expect(mockSqliteDb.close).toHaveBeenCalled();
   });
 });

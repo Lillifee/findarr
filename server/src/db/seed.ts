@@ -1,21 +1,25 @@
-import { getErrorMessage } from '@findarr/shared';
+import { getErrorMessage, users } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
-import { createUser, listAllUsers } from '../auth/repository.js';
+import { hashPassword } from '../auth/service.js';
 import type { DB } from './setup.js';
 
 export async function seed(fastify: FastifyInstance, db: DB) {
   try {
-    const users = await listAllUsers(db);
-    if (users.length > 0) return;
+    // Check if users already exist
+    const existingUsers = await db.query.users.findMany();
+    if (existingUsers.length > 0) return;
 
     fastify.log.info('Seeding database...');
 
+    // Hash password
+    const passwordHash = await hashPassword('changeme');
+
     // Create admin user
-    await createUser(db, {
+    await db.insert(users).values({
       email: 'admin@findarr.com',
-      password: 'changeme',
-      role: 'admin',
+      passwordHash,
       displayName: 'admin',
+      role: 'admin',
     });
 
     fastify.log.info('Admin user created successfully!');

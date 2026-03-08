@@ -1,4 +1,6 @@
 import type { MediaStatus, Media, MediaRecord } from '@findarr/shared';
+import { media } from '@findarr/shared';
+import { and, eq, or } from 'drizzle-orm';
 import type { DB } from '../db/setup.js';
 import { Conflict, NotFound } from '../utils/errors.js';
 
@@ -24,73 +26,68 @@ export interface MediaDbRow {
 /**
  * Get media record by internal database ID
  */
-export const getMediaById = (db: DB, mediaId: number): MediaDbRow | undefined =>
-  db
-    .prepare<[number], MediaDbRow>(
-      `SELECT 
-        id, tmdbId, mediaType, 
-        jellyfinId, status, createdAt, updatedAt
-      FROM media 
-      WHERE id = ?`
-    )
-    .get(mediaId);
+export const getMediaById = async (db: DB, mediaId: number): Promise<MediaDbRow | undefined> =>
+  (await db.query.media.findFirst({
+    where: eq(media.id, mediaId),
+  })) as MediaDbRow | undefined;
 
 /**
  * Get media record by TMDB ID and type
  */
-export const getMediaByTmdbId = (
+export const getMediaByTmdbId = async (
   db: DB,
   tmdbId: number,
   mediaType: 'movie' | 'tv'
-): MediaDbRow | undefined =>
-  db
-    .prepare<[number, string], MediaDbRow>(
-      `SELECT 
-        id, tmdbId, mediaType, 
-        jellyfinId, status, createdAt, updatedAt
-      FROM media 
-      WHERE tmdbId = ? AND mediaType = ?`
-    )
-    .get(tmdbId, mediaType);
+): Promise<MediaDbRow | undefined> =>
+  (await db.query.media.findFirst({
+    where: and(eq(media.tmdbId, tmdbId), eq(media.mediaType, mediaType)),
+  })) as MediaDbRow | undefined;
 
 /**
  * Create a new media record in the database
- * Returns the ID of the newly created record
+ * Returns the newly created record
  */
-export const createMedia = (
+export const createMedia = async (
   db: DB,
   tmdbId: number,
   mediaType: 'movie' | 'tv',
   status: MediaStatus = 'pending'
 ) => {
-  const insertMedia = db.prepare(`
-    INSERT INTO media (tmdbId, mediaType, status)
-    VALUES (?, ?, ?)
-  `);
+  const result = await db
+    .insert(media)
+    .values({
+      tmdbId,
+      mediaType,
+      status,
+    })
+    .returning({
+      id: media.id,
+    });
 
-  const result = insertMedia.run(tmdbId, mediaType, status);
+  if (!result[0]) throw Conflict('Failed to create media record');
+  const createdMedia = await getMediaById(db, result[0].id);
+  if (!createdMedia) throw Conflict('Failed to create media record');
 
-  const media = getMediaById(db, result.lastInsertRowid as number);
-  if (!media) throw Conflict('Failed to create media record');
-
-  return media;
+  return createdMedia;
 };
 
 /**
  * Update the status of a media record
  */
-export const updateMediaStatus = (db: DB, mediaId: number, status: MediaStatus): void => {
-  const update = db
-    .prepare(
-      `
-      UPDATE media
-      SET status = ?, updatedAt = unixepoch()
-      WHERE id = ?
-      `
-    )
-    .run(status, mediaId);
+export const updateMediaStatus = async (
+  db: DB,
+  mediaId: number,
+  status: MediaStatus
+): Promise<void> => {
+  const result = await db
+    .update(media)
+    .set({
+      status,
+      updatedAt: Date.now(),
+    })
+    .where(eq(media.id, mediaId));
 
-  if (update.changes === 0) {
+  if (result.changes === 0) {
     throw NotFound('Media not found');
   }
 };
@@ -99,31 +96,40 @@ export const updateMediaStatus = (db: DB, mediaId: number, status: MediaStatus):
  * Batch query for media records by TMDB IDs and types
  * Used for enriching multiple media items at once
  */
-export function getMediaRecordsBatch(db: DB, mediaItems: Media[]): Map<string, MediaRecord> {
+export async function getMediaRecordsBatch(
+  db: DB,
+  mediaItems: Media[]
+): Promise<Map<string, MediaRecord>> {
   const mediaRecords = new Map<string, MediaRecord>();
   if (mediaItems.length === 0) return mediaRecords;
 
-  const conditions = mediaItems.map(() => '(tmdbId = ? AND mediaType = ?)').join(' OR ');
-  const params = mediaItems.flatMap(item => [item.id, item.type]);
+  // Build OR conditions for batch query
+  const conditions = mediaItems.map(item =>
+    and(eq(media.tmdbId, item.id), eq(media.mediaType, item.type))
+  );
 
-  const query = `
-    SELECT 
-      id,
-      tmdbId,
-      mediaType,
-      status,
-      jellyfinId,
-      createdAt,
-      updatedAt
-    FROM media
-    WHERE ${conditions}
-  `;
+  const rows = await db.query.media.findMany({
+    columns: {
+      id: true,
+      tmdbId: true,
+      mediaType: true,
+      status: true,
+      jellyfinId: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+    where: or(...conditions),
+  });
 
-  const rows = db.prepare<unknown[], MediaDbRow>(query).all(...params);
-
-  for (const { tmdbId, mediaType, id, status, jellyfinId, createdAt, updatedAt } of rows) {
-    const key = `${tmdbId}_${mediaType}`;
-    mediaRecords.set(key, { id, status, jellyfinId, createdAt, updatedAt });
+  for (const row of rows) {
+    const key = `${row.tmdbId}_${row.mediaType}`;
+    mediaRecords.set(key, {
+      id: row.id,
+      status: row.status,
+      jellyfinId: row.jellyfinId,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    });
   }
 
   return mediaRecords;

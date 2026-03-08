@@ -23,45 +23,39 @@ const LIKE_THRESHOLD = 3;
  * Create or toggle a media interaction (like/dislike)
  * Automatically creates media request when vote threshold is met (3 votes) or if admin likes it
  */
-export const createInteraction = (db: DB, data: CreateMediaInteraction, user?: User) => {
+export const createInteraction = async (db: DB, data: CreateMediaInteraction, user?: User) => {
   if (!user?.id) return;
 
-  // Start transaction
-  const transaction = db.transaction(() => {
-    // Get or create media record
-    const media =
-      getMediaByTmdbId(db, data.tmdbId, data.mediaType) ??
-      createMedia(db, data.tmdbId, data.mediaType);
+  // Get or create media record
+  const existing = await getMediaByTmdbId(db, data.tmdbId, data.mediaType);
+  const media = existing ?? (await createMedia(db, data.tmdbId, data.mediaType));
 
-    // Check if this is a toggle (user clicking same action twice to remove it)
-    const isToggle = hasInteraction(db, user.id, media.id, data.action);
+  // Check if this is a toggle (user clicking same action twice to remove it)
+  const isToggle = await hasInteraction(db, user.id, media.id, data.action);
 
-    // Remove all existing interactions for this user on this media
-    removeAllInteractions(db, user.id, media.id);
+  // Remove all existing interactions for this user on this media
+  await removeAllInteractions(db, user.id, media.id);
 
-    // Add new interaction only if not toggling off
-    if (!isToggle) {
-      addInteraction(db, user.id, media.id, data.action);
+  // Add new interaction only if not toggling off
+  if (!isToggle) {
+    await addInteraction(db, user.id, media.id, data.action);
+  }
+
+  // Calculate votes and check if auto-request threshold is met
+  const { likes } = await getVoteCounts(db, media.id);
+  const isAdmin = user.role === 'admin';
+
+  // Auto-request if: admin liked it OR net votes >= 3
+  if ((likes >= LIKE_THRESHOLD || isAdmin) && data.action === 'liked') {
+    const currentMedia = await getMediaById(db, media.id);
+    if (currentMedia && currentMedia.status === 'pending') {
+      // Update to requested status (trigger download workflow)
+      await updateMediaStatus(db, media.id, 'requested');
     }
+  }
 
-    // Calculate votes and check if auto-request threshold is met
-    const { likes } = getVoteCounts(db, media.id);
-    const isAdmin = user.role === 'admin';
-
-    // Auto-request if: admin liked it OR net votes >= 3
-    if ((likes >= LIKE_THRESHOLD || isAdmin) && data.action === 'liked') {
-      const currentMedia = getMediaById(db, media.id);
-      if (currentMedia && currentMedia.status === 'pending') {
-        // Update to requested status (trigger download workflow)
-        updateMediaStatus(db, media.id, 'requested');
-      }
-    }
-
-    // Return the updated media record
-    return getMediaById(db, media.id);
-  });
-
-  return transaction();
+  // Return the updated media record
+  return await getMediaById(db, media.id);
 };
 
 /**
@@ -75,13 +69,13 @@ export async function getUserInteractionsEnriched(
   if (!userId) return [];
 
   // Get all media where user has any interaction (liked or disliked)
-  const dbRecords = getMediaByUserInteractions(db, userId);
+  const dbRecords = await getMediaByUserInteractions(db, userId);
 
   // Fetch TMDB details for all interacted media
   const enrichedMedia = await fetchTMDBDetails(tmdbService, dbRecords);
 
   // Add user interactions and vote counts in optimized batch query
-  return enrichWithInteractions(db, enrichedMedia, userId);
+  return await enrichWithInteractions(db, enrichedMedia, userId);
 }
 
 /**
@@ -92,7 +86,7 @@ export async function getAllInteractionsEnriched(
   db: DB
 ): Promise<Media[]> {
   // Get all media that has at least one interaction (any status: pending, requested, available)
-  const dbRecords = getAllMediaWithInteractions(db);
+  const dbRecords = await getAllMediaWithInteractions(db);
 
   if (dbRecords.length === 0) return [];
 
@@ -100,5 +94,5 @@ export async function getAllInteractionsEnriched(
   const enrichedMedia = await fetchTMDBDetails(tmdbService, dbRecords);
 
   // Add all interactions with user info and vote counts in optimized batch queries
-  return enrichWithInteractions(db, enrichedMedia);
+  return await enrichWithInteractions(db, enrichedMedia);
 }

@@ -1,21 +1,22 @@
+import SqlDatabase from 'better-sqlite3';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { createDatabase } from '../db/setup.js';
-import type { DB } from '../db/setup.js';
 
 describe('setup', () => {
-  let db: DB;
+  let sqliteDb: SqlDatabase.Database;
 
   beforeEach(() => {
-    db = createDatabase(':memory:');
+    const { sqliteDb: db } = createDatabase(':memory:');
+    sqliteDb = db;
   });
 
   afterEach(() => {
-    db.close();
+    sqliteDb.close();
   });
 
   it('creates users tables', () => {
     // Check users table exists
-    const users = db
+    const users = sqliteDb
       .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
       .get();
 
@@ -24,7 +25,7 @@ describe('setup', () => {
 
   it('creates user_media_interactions table', () => {
     // Check user_media_interactions table exists
-    const requests = db
+    const requests = sqliteDb
       .prepare(
         "SELECT name FROM sqlite_master WHERE type='table' AND name='user_media_interactions'"
       )

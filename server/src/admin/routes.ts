@@ -1,6 +1,6 @@
 import { CreateUserSchema, DeleteUserSchema } from '@findarr/shared';
 import type { FastifyPluginAsync } from 'fastify';
-import { createUser, listAllUsers, deleteUser } from '../auth/repository.js';
+import { createUser, deleteUser, listAllUsers } from '../auth/repository.js';
 import { getAllInteractionsEnriched } from '../interaction/service.js';
 
 const adminRoutes: FastifyPluginAsync = async fastify => {

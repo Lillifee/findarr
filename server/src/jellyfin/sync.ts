@@ -29,7 +29,7 @@ export async function syncJellyfinLibrary(fastify: FastifyInstance): Promise<voi
     }
 
     // Upsert media items into database
-    const affectedRows = upsertMediaFromJellyfin(fastify.db, jellyfinItems);
+    const affectedRows = await upsertMediaFromJellyfin(fastify.db, jellyfinItems);
     const durationMs = Date.now() - startTime;
 
     // TODO - until now only insert and update is implemented. we also need to delete items that are no longer available in jellyfin.

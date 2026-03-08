@@ -1,14 +1,18 @@
 import type { CreateUser } from '@findarr/shared';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import * as userService from '../auth/repository.js';
+import * as authRepository from '../auth/repository.js';
 import * as interactionService from '../interaction/service.js';
-import { createTestMedia, mockDb, createTestUser } from '../utils/testHelper.js';
+import { createTestMedia, createTestUser, mockDb } from '../utils/testHelper.js';
 import { adminRoutes } from './routes.js';
 
 describe('adminRoutes', () => {
   let app: FastifyInstance;
-  const user = createTestUser();
+  const adminUser = createTestUser({ role: 'admin' });
+  const testUser1 = createTestUser({ id: 2, email: 'user1@test.com' });
+  const testUser2 = createTestUser({ id: 3, email: 'user2@test.com' });
+  const testUserWithPassword = { ...testUser1, passwordHash: 'hashed-password' };
+
   const enrichedMedia = createTestMedia({
     state: {
       record: {
@@ -24,7 +28,7 @@ describe('adminRoutes', () => {
   beforeEach(async () => {
     app = Fastify();
 
-    // mock decorators
+    // decorate with mock db
     app.decorate('db', mockDb);
     app.decorate('requireAdmin', async () => {});
 
@@ -40,13 +44,15 @@ describe('adminRoutes', () => {
 
     // inject authenticated user for every request
     app.addHook('preHandler', async req => {
-      req.user = user;
+      req.user = adminUser;
     });
 
-    // mock services
-    vi.spyOn(userService, 'listAllUsers').mockResolvedValue([user]);
-    vi.spyOn(userService, 'createUser').mockResolvedValue(user);
-    vi.spyOn(userService, 'deleteUser').mockResolvedValue();
+    // Mock auth repository methods (admin service re-exports these)
+    vi.spyOn(authRepository, 'listAllUsers').mockResolvedValue([adminUser, testUser1, testUser2]);
+    vi.spyOn(authRepository, 'createUser').mockResolvedValue(testUserWithPassword);
+    vi.spyOn(authRepository, 'deleteUser').mockResolvedValue(undefined);
+
+    // Mock interaction service
     vi.spyOn(interactionService, 'getAllInteractionsEnriched').mockResolvedValue([enrichedMedia]);
 
     await app.register(adminRoutes);
@@ -62,7 +68,15 @@ describe('adminRoutes', () => {
     const res = await app.inject({ method: 'GET', url: '/users' });
 
     expect(res.statusCode).toBe(200);
-    expect(userService.listAllUsers).toHaveBeenCalledWith(mockDb);
+    expect(authRepository.listAllUsers).toHaveBeenCalledWith(mockDb);
+
+    const users = res.json();
+    expect(users).toHaveLength(3);
+    expect(users[0].email).toBe(adminUser.email);
+    expect(users[1].email).toBe('user1@test.com');
+    expect(users[2].email).toBe('user2@test.com');
+    // Should not include password hash
+    expect(users[0].passwordHash).toBeUndefined();
   });
 
   it('should create a user', async () => {
@@ -72,17 +86,22 @@ describe('adminRoutes', () => {
       displayName: 'Test User',
       role: 'user',
     };
+
     const res = await app.inject({ method: 'POST', url: '/users', payload: newUser });
 
     expect(res.statusCode).toBe(200);
-    expect(userService.createUser).toHaveBeenCalledWith(mockDb, newUser);
+    expect(authRepository.createUser).toHaveBeenCalledWith(mockDb, newUser);
+
+    const created = res.json();
+    expect(created.email).toBe(testUser1.email);
   });
 
   it('should delete a user', async () => {
-    const res = await app.inject({ method: 'DELETE', url: '/users/123' });
+    const userId = 123;
+    const res = await app.inject({ method: 'DELETE', url: `/users/${userId}` });
 
     expect(res.statusCode).toBe(200);
-    expect(userService.deleteUser).toHaveBeenCalledWith(mockDb, 123, user.id);
+    expect(authRepository.deleteUser).toHaveBeenCalledWith(mockDb, userId, adminUser.id);
   });
 
   it('should return all interactions (admin)', async () => {

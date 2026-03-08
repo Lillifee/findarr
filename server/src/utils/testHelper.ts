@@ -5,7 +5,7 @@ import {
   type MovieDetails,
   type User,
 } from '@findarr/shared';
-import * as authRepository from '../auth/repository.js';
+import { createUser } from '../auth/repository.js';
 import type { DB } from '../db/setup.js';
 export const mockDb = {} as unknown as DB;
 
@@ -60,8 +60,8 @@ export const createTestMediaDetail = (props?: Partial<MovieDetails>): MovieDetai
 
 // Factory function to create data in the database for testing
 
-export const createTestUserInDb = (db: DB, props?: Partial<CreateUser>) =>
-  authRepository.createUser(db, {
+export const createTestUserInDb = async (db: DB, props?: Partial<CreateUser>) =>
+  await createUser(db, {
     email: 'user@test.com',
     password: 'password',
     displayName: 'Test User',

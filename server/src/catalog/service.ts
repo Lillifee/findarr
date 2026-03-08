@@ -49,7 +49,7 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
    */
   async function search(params: SearchQuery, userId?: number): Promise<SearchResponse> {
     const response = await tmdbService.search(params);
-    const results = enrichResults(response.results, userId);
+    const results = await enrichResults(response.results, userId);
     return { ...response, results };
   }
 
@@ -59,7 +59,7 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
    */
   async function discover(params: DiscoverQuery, userId?: number): Promise<DiscoverResponse> {
     const response = await tmdbService.fetchDiscover(params);
-    const results = enrichResults(response.results, userId);
+    const results = await enrichResults(response.results, userId);
     return { ...response, results };
   }
 
@@ -140,7 +140,7 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
     const paginatedResults = filteredResults.slice(startIndex, endIndex);
 
     // Enrich with database state
-    const results = enrichResults(paginatedResults, userId);
+    const results = await enrichResults(paginatedResults, userId);
 
     return {
       results,
@@ -154,10 +154,10 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
    * Helper: Enrich TMDB items with database state
    * Adds media records first, then optionally user interactions
    */
-  function enrichResults(items: Media[], userId?: number): Media[] {
-    let enriched = enrichWithRecords(db, items);
+  async function enrichResults(items: Media[], userId?: number): Promise<Media[]> {
+    let enriched = await enrichWithRecords(db, items);
     if (userId) {
-      enriched = enrichWithInteractions(db, enriched, userId);
+      enriched = await enrichWithInteractions(db, enriched, userId);
     }
     return enriched;
   }

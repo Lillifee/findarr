@@ -34,19 +34,21 @@ describe('enrichment service', () => {
     } as unknown as DB;
 
     // Spy on repository functions
-    vi.spyOn(mediaRepository, 'getMediaRecordsBatch').mockReturnValue(new Map());
-    vi.spyOn(interactionRepository, 'getInteractionsBatch').mockReturnValue(new Map());
-    vi.spyOn(interactionRepository, 'getAllInteractionsWithUsersBatch').mockReturnValue(new Map());
-    vi.spyOn(interactionRepository, 'getVoteCountsBatch').mockReturnValue(new Map());
+    vi.spyOn(mediaRepository, 'getMediaRecordsBatch').mockResolvedValue(new Map());
+    vi.spyOn(interactionRepository, 'getInteractionsBatch').mockResolvedValue(new Map());
+    vi.spyOn(interactionRepository, 'getAllInteractionsWithUsersBatch').mockResolvedValue(
+      new Map()
+    );
+    vi.spyOn(interactionRepository, 'getVoteCountsBatch').mockResolvedValue(new Map());
   });
 
   describe('enrichWithRecords', () => {
-    it('should return empty array for empty input', () => {
-      const result = enrichWithRecords(dbMock, []);
+    it('should return empty array for empty input', async () => {
+      const result = await enrichWithRecords(dbMock, []);
       expect(result).toEqual([]);
     });
 
-    it('should add database records to media items', () => {
+    it('should add database records to media items', async () => {
       const mediaItems: Media[] = [
         createTestMedia({ id: 123, type: 'movie' }),
         createTestMedia({ id: 456, type: 'tv' }),
@@ -75,9 +77,9 @@ describe('enrichment service', () => {
         ],
       ]);
 
-      vi.mocked(mediaRepository.getMediaRecordsBatch).mockReturnValue(dbRecordsMap);
+      vi.mocked(mediaRepository.getMediaRecordsBatch).mockResolvedValue(dbRecordsMap);
 
-      const result = enrichWithRecords(dbMock, mediaItems);
+      const result = await enrichWithRecords(dbMock, mediaItems);
 
       expect(result[0]?.state?.record).toEqual({
         id: 1,
@@ -95,19 +97,19 @@ describe('enrichment service', () => {
       });
     });
 
-    it('should handle media items without database records', () => {
+    it('should handle media items without database records', async () => {
       const mediaItems: Media[] = [createTestMedia({ id: 123, type: 'movie' })];
 
-      vi.mocked(mediaRepository.getMediaRecordsBatch).mockReturnValue(new Map());
+      vi.mocked(mediaRepository.getMediaRecordsBatch).mockResolvedValue(new Map());
 
-      const result = enrichWithRecords(dbMock, mediaItems);
+      const result = await enrichWithRecords(dbMock, mediaItems);
 
       expect(result[0]?.state?.record).toBeUndefined();
     });
   });
 
   describe('enrichWithInteractions', () => {
-    it('should enrich with user-specific interactions when userId is provided', () => {
+    it('should enrich with user-specific interactions when userId is provided', async () => {
       const mediaItems: Media[] = [
         createTestMedia({
           id: 123,
@@ -128,27 +130,27 @@ describe('enrichment service', () => {
         [
           1,
           [
-            { action: 'liked' as const, createdAt: 1000 },
-            { action: 'liked' as const, createdAt: 2000 },
+            { id: 123, action: 'liked' as const, createdAt: 1000 },
+            { id: 124, action: 'liked' as const, createdAt: 2000 },
           ],
         ],
       ]);
 
       const votesMap = new Map([[1, { likes: 2, dislikes: 0 }]]);
 
-      vi.mocked(interactionRepository.getInteractionsBatch).mockReturnValue(interactionsMap);
-      vi.mocked(interactionRepository.getVoteCountsBatch).mockReturnValue(votesMap);
+      vi.mocked(interactionRepository.getInteractionsBatch).mockResolvedValue(interactionsMap);
+      vi.mocked(interactionRepository.getVoteCountsBatch).mockResolvedValue(votesMap);
 
-      const result = enrichWithInteractions(dbMock, mediaItems, 42);
+      const result = await enrichWithInteractions(dbMock, mediaItems, 999);
 
       expect(result[0]?.state?.interactions).toEqual([
-        { action: 'liked', createdAt: 1000 },
-        { action: 'liked', createdAt: 2000 },
+        { id: 123, action: 'liked', createdAt: 1000 },
+        { id: 124, action: 'liked', createdAt: 2000 },
       ]);
       expect(result[0]?.state?.votes).toEqual({ likes: 2, dislikes: 0 });
     });
 
-    it('should enrich with all interactions including user info when userId is undefined', () => {
+    it('should enrich with all interactions including user info when userId is undefined', async () => {
       const mediaItems: Media[] = [
         createTestMedia({
           id: 123,
@@ -170,6 +172,7 @@ describe('enrichment service', () => {
           1,
           [
             {
+              id: 555,
               action: 'liked' as const,
               createdAt: 1000,
               userInfo: {
@@ -184,15 +187,16 @@ describe('enrichment service', () => {
 
       const votesMap = new Map([[1, { likes: 1, dislikes: 0 }]]);
 
-      vi.mocked(interactionRepository.getAllInteractionsWithUsersBatch).mockReturnValue(
+      vi.mocked(interactionRepository.getAllInteractionsWithUsersBatch).mockResolvedValue(
         allInteractionsMap
       );
-      vi.mocked(interactionRepository.getVoteCountsBatch).mockReturnValue(votesMap);
+      vi.mocked(interactionRepository.getVoteCountsBatch).mockResolvedValue(votesMap);
 
-      const result = enrichWithInteractions(dbMock, mediaItems);
+      const result = await enrichWithInteractions(dbMock, mediaItems, undefined);
 
       expect(result[0]?.state?.interactions).toEqual([
         {
+          id: 555,
           action: 'liked',
           createdAt: 1000,
           userInfo: {
@@ -205,21 +209,21 @@ describe('enrichment service', () => {
       expect(result[0]?.state?.votes).toEqual({ likes: 1, dislikes: 0 });
     });
 
-    it('should skip items without database records', () => {
+    it('should skip items without database records', async () => {
       const mediaItems: Media[] = [createTestMedia({ id: 123, type: 'movie' })];
 
-      vi.mocked(interactionRepository.getInteractionsBatch).mockReturnValue(new Map());
-      vi.mocked(interactionRepository.getVoteCountsBatch).mockReturnValue(new Map());
+      vi.mocked(interactionRepository.getInteractionsBatch).mockResolvedValue(new Map());
+      vi.mocked(interactionRepository.getVoteCountsBatch).mockResolvedValue(new Map());
 
-      const result = enrichWithInteractions(dbMock, mediaItems, 42);
+      const result = await enrichWithInteractions(dbMock, mediaItems, 42);
 
       expect(result[0]?.state?.interactions).toBeUndefined();
     });
 
-    it('should return empty interactions map when no media IDs', () => {
+    it('should return empty interactions map when no media IDs', async () => {
       const mediaItems: Media[] = [createTestMedia({ id: 123, type: 'movie' })];
 
-      enrichWithInteractions(dbMock, mediaItems, 42);
+      await enrichWithInteractions(dbMock, mediaItems, 42);
 
       expect(interactionRepository.getInteractionsBatch).toHaveBeenCalledWith(
         dbMock,

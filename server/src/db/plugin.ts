@@ -15,18 +15,18 @@ interface DatabasePluginOptions extends FastifyPluginOptions {
 
 const databasePlugin: FastifyPluginAsync<DatabasePluginOptions> = async (fastify, options) => {
   const dbPath = options.dbPath;
-  const db = createDatabase(dbPath);
+  const { db, sqliteDb } = createDatabase(dbPath);
   seed(fastify, db);
 
   fastify.log.info({ dbPath }, 'Database initialized');
 
-  // Decorate Fastify instance with database
+  // Decorate Fastify instance with Drizzle database
   fastify.decorate('db', db);
   fastify.log.info('Database plugin registered');
 
   // Close database connection on shutdown
   fastify.addHook('onClose', async () => {
-    db.close();
+    sqliteDb.close();
     fastify.log.info('Database connection closed');
   });
 };

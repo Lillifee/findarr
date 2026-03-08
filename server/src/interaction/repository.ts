@@ -1,9 +1,11 @@
 import type {
   Media,
-  InteractionAction as InteractionType,
+  InteractionType,
   MediaInteraction,
   MediaInteractionWithUser,
 } from '@findarr/shared';
+import { isDefined, media, userMediaInteractions } from '@findarr/shared';
+import { and, desc, eq, inArray, ne, sql } from 'drizzle-orm';
 import type { DB } from '../db/setup.js';
 import type { MediaDbRow } from '../media/repository.js';
 
@@ -14,50 +16,56 @@ import type { MediaDbRow } from '../media/repository.js';
 /**
  * Add a user interaction with media (liked, disliked)
  */
-export function addInteraction(
+export async function addInteraction(
   db: DB,
   userId: number,
   mediaId: number,
   action: InteractionType
-): void {
-  const stmt = db.prepare(`
-    INSERT INTO user_media_interactions (userId, mediaId, action)
-    VALUES (?, ?, ?)
-    ON CONFLICT(mediaId, userId, action) DO NOTHING
-  `);
-
-  stmt.run(userId, mediaId, action);
+): Promise<void> {
+  await db
+    .insert(userMediaInteractions)
+    .values({
+      userId,
+      mediaId,
+      action,
+    })
+    .onConflictDoNothing();
 }
 
 /**
  * Check if a user has a specific interaction with media
  */
-export function hasInteraction(
+export async function hasInteraction(
   db: DB,
   userId: number,
   mediaId: number,
   action: InteractionType
-): boolean {
-  const stmt = db.prepare<[number, number, string], { count: number }>(`
-    SELECT COUNT(*) as count
-    FROM user_media_interactions
-    WHERE userId = ? AND mediaId = ? AND action = ?
-  `);
+): Promise<boolean> {
+  const result = await db.query.userMediaInteractions.findFirst({
+    where: and(
+      eq(userMediaInteractions.userId, userId),
+      eq(userMediaInteractions.mediaId, mediaId),
+      eq(userMediaInteractions.action, action)
+    ),
+    columns: { id: true },
+  });
 
-  const result = stmt.get(userId, mediaId, action);
-  return (result?.count || 0) > 0;
+  return isDefined(result);
 }
 
 /**
  * Remove all interactions for a user on a specific media
  */
-export function removeAllInteractions(db: DB, userId: number, mediaId: number): void {
-  const stmt = db.prepare(`
-    DELETE FROM user_media_interactions
-    WHERE userId = ? AND mediaId = ?
-  `);
-
-  stmt.run(userId, mediaId);
+export async function removeAllInteractions(
+  db: DB,
+  userId: number,
+  mediaId: number
+): Promise<void> {
+  await db
+    .delete(userMediaInteractions)
+    .where(
+      and(eq(userMediaInteractions.userId, userId), eq(userMediaInteractions.mediaId, mediaId))
+    );
 }
 
 // ============================================================================
@@ -68,36 +76,33 @@ export function removeAllInteractions(db: DB, userId: number, mediaId: number): 
  * Batch query for user interactions on multiple media items
  * Used for enriching media arrays with user-specific interaction state
  */
-export function getInteractionsBatch(
+export async function getInteractionsBatch(
   db: DB,
   mediaItems: Media[],
   userId: number
-): Map<number, MediaInteraction[]> {
+): Promise<Map<number, MediaInteraction[]>> {
   const interactionsMap = new Map<number, MediaInteraction[]>();
 
   // Extract media IDs from items that have records
-  const mediaIds = mediaItems
-    .map(item => item.state?.record?.id)
-    .filter((x): x is number => x !== undefined && x !== null);
+  const mediaIds = mediaItems.map(item => item.state?.record?.id).filter(x => isDefined(x));
   if (mediaIds.length === 0) return interactionsMap;
 
-  const placeholders = mediaIds.map(() => '?').join(',');
-  const query = `
-    SELECT 
-      mediaId,
-      action,
-      createdAt
-    FROM user_media_interactions
-    WHERE userId = ? AND mediaId IN (${placeholders})
-  `;
+  const rows = await db.query.userMediaInteractions.findMany({
+    columns: {
+      id: true,
+      mediaId: true,
+      action: true,
+      createdAt: true,
+    },
+    where: and(
+      eq(userMediaInteractions.userId, userId),
+      inArray(userMediaInteractions.mediaId, mediaIds)
+    ),
+  });
 
-  const rows = db
-    .prepare<unknown[], { mediaId: number } & MediaInteraction>(query)
-    .all(userId, ...mediaIds);
-
-  for (const { mediaId, action, createdAt } of rows) {
+  for (const { mediaId, id, action, createdAt } of rows) {
     const interactions = interactionsMap.get(mediaId) || [];
-    interactions.push({ action, createdAt });
+    interactions.push({ id, action, createdAt });
     interactionsMap.set(mediaId, interactions);
   }
 
@@ -108,43 +113,42 @@ export function getInteractionsBatch(
  * Batch query for ALL interactions on multiple media items with user info
  * Used for admin views that show all user interactions
  */
-export function getAllInteractionsWithUsersBatch(
+export async function getAllInteractionsWithUsersBatch(
   db: DB,
   mediaItems: Media[]
-): Map<number, Array<MediaInteractionWithUser>> {
+): Promise<Map<number, Array<MediaInteractionWithUser>>> {
   const allInteractionsMap = new Map<number, Array<MediaInteractionWithUser>>();
 
-  const mediaIds = mediaItems
-    .map(item => item.state?.record?.id)
-    .filter((x): x is number => x !== undefined && x !== null);
+  const mediaIds = mediaItems.map(item => item.state?.record?.id).filter(x => isDefined(x));
   if (mediaIds.length === 0) return allInteractionsMap;
 
-  const placeholders = mediaIds.map(() => '?').join(',');
-  const query = `
-    SELECT 
-      i.mediaId,
-      i.action,
-      i.createdAt,
-      u.id,
-      u.email,
-      u.displayName
-    FROM user_media_interactions i
-    INNER JOIN users u ON i.userId = u.id
-    WHERE i.mediaId IN (${placeholders})
-    ORDER BY i.createdAt DESC
-  `;
+  const results = await db.query.media.findMany({
+    columns: { id: true },
+    where: inArray(media.id, mediaIds),
+    with: {
+      interactions: {
+        columns: {
+          id: true,
+          action: true,
+          createdAt: true,
+        },
+        with: {
+          user: {
+            columns: {
+              id: true,
+              email: true,
+              displayName: true,
+              createdAt: true,
+            },
+          },
+        },
+        orderBy: (interactions, { desc }) => [desc(interactions.createdAt)],
+      },
+    },
+  });
 
-  const rows = db
-    .prepare<
-      unknown[],
-      { mediaId: number } & MediaInteraction & { id: number; email: string; displayName: string }
-    >(query)
-    .all(...mediaIds);
-
-  for (const { mediaId, action, createdAt, id, email, displayName } of rows) {
-    const interactions = allInteractionsMap.get(mediaId) || [];
-    interactions.push({ action, createdAt, userInfo: { id, email, displayName } });
-    allInteractionsMap.set(mediaId, interactions);
+  for (const mediaRecord of results) {
+    allInteractionsMap.set(mediaRecord.id, mediaRecord.interactions);
   }
 
   return allInteractionsMap;
@@ -154,31 +158,24 @@ export function getAllInteractionsWithUsersBatch(
  * Batch query for vote counts on multiple media items
  * Returns aggregated like and dislike counts for all media
  */
-export function getVoteCountsBatch(
+export async function getVoteCountsBatch(
   db: DB,
   mediaItems: Media[]
-): Map<number, { likes: number; dislikes: number }> {
+): Promise<Map<number, { likes: number; dislikes: number }>> {
   const votesMap = new Map<number, { likes: number; dislikes: number }>();
 
-  const mediaIds = mediaItems
-    .map(item => item.state?.record?.id)
-    .filter((x): x is number => x !== undefined && x !== null);
+  const mediaIds = mediaItems.map(item => item.state?.record?.id).filter(x => isDefined(x));
   if (mediaIds.length === 0) return votesMap;
 
-  const placeholders = mediaIds.map(() => '?').join(',');
-  const query = `
-    SELECT 
-      mediaId,
-      SUM(CASE WHEN action = 'liked' THEN 1 ELSE 0 END) as likes,
-      SUM(CASE WHEN action = 'disliked' THEN 1 ELSE 0 END) as dislikes
-    FROM user_media_interactions
-    WHERE mediaId IN (${placeholders})
-    GROUP BY mediaId
-  `;
-
-  const rows = db
-    .prepare<unknown[], { mediaId: number; likes: number; dislikes: number }>(query)
-    .all(...mediaIds);
+  const rows = await db
+    .select({
+      mediaId: userMediaInteractions.mediaId,
+      likes: sql<number>`SUM(CASE WHEN ${userMediaInteractions.action} = 'liked' THEN 1 ELSE 0 END)`,
+      dislikes: sql<number>`SUM(CASE WHEN ${userMediaInteractions.action} = 'disliked' THEN 1 ELSE 0 END)`,
+    })
+    .from(userMediaInteractions)
+    .where(inArray(userMediaInteractions.mediaId, mediaIds))
+    .groupBy(userMediaInteractions.mediaId);
 
   for (const { mediaId, likes, dislikes } of rows) {
     votesMap.set(mediaId, { likes: likes || 0, dislikes: dislikes || 0 });
@@ -195,58 +192,65 @@ export function getVoteCountsBatch(
  * Get all media records where a user has ANY interaction (liked or disliked)
  * Returns the media DB rows ordered by interaction creation time (most recent first)
  */
-export function getMediaByUserInteractions(db: DB, userId: number): MediaDbRow[] {
-  return db
-    .prepare<[number], MediaDbRow>(
-      `
-      SELECT DISTINCT m.*
-      FROM media m
-      INNER JOIN user_media_interactions i ON m.id = i.mediaId
-      WHERE i.userId = ?
-      ORDER BY i.createdAt DESC
-    `
-    )
-    .all(userId);
+export async function getMediaByUserInteractions(db: DB, userId: number): Promise<MediaDbRow[]> {
+  return await db
+    .selectDistinct({
+      id: media.id,
+      tmdbId: media.tmdbId,
+      mediaType: media.mediaType,
+      jellyfinId: media.jellyfinId,
+      status: media.status,
+      createdAt: media.createdAt,
+      updatedAt: media.updatedAt,
+    })
+    .from(media)
+    .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
+    .where(eq(userMediaInteractions.userId, userId))
+    .orderBy(desc(userMediaInteractions.createdAt));
 }
 
 /**
  * Get all media records where a user has a specific interaction
  * Returns the media DB rows ordered by interaction creation time (most recent first)
  */
-export function getMediaByUserInteraction(
+export async function getMediaByUserInteraction(
   db: DB,
   userId: number,
   action: InteractionType
-): MediaDbRow[] {
-  return db
-    .prepare<[number, string], MediaDbRow>(
-      `
-      SELECT m.*
-      FROM media m
-      INNER JOIN user_media_interactions i ON m.id = i.mediaId
-      WHERE i.userId = ? AND i.action = ?
-      ORDER BY i.createdAt DESC
-    `
-    )
-    .all(userId, action);
+): Promise<MediaDbRow[]> {
+  const results = await db.query.userMediaInteractions.findMany({
+    where: and(eq(userMediaInteractions.userId, userId), eq(userMediaInteractions.action, action)),
+    with: { media: true },
+    orderBy: (interactions, { desc }) => [desc(interactions.createdAt), desc(interactions.id)],
+  });
+
+  return results.map(r => r.media);
 }
 
 /**
  * Get all media records that have a specific interaction from any user
  * Returns distinct media records ordered by media creation time (most recent first)
  */
-export function getMediaByInteraction(db: DB, action: InteractionType): MediaDbRow[] {
-  return db
-    .prepare<[string], MediaDbRow>(
-      `
-      SELECT DISTINCT m.*
-      FROM media m
-      INNER JOIN user_media_interactions i ON m.id = i.mediaId
-      WHERE i.action = ?
-      ORDER BY m.createdAt DESC
-    `
-    )
-    .all(action);
+export async function getMediaByInteraction(
+  db: DB,
+  action: InteractionType
+): Promise<MediaDbRow[]> {
+  const rows = await db
+    .selectDistinct({
+      id: media.id,
+      tmdbId: media.tmdbId,
+      mediaType: media.mediaType,
+      jellyfinId: media.jellyfinId,
+      status: media.status,
+      createdAt: media.createdAt,
+      updatedAt: media.updatedAt,
+    })
+    .from(media)
+    .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
+    .where(eq(userMediaInteractions.action, action))
+    .orderBy(desc(media.createdAt));
+
+  return rows;
 }
 
 /**
@@ -254,16 +258,11 @@ export function getMediaByInteraction(db: DB, action: InteractionType): MediaDbR
  * Excludes available media that came from Jellyfin sync
  * Returns media ordered by creation time (most recent first)
  */
-export function getAllMediaWithInteractions(db: DB): MediaDbRow[] {
-  return db
-    .prepare<[], MediaDbRow>(
-      `
-      SELECT * FROM media
-      WHERE status != 'available'
-      ORDER BY createdAt DESC
-    `
-    )
-    .all();
+export async function getAllMediaWithInteractions(db: DB): Promise<MediaDbRow[]> {
+  return await db.query.media.findMany({
+    where: ne(media.status, 'available'),
+    orderBy: (media, { desc }) => [desc(media.createdAt)],
+  });
 }
 
 // ============================================================================
@@ -274,21 +273,20 @@ export function getAllMediaWithInteractions(db: DB): MediaDbRow[] {
  * Get vote counts for a specific media by internal media ID
  * Returns like count and dislike count
  */
-export function getVoteCounts(db: DB, mediaId: number): { likes: number; dislikes: number } {
-  const result = db
-    .prepare<[number], { likes: number; dislikes: number }>(
-      `
-      SELECT 
-        SUM(CASE WHEN action = 'liked' THEN 1 ELSE 0 END) as likes,
-        SUM(CASE WHEN action = 'disliked' THEN 1 ELSE 0 END) as dislikes
-      FROM user_media_interactions
-      WHERE mediaId = ?
-    `
-    )
-    .get(mediaId);
+export async function getVoteCounts(
+  db: DB,
+  mediaId: number
+): Promise<{ likes: number; dislikes: number }> {
+  const result = await db
+    .select({
+      likes: sql<number>`SUM(CASE WHEN ${userMediaInteractions.action} = 'liked' THEN 1 ELSE 0 END)`,
+      dislikes: sql<number>`SUM(CASE WHEN ${userMediaInteractions.action} = 'disliked' THEN 1 ELSE 0 END)`,
+    })
+    .from(userMediaInteractions)
+    .where(eq(userMediaInteractions.mediaId, mediaId));
 
-  const likes = result?.likes || 0;
-  const dislikes = result?.dislikes || 0;
+  const likes = result[0]?.likes || 0;
+  const dislikes = result[0]?.dislikes || 0;
 
   return { likes, dislikes };
 }

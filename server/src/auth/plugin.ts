@@ -8,7 +8,7 @@ import type {
   FastifyPluginOptions,
 } from 'fastify';
 import fp from 'fastify-plugin';
-import { getUserById } from './repository.js';
+import { getUserById, removePasswordHash } from './repository.js';
 
 // Extend session data type
 declare module '@fastify/secure-session' {
@@ -57,7 +57,7 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, option
       return reply.code(401).send({ error: 'Authentication required' });
     }
 
-    const user = getUserById(fastify.db, userId);
+    const user = await getUserById(fastify.db, userId);
 
     if (!user) {
       // User was deleted, clear session
@@ -66,7 +66,7 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, option
     }
 
     // Attach user to request
-    request.user = user;
+    request.user = removePasswordHash(user);
   });
 
   // Helper to require admin role

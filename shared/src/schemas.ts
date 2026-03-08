@@ -79,14 +79,6 @@ export const LoginSchema = z.object({
   password: z.string().min(1),
 });
 
-export const UserSchema = z.object({
-  id: z.coerce.number().int().positive(),
-  email: z.email(),
-  displayName: z.string(),
-  role: z.enum(['user', 'admin']),
-  createdAt: z.number(),
-});
-
 export const CreateUserSchema = z.object({
   email: z.email(),
   password: z.string().min(8, 'Password must be at least 8 characters'),

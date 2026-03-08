@@ -29,7 +29,8 @@
     "format:check": "prettier --check .",
     "clean": "del-cli node_modules shared/dist server/dist client/dist **/*.tsbuildinfo",
     "ci": "npm run type-check && npm run lint && npm run format:check && npm run build",
-    "update": "npx npm-check-updates -u --workspaces && npm install"
+    "update": "npx npm-check-updates -u --workspaces && npm install",
+    "db:studio": "npm run db:studio --workspace=@findarr/server"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",

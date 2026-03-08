@@ -1,4 +1,5 @@
 import type { z } from 'zod';
+import type { MediaRecord, MediaInteractionWithUser, MediaVotes } from './db-types.js';
 import type {
   SearchQuerySchema,
   DiscoverQuerySchema,
@@ -8,7 +9,6 @@ import type {
   GenresQuerySchema,
   LoginSchema,
   CreateUserSchema,
-  UserSchema,
   DeleteUserSchema,
   CreateInteractionSchema,
 } from './schemas.js';
@@ -29,7 +29,7 @@ export interface Genre {
 }
 
 export type MediaStatus = 'pending' | 'requested' | 'available';
-export type InteractionAction = 'liked' | 'disliked';
+export type InteractionType = 'liked' | 'disliked';
 
 export interface MediaScore {
   recencyScore: number;
@@ -38,46 +38,6 @@ export interface MediaScore {
   weightedRating: number;
   baseScore: number;
   finalScore: number;
-}
-
-/**
- * Database media record (from 'media' table)
- */
-export interface MediaRecord {
-  id: number;
-  status: MediaStatus;
-  jellyfinId: string | null;
-  createdAt: number;
-  updatedAt: number;
-}
-
-/**
- * User information (for interactions with user details)
- */
-export interface UserInfo {
-  id: number;
-  email: string;
-  displayName: string;
-}
-
-/**
- * User interaction with media (from 'user_media_interactions' table)
- */
-export interface MediaInteraction {
-  action: InteractionAction;
-  createdAt: number;
-}
-
-// /**
-//  * User interaction with user details (for admin views)
-//  */
-export interface MediaInteractionWithUser extends MediaInteraction {
-  userInfo?: UserInfo;
-}
-
-export interface MediaVotes {
-  likes?: number;
-  dislikes?: number;
 }
 
 /**
@@ -214,7 +174,7 @@ export type GenresQuery = z.infer<typeof GenresQuerySchema>;
 // ============================================================================
 
 export type Login = z.infer<typeof LoginSchema>;
-export type User = z.infer<typeof UserSchema>;
+// export type User = z.infer<typeof UserSchema>;
 
 export type CreateUser = z.infer<typeof CreateUserSchema>;
 export type DeleteUser = z.infer<typeof DeleteUserSchema>;

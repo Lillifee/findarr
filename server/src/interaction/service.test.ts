@@ -1,8 +1,7 @@
 import type { CreateMediaInteraction } from '@findarr/shared';
 import SqlDatabase from 'better-sqlite3';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { SCHEMA } from '../db/setup.js';
-import type { DB } from '../db/setup.js';
+import { createDatabase, type DB } from '../db/setup.js';
 import { getMediaByTmdbId } from '../media/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
 import {
@@ -25,33 +24,35 @@ const mockCreateMediaInteraction: CreateMediaInteraction = {
 
 describe('interaction service - integration tests', () => {
   let db: DB;
+  let sqliteDb: SqlDatabase.Database;
 
   beforeEach(() => {
     // Create fresh in-memory database for each test
-    db = new SqlDatabase(':memory:');
-    db.pragma('foreign_keys = ON');
-    db.exec(SCHEMA);
+    const result = createDatabase(':memory:');
+    db = result.db;
+    sqliteDb = result.sqliteDb;
   });
 
   afterEach(() => {
-    db.close();
+    sqliteDb.close();
   });
 
   describe('createInteraction', () => {
     it('should create new media and interaction when media does not exist', async () => {
       const user = await createTestUserInDb(db, { email: 'user1@test.com' });
+      expectDefined(user);
 
-      const result = createInteraction(db, mockCreateMediaInteraction, user);
+      const result = await createInteraction(db, mockCreateMediaInteraction, user);
 
       // Verify media was created
-      const media = getMediaByTmdbId(db, 123, 'movie');
+      const media = await getMediaByTmdbId(db, 123, 'movie');
       expectDefined(media);
       expect(media.tmdbId).toBe(123);
       expect(media.mediaType).toBe('movie');
       expect(media.status).toBe('pending');
 
       // Verify interaction was created
-      expect(hasInteraction(db, user.id, media.id, 'liked')).toBe(true);
+      expect(await hasInteraction(db, user.id, media.id, 'liked')).toBe(true);
 
       // Verify result
       expect(result).toMatchObject({
@@ -61,53 +62,55 @@ describe('interaction service - integration tests', () => {
       });
     });
 
-    it('should return undefined if no user provided', () => {
-      const result = createInteraction(db, mockCreateMediaInteraction, undefined);
+    it('should return undefined if no user provided', async () => {
+      const result = await createInteraction(db, mockCreateMediaInteraction, undefined);
       expect(result).toBeUndefined();
 
       // Verify nothing was created
-      const media = getMediaByTmdbId(db, 123, 'movie');
+      const media = await getMediaByTmdbId(db, 123, 'movie');
       expect(media).toBeUndefined();
     });
 
     it('should toggle off existing interaction when clicked again', async () => {
       const user = await createTestUserInDb(db, { email: 'user1@test.com' });
+      expectDefined(user);
 
       // Create initial interaction
-      createInteraction(db, mockCreateMediaInteraction, user);
+      await createInteraction(db, mockCreateMediaInteraction, user);
 
-      const media = getMediaByTmdbId(db, 123, 'movie');
+      const media = await getMediaByTmdbId(db, 123, 'movie');
       expectDefined(media);
 
       // Verify interaction exists
-      expect(hasInteraction(db, user.id, media.id, 'liked')).toBe(true);
+      expect(await hasInteraction(db, user.id, media.id, 'liked')).toBe(true);
 
       // Toggle off - click the same action again
-      createInteraction(db, mockCreateMediaInteraction, user);
+      await createInteraction(db, mockCreateMediaInteraction, user);
 
       // Verify interaction was removed
-      expect(hasInteraction(db, user.id, media.id, 'liked')).toBe(false);
+      expect(await hasInteraction(db, user.id, media.id, 'liked')).toBe(false);
     });
 
     it('should switch from dislike to like', async () => {
       const user = await createTestUserInDb(db, { email: 'user1@test.com' });
+      expectDefined(user);
 
       // First dislike
-      createInteraction(db, { ...mockCreateMediaInteraction, action: 'disliked' }, user);
+      await createInteraction(db, { ...mockCreateMediaInteraction, action: 'disliked' }, user);
 
-      const media = getMediaByTmdbId(db, 123, 'movie');
+      const media = await getMediaByTmdbId(db, 123, 'movie');
       expectDefined(media);
 
       // Verify dislike exists
-      expect(hasInteraction(db, user.id, media.id, 'disliked')).toBe(true);
-      expect(hasInteraction(db, user.id, media.id, 'liked')).toBe(false);
+      expect(await hasInteraction(db, user.id, media.id, 'disliked')).toBe(true);
+      expect(await hasInteraction(db, user.id, media.id, 'liked')).toBe(false);
 
       // Switch to like
-      createInteraction(db, mockCreateMediaInteraction, user);
+      await createInteraction(db, mockCreateMediaInteraction, user);
 
       // Verify only like exists now
-      expect(hasInteraction(db, user.id, media.id, 'liked')).toBe(true);
-      expect(hasInteraction(db, user.id, media.id, 'disliked')).toBe(false);
+      expect(await hasInteraction(db, user.id, media.id, 'liked')).toBe(true);
+      expect(await hasInteraction(db, user.id, media.id, 'disliked')).toBe(false);
     });
 
     it('should auto-request when 3 users like it', async () => {
@@ -124,22 +127,25 @@ describe('interaction service - integration tests', () => {
         email: 'user3@test.com',
         displayName: 'User 3',
       });
+      expectDefined(user1);
+      expectDefined(user2);
+      expectDefined(user3);
 
       // First two users like
-      createInteraction(db, mockCreateMediaInteraction, user1);
-      createInteraction(db, mockCreateMediaInteraction, user2);
+      await createInteraction(db, mockCreateMediaInteraction, user1);
+      await createInteraction(db, mockCreateMediaInteraction, user2);
 
-      let media = getMediaByTmdbId(db, 123, 'movie');
+      let media = await getMediaByTmdbId(db, 123, 'movie');
       expectDefined(media);
       expect(media.status).toBe('pending');
 
-      const votes = getVoteCounts(db, media.id);
+      const votes = await getVoteCounts(db, media.id);
       expect(votes.likes).toBe(2);
 
       // Third user likes - should trigger auto-request
-      createInteraction(db, mockCreateMediaInteraction, user3);
+      await createInteraction(db, mockCreateMediaInteraction, user3);
 
-      media = getMediaByTmdbId(db, 123, 'movie');
+      media = await getMediaByTmdbId(db, 123, 'movie');
       expectDefined(media);
       expect(media.status).toBe('requested');
     });
@@ -150,10 +156,11 @@ describe('interaction service - integration tests', () => {
         displayName: 'Admin User',
         role: 'admin',
       });
+      expectDefined(admin);
 
-      createInteraction(db, mockCreateMediaInteraction, admin);
+      await createInteraction(db, mockCreateMediaInteraction, admin);
 
-      const media = getMediaByTmdbId(db, 123, 'movie');
+      const media = await getMediaByTmdbId(db, 123, 'movie');
       expectDefined(media);
       expect(media.status).toBe('requested');
     });
@@ -172,17 +179,20 @@ describe('interaction service - integration tests', () => {
         email: 'user3@test.com',
         displayName: 'User 3',
       });
+      expectDefined(user1);
+      expectDefined(user2);
+      expectDefined(user3);
 
       // Three users dislike
-      createInteraction(db, { ...mockCreateMediaInteraction, action: 'disliked' }, user1);
-      createInteraction(db, { ...mockCreateMediaInteraction, action: 'disliked' }, user2);
-      createInteraction(db, { ...mockCreateMediaInteraction, action: 'disliked' }, user3);
+      await createInteraction(db, { ...mockCreateMediaInteraction, action: 'disliked' }, user1);
+      await createInteraction(db, { ...mockCreateMediaInteraction, action: 'disliked' }, user2);
+      await createInteraction(db, { ...mockCreateMediaInteraction, action: 'disliked' }, user3);
 
-      const media = getMediaByTmdbId(db, 123, 'movie');
+      const media = await getMediaByTmdbId(db, 123, 'movie');
       expectDefined(media);
       expect(media.status).toBe('pending'); // Should still be pending
 
-      const votes = getVoteCounts(db, media.id);
+      const votes = await getVoteCounts(db, media.id);
       expect(votes.likes).toBe(0);
       expect(votes.dislikes).toBe(3);
     });
@@ -191,10 +201,11 @@ describe('interaction service - integration tests', () => {
   describe('getUserInteractionsEnriched', () => {
     it('should return enriched user interactions with TMDB data', async () => {
       const user = await createTestUserInDb(db, { email: 'user1@test.com' });
+      expectDefined(user);
 
       // Create media and interaction
-      createInteraction(db, mockCreateMediaInteraction, user);
-      createInteraction(db, { mediaType: 'tv', tmdbId: 456, action: 'liked' }, user);
+      await createInteraction(db, mockCreateMediaInteraction, user);
+      await createInteraction(db, { mediaType: 'tv', tmdbId: 456, action: 'liked' }, user);
 
       const mockMedia1 = createMediaTestHelper({ id: 123, type: 'movie', name: 'Test Movie' });
       const mockMedia2 = createMediaTestHelper({ id: 456, type: 'tv', name: 'Test Show' });
@@ -239,8 +250,8 @@ describe('interaction service - integration tests', () => {
       });
 
       // Both users interact with the same movie
-      createInteraction(db, mockCreateMediaInteraction, user1);
-      createInteraction(db, mockCreateMediaInteraction, user2);
+      await createInteraction(db, mockCreateMediaInteraction, user1);
+      await createInteraction(db, mockCreateMediaInteraction, user2);
 
       const mockMedia = createMediaTestHelper({ id: 123, type: 'movie' });
 
@@ -265,12 +276,12 @@ describe('interaction service - integration tests', () => {
       const user = await createTestUserInDb(db, { email: 'user1@test.com' });
 
       // Create pending media with interaction
-      createInteraction(db, mockCreateMediaInteraction, user);
+      await createInteraction(db, mockCreateMediaInteraction, user);
 
       // Manually insert available media (simulating Jellyfin sync)
-      db.prepare(
-        'INSERT INTO media (tmdbId, mediaType, jellyfinId, status) VALUES (?, ?, ?, ?)'
-      ).run(999, 'movie', 'jellyfin-123', 'available');
+      sqliteDb
+        .prepare('INSERT INTO media (tmdbId, mediaType, jellyfinId, status) VALUES (?, ?, ?, ?)')
+        .run(999, 'movie', 'jellyfin-123', 'available');
 
       const mockMedia = createMediaTestHelper({ id: 123, type: 'movie' });
       const mockTmdbService = {

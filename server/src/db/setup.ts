@@ -1,64 +1,42 @@
 import { mkdirSync } from 'node:fs';
-import { dirname } from 'node:path';
-import SqlDatabase from 'better-sqlite3';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { relationsSchema, schema } from '@findarr/shared';
+import type SqlDatabase from 'better-sqlite3';
+import BetterSqlite3 from 'better-sqlite3';
+import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 
-export const SCHEMA = `
--- Users table
-CREATE TABLE IF NOT EXISTS users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  email TEXT UNIQUE NOT NULL,
-  passwordHash TEXT NOT NULL,
-  displayName TEXT NOT NULL,
-  role TEXT NOT NULL CHECK(role IN ('user', 'admin')),
-  createdAt INTEGER NOT NULL DEFAULT (unixepoch())
-);
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
-CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+// Combined schema for type inference
+const combinedSchema = { ...schema, ...relationsSchema } as const;
 
--- Media table (global state for all movies/shows)
-CREATE TABLE IF NOT EXISTS media (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  tmdbId INTEGER NOT NULL,
-  mediaType TEXT NOT NULL CHECK(mediaType IN ('movie', 'tv')),
-  jellyfinId TEXT,
-  status TEXT NOT NULL CHECK(status IN ('pending', 'requested', 'available')) DEFAULT 'pending',
-  createdAt INTEGER NOT NULL DEFAULT (unixepoch()),
-  updatedAt INTEGER NOT NULL DEFAULT (unixepoch()),
-  UNIQUE(tmdbId, mediaType)
-);
+export type DB = ReturnType<typeof drizzle<typeof combinedSchema>>;
 
-CREATE INDEX IF NOT EXISTS idx_media_tmdb ON media(tmdbId, mediaType);
-CREATE INDEX IF NOT EXISTS idx_media_status ON media(status);
-CREATE INDEX IF NOT EXISTS idx_media_jellyfin ON media(jellyfinId);
+export type DatabaseConnection = {
+  db: DB;
+  sqliteDb: SqlDatabase.Database;
+};
 
--- User media interactions table (user actions: liked, disliked)
-CREATE TABLE IF NOT EXISTS user_media_interactions (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  mediaId INTEGER NOT NULL,
-  userId INTEGER NOT NULL,
-  action TEXT NOT NULL CHECK(action IN ('liked', 'disliked')),
-  createdAt INTEGER NOT NULL DEFAULT (unixepoch()),
-  UNIQUE(mediaId, userId, action),
-  FOREIGN KEY (mediaId) REFERENCES media(id) ON DELETE CASCADE,
-  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS idx_interactions_user ON user_media_interactions(userId, action);
-CREATE INDEX IF NOT EXISTS idx_interactions_media ON user_media_interactions(mediaId, action);
-CREATE INDEX IF NOT EXISTS idx_interactions_created ON user_media_interactions(userId, createdAt);
-`;
-
-export function createDatabase(dbPath: string): SqlDatabase.Database {
+/**
+ * Creates and initializes a SQLite database with Drizzle ORM
+ * Uses auto-generated migrations from drizzle-kit
+ */
+export function createDatabase(dbPath: string): DatabaseConnection {
   // Ensure data directory exists
   const dataDir = dirname(dbPath);
   mkdirSync(dataDir, { recursive: true });
 
-  // Open database
-  const db = new SqlDatabase(dbPath);
-  db.pragma('foreign_keys = ON');
-  db.exec(SCHEMA);
+  // Open SQLite database
+  const sqliteDb = new BetterSqlite3(dbPath);
+  sqliteDb.pragma('foreign_keys = ON');
 
-  return db;
+  // Create Drizzle instance with schema and relations for relational queries
+  const db = drizzle(sqliteDb, { schema: combinedSchema });
+
+  // Apply migrations (from drizzle-kit generated folder)
+  migrate(db, { migrationsFolder: join(__dirname, '..', '..', 'drizzle') });
+
+  return { db, sqliteDb };
 }
-
-export type DB = SqlDatabase.Database;

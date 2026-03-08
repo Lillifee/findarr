@@ -21,10 +21,10 @@ import { getMediaRecordsBatch } from './repository.js';
  * @param mediaItems Media items from TMDB
  * @returns Media items enriched with state.record
  */
-export function enrichWithRecords(db: DB, mediaItems: Media[]): Media[] {
+export async function enrichWithRecords(db: DB, mediaItems: Media[]): Promise<Media[]> {
   if (mediaItems.length === 0) return mediaItems;
 
-  const mediaRecords = getMediaRecordsBatch(db, mediaItems);
+  const mediaRecords = await getMediaRecordsBatch(db, mediaItems);
 
   return mediaItems.map(item => {
     const key = `${item.id}_${item.type}`;
@@ -46,16 +46,20 @@ export function enrichWithRecords(db: DB, mediaItems: Media[]): Media[] {
  * @param userId Optional user ID. If provided, returns user-specific interactions (liked, disliked, requested).
  *               If undefined, returns all interactions with user info (for admin views)
  */
-export function enrichWithInteractions(db: DB, mediaItems: Media[], userId?: number): Media[] {
+export async function enrichWithInteractions(
+  db: DB,
+  mediaItems: Media[],
+  userId?: number
+): Promise<Media[]> {
   const isAdminView = userId === undefined;
 
   // Fetch interactions (user-specific or all with user info)
   const interactionsMap = isAdminView
-    ? getAllInteractionsWithUsersBatch(db, mediaItems)
-    : getInteractionsBatch(db, mediaItems, userId);
+    ? await getAllInteractionsWithUsersBatch(db, mediaItems)
+    : await getInteractionsBatch(db, mediaItems, userId);
 
   // Fetch vote counts (always aggregated across all users)
-  const votesMap = getVoteCountsBatch(db, mediaItems);
+  const votesMap = await getVoteCountsBatch(db, mediaItems);
 
   return mediaItems.map(item => {
     const mediaId = item.state?.record?.id;
