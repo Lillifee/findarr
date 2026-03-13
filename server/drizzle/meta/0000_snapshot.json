@@ -1,9 +1,129 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "249cf3c3-1a20-4201-96b3-df068cd68f66",
+  "id": "22c49075-66c9-42df-92a3-c8f80c6c74cd",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
+    "catalog_cache": {
+      "name": "catalog_cache",
+      "columns": {
+        "tmdbId": {
+          "name": "tmdbId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "date": {
+          "name": "date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "posterPath": {
+          "name": "posterPath",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "backdropPath": {
+          "name": "backdropPath",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "overview": {
+          "name": "overview",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "voteAverage": {
+          "name": "voteAverage",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "voteCount": {
+          "name": "voteCount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "popularity": {
+          "name": "popularity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "originalLanguage": {
+          "name": "originalLanguage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "originCountry": {
+          "name": "originCountry",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "genres": {
+          "name": "genres",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "keywords": {
+          "name": "keywords",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "trendingRank": {
+          "name": "trendingRank",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "catalog_cache_tmdbId_type_pk": {
+          "columns": ["tmdbId", "type"],
+          "name": "catalog_cache_tmdbId_type_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "media": {
       "name": "media",
       "columns": {
@@ -21,8 +141,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "mediaType": {
-          "name": "mediaType",
+        "type": {
+          "name": "type",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -63,7 +183,7 @@
       "indexes": {
         "idx_media_tmdb": {
           "name": "idx_media_tmdb",
-          "columns": ["tmdbId", "mediaType"],
+          "columns": ["tmdbId", "type"],
           "isUnique": false
         },
         "idx_media_status": {
@@ -76,14 +196,150 @@
           "columns": ["jellyfinId"],
           "isUnique": false
         },
-        "media_tmdbId_mediaType_unique": {
-          "name": "media_tmdbId_mediaType_unique",
-          "columns": ["tmdbId", "mediaType"],
+        "media_tmdbId_type_unique": {
+          "name": "media_tmdbId_type_unique",
+          "columns": ["tmdbId", "type"],
           "isUnique": true
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "user_genre_preferences": {
+      "name": "user_genre_preferences",
+      "columns": {
+        "userId": {
+          "name": "userId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "genreId": {
+          "name": "genreId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "genreName": {
+          "name": "genreName",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "score": {
+          "name": "score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "count": {
+          "name": "count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        }
+      },
+      "indexes": {
+        "idx_user_genre_preferences_user": {
+          "name": "idx_user_genre_preferences_user",
+          "columns": ["userId"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "user_genre_preferences_userId_users_id_fk": {
+          "name": "user_genre_preferences_userId_users_id_fk",
+          "tableFrom": "user_genre_preferences",
+          "tableTo": "users",
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "user_genre_preferences_userId_genreId_pk": {
+          "columns": ["userId", "genreId"],
+          "name": "user_genre_preferences_userId_genreId_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "user_keyword_preferences": {
+      "name": "user_keyword_preferences",
+      "columns": {
+        "userId": {
+          "name": "userId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "keywordId": {
+          "name": "keywordId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "keywordName": {
+          "name": "keywordName",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "score": {
+          "name": "score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "count": {
+          "name": "count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        }
+      },
+      "indexes": {
+        "idx_user_keyword_preferences_user": {
+          "name": "idx_user_keyword_preferences_user",
+          "columns": ["userId"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "user_keyword_preferences_userId_users_id_fk": {
+          "name": "user_keyword_preferences_userId_users_id_fk",
+          "tableFrom": "user_keyword_preferences",
+          "tableTo": "users",
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "user_keyword_preferences_userId_keywordId_pk": {
+          "columns": ["userId", "keywordId"],
+          "name": "user_keyword_preferences_userId_keywordId_pk"
+        }
+      },
       "uniqueConstraints": {},
       "checkConstraints": {}
     },

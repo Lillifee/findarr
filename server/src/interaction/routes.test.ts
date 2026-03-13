@@ -57,7 +57,7 @@ describe('interactionRoutes', () => {
     vi.spyOn(interactionService, 'createInteraction').mockResolvedValue({
       id: 1,
       tmdbId: 123,
-      mediaType: 'movie',
+      type: 'movie',
       jellyfinId: null,
       status: 'requested',
       createdAt: Date.now(),
@@ -84,7 +84,12 @@ describe('interactionRoutes', () => {
     const res = await app.inject({ method: 'POST', url: '/interactions', payload });
 
     expect(res.statusCode).toBe(200);
-    expect(interactionService.createInteraction).toHaveBeenCalledWith(mockDb, payload, user);
+    expect(interactionService.createInteraction).toHaveBeenCalledWith(
+      app.tmdb,
+      app.db,
+      payload,
+      user
+    );
   });
 
   it('should return user interactions', async () => {

@@ -12,7 +12,7 @@ import { Conflict, NotFound } from '../utils/errors.js';
 export interface MediaDbRow {
   id: number;
   tmdbId: number;
-  mediaType: 'movie' | 'tv';
+  type: 'movie' | 'tv';
   jellyfinId: string | null;
   status: MediaStatus;
   createdAt: number;
@@ -37,10 +37,10 @@ export const getMediaById = async (db: DB, mediaId: number): Promise<MediaDbRow 
 export const getMediaByTmdbId = async (
   db: DB,
   tmdbId: number,
-  mediaType: 'movie' | 'tv'
+  type: 'movie' | 'tv'
 ): Promise<MediaDbRow | undefined> =>
   (await db.query.media.findFirst({
-    where: and(eq(media.tmdbId, tmdbId), eq(media.mediaType, mediaType)),
+    where: and(eq(media.tmdbId, tmdbId), eq(media.type, type)),
   })) as MediaDbRow | undefined;
 
 /**
@@ -50,14 +50,14 @@ export const getMediaByTmdbId = async (
 export const createMedia = async (
   db: DB,
   tmdbId: number,
-  mediaType: 'movie' | 'tv',
+  type: 'movie' | 'tv',
   status: MediaStatus = 'pending'
 ) => {
   const result = await db
     .insert(media)
     .values({
       tmdbId,
-      mediaType,
+      type,
       status,
     })
     .returning({
@@ -105,14 +105,14 @@ export async function getMediaRecordsBatch(
 
   // Build OR conditions for batch query
   const conditions = mediaItems.map(item =>
-    and(eq(media.tmdbId, item.id), eq(media.mediaType, item.type))
+    and(eq(media.tmdbId, item.tmdbId), eq(media.type, item.type))
   );
 
   const rows = await db.query.media.findMany({
     columns: {
       id: true,
       tmdbId: true,
-      mediaType: true,
+      type: true,
       status: true,
       jellyfinId: true,
       createdAt: true,
@@ -122,7 +122,7 @@ export async function getMediaRecordsBatch(
   });
 
   for (const row of rows) {
-    const key = `${row.tmdbId}_${row.mediaType}`;
+    const key = `${row.tmdbId}_${row.type}`;
     mediaRecords.set(key, {
       id: row.id,
       status: row.status,

@@ -29,7 +29,7 @@ export const createTestUser = (props?: Partial<User>): User => ({
 });
 
 export const createTestMedia = (props?: Partial<Media>): Media => ({
-  id: 0,
+  tmdbId: 0,
   type: 'movie',
   name: 'Test Movie',
   date: '2026-01-28',

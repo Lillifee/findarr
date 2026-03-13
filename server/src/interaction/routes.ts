@@ -8,7 +8,12 @@ const interactionRoutes: FastifyPluginAsync = async fastify => {
 
   // Create or toggle a media interaction (like/dislike)
   fastify.post('/', request =>
-    createInteraction(fastify.db, CreateInteractionSchema.parse(request.body), request.user)
+    createInteraction(
+      fastify.tmdb,
+      fastify.db,
+      CreateInteractionSchema.parse(request.body),
+      request.user
+    )
   );
 
   // Get user's own voted media (both likes and dislikes) - enriched with TMDB data

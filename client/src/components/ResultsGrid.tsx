@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { Media } from '../../../shared/dist/types';
 import { LikeDislikeButton } from './LikeDislikeButton';
 
@@ -10,6 +10,15 @@ interface ResultsGridProps {
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
 
 export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem }) => {
+  // Track local interaction states for immediate UI updates
+  const [interactions, setInteractions] = useState<Record<number, 'liked' | 'disliked' | null>>({});
+
+  const handleInteractionToggle = (tmdbId: number, action: 'liked' | 'disliked' | null) => {
+    setInteractions(prev => ({
+      ...prev,
+      [tmdbId]: action,
+    }));
+  };
   if (results.length === 0) {
     return (
       <div className="text-center py-16 text-gray-400">
@@ -42,18 +51,32 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
         const year = releaseDate ? new Date(releaseDate).getFullYear() : 'N/A';
         const posterPath = item.posterPath;
 
+        // Determine interaction status - use local state first, fallback to server state
+        const localInteraction = interactions[item.tmdbId];
+        const serverInteraction = item.state?.interactions?.find(i => i.action === 'liked')
+          ? 'liked'
+          : item.state?.interactions?.find(i => i.action === 'disliked')
+            ? 'disliked'
+            : null;
+        const currentInteraction =
+          localInteraction === undefined ? serverInteraction : localInteraction;
+
+        const isLiked = currentInteraction === 'liked';
+        const isDisliked = currentInteraction === 'disliked';
+        const hasInteraction = isLiked || isDisliked;
+
         return (
           <div
-            key={item.id}
+            key={item.tmdbId}
             onClick={() => onSelectItem(item)}
             className="group cursor-pointer transition-all duration-300"
           >
             {/* Poster with text overlay */}
             <div className="relative overflow-hidden shadow-lg bg-gray-900/40 backdrop-blur-sm border border-gray-700/50 group-hover:border-amber-500 transition-all duration-300 group-hover:shadow-xl rounded-lg">
               {/* Trending Badge */}
-              {item.state?.trendingRank && (
+              {item.trendingRank && (
                 <div className="absolute top-1.5 md:top-3 right-1.5 md:right-3 bg-linear-to-r from-amber-500 to-orange-500 text-white px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-md text-xs font-bold shadow-lg z-10">
-                  #{item.state.trendingRank}
+                  #{item.trendingRank}
                 </div>
               )}
 
@@ -64,11 +87,22 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
               )}
 
               {posterPath ? (
-                <img
-                  src={`${TMDB_IMAGE_BASE}${posterPath}`}
-                  alt={title}
-                  className="w-full aspect-2/3 object-cover transition-transform duration-300 group-hover:scale-105"
-                />
+                <>
+                  <img
+                    src={`${TMDB_IMAGE_BASE}${posterPath}`}
+                    alt={title}
+                    className={`w-full aspect-2/3 object-cover transition-all duration-300 group-hover:scale-105 ${
+                      hasInteraction ? 'opacity-30' : ''
+                    }`}
+                  />
+                  {/* Interaction overlay */}
+                  {isLiked && (
+                    <div className="absolute inset-0 bg-green-500/10 border-2 border-green-400 pointer-events-none" />
+                  )}
+                  {isDisliked && (
+                    <div className="absolute inset-0 bg-red-500/10 border-2 border-red-400 pointer-events-none" />
+                  )}
+                </>
               ) : (
                 <div className="w-full aspect-2/3 bg-gray-700 flex items-center justify-center text-gray-500">
                   <span className="text-sm">No Poster</span>
@@ -92,20 +126,28 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
                       {item.voteAverage.toFixed(1)}
                     </span>
                   </div>
+
+                  <div className="flex items-center gap-1 md:gap-1.5 bg-black/60 backdrop-blur-sm px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-md">
+                    <span className="text-yellow-400 text-xs md:text-sm">★</span>
+                    <span className="text-white text-xs md:text-sm font-semibold">
+                      {item.state?.score?.keywordScore?.toFixed(1)}-
+                      {item.state?.score?.genreScore?.toFixed(1)} =
+                      {item.state?.score?.userScore?.toFixed(1)}
+                      {/* {item.state?.score?.popularityScore?.toFixed(1)}
+                      {item.state?.score?.recencyScore.toFixed(1)}
+                      {item.state?.score?.trendingScore?.toFixed(1)}
+                      {item.state?.score?.weightedRating?.toFixed(1)} */}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Like/Dislike Buttons */}
                 <div className="flex justify-center" onClick={e => e.stopPropagation()}>
                   <LikeDislikeButton
-                    tmdbId={item.id}
+                    tmdbId={item.tmdbId}
                     mediaType={item.type}
-                    initialAction={
-                      item.state?.interactions?.find(i => i.action === 'liked')
-                        ? 'liked'
-                        : item.state?.interactions?.find(i => i.action === 'disliked')
-                          ? 'disliked'
-                          : null
-                    }
+                    initialAction={currentInteraction}
+                    onToggle={action => handleInteractionToggle(item.tmdbId, action)}
                     compact
                   />
                 </div>

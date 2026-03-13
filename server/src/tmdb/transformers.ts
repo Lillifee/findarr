@@ -2,13 +2,21 @@
  * Transformers to convert TMDB API responses to application types
  * These functions map the raw TMDB data structure to our unified application structure
  */
-import type { Movie, TVShow, MovieDetails, TVDetails, Genre, Media } from '@findarr/shared';
+import type {
+  Movie,
+  TVShow,
+  MovieDetails,
+  TVDetails,
+  Genre,
+  Keyword,
+  Media,
+} from '@findarr/shared';
 import type { TMDBMovie, TMDBTVShow, TMDBMovieDetails, TMDBTVDetails } from './schemas.js';
 
 /**
  * Custom state fields that can be added to transformed items
  */
-interface CustomStateFields {
+interface CustomFields {
   trendingRank?: number;
 }
 
@@ -18,7 +26,7 @@ interface CustomStateFields {
 export function transformMedia(
   item: TMDBMovie | TMDBTVShow,
   genreMap: Map<number, Genre>,
-  customState?: CustomStateFields
+  customState?: CustomFields
 ): Media {
   return item.type === 'movie'
     ? transformMovie(item as TMDBMovie, genreMap, customState)
@@ -31,7 +39,7 @@ export function transformMedia(
 function transformMovie(
   tmdbMovie: TMDBMovie,
   genreMap: Map<number, Genre>,
-  customState?: CustomStateFields
+  customFields?: CustomFields
 ): Movie {
   // Map genre_ids to full genre objects
   const genres = tmdbMovie.genre_ids
@@ -39,7 +47,7 @@ function transformMovie(
     : [];
 
   return {
-    id: tmdbMovie.id,
+    tmdbId: tmdbMovie.id,
     type: tmdbMovie.type,
     name: tmdbMovie.title,
     date: tmdbMovie.release_date ?? undefined,
@@ -52,7 +60,7 @@ function transformMovie(
     originalLanguage: tmdbMovie.original_language,
     originCountry: undefined, // Movies don't have origin_country
     genres,
-    ...(customState && { state: customState }),
+    ...customFields,
   };
 }
 
@@ -62,7 +70,7 @@ function transformMovie(
 function transformTVShow(
   tmdbTV: TMDBTVShow,
   genreMap: Map<number, Genre>,
-  customState?: CustomStateFields
+  customFields?: CustomFields
 ): TVShow {
   // Map genre_ids to full genre objects
   const genres = tmdbTV.genre_ids
@@ -70,7 +78,7 @@ function transformTVShow(
     : [];
 
   return {
-    id: tmdbTV.id,
+    tmdbId: tmdbTV.id,
     type: tmdbTV.type,
     name: tmdbTV.name,
     date: tmdbTV.first_air_date ?? undefined,
@@ -83,7 +91,7 @@ function transformTVShow(
     originalLanguage: tmdbTV.original_language,
     originCountry: tmdbTV.origin_country,
     genres,
-    ...(customState && { state: customState }),
+    ...customFields,
   };
 }
 
@@ -98,8 +106,11 @@ export function transformDetails(item: TMDBMovieDetails | TMDBTVDetails) {
  * Transform TMDB Movie Details to application MovieDetails type
  */
 function transformMovieDetails(tmdbMovie: TMDBMovieDetails): MovieDetails {
+  // Extract keywords from movie response (direct array)
+  const keywords: Keyword[] = tmdbMovie.keywords?.keywords ?? [];
+
   return {
-    id: tmdbMovie.id,
+    tmdbId: tmdbMovie.id,
     type: tmdbMovie.type,
     name: tmdbMovie.title,
     date: tmdbMovie.release_date ?? undefined,
@@ -112,6 +123,7 @@ function transformMovieDetails(tmdbMovie: TMDBMovieDetails): MovieDetails {
     originalLanguage: tmdbMovie.original_language,
     originCountry: undefined,
     genres: tmdbMovie.genres,
+    keywords,
     tagline: tmdbMovie.tagline ?? undefined,
     runtime: tmdbMovie.runtime ?? undefined,
     budget: tmdbMovie.budget,
@@ -126,8 +138,11 @@ function transformMovieDetails(tmdbMovie: TMDBMovieDetails): MovieDetails {
  * Transform TMDB TV Show Details to application TVDetails type
  */
 function transformTVDetails(tmdbTV: TMDBTVDetails): TVDetails {
+  // Extract keywords from TV response (nested in results)
+  const keywords: Keyword[] = tmdbTV.keywords?.results ?? [];
+
   return {
-    id: tmdbTV.id,
+    tmdbId: tmdbTV.id,
     type: tmdbTV.type,
     name: tmdbTV.name,
     date: tmdbTV.first_air_date ?? undefined,
@@ -140,6 +155,7 @@ function transformTVDetails(tmdbTV: TMDBTVDetails): TVDetails {
     originalLanguage: tmdbTV.original_language,
     originCountry: tmdbTV.origin_country,
     genres: tmdbTV.genres,
+    keywords,
     originalName: tmdbTV.original_name,
     episodeRunTime: tmdbTV.episode_run_time,
     showType: tmdbTV.show_type,

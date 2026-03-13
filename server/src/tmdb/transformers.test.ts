@@ -37,13 +37,13 @@ describe('tmdb/transformers', () => {
               "name": "Action",
             },
           ],
-          "id": 1,
           "name": "Movie",
           "originCountry": undefined,
           "originalLanguage": "en",
           "overview": "Test overview",
           "popularity": 50,
           "posterPath": "/path/to/poster.jpg",
+          "tmdbId": 1,
           "type": "movie",
           "voteAverage": 8,
           "voteCount": 100,
@@ -105,7 +105,6 @@ describe('tmdb/transformers', () => {
               "name": "Action",
             },
           ],
-          "id": 2,
           "name": "Show",
           "originCountry": [
             "US",
@@ -114,9 +113,8 @@ describe('tmdb/transformers', () => {
           "overview": "Test overview",
           "popularity": 40,
           "posterPath": "/path/to/poster.jpg",
-          "state": {
-            "trendingRank": 1,
-          },
+          "tmdbId": 2,
+          "trendingRank": 1,
           "type": "tv",
           "voteAverage": 7,
           "voteCount": 50,
@@ -145,7 +143,7 @@ describe('tmdb/transformers', () => {
 
       const result = transformMedia(movie, genreMap, { trendingRank: 999 });
 
-      expect(result.state?.trendingRank).toBe(999);
+      expect(result.trendingRank).toBe(999);
     });
   });
 
@@ -182,8 +180,8 @@ describe('tmdb/transformers', () => {
           "date": "2024-01-01",
           "genres": [],
           "homepage": "https://example.com",
-          "id": 1,
           "imdbId": "tt1234567",
+          "keywords": [],
           "name": "Movie",
           "originCountry": undefined,
           "originalLanguage": "en",
@@ -194,6 +192,7 @@ describe('tmdb/transformers', () => {
           "runtime": undefined,
           "status": "Released",
           "tagline": "Test tagline",
+          "tmdbId": 1,
           "type": "movie",
           "voteAverage": 8,
           "voteCount": 100,
@@ -235,7 +234,7 @@ describe('tmdb/transformers', () => {
           ],
           "genres": [],
           "homepage": undefined,
-          "id": 2,
+          "keywords": [],
           "name": "Show",
           "numberOfEpisodes": 10,
           "numberOfSeasons": 1,
@@ -249,6 +248,7 @@ describe('tmdb/transformers', () => {
           "posterPath": undefined,
           "showType": "Scripted",
           "status": "Ended",
+          "tmdbId": 2,
           "type": "tv",
           "voteAverage": 7,
           "voteCount": 50,

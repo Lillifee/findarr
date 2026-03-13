@@ -181,6 +181,23 @@ export function MediaView({ media }: MediaDetailsProps) {
             </div>
           )}
 
+          {/* Keywords */}
+          {media.keywords && media.keywords.length > 0 && (
+            <div className="mb-4 md:mb-6">
+              <h3 className="m-0 mb-2 text-base md:text-lg font-semibold text-white">Keywords</h3>
+              <div className="flex flex-wrap gap-2">
+                {media.keywords.map(keyword => (
+                  <span
+                    key={keyword.id}
+                    className="bg-blue-600/20 backdrop-blur-sm text-blue-200 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm border border-blue-500/40 shadow-md"
+                  >
+                    {keyword.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* TV-specific origin countries */}
           {media.type === 'tv' && media.originCountry && media.originCountry.length > 0 && (
             <div className="mb-4 md:mb-6">
@@ -297,7 +314,7 @@ export function MediaView({ media }: MediaDetailsProps) {
           {/* Like/Dislike buttons */}
           <div className="flex justify-center md:justify-start">
             <LikeDislikeButton
-              tmdbId={media.id}
+              tmdbId={media.tmdbId}
               mediaType={media.type}
               initialAction={
                 media.state?.interactions?.find(i => i.action === 'liked')

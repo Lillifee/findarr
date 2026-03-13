@@ -28,6 +28,11 @@ export interface Genre {
   name: string;
 }
 
+export interface Keyword {
+  id: number;
+  name: string;
+}
+
 export type MediaStatus = 'pending' | 'requested' | 'available';
 export type InteractionType = 'liked' | 'disliked';
 
@@ -37,6 +42,9 @@ export interface MediaScore {
   popularityScore: number;
   weightedRating: number;
   baseScore: number;
+  genreScore: number;
+  keywordScore: number;
+  userScore: number;
   finalScore: number;
 }
 
@@ -47,7 +55,6 @@ export interface MediaScore {
 export interface MediaState {
   // Computed ranking/scoring
   score?: MediaScore;
-  trendingRank?: number;
 
   // Database record (if media exists in our system)
   record?: MediaRecord;
@@ -63,7 +70,7 @@ export interface MediaState {
  * Base fields common to Movie and TVShow
  */
 export interface Media {
-  id: number;
+  tmdbId: number;
   type: 'movie' | 'tv';
   name: string;
   date: string | undefined;
@@ -76,6 +83,10 @@ export interface Media {
   originalLanguage: string;
   originCountry: string[] | undefined; // TV-specific field - empty array for movies
   genres: Genre[];
+
+  // Optional fields
+  trendingRank?: number | undefined; // added for trending items
+  keywords?: Keyword[]; // populated from catalog_cache for popular items
 
   // Server-added state (computed scores, database records, user interactions)
   state?: MediaState;

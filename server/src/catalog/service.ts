@@ -12,35 +12,21 @@ import type {
 } from '@findarr/shared';
 import type { DB } from '../db/setup.js';
 import { enrichWithRecords, enrichWithInteractions } from '../media/enrichment.js';
-import { filterByCriteria, deduplicateMedia } from '../media/filter.js';
-import { scoreMediaItems } from '../media/scoring.js';
+import { filterByCriteria } from '../media/filter.js';
+import { scoreMediaItems, scoreMediaItemsForUser } from '../media/scoring.js';
+import { getUserGenrePreferences, getUserKeywordPreferences } from '../preferences/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
+import { getAllCatalogCache } from './repository.js';
 
 /**
  * Catalog service - orchestrates multiple data sources and applies business logic
  */
 export function createCatalogService(db: DB, tmdbService: TMDBService) {
-  // Cache TTL: 6 hours (TMDB trending updates weekly)
-  const CACHE_TTL = 6 * 60 * 60 * 1000;
-
-  // Popular cache: stores final scored and deduplicated results
-  let popularCache:
-    | {
-        results: Media[];
-        fetchedAt: Date;
-        language: string;
-      }
-    | undefined;
-
   /**
-   * Initialize all data sources and pre-warm cache
+   * Initialize all data sources
    */
   async function initialize() {
     await tmdbService.loadGenres();
-
-    // Pre-warm popular cache
-    // TODO - use setting
-    await fetchAndCachePopular('de-DE');
   }
 
   /**
@@ -80,52 +66,17 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
   }
 
   /**
-   * Fetch, score, and cache popular media
-   */
-  async function fetchAndCachePopular(language: string): Promise<Media[]> {
-    // Fetch both trending and recent releases
-    const [trendingResult, discoverResult] = await Promise.all([
-      tmdbService.fetchTrending({ language, time_window: 'week' }, [1, 2, 3, 4, 5, 6, 7, 8]),
-      tmdbService.fetchDiscover(
-        { language, type: 'both', recentDays: 365 },
-        [1, 2, 3, 4, 5, 6, 7, 8]
-      ),
-    ]);
-
-    const merged = [...trendingResult.results, ...discoverResult.results];
-
-    // Dedupe and score
-    const deduped = deduplicateMedia(merged);
-    const scored = scoreMediaItems(deduped);
-
-    // Cache the results
-    popularCache = {
-      results: scored,
-      fetchedAt: new Date(),
-      language,
-    };
-
-    return scored;
-  }
-
-  /**
-   * Popular media - cached discover + trending with balanced scoring
+   * Popular media - sourced from catalog_cache (background sync)
    * Ensures a good mix of movies and TV shows on each page
    */
   async function popular(params: PopularQuery, userId?: number): Promise<DiscoverResponse> {
-    const { page = 1, type = 'both', language = 'en-US' } = params;
-    const now = new Date();
+    const { page = 1, type = 'both' } = params;
 
-    // Get or refresh cache
-    const allResults =
-      popularCache &&
-      popularCache.language === language &&
-      now.getTime() - popularCache.fetchedAt.getTime() < CACHE_TTL
-        ? popularCache.results
-        : await fetchAndCachePopular(language);
+    // Get all cached media from database
+    const allResults = await getAllCatalogCache(db);
 
     // Filter by user criteria (type, genres, regions)
-    const filteredResults = allResults.filter(item =>
+    let filteredResults = allResults.filter(item =>
       filterByCriteria(item, {
         type,
         regions: params.regionGroups || [],
@@ -133,7 +84,26 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
       })
     );
 
-    // Paginate
+    // Calculate base scores (trending, popularity, recency, rating)
+    filteredResults = scoreMediaItems(filteredResults);
+
+    // Apply user preference scoring if authenticated (BEFORE pagination)
+    if (userId) {
+      const [genrePreferences, keywordPreferences] = await Promise.all([
+        getUserGenrePreferences(db, userId),
+        getUserKeywordPreferences(db, userId),
+      ]);
+
+      if (genrePreferences.size > 0 || keywordPreferences.size > 0) {
+        filteredResults = scoreMediaItemsForUser(
+          filteredResults,
+          genrePreferences,
+          keywordPreferences
+        );
+      }
+    }
+
+    // Paginate AFTER scoring (so best matches appear on first pages)
     const ITEMS_PER_PAGE = 20;
     const startIndex = (page - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;

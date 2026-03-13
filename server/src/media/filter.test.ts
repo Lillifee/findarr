@@ -4,7 +4,7 @@ import { filterByCriteria } from './filter.js';
 
 describe('filter service', () => {
   const baseItem: Media = {
-    id: 123,
+    tmdbId: 123,
     type: 'movie',
     name: 'The Wrecking Crew',
     date: '2026-01-28',
@@ -22,9 +22,7 @@ describe('filter service', () => {
       { id: 80, name: 'Crime' },
       { id: 9648, name: 'Mystery' },
     ],
-    state: {
-      trendingRank: 17,
-    },
+    trendingRank: 17,
   };
 
   it('should pass when all filters match', () => {

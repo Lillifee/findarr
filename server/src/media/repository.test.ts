@@ -35,7 +35,7 @@ describe('mediaRepository', () => {
       expect(media).toMatchObject({
         id: 1,
         tmdbId: 123,
-        mediaType: 'movie',
+        type: 'movie',
         status: 'pending',
         jellyfinId: null,
       });
@@ -60,7 +60,7 @@ describe('mediaRepository', () => {
       expect(media).toMatchObject({
         id: mediaId,
         tmdbId: 123,
-        mediaType: 'movie',
+        type: 'movie',
       });
     });
 
@@ -79,7 +79,7 @@ describe('mediaRepository', () => {
 
       expect(media).toMatchObject({
         tmdbId: 123,
-        mediaType: 'movie',
+        type: 'movie',
       });
     });
 
@@ -96,8 +96,8 @@ describe('mediaRepository', () => {
       const movie = await getMediaByTmdbId(db, 123, 'movie');
       const tv = await getMediaByTmdbId(db, 123, 'tv');
 
-      expect(movie?.mediaType).toBe('movie');
-      expect(tv?.mediaType).toBe('tv');
+      expect(movie?.type).toBe('movie');
+      expect(tv?.type).toBe('tv');
       expect(movie?.id).not.toBe(tv?.id);
     });
   });
@@ -142,8 +142,8 @@ describe('mediaRepository', () => {
       await createMedia(db, 456, 'tv', 'available');
 
       const mediaItems: Media[] = [
-        createMediaTestHelper({ id: 123, type: 'movie' }),
-        createMediaTestHelper({ id: 456, type: 'tv' }),
+        createMediaTestHelper({ tmdbId: 123, type: 'movie' }),
+        createMediaTestHelper({ tmdbId: 456, type: 'tv' }),
       ];
 
       const result = await getMediaRecordsBatch(db, mediaItems);
@@ -165,8 +165,8 @@ describe('mediaRepository', () => {
       await createMedia(db, 123, 'movie', 'requested');
 
       const mediaItems: Media[] = [
-        createMediaTestHelper({ id: 123, type: 'movie' }),
-        createMediaTestHelper({ id: 999, type: 'tv' }), // Doesn't exist in DB
+        createMediaTestHelper({ tmdbId: 123, type: 'movie' }),
+        createMediaTestHelper({ tmdbId: 999, type: 'tv' }), // Doesn't exist in DB
       ];
 
       const result = await getMediaRecordsBatch(db, mediaItems);
@@ -181,8 +181,8 @@ describe('mediaRepository', () => {
       await createMedia(db, 123, 'tv', 'available');
 
       const mediaItems: Media[] = [
-        createMediaTestHelper({ id: 123, type: 'movie' }),
-        createMediaTestHelper({ id: 123, type: 'tv' }),
+        createMediaTestHelper({ tmdbId: 123, type: 'movie' }),
+        createMediaTestHelper({ tmdbId: 123, type: 'tv' }),
       ];
 
       const result = await getMediaRecordsBatch(db, mediaItems);
@@ -198,7 +198,7 @@ describe('mediaRepository', () => {
       // Update jellyfinId
       sqliteDb.prepare('UPDATE media SET jellyfinId = ? WHERE id = ?').run('jf-abc-123', media.id);
 
-      const mediaItems: Media[] = [createMediaTestHelper({ id: 123, type: 'movie' })];
+      const mediaItems: Media[] = [createMediaTestHelper({ tmdbId: 123, type: 'movie' })];
 
       const result = await getMediaRecordsBatch(db, mediaItems);
       const record = result.get('123_movie');

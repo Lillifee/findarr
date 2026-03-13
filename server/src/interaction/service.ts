@@ -1,4 +1,5 @@
 import { type CreateMediaInteraction, type Media, type User } from '@findarr/shared';
+import { getCatalogCacheBatch } from '../catalog/repository.js';
 import type { DB } from '../db/setup.js';
 import { fetchTMDBDetails, enrichWithInteractions } from '../media/enrichment.js';
 import {
@@ -7,6 +8,7 @@ import {
   getMediaByTmdbId,
   updateMediaStatus,
 } from '../media/repository.js';
+import { updatePreferencesForInteraction } from '../preferences/service.js';
 import type { TMDBService } from '../tmdb/service.js';
 import {
   addInteraction,
@@ -22,8 +24,14 @@ const LIKE_THRESHOLD = 3;
 /**
  * Create or toggle a media interaction (like/dislike)
  * Automatically creates media request when vote threshold is met (3 votes) or if admin likes it
+ * Stores user genre preferences for personalized scoring
  */
-export const createInteraction = async (db: DB, data: CreateMediaInteraction, user?: User) => {
+export const createInteraction = async (
+  tmdbService: TMDBService,
+  db: DB,
+  data: CreateMediaInteraction,
+  user?: User
+) => {
   if (!user?.id) return;
 
   // Get or create media record
@@ -54,9 +62,53 @@ export const createInteraction = async (db: DB, data: CreateMediaInteraction, us
     }
   }
 
+  // Update user genre preferences (fire-and-forget - don't block response)
+  await updateUserPreferences(tmdbService, db, data, user.id, isToggle);
+
   // Return the updated media record
   return await getMediaById(db, media.id);
 };
+
+/**
+ * Update user preferences (genres and keywords) based on interaction
+ * Checks catalog cache first for keywords, otherwise fetches TMDB details for genres only
+ */
+async function updateUserPreferences(
+  tmdbService: TMDBService,
+  db: DB,
+  data: CreateMediaInteraction,
+  userId: number,
+  isToggle: boolean
+): Promise<void> {
+  // Try to get from catalog cache first (popular items have keywords)
+  const cachedItems = await getCatalogCacheBatch(db, [
+    { tmdbId: data.tmdbId, type: data.mediaType },
+  ]);
+
+  const cachedItem = cachedItems[0];
+  if (cachedItem) {
+    // Item is in catalog cache - use genres and keywords
+    await updatePreferencesForInteraction(
+      db,
+      userId,
+      cachedItem.genres,
+      cachedItem.keywords,
+      data.action,
+      isToggle
+    );
+  } else {
+    // Item not in catalog cache - fetch from TMDB (no keywords available yet)
+    const details = await tmdbService.getDetails({ id: data.tmdbId, type: data.mediaType });
+    await updatePreferencesForInteraction(
+      db,
+      userId,
+      details.genres,
+      undefined,
+      data.action,
+      isToggle
+    );
+  }
+}
 
 /**
  * Get user's interacted media (likes AND dislikes) enriched with TMDB metadata, interactions, and vote counts

@@ -1,5 +1,5 @@
 import { relations, sql } from 'drizzle-orm';
-import { integer, sqliteTable, text, index, unique } from 'drizzle-orm/sqlite-core';
+import { integer, sqliteTable, text, index, unique, primaryKey } from 'drizzle-orm/sqlite-core';
 
 // ============================================================================
 // Users Table
@@ -30,7 +30,7 @@ export const media = sqliteTable(
   {
     id: integer('id').primaryKey({ autoIncrement: true }),
     tmdbId: integer('tmdbId').notNull(),
-    mediaType: text('mediaType', { enum: ['movie', 'tv'] }).notNull(),
+    type: text('type', { enum: ['movie', 'tv'] }).notNull(),
     jellyfinId: text('jellyfinId'),
     status: text('status', { enum: ['pending', 'requested', 'available'] })
       .notNull()
@@ -45,10 +45,10 @@ export const media = sqliteTable(
       .$type<number>(),
   },
   table => [
-    index('idx_media_tmdb').on(table.tmdbId, table.mediaType),
+    index('idx_media_tmdb').on(table.tmdbId, table.type),
     index('idx_media_status').on(table.status),
     index('idx_media_jellyfin').on(table.jellyfinId),
-    unique('media_tmdbId_mediaType_unique').on(table.tmdbId, table.mediaType),
+    unique('media_tmdbId_type_unique').on(table.tmdbId, table.type),
   ]
 );
 
@@ -84,11 +84,83 @@ export const userMediaInteractions = sqliteTable(
 );
 
 // ============================================================================
+// User Genre Preferences Table
+// ============================================================================
+
+export const userGenrePreferences = sqliteTable(
+  'user_genre_preferences',
+  {
+    userId: integer('userId')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    genreId: integer('genreId').notNull(),
+    genreName: text('genreName').notNull(), // Denormalized for easier analysis
+    score: integer('score').notNull().default(0),
+    count: integer('count').notNull().default(1), // Track number of ratings for Bayesian normalization
+  },
+  table => ({
+    pk: primaryKey({ columns: [table.userId, table.genreId] }),
+    userIdx: index('idx_user_genre_preferences_user').on(table.userId),
+  })
+);
+
+// ============================================================================
+// Catalog Cache Table
+// ============================================================================
+
+export const catalogCache = sqliteTable(
+  'catalog_cache',
+  {
+    tmdbId: integer('tmdbId').notNull(),
+    type: text('type', { enum: ['movie', 'tv'] }).notNull(),
+    name: text('name').notNull(),
+    date: text('date'),
+    posterPath: text('posterPath'),
+    backdropPath: text('backdropPath'),
+    overview: text('overview'),
+    voteAverage: integer('voteAverage').notNull(),
+    voteCount: integer('voteCount').notNull(),
+    popularity: integer('popularity').notNull(),
+    originalLanguage: text('originalLanguage').notNull(),
+    originCountry: text('originCountry'), // JSON array
+    genres: text('genres').notNull(), // JSON array of {id, name}
+    keywords: text('keywords'), // JSON array of {id, name} - null = not fetched, '[]' = fetched but none
+    trendingRank: integer('trendingRank'), // Trending position (null = not trending)
+  },
+  table => ({
+    pk: primaryKey({ columns: [table.tmdbId, table.type] }),
+  })
+);
+
+// ============================================================================
+// User Keyword Preferences Table
+// ============================================================================
+
+export const userKeywordPreferences = sqliteTable(
+  'user_keyword_preferences',
+  {
+    userId: integer('userId')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    keywordId: integer('keywordId').notNull(),
+    keywordName: text('keywordName').notNull(), // Denormalized for easier analysis
+    score: integer('score').notNull().default(0),
+    count: integer('count').notNull().default(1), // Track number of ratings for Bayesian normalization
+  },
+  table => ({
+    pk: primaryKey({ columns: [table.userId, table.keywordId] }),
+    userIdx: index('idx_user_keyword_preferences_user').on(table.userId),
+  })
+);
+
+// ============================================================================
 // Relations
 // ============================================================================
 
 export const usersRelations = relations(users, ({ many }) => ({
   interactions: many(userMediaInteractions),
+  genrePreferences: many(userGenrePreferences),
+  keywordPreferences: many(userKeywordPreferences),
 }));
 
 export const mediaRelations = relations(media, ({ many }) => ({
@@ -106,6 +178,20 @@ export const userMediaInteractionsRelations = relations(userMediaInteractions, (
   }),
 }));
 
+export const userGenrePreferencesRelations = relations(userGenrePreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [userGenrePreferences.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userKeywordPreferencesRelations = relations(userKeywordPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [userKeywordPreferences.userId],
+    references: [users.id],
+  }),
+}));
+
 // ============================================================================
 // Schema Export
 // ============================================================================
@@ -114,10 +200,15 @@ export const schema = {
   users,
   media,
   userMediaInteractions,
+  userGenrePreferences,
+  catalogCache,
+  userKeywordPreferences,
 };
 
 export const relationsSchema = {
   usersRelations,
   mediaRelations,
   userMediaInteractionsRelations,
+  userGenrePreferencesRelations,
+  userKeywordPreferencesRelations,
 };

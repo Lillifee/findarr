@@ -197,7 +197,7 @@ export async function getMediaByUserInteractions(db: DB, userId: number): Promis
     .selectDistinct({
       id: media.id,
       tmdbId: media.tmdbId,
-      mediaType: media.mediaType,
+      type: media.type,
       jellyfinId: media.jellyfinId,
       status: media.status,
       createdAt: media.createdAt,
@@ -239,7 +239,7 @@ export async function getMediaByInteraction(
     .selectDistinct({
       id: media.id,
       tmdbId: media.tmdbId,
-      mediaType: media.mediaType,
+      type: media.type,
       jellyfinId: media.jellyfinId,
       status: media.status,
       createdAt: media.createdAt,

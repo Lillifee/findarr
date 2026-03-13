@@ -20,12 +20,12 @@ export async function upsertMediaFromJellyfin(db: DB, items: JellyfinMedia[]): P
       .insert(media)
       .values({
         tmdbId: item.tmdbId,
-        mediaType: item.mediaType,
+        type: item.type,
         jellyfinId: item.jellyfinId,
         status: 'available',
       })
       .onConflictDoUpdate({
-        target: [media.tmdbId, media.mediaType],
+        target: [media.tmdbId, media.type],
         set: {
           jellyfinId: item.jellyfinId,
           status: 'available',

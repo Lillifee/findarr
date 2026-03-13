@@ -1,4 +1,9 @@
-import type { Media, MediaScore } from '@findarr/shared';
+import type {
+  Media,
+  MediaScore,
+  UserGenrePreference,
+  UserKeywordPreference,
+} from '@findarr/shared';
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
@@ -29,8 +34,8 @@ function scoreMedia(
 
   const weightedRating = bayes / 10;
 
-  const trendingScore = item.state?.trendingRank
-    ? clamp(1 - (item.state.trendingRank - 1) / maxTrendingRank)
+  const trendingScore = item.trendingRank
+    ? clamp(1 - (item.trendingRank - 1) / maxTrendingRank)
     : 0;
 
   const recencyScore = item.date
@@ -46,7 +51,10 @@ function scoreMedia(
     popularityScore,
     weightedRating,
     baseScore,
-    finalScore: 0,
+    genreScore: 0,
+    keywordScore: 0,
+    userScore: 0,
+    finalScore: baseScore,
   };
 }
 
@@ -71,7 +79,7 @@ export function scoreMediaItems(items: Media[]): Media[] {
 
     const popularity = item.popularity;
     const voteCount = item.voteCount;
-    const trendingRank = item.state?.trendingRank || 0;
+    const trendingRank = item.trendingRank || 0;
 
     stats.minPopularity = Math.min(stats.minPopularity, popularity);
     stats.maxPopularity = Math.max(stats.maxPopularity, popularity);
@@ -110,6 +118,109 @@ export function scoreMediaItems(items: Media[]): Media[] {
 
   // 3️⃣ Sort
   scored.sort((a, b) => (b.state?.score?.baseScore || 0) - (a.state?.score?.baseScore || 0));
+
+  return scored;
+}
+
+// ============================================================================
+// User Preference Scoring
+// ============================================================================
+
+/**
+ * Apply user preference scoring to media items
+ * Calculates genre and keyword match scores, combines with base scores
+ * Formula: 70% base + 15% genre + 15% keyword
+ * Note: When keywords are absent, keywordScore copies genreScore (effectively 30% genre weight)
+ */
+export function scoreMediaItemsForUser(
+  items: Media[],
+  genrePreferences: Map<number, UserGenrePreference>,
+  keywordPreferences: Map<number, UserKeywordPreference> = new Map()
+): Media[] {
+  if (genrePreferences.size === 0 && keywordPreferences.size === 0) {
+    return items;
+  }
+
+  // Bayesian smoothing to prevent small-sample bias (3 pseudo-ratings at 0 score)
+  // Lower prior = more responsive to initial preferences while still preventing extremes
+  const PRIOR_WEIGHT = 3;
+  const PRIOR_SCORE = 0;
+
+  const scored = items.map<Media>(item => {
+    let genreScore = 0;
+    let keywordScore = 0;
+
+    // Helper: Calculate score contribution with diminishing returns
+    const scoreContribution = (normalized: number) =>
+      Math.sqrt(Math.max(0, normalized)) - Math.sqrt(Math.max(0, -normalized));
+
+    // ---------- GENRE SCORING ----------
+    if (genrePreferences.size > 0 && item.genres?.length) {
+      let rawScore = 0;
+
+      // Process all genres (typically 2-4 per item)
+      for (const genre of item.genres) {
+        const pref = genrePreferences.get(genre.id);
+        if (pref) {
+          // Bayesian normalized score - already on reasonable scale (roughly -1 to +1)
+          const normalized =
+            (pref.score + PRIOR_WEIGHT * PRIOR_SCORE) / (pref.count + PRIOR_WEIGHT);
+          rawScore += scoreContribution(normalized);
+        }
+      }
+
+      // Sigmoid for [0, 1] range: 0 = disliked, 0.5 = neutral, 1 = liked
+      genreScore = 1 / (1 + Math.exp(-rawScore));
+    }
+
+    // ---------- KEYWORD SCORING ----------
+    if (keywordPreferences.size > 0 && item.keywords?.length) {
+      // Process ALL matching keywords (not just top N)
+      // The sqrt() diminishing returns prevent keyword spam from dominating
+      // This captures cumulative signal: many disliked keywords = strong negative signal
+      const rawScore = item.keywords.reduce((sum, kw) => {
+        const pref = keywordPreferences.get(kw.id);
+        if (!pref) return sum;
+
+        // Bayesian normalized score - already on reasonable scale (roughly -1 to +1)
+        const normalized = (pref.score + PRIOR_WEIGHT * PRIOR_SCORE) / (pref.count + PRIOR_WEIGHT);
+        // const normalized = pref.score / pref.count;
+        return sum + scoreContribution(normalized);
+      }, 0);
+
+      // Sigmoid for [0, 1] range: 0 = disliked, 0.5 = neutral, 1 = liked
+      keywordScore = 1 / (1 + Math.exp(-rawScore));
+    } else if (!item.keywords?.length) {
+      // If no keywords exist, copy genre score to avoid penalizing items without keywords
+      // This effectively gives genres 30% weight (15% + 15%) when keywords are absent
+      keywordScore = genreScore;
+    }
+
+    // ---------- BASE SCORE ----------
+    const baseScore = item.state?.score?.baseScore || 0;
+
+    // ---------- FINAL SCORE ----------
+    const userScore = 0.5 * genreScore + 0.5 * keywordScore; // For display purposes (0 to 1 range)
+    const finalScore = 0.7 * baseScore + 0.3 * userScore;
+
+    const score = {
+      ...(item.state?.score ?? {
+        recencyScore: 0,
+        trendingScore: 0,
+        popularityScore: 0,
+        weightedRating: 0,
+        baseScore: 0,
+      }),
+      genreScore,
+      keywordScore,
+      userScore,
+      finalScore,
+    };
+
+    return { ...item, state: { ...item.state, score } };
+  });
+
+  scored.sort((a, b) => (b.state?.score?.finalScore || 0) - (a.state?.score?.finalScore || 0));
 
   return scored;
 }

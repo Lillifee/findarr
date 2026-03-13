@@ -3,7 +3,7 @@ import type { JellyfinItem } from './schemas.js';
 export interface JellyfinMedia {
   jellyfinId: string;
   tmdbId: number;
-  mediaType: 'movie' | 'tv';
+  type: 'movie' | 'tv';
 }
 
 /**
@@ -23,10 +23,10 @@ export function jellyfinItemToMedia(item: JellyfinItem): JellyfinMedia | undefin
   }
 
   // Map Jellyfin type to our media type
-  const mediaType = item.Type === 'Movie' ? 'movie' : 'tv';
+  const type = item.Type === 'Movie' ? 'movie' : 'tv';
 
   return {
-    mediaType,
+    type,
     jellyfinId: item.Id,
     tmdbId: tmdbIdNum,
   };

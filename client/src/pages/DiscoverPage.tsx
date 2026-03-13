@@ -191,7 +191,7 @@ export function DiscoverPage() {
   };
 
   const handleSelectItem = (item: Media) => {
-    navigate(`/${item.type}/${item.id}`);
+    navigate(`/${item.type}/${item.tmdbId}`);
   };
 
   return (

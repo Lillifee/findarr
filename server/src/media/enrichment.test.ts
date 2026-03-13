@@ -12,14 +12,14 @@ describe('enrichment service', () => {
   let dbMock: DB;
 
   const mockMediaItem: Media = createTestMedia({
-    id: 123,
+    tmdbId: 123,
     type: 'movie',
   });
 
   const mockDbRow: MediaDbRow = {
     id: 1,
     tmdbId: 123,
-    mediaType: 'movie',
+    type: 'movie',
     status: 'requested',
     jellyfinId: null,
     createdAt: Date.now(),
@@ -50,8 +50,8 @@ describe('enrichment service', () => {
 
     it('should add database records to media items', async () => {
       const mediaItems: Media[] = [
-        createTestMedia({ id: 123, type: 'movie' }),
-        createTestMedia({ id: 456, type: 'tv' }),
+        createTestMedia({ tmdbId: 123, type: 'movie' }),
+        createTestMedia({ tmdbId: 456, type: 'tv' }),
       ];
 
       const dbRecordsMap = new Map([
@@ -98,7 +98,7 @@ describe('enrichment service', () => {
     });
 
     it('should handle media items without database records', async () => {
-      const mediaItems: Media[] = [createTestMedia({ id: 123, type: 'movie' })];
+      const mediaItems: Media[] = [createTestMedia({ tmdbId: 123, type: 'movie' })];
 
       vi.mocked(mediaRepository.getMediaRecordsBatch).mockResolvedValue(new Map());
 
@@ -112,7 +112,7 @@ describe('enrichment service', () => {
     it('should enrich with user-specific interactions when userId is provided', async () => {
       const mediaItems: Media[] = [
         createTestMedia({
-          id: 123,
+          tmdbId: 123,
           type: 'movie',
           state: {
             record: {
@@ -153,7 +153,7 @@ describe('enrichment service', () => {
     it('should enrich with all interactions including user info when userId is undefined', async () => {
       const mediaItems: Media[] = [
         createTestMedia({
-          id: 123,
+          tmdbId: 123,
           type: 'movie',
           state: {
             record: {
@@ -210,7 +210,7 @@ describe('enrichment service', () => {
     });
 
     it('should skip items without database records', async () => {
-      const mediaItems: Media[] = [createTestMedia({ id: 123, type: 'movie' })];
+      const mediaItems: Media[] = [createTestMedia({ tmdbId: 123, type: 'movie' })];
 
       vi.mocked(interactionRepository.getInteractionsBatch).mockResolvedValue(new Map());
       vi.mocked(interactionRepository.getVoteCountsBatch).mockResolvedValue(new Map());
@@ -221,7 +221,7 @@ describe('enrichment service', () => {
     });
 
     it('should return empty interactions map when no media IDs', async () => {
-      const mediaItems: Media[] = [createTestMedia({ id: 123, type: 'movie' })];
+      const mediaItems: Media[] = [createTestMedia({ tmdbId: 123, type: 'movie' })];
 
       await enrichWithInteractions(dbMock, mediaItems, 42);
 
@@ -247,7 +247,7 @@ describe('enrichment service', () => {
       expect(mockTmdbService.getDetails).toHaveBeenCalledWith({ id: 123, type: 'movie' });
       expect(result).toHaveLength(1);
       expect(result[0]).toMatchObject({
-        id: 123,
+        tmdbId: 123,
         type: 'movie',
         state: {
           record: {
@@ -274,7 +274,7 @@ describe('enrichment service', () => {
       const result = await fetchTMDBDetails(mockTmdbService, dbRows);
 
       expect(result).toHaveLength(1);
-      expect(result[0]?.id).toBe(123);
+      expect(result[0]?.tmdbId).toBe(123);
     });
 
     it('should return empty array for empty input', async () => {

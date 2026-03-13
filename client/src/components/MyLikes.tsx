@@ -25,7 +25,7 @@ export function MyLikes() {
   const handleToggle = (tmdbId: number, action: 'liked' | 'disliked' | null) => {
     if (action === null) {
       // Remove from list if vote is removed
-      setLikedMedia(prev => prev.filter(m => m.id !== tmdbId));
+      setLikedMedia(prev => prev.filter(m => m.tmdbId !== tmdbId));
     }
   };
 
@@ -68,7 +68,7 @@ export function MyLikes() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-5 mt-5">
           {likedMedia.map(media => (
             <div
-              key={`${media.id}-${media.type}`}
+              key={`${media.tmdbId}-${media.type}`}
               className="border border-gray-700/50 rounded-lg overflow-hidden bg-gray-900/40 backdrop-blur-sm shadow-lg hover:border-amber-500 hover:shadow-xl transition-all duration-300"
             >
               {media.posterPath && (
@@ -124,10 +124,10 @@ export function MyLikes() {
                 {/* Like/Dislike Controls */}
                 <div className="flex justify-center">
                   <LikeDislikeButton
-                    tmdbId={media.id}
+                    tmdbId={media.tmdbId}
                     mediaType={media.type}
                     initialAction={media.state?.interactions?.[0]?.action ?? null}
-                    onToggle={action => handleToggle(media.id, action)}
+                    onToggle={action => handleToggle(media.tmdbId, action)}
                     compact
                   />
                 </div>

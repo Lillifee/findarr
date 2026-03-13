@@ -147,7 +147,7 @@ describe('interaction repository', () => {
       });
 
       it('should return empty map when media items have no records', async () => {
-        const mediaItems: Media[] = [createMediaTestHelper({ id: 123, type: 'movie' })];
+        const mediaItems: Media[] = [createMediaTestHelper({ tmdbId: 123, type: 'movie' })];
 
         const result = await interactionRepository.getInteractionsBatch(db, mediaItems, 1);
         expect(result.size).toBe(0);
@@ -167,7 +167,7 @@ describe('interaction repository', () => {
 
         const mediaItems: Media[] = [
           createMediaTestHelper({
-            id: 123,
+            tmdbId: 123,
             type: 'movie',
             state: {
               record: {
@@ -180,7 +180,7 @@ describe('interaction repository', () => {
             },
           }),
           createMediaTestHelper({
-            id: 456,
+            tmdbId: 456,
             type: 'tv',
             state: {
               record: {
@@ -217,7 +217,7 @@ describe('interaction repository', () => {
 
         const mediaItems: Media[] = [
           createMediaTestHelper({
-            id: 123,
+            tmdbId: 123,
             type: 'movie',
             state: {
               record: {
@@ -248,7 +248,7 @@ describe('interaction repository', () => {
       });
 
       it('should return empty map when media items have no records', async () => {
-        const mediaItems: Media[] = [createMediaTestHelper({ id: 123, type: 'movie' })];
+        const mediaItems: Media[] = [createMediaTestHelper({ tmdbId: 123, type: 'movie' })];
 
         const result = await interactionRepository.getAllInteractionsWithUsersBatch(db, mediaItems);
         expect(result.size).toBe(0);
@@ -272,7 +272,7 @@ describe('interaction repository', () => {
 
         const mediaItems: Media[] = [
           createMediaTestHelper({
-            id: 123,
+            tmdbId: 123,
             type: 'movie',
             state: {
               record: {
@@ -346,7 +346,7 @@ describe('interaction repository', () => {
 
         const mediaItems: Media[] = [
           createMediaTestHelper({
-            id: 123,
+            tmdbId: 123,
             type: 'movie',
             state: {
               record: {
@@ -384,7 +384,7 @@ describe('interaction repository', () => {
 
         const mediaItems: Media[] = [
           createMediaTestHelper({
-            id: 123,
+            tmdbId: 123,
             type: 'movie',
             state: {
               record: {
@@ -397,7 +397,7 @@ describe('interaction repository', () => {
             },
           }),
           createMediaTestHelper({
-            id: 456,
+            tmdbId: 456,
             type: 'tv',
             state: {
               record: {
@@ -440,7 +440,7 @@ describe('interaction repository', () => {
 
         expect(result).toHaveLength(1);
         expect(result[0]?.tmdbId).toBe(123);
-        expect(result[0]?.mediaType).toBe('movie');
+        expect(result[0]?.type).toBe('movie');
       });
 
       it('should return empty array when user has no interactions of that type', async () => {

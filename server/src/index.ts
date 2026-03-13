@@ -8,6 +8,11 @@ import authPlugin from './auth/plugin.js';
 import authRoutes from './auth/routes.js';
 import catalogPlugin from './catalog/plugin.js';
 import { catalogRoutes } from './catalog/routes.js';
+import {
+  startCatalogCacheScheduler,
+  syncCatalogCache,
+  enrichCatalogKeywords,
+} from './catalog/sync.js';
 import databasePlugin from './db/plugin.js';
 import { interactionRoutes } from './interaction/routes.js';
 import jellyfinPlugin from './jellyfin/plugin.js';
@@ -85,10 +90,23 @@ async function start() {
     // Start Jellyfin sync scheduler
     const syncTimer = startSyncScheduler(server, env.JELLYFIN_SYNC_INTERVAL_MIN);
 
+    // Initial catalog cache sync (two-phase: basic media + keyword enrichment)
+    await syncCatalogCache(server);
+
+    // Start keyword enrichment in background (don't block server startup)
+    enrichCatalogKeywords(server).catch(error => {
+      server.log.error({ error }, 'Initial keyword enrichment failed');
+    });
+
+    // Start catalog cache sync scheduler (runs every 6 hours)
+    const catalogCacheTimer = startCatalogCacheScheduler(server);
+
     // Cleanup on server close
     server.addHook('onClose', async () => {
       server.log.info('Shutting down Jellyfin sync scheduler...');
       clearInterval(syncTimer);
+      server.log.info('Shutting down catalog cache sync scheduler...');
+      clearInterval(catalogCacheTimer);
     });
 
     // Start server

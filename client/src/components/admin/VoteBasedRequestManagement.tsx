@@ -80,7 +80,7 @@ export function VoteBasedRequestManagement() {
                   const dislikes = media.state?.votes?.dislikes || 0;
                   const status = media.state?.record?.status || 'pending';
                   return (
-                    <tr key={`${media.id}-${media.type}`} className="border-b border-gray-700">
+                    <tr key={`${media.tmdbId}-${media.type}`} className="border-b border-gray-700">
                       <td className="p-3">
                         <div className="flex items-center gap-3">
                           {media.posterPath && (
@@ -137,7 +137,7 @@ export function VoteBasedRequestManagement() {
 
               return (
                 <div
-                  key={`${media.id}-${media.type}`}
+                  key={`${media.tmdbId}-${media.type}`}
                   className="bg-gray-800 border border-gray-700 rounded-lg p-4 space-y-3"
                 >
                   <div className="flex gap-3">

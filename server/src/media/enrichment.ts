@@ -16,10 +16,6 @@ import { getMediaRecordsBatch } from './repository.js';
 
 /**
  * Enrich TMDB media items with database records (status, jellyfinId)
- *
- * @param db Database instance
- * @param mediaItems Media items from TMDB
- * @returns Media items enriched with state.record
  */
 export async function enrichWithRecords(db: DB, mediaItems: Media[]): Promise<Media[]> {
   if (mediaItems.length === 0) return mediaItems;
@@ -27,7 +23,7 @@ export async function enrichWithRecords(db: DB, mediaItems: Media[]): Promise<Me
   const mediaRecords = await getMediaRecordsBatch(db, mediaItems);
 
   return mediaItems.map(item => {
-    const key = `${item.id}_${item.type}`;
+    const key = `${item.tmdbId}_${item.type}`;
     const record = mediaRecords.get(key);
 
     if (!record) return item;
@@ -40,11 +36,6 @@ export async function enrichWithRecords(db: DB, mediaItems: Media[]): Promise<Me
  * Enrich media items with user interactions and vote counts
  * Requires items to already have state.record with database IDs
  * Uses separate optimized batch queries for interactions and vote counts
- *
- * @param db Database instance
- * @param mediaItems Media items to enrich
- * @param userId Optional user ID. If provided, returns user-specific interactions (liked, disliked, requested).
- *               If undefined, returns all interactions with user info (for admin views)
  */
 export async function enrichWithInteractions(
   db: DB,
@@ -88,10 +79,8 @@ export async function fetchTMDBDetails(
   mediaDbRows: MediaDbRow[]
 ): Promise<Media[]> {
   const results = await Promise.all(
-    mediaDbRows.map(async ({ tmdbId, mediaType, id, status, jellyfinId, createdAt, updatedAt }) => {
-      const details = await tmdbService
-        .getDetails({ id: tmdbId, type: mediaType })
-        .catch(() => undefined);
+    mediaDbRows.map(async ({ tmdbId, type, id, status, jellyfinId, createdAt, updatedAt }) => {
+      const details = await tmdbService.getDetails({ id: tmdbId, type }).catch(() => undefined);
 
       // Attach database record to TMDB data
       return (
