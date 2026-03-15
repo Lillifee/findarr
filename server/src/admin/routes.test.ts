@@ -42,6 +42,19 @@ describe('adminRoutes', () => {
       getDetails: vi.fn(),
     });
 
+    // Mock arr service
+    app.decorate('arr', {
+      requestMedia: vi.fn(),
+      requestMovie: vi.fn(),
+      requestSeries: vi.fn(),
+      testRadarrConnection: vi.fn().mockResolvedValue(false),
+      testSonarrConnection: vi.fn().mockResolvedValue(false),
+      getRadarrProfiles: vi.fn().mockResolvedValue([]),
+      getRadarrRootFolders: vi.fn().mockResolvedValue([]),
+      getSonarrProfiles: vi.fn().mockResolvedValue([]),
+      getSonarrRootFolders: vi.fn().mockResolvedValue([]),
+    });
+
     // inject authenticated user for every request
     app.addHook('preHandler', async req => {
       req.user = adminUser;

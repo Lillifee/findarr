@@ -166,6 +166,9 @@ export const TMDBTVDetailsSchema = TMDBBaseFieldsSchema.omit({ genre_ids: true }
     // Append-to-response fields
     ...TMDBAppendFieldsSchema,
     keywords: TMDBTVKeywordsSchema.optional(),
+    external_ids: z
+      .object({ tvdb_id: z.number().nullish(), imdb_id: z.string().nullish() })
+      .optional(),
   })
   .transform(data => ({
     ...data,

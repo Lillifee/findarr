@@ -1,11 +1,10 @@
-import type { Media } from '@findarr/shared';
+import type { DbMedia, Media } from '@findarr/shared';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { DB } from '../db/setup.js';
 import * as interactionRepository from '../interaction/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { createTestMedia } from '../utils/testHelper.js';
 import { enrichWithRecords, enrichWithInteractions, fetchTMDBDetails } from './enrichment.js';
-import type { MediaDbRow } from './repository.js';
 import * as mediaRepository from './repository.js';
 
 describe('enrichment service', () => {
@@ -16,7 +15,7 @@ describe('enrichment service', () => {
     type: 'movie',
   });
 
-  const mockDbRow: MediaDbRow = {
+  const mockDbRow: DbMedia = {
     id: 1,
     tmdbId: 123,
     type: 'movie',
@@ -236,7 +235,7 @@ describe('enrichment service', () => {
 
   describe('fetchTMDBDetails', () => {
     it('should fetch TMDB details for database records', async () => {
-      const dbRows: MediaDbRow[] = [mockDbRow];
+      const dbRows: DbMedia[] = [mockDbRow];
 
       const mockTmdbService = {
         getDetails: vi.fn().mockResolvedValue(mockMediaItem),
@@ -262,7 +261,7 @@ describe('enrichment service', () => {
     });
 
     it('should filter out failed TMDB lookups', async () => {
-      const dbRows: MediaDbRow[] = [mockDbRow, { ...mockDbRow, id: 2, tmdbId: 999 }];
+      const dbRows: DbMedia[] = [mockDbRow, { ...mockDbRow, id: 2, tmdbId: 999 }];
 
       const mockTmdbService = {
         getDetails: vi

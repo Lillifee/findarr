@@ -130,6 +130,8 @@ export interface TVDetails extends TVShow {
   numberOfEpisodes: number;
   status: string;
   homepage: string | undefined;
+  tvdbId: number | undefined;
+  imdbId: string | undefined;
 }
 
 export type MediaDetails = MovieDetails | TVDetails;

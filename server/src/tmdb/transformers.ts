@@ -163,5 +163,7 @@ function transformTVDetails(tmdbTV: TMDBTVDetails): TVDetails {
     numberOfEpisodes: tmdbTV.number_of_episodes,
     status: tmdbTV.status,
     homepage: tmdbTV.homepage ?? undefined,
+    tvdbId: tmdbTV.external_ids?.tvdb_id ?? undefined,
+    imdbId: tmdbTV.external_ids?.imdb_id ?? undefined,
   };
 }

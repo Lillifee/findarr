@@ -1,6 +1,7 @@
 import type { CreateMediaInteraction } from '@findarr/shared';
 import SqlDatabase from 'better-sqlite3';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import type { ArrService } from '../arr/service.js';
 import { createDatabase, type DB } from '../db/setup.js';
 import { getMediaByTmdbId } from '../media/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
@@ -16,10 +17,21 @@ import {
   getAllInteractionsEnriched,
 } from './service.js';
 
-const mockInteraction: CreateMediaInteraction = {
+const interaction: CreateMediaInteraction = {
   mediaType: 'movie',
   tmdbId: 123,
   action: 'liked',
+};
+
+const arrService: ArrService = {
+  requestMovie: vi.fn().mockResolvedValue(undefined),
+  requestSeries: vi.fn().mockResolvedValue(undefined),
+  testRadarrConnection: vi.fn().mockResolvedValue(false),
+  testSonarrConnection: vi.fn().mockResolvedValue(false),
+  getRadarrProfiles: vi.fn().mockResolvedValue([]),
+  getRadarrRootFolders: vi.fn().mockResolvedValue([]),
+  getSonarrProfiles: vi.fn().mockResolvedValue([]),
+  getSonarrRootFolders: vi.fn().mockResolvedValue([]),
 };
 
 describe('interaction service - integration tests', () => {
@@ -70,7 +82,7 @@ describe('interaction service - integration tests', () => {
       const user = await createTestUserInDb(db, { email: 'user1@test.com' });
       expectDefined(user);
 
-      const result = await createInteraction(tmdb, db, mockInteraction, user);
+      const result = await createInteraction(tmdb, arrService, db, interaction, user);
 
       // Verify media was created
       const media = await getMediaByTmdbId(db, 123, 'movie');
@@ -91,7 +103,7 @@ describe('interaction service - integration tests', () => {
     });
 
     it('should return undefined if no user provided', async () => {
-      const result = await createInteraction(tmdb, db, mockInteraction, undefined);
+      const result = await createInteraction(tmdb, arrService, db, interaction, undefined);
       expect(result).toBeUndefined();
 
       // Verify nothing was created
@@ -104,7 +116,7 @@ describe('interaction service - integration tests', () => {
       expectDefined(user);
 
       // Create initial interaction
-      await createInteraction(tmdb, db, mockInteraction, user);
+      await createInteraction(tmdb, arrService, db, interaction, user);
 
       const media = await getMediaByTmdbId(db, 123, 'movie');
       expectDefined(media);
@@ -113,7 +125,7 @@ describe('interaction service - integration tests', () => {
       expect(await hasInteraction(db, user.id, media.id, 'liked')).toBe(true);
 
       // Toggle off - click the same action again
-      await createInteraction(tmdb, db, mockInteraction, user);
+      await createInteraction(tmdb, arrService, db, interaction, user);
 
       // Verify interaction was removed
       expect(await hasInteraction(db, user.id, media.id, 'liked')).toBe(false);
@@ -124,7 +136,7 @@ describe('interaction service - integration tests', () => {
       expectDefined(user);
 
       // First dislike
-      await createInteraction(tmdb, db, { ...mockInteraction, action: 'disliked' }, user);
+      await createInteraction(tmdb, arrService, db, { ...interaction, action: 'disliked' }, user);
 
       const media = await getMediaByTmdbId(db, 123, 'movie');
       expectDefined(media);
@@ -134,7 +146,7 @@ describe('interaction service - integration tests', () => {
       expect(await hasInteraction(db, user.id, media.id, 'liked')).toBe(false);
 
       // Switch to like
-      await createInteraction(tmdb, db, mockInteraction, user);
+      await createInteraction(tmdb, arrService, db, interaction, user);
 
       // Verify only like exists now
       expect(await hasInteraction(db, user.id, media.id, 'liked')).toBe(true);
@@ -160,8 +172,8 @@ describe('interaction service - integration tests', () => {
       expectDefined(user3);
 
       // First two users like
-      await createInteraction(tmdb, db, mockInteraction, user1);
-      await createInteraction(tmdb, db, mockInteraction, user2);
+      await createInteraction(tmdb, arrService, db, interaction, user1);
+      await createInteraction(tmdb, arrService, db, interaction, user2);
 
       let media = await getMediaByTmdbId(db, 123, 'movie');
       expectDefined(media);
@@ -171,7 +183,7 @@ describe('interaction service - integration tests', () => {
       expect(votes.likes).toBe(2);
 
       // Third user likes - should trigger auto-request
-      await createInteraction(tmdb, db, mockInteraction, user3);
+      await createInteraction(tmdb, arrService, db, interaction, user3);
 
       media = await getMediaByTmdbId(db, 123, 'movie');
       expectDefined(media);
@@ -186,7 +198,7 @@ describe('interaction service - integration tests', () => {
       });
       expectDefined(admin);
 
-      await createInteraction(tmdb, db, mockInteraction, admin);
+      await createInteraction(tmdb, arrService, db, interaction, admin);
 
       const media = await getMediaByTmdbId(db, 123, 'movie');
       expectDefined(media);
@@ -212,9 +224,9 @@ describe('interaction service - integration tests', () => {
       expectDefined(user3);
 
       // Three users dislike
-      await createInteraction(tmdb, db, { ...mockInteraction, action: 'disliked' }, user1);
-      await createInteraction(tmdb, db, { ...mockInteraction, action: 'disliked' }, user2);
-      await createInteraction(tmdb, db, { ...mockInteraction, action: 'disliked' }, user3);
+      await createInteraction(tmdb, arrService, db, { ...interaction, action: 'disliked' }, user1);
+      await createInteraction(tmdb, arrService, db, { ...interaction, action: 'disliked' }, user2);
+      await createInteraction(tmdb, arrService, db, { ...interaction, action: 'disliked' }, user3);
 
       const media = await getMediaByTmdbId(db, 123, 'movie');
       expectDefined(media);
@@ -232,8 +244,14 @@ describe('interaction service - integration tests', () => {
       expectDefined(user);
 
       // Create media and interaction
-      await createInteraction(tmdb, db, mockInteraction, user);
-      await createInteraction(tmdb, db, { mediaType: 'tv', tmdbId: 456, action: 'liked' }, user);
+      await createInteraction(tmdb, arrService, db, interaction, user);
+      await createInteraction(
+        tmdb,
+        arrService,
+        db,
+        { mediaType: 'tv', tmdbId: 456, action: 'liked' },
+        user
+      );
 
       const mockMedia1 = createMediaTestHelper({ tmdbId: 123, type: 'movie', name: 'Test Movie' });
       const mockMedia2 = createMediaTestHelper({ tmdbId: 456, type: 'tv', name: 'Test Show' });
@@ -278,8 +296,8 @@ describe('interaction service - integration tests', () => {
       });
 
       // Both users interact with the same movie
-      await createInteraction(tmdb, db, mockInteraction, user1);
-      await createInteraction(tmdb, db, mockInteraction, user2);
+      await createInteraction(tmdb, arrService, db, interaction, user1);
+      await createInteraction(tmdb, arrService, db, interaction, user2);
 
       const mockMedia = createMediaTestHelper({ tmdbId: 123, type: 'movie' });
 
@@ -304,7 +322,7 @@ describe('interaction service - integration tests', () => {
       const user = await createTestUserInDb(db, { email: 'user1@test.com' });
 
       // Create pending media with interaction
-      await createInteraction(tmdb, db, mockInteraction, user);
+      await createInteraction(tmdb, arrService, db, interaction, user);
 
       // Manually insert available media (simulating Jellyfin sync)
       sqliteDb
@@ -322,6 +340,143 @@ describe('interaction service - integration tests', () => {
       expect(result).toHaveLength(1);
       expectDefined(result[0]);
       expect(result[0].tmdbId).toBe(123);
+    });
+  });
+
+  describe('requestMediaToArr', () => {
+    const tmdbWithTvdb: TMDBService = {
+      loadGenres: vi.fn().mockResolvedValue(undefined),
+      search: vi.fn(),
+      fetchDiscover: vi.fn(),
+      fetchTrending: vi.fn(),
+      getGenres: vi.fn(),
+      getDetails: vi.fn().mockResolvedValue({
+        tmdbId: 123,
+        type: 'movie',
+        name: 'Test Movie',
+        genres: [],
+        date: '2024-01-01',
+        posterPath: null,
+        backdropPath: null,
+        overview: 'Test',
+        voteAverage: 7,
+        voteCount: 100,
+        popularity: 50,
+        originalLanguage: 'en',
+        originCountry: undefined,
+      }),
+    } as TMDBService;
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      vi.mocked(tmdbWithTvdb.getDetails).mockResolvedValue({
+        tmdbId: 123,
+        type: 'movie',
+        name: 'Test Movie',
+        genres: [],
+        date: '2024-01-01',
+        posterPath: null,
+        backdropPath: null,
+        overview: 'Test',
+        voteAverage: 7,
+        voteCount: 100,
+        popularity: 50,
+        originalLanguage: 'en',
+        originCountry: undefined,
+      });
+    });
+
+    it('should call requestMovie when a movie reaches the request threshold', async () => {
+      const user1 = await createTestUserInDb(db, { email: 'u1@test.com', displayName: 'U1' });
+      const user2 = await createTestUserInDb(db, { email: 'u2@test.com', displayName: 'U2' });
+      const user3 = await createTestUserInDb(db, { email: 'u3@test.com', displayName: 'U3' });
+      expectDefined(user1);
+      expectDefined(user2);
+      expectDefined(user3);
+
+      await createInteraction(tmdbWithTvdb, arrService, db, interaction, user1);
+      await createInteraction(tmdbWithTvdb, arrService, db, interaction, user2);
+      await createInteraction(tmdbWithTvdb, arrService, db, interaction, user3);
+
+      // Allow fire-and-forget to complete
+      await vi.waitFor(() =>
+        expect(arrService.requestMovie).toHaveBeenCalledWith(123, 'Test Movie')
+      );
+    });
+
+    it('should call requestSeries with TVDB ID when a TV show reaches the threshold', async () => {
+      const tvInteraction: CreateMediaInteraction = {
+        mediaType: 'tv',
+        tmdbId: 456,
+        action: 'liked',
+      };
+      vi.mocked(tmdbWithTvdb.getDetails).mockResolvedValue({
+        tmdbId: 456,
+        type: 'tv',
+        name: 'Test Show',
+        tvdbId: 81_189,
+        genres: [],
+        date: '2022-01-01',
+        posterPath: null,
+        backdropPath: null,
+        overview: 'A show',
+        voteAverage: 8,
+        voteCount: 500,
+        popularity: 80,
+        originalLanguage: 'en',
+        originCountry: undefined,
+      } as never);
+
+      const user1 = await createTestUserInDb(db, { email: 'tv1@test.com', displayName: 'U1' });
+      const user2 = await createTestUserInDb(db, { email: 'tv2@test.com', displayName: 'U2' });
+      const user3 = await createTestUserInDb(db, { email: 'tv3@test.com', displayName: 'U3' });
+      expectDefined(user1);
+      expectDefined(user2);
+      expectDefined(user3);
+
+      await createInteraction(tmdbWithTvdb, arrService, db, tvInteraction, user1);
+      await createInteraction(tmdbWithTvdb, arrService, db, tvInteraction, user2);
+      await createInteraction(tmdbWithTvdb, arrService, db, tvInteraction, user3);
+
+      await vi.waitFor(() =>
+        expect(arrService.requestSeries).toHaveBeenCalledWith(81_189, 'Test Show')
+      );
+    });
+
+    it('should not forward when arr service is not configured', async () => {
+      const user1 = await createTestUserInDb(db, { email: 'u1@test.com', displayName: 'U1' });
+      const user2 = await createTestUserInDb(db, { email: 'u2@test.com', displayName: 'U2' });
+      const user3 = await createTestUserInDb(db, { email: 'u3@test.com', displayName: 'U3' });
+      expectDefined(user1);
+      expectDefined(user2);
+      expectDefined(user3);
+
+      // Simulate arr not configured — requestMovie throws, but error must be swallowed gracefully
+      vi.mocked(arrService.requestMovie).mockRejectedValue(new Error('Radarr is not configured'));
+
+      await createInteraction(tmdbWithTvdb, arrService, db, interaction, user1);
+      await createInteraction(tmdbWithTvdb, arrService, db, interaction, user2);
+      await createInteraction(tmdbWithTvdb, arrService, db, interaction, user3);
+
+      const media = await getMediaByTmdbId(db, 123, 'movie');
+      expectDefined(media);
+      // Status is still marked requested (arr forwarding is best-effort, non-fatal)
+      expect(media.status).toBe('requested');
+      // requestMovie was attempted but the rejection was silently swallowed
+      await vi.waitFor(() => expect(arrService.requestMovie).toHaveBeenCalled());
+    });
+
+    it('should not forward below the request threshold', async () => {
+      const user1 = await createTestUserInDb(db, { email: 'u1@test.com', displayName: 'U1' });
+      const user2 = await createTestUserInDb(db, { email: 'u2@test.com', displayName: 'U2' });
+      expectDefined(user1);
+      expectDefined(user2);
+
+      await createInteraction(tmdbWithTvdb, arrService, db, interaction, user1);
+      await createInteraction(tmdbWithTvdb, arrService, db, interaction, user2);
+
+      // 2 likes — not yet at threshold
+      expect(arrService.requestMovie).not.toHaveBeenCalled();
     });
   });
 });

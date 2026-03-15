@@ -1,4 +1,5 @@
 import { type CreateMediaInteraction, type Media, type User } from '@findarr/shared';
+import type { ArrService } from '../arr/service.js';
 import { getCatalogCacheBatch } from '../catalog/repository.js';
 import type { DB } from '../db/setup.js';
 import { fetchTMDBDetails, enrichWithInteractions } from '../media/enrichment.js';
@@ -28,6 +29,7 @@ const LIKE_THRESHOLD = 3;
  */
 export const createInteraction = async (
   tmdbService: TMDBService,
+  arrService: ArrService,
   db: DB,
   data: CreateMediaInteraction,
   user?: User
@@ -59,6 +61,8 @@ export const createInteraction = async (
     if (currentMedia && currentMedia.status === 'pending') {
       // Update to requested status (trigger download workflow)
       await updateMediaStatus(db, media.id, 'requested');
+      // Forward to Radarr/Sonarr (best-effort, non-fatal)
+      requestMediaToArr(tmdbService, arrService, data).catch(() => {});
     }
   }
 
@@ -108,6 +112,23 @@ async function updateUserPreferences(
       isToggle
     );
   }
+}
+
+/**
+ * Forward a newly-requested media item to Radarr (movies) or Sonarr (TV shows).
+ * Resolves the title from catalog cache first, falls back to TMDB.
+ * For TV shows, the TVDB ID is lazily fetched and cached on the media record.
+ */
+async function requestMediaToArr(
+  tmdbService: TMDBService,
+  arrService: ArrService,
+  data: CreateMediaInteraction
+): Promise<void> {
+  const details = await tmdbService.getDetails({ id: data.tmdbId, type: data.mediaType });
+
+  await (details.type === 'movie'
+    ? arrService.requestMovie(details.tmdbId, details.name)
+    : arrService.requestSeries(details.tvdbId, details.name));
 }
 
 /**

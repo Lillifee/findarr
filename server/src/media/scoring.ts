@@ -157,11 +157,13 @@ export function scoreMediaItemsForUser(
     // ---------- GENRE SCORING ----------
     if (genrePreferences.size > 0 && item.genres?.length) {
       let rawScore = 0;
+      let matched = false;
 
       // Process all genres (typically 2-4 per item)
       for (const genre of item.genres) {
         const pref = genrePreferences.get(genre.id);
         if (pref) {
+          matched = true;
           // Bayesian normalized score - already on reasonable scale (roughly -1 to +1)
           const normalized =
             (pref.score + PRIOR_WEIGHT * PRIOR_SCORE) / (pref.count + PRIOR_WEIGHT);
@@ -169,8 +171,9 @@ export function scoreMediaItemsForUser(
         }
       }
 
-      // Sigmoid for [0, 1] range: 0 = disliked, 0.5 = neutral, 1 = liked
-      genreScore = 1 / (1 + Math.exp(-rawScore));
+      // tanh gives (-1, +1) range: negative = disliked, 0 = neutral, positive = liked
+      // Only set if at least one genre matched — no match → 0 (neutral, no ranking impact)
+      if (matched) genreScore = Math.tanh(rawScore);
     }
 
     // ---------- KEYWORD SCORING ----------
@@ -178,18 +181,21 @@ export function scoreMediaItemsForUser(
       // Process ALL matching keywords (not just top N)
       // The sqrt() diminishing returns prevent keyword spam from dominating
       // This captures cumulative signal: many disliked keywords = strong negative signal
-      const rawScore = item.keywords.reduce((sum, kw) => {
-        const pref = keywordPreferences.get(kw.id);
-        if (!pref) return sum;
+      let rawScore = 0;
+      let matched = false;
 
+      for (const kw of item.keywords) {
+        const pref = keywordPreferences.get(kw.id);
+        if (!pref) continue;
+
+        matched = true;
         // Bayesian normalized score - already on reasonable scale (roughly -1 to +1)
         const normalized = (pref.score + PRIOR_WEIGHT * PRIOR_SCORE) / (pref.count + PRIOR_WEIGHT);
-        // const normalized = pref.score / pref.count;
-        return sum + scoreContribution(normalized);
-      }, 0);
+        rawScore += scoreContribution(normalized);
+      }
 
-      // Sigmoid for [0, 1] range: 0 = disliked, 0.5 = neutral, 1 = liked
-      keywordScore = 1 / (1 + Math.exp(-rawScore));
+      // Only set if at least one keyword matched — no match → 0
+      if (matched) keywordScore = Math.tanh(rawScore);
     } else if (!item.keywords?.length) {
       // If no keywords exist, copy genre score to avoid penalizing items without keywords
       // This effectively gives genres 30% weight (15% + 15%) when keywords are absent

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginForm } from './components/LoginForm';
 import { Navigation } from './components/Navigation';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ArrSettingsPage } from './pages/admin/ArrSettingsPage';
 import { RequestManagementPage } from './pages/admin/RequestManagementPage';
 import { UserManagementPage } from './pages/admin/UserManagementPage';
 import { DiscoverPage } from './pages/DiscoverPage';
@@ -52,6 +53,7 @@ function MainApp() {
             <>
               <Route path="/admin/users" element={<UserManagementPage />} />
               <Route path="/admin/requests" element={<RequestManagementPage />} />
+              <Route path="/admin/arr" element={<ArrSettingsPage />} />
             </>
           )}
           <Route path="*" element={<Navigate to="/" replace />} />

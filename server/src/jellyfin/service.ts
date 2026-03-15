@@ -1,12 +1,20 @@
-import type { JellyfinClient } from './client.js';
+import type { DB } from '../db/setup.js';
+import { getJellyfinSettingsFull } from '../settings/repository.js';
+import { createJellyfinClient } from './client.js';
 import type { JellyfinMedia } from './transformers.js';
 import { jellyfinItemToMedia } from './transformers.js';
 
-export function createJellyfinService(client: JellyfinClient) {
-  /**
-   * Fetch all items of specific types with pagination
-   */
+export function createJellyfinService(db: DB) {
+  async function getClient() {
+    const s = await getJellyfinSettingsFull(db);
+    if (!s.url || !s.apiKey) return null;
+    return createJellyfinClient(s.url, s.apiKey);
+  }
+
   async function fetchMedia(itemTypes: ('Movie' | 'Series')[]): Promise<JellyfinMedia[]> {
+    const client = await getClient();
+    if (!client) return [];
+
     const allItems: JellyfinMedia[] = [];
     const limit = 100;
     let startIndex = 0;
@@ -20,14 +28,11 @@ export function createJellyfinService(client: JellyfinClient) {
         recursive: true,
       });
 
-      // Transform and filter items (only keep those with TMDB IDs)
       const transformed = response.Items.map(item => jellyfinItemToMedia(item)).filter(
         (item): item is JellyfinMedia => item !== undefined
       );
 
       allItems.push(...transformed);
-
-      // Check if there are more items
       startIndex += response.Items.length;
       hasMore = startIndex < response.TotalRecordCount;
     }
@@ -37,11 +42,26 @@ export function createJellyfinService(client: JellyfinClient) {
 
   return {
     async testConnection(): Promise<boolean> {
-      return await client.testConnection();
+      const client = await getClient();
+      if (!client) return false;
+      return client.testConnection().catch(() => false);
+    },
+
+    async getConnectionInfo(): Promise<{
+      url: string | null;
+      connected: boolean;
+      apiKeySet: boolean;
+    }> {
+      const s = await getJellyfinSettingsFull(db);
+      if (!s.url || !s.apiKey) return { url: s.url, connected: false, apiKeySet: s.apiKeySet };
+      const connected = await createJellyfinClient(s.url, s.apiKey)
+        .testConnection()
+        .catch(() => false);
+      return { url: s.url, connected, apiKeySet: s.apiKeySet };
     },
 
     async getAllMedia(): Promise<JellyfinMedia[]> {
-      return await fetchMedia(['Movie', 'Series']);
+      return fetchMedia(['Movie', 'Series']);
     },
   };
 }

@@ -22,8 +22,6 @@ export const ServerEnvSchema = z.object({
   DB_PATH: z.string().default('./data/findarr.db'),
   ADMIN_EMAIL: z.email().default('admin@findarr.local'),
   ADMIN_PASSWORD: z.string().default('changeme'),
-  JELLYFIN_URL: z.url(),
-  JELLYFIN_API_KEY: z.string(),
   JELLYFIN_SYNC_INTERVAL_MIN: z.coerce.number().int().min(1).default(30),
 });
 
@@ -103,3 +101,69 @@ export const CreateInteractionSchema = z.object({
 export const InteractionIdSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
+
+// ============================================================================
+// Admin / Integration Schemas (Radarr, Sonarr, Jellyfin)
+// ============================================================================
+
+/** Request body for PUT /admin/radarr/settings and PUT /admin/sonarr/settings */
+export const ArrSettingsBodySchema = z.object({
+  url: z.string().optional(),
+  apiKey: z.string().optional(),
+  qualityProfileId: z.coerce.number().int().positive().optional(),
+  rootFolderPath: z.string().min(1).optional(),
+});
+
+/** Request body for PUT /admin/jellyfin/settings */
+export const JellyfinSettingsBodySchema = z.object({
+  url: z.string().optional(),
+  apiKey: z.string().optional(),
+});
+
+/** Response shape for GET /admin/radarr/settings and GET /admin/sonarr/settings */
+export const ArrSettingsSchema = z.object({
+  url: z.string().nullable(),
+  apiKeySet: z.boolean(),
+  qualityProfileId: z.number().int().nullable(),
+  rootFolderPath: z.string().nullable(),
+});
+
+/** Quality profile returned by Radarr/Sonarr */
+export const ArrQualityProfileSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+});
+
+/** Root folder returned by Radarr/Sonarr */
+export const ArrRootFolderSchema = z.object({
+  id: z.number(),
+  path: z.string(),
+  freeSpace: z.number().optional(),
+});
+
+/** Response shape for POST /admin/radarr/test and POST /admin/sonarr/test */
+export const ArrTestResultSchema = z.object({
+  configured: z.boolean(),
+  connected: z.boolean(),
+  url: z.string().nullable(),
+});
+
+/** Response shape for GET /admin/jellyfin/settings */
+export const JellyfinSettingsSchema = z.object({
+  url: z.string().nullable(),
+  apiKeySet: z.boolean(),
+});
+
+/** Response shape for POST /admin/jellyfin/test */
+export const JellyfinTestResultSchema = z.object({
+  url: z.string().nullable(),
+  connected: z.boolean(),
+  apiKeySet: z.boolean(),
+});
+
+export type ArrSettings = z.infer<typeof ArrSettingsSchema>;
+export type ArrQualityProfile = z.infer<typeof ArrQualityProfileSchema>;
+export type ArrRootFolder = z.infer<typeof ArrRootFolderSchema>;
+export type ArrTestResult = z.infer<typeof ArrTestResultSchema>;
+export type JellyfinSettings = z.infer<typeof JellyfinSettingsSchema>;
+export type JellyfinTestResult = z.infer<typeof JellyfinTestResultSchema>;

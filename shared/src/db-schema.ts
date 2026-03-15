@@ -2,6 +2,19 @@ import { relations, sql } from 'drizzle-orm';
 import { integer, sqliteTable, text, index, unique, primaryKey } from 'drizzle-orm/sqlite-core';
 
 // ============================================================================
+// Settings Table
+// ============================================================================
+
+export const appSettings = sqliteTable('settings', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+  updatedAt: integer('updatedAt')
+    .notNull()
+    .default(sql`(unixepoch() * 1000)`)
+    .$type<number>(),
+});
+
+// ============================================================================
 // Users Table
 // ============================================================================
 
@@ -29,8 +42,8 @@ export const media = sqliteTable(
   'media',
   {
     id: integer('id').primaryKey({ autoIncrement: true }),
-    tmdbId: integer('tmdbId').notNull(),
     type: text('type', { enum: ['movie', 'tv'] }).notNull(),
+    tmdbId: integer('tmdbId').notNull(),
     jellyfinId: text('jellyfinId'),
     status: text('status', { enum: ['pending', 'requested', 'available'] })
       .notNull()
@@ -197,6 +210,7 @@ export const userKeywordPreferencesRelations = relations(userKeywordPreferences,
 // ============================================================================
 
 export const schema = {
+  appSettings,
   users,
   media,
   userMediaInteractions,

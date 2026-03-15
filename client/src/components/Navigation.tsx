@@ -116,6 +116,23 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                       </svg>
                       <span className="font-medium text-sm">Manage Requests</span>
                     </NavLink>
+
+                    <NavLink to="/admin/arr" className={navLinkClass}>
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 12H3m2 0a2 2 0 100-4 2 2 0 000 4zm0 0a2 2 0 100 4 2 2 0 000-4m0-4V4m0 16v-4M21 12h-2m2 0a2 2 0 100-4 2 2 0 000 4zm0 0a2 2 0 100 4 2 2 0 000-4m0-4V4m0 16v-4M12 3v2m0 14v2M12 8a4 4 0 100 8 4 4 0 000-8z"
+                        />
+                      </svg>
+                      <span className="font-medium text-sm">Integrations</span>
+                    </NavLink>
                   </>
                 )}
 
@@ -250,6 +267,22 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                       />
                     </svg>
                     <span className="font-medium">Manage Requests</span>
+                  </NavLink>
+
+                  <NavLink
+                    to="/admin/arr"
+                    onClick={() => setMobileAdvancedOpen(false)}
+                    className={navLinkClass}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 12H3m2 0a2 2 0 100-4 2 2 0 000 4zm0 0a2 2 0 100 4 2 2 0 000-4m0-4V4m0 16v-4M21 12h-2m2 0a2 2 0 100-4 2 2 0 000 4zm0 0a2 2 0 100 4 2 2 0 000-4m0-4V4m0 16v-4M12 3v2m0 14v2M12 8a4 4 0 100 8 4 4 0 000-8z"
+                      />
+                    </svg>
+                    <span className="font-medium">Integrations</span>
                   </NavLink>
                 </>
               )}

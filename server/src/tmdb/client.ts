@@ -61,10 +61,10 @@ export function createTMDBClient(
     /**
      * Get movie or tv details
      * Use append_to_response to fetch related data in a single call (e.g., 'credits,videos,images')
-     * By default, fetches credits and keywords for user preference scoring
+     * By default, fetches credits, keywords, and external_ids for user preference scoring
      */
     async getDetails(type: 'movie' | 'tv', params: TMDBDetailsParams) {
-      const { id, append_to_response = 'credits,keywords', ...queryParams } = params;
+      const { id, append_to_response = 'credits,keywords,external_ids', ...queryParams } = params;
       const response = await client.get(`/${type}/${id}`, {
         params: { ...queryParams, append_to_response },
       });

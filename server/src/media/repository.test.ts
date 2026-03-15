@@ -1,4 +1,4 @@
-import type { Media } from '@findarr/shared';
+import type { DbMedia, Media } from '@findarr/shared';
 import SqlDatabase from 'better-sqlite3';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { createDatabase, type DB } from '../db/setup.js';
@@ -9,7 +9,6 @@ import {
   createMedia,
   updateMediaStatus,
   getMediaRecordsBatch,
-  type MediaDbRow,
 } from './repository.js';
 
 describe('mediaRepository', () => {
@@ -114,11 +113,11 @@ describe('mediaRepository', () => {
 
     it('should update timestamp when status changes', async () => {
       const media = await createMedia(db, 123, 'movie');
-      const originalMedia = (await getMediaById(db, media.id)) as MediaDbRow;
+      const originalMedia = (await getMediaById(db, media.id)) as DbMedia;
 
       await updateMediaStatus(db, media.id, 'available');
 
-      const updatedMedia = (await getMediaById(db, media.id)) as MediaDbRow;
+      const updatedMedia = (await getMediaById(db, media.id)) as DbMedia;
       expect(updatedMedia.updatedAt).toBeGreaterThanOrEqual(originalMedia.createdAt);
       expect(updatedMedia.status).toBe('available');
     });

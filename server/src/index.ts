@@ -4,6 +4,7 @@ import rateLimit from '@fastify/rate-limit';
 import { ServerEnvSchema } from '@findarr/shared';
 import Fastify from 'fastify';
 import { adminRoutes } from './admin/routes.js';
+import arrPlugin from './arr/plugin.js';
 import authPlugin from './auth/plugin.js';
 import authRoutes from './auth/routes.js';
 import catalogPlugin from './catalog/plugin.js';
@@ -66,10 +67,9 @@ async function start() {
       tmdbBaseUrl: env.TMDB_BASE_URL,
       tmdbAccessToken: env.TMDB_ACCESS_TOKEN,
     });
-    await server.register(jellyfinPlugin, {
-      jellyfinUrl: env.JELLYFIN_URL,
-      jellyfinApiKey: env.JELLYFIN_API_KEY,
-    });
+
+    await server.register(jellyfinPlugin);
+    await server.register(arrPlugin);
     await server.register(catalogPlugin);
 
     // Health check endpoint

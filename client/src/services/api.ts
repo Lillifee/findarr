@@ -13,6 +13,12 @@ import type {
   Login,
   CreateUser,
   CreateMediaInteraction,
+  ArrSettings,
+  ArrQualityProfile,
+  ArrRootFolder,
+  ArrTestResult,
+  JellyfinSettings,
+  JellyfinTestResult,
 } from '@findarr/shared';
 import axios from 'axios';
 
@@ -118,6 +124,56 @@ export const interactionService = {
 
   list: async (): Promise<Media[]> => {
     const response = await api.get('/interactions');
+    return response.data;
+  },
+};
+
+function makeArrService(prefix: 'radarr' | 'sonarr') {
+  return {
+    getSettings: async (): Promise<ArrSettings> => {
+      const response = await api.get(`/admin/${prefix}/settings`);
+      return response.data;
+    },
+    saveSettings: async (settings: {
+      url?: string;
+      apiKey?: string;
+      qualityProfileId?: number;
+      rootFolderPath?: string;
+    }): Promise<ArrSettings> => {
+      const response = await api.put(`/admin/${prefix}/settings`, settings);
+      return response.data;
+    },
+    getProfiles: async (): Promise<ArrQualityProfile[]> => {
+      const response = await api.get(`/admin/${prefix}/quality-profiles`);
+      return response.data;
+    },
+    getRootFolders: async (): Promise<ArrRootFolder[]> => {
+      const response = await api.get(`/admin/${prefix}/root-folders`);
+      return response.data;
+    },
+    test: async (): Promise<ArrTestResult> => {
+      const response = await api.post(`/admin/${prefix}/test`);
+      return response.data;
+    },
+  };
+}
+
+export const adminArrService = {
+  radarr: makeArrService('radarr'),
+  sonarr: makeArrService('sonarr'),
+};
+
+export const adminJellyfinService = {
+  getSettings: async (): Promise<JellyfinSettings> => {
+    const response = await api.get('/admin/jellyfin/settings');
+    return response.data;
+  },
+  saveSettings: async (settings: { url?: string; apiKey?: string }): Promise<JellyfinSettings> => {
+    const response = await api.put('/admin/jellyfin/settings', settings);
+    return response.data;
+  },
+  test: async (): Promise<JellyfinTestResult> => {
+    const response = await api.post('/admin/jellyfin/test');
     return response.data;
   },
 };

@@ -1,4 +1,4 @@
-import { type Media, isDefined } from '@findarr/shared';
+import { type DbMedia, type Media, isDefined } from '@findarr/shared';
 import type { DB } from '../db/setup.js';
 import {
   getInteractionsBatch,
@@ -6,7 +6,6 @@ import {
   getVoteCountsBatch,
 } from '../interaction/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
-import type { MediaDbRow } from './repository.js';
 import { getMediaRecordsBatch } from './repository.js';
 
 // ============================================================================
@@ -76,7 +75,7 @@ export async function enrichWithInteractions(
  */
 export async function fetchTMDBDetails(
   tmdbService: TMDBService,
-  mediaDbRows: MediaDbRow[]
+  mediaDbRows: DbMedia[]
 ): Promise<Media[]> {
   const results = await Promise.all(
     mediaDbRows.map(async ({ tmdbId, type, id, status, jellyfinId, createdAt, updatedAt }) => {

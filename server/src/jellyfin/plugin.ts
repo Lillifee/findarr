@@ -1,6 +1,5 @@
-import type { FastifyPluginAsync, FastifyPluginOptions } from 'fastify';
+import type { FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
-import { createJellyfinClient } from './client.js';
 import { createJellyfinService, type JellyfinService } from './service.js';
 
 // Extend Fastify instance with Jellyfin service
@@ -10,24 +9,12 @@ declare module 'fastify' {
   }
 }
 
-interface JellyfinPluginOptions extends FastifyPluginOptions {
-  jellyfinUrl: string;
-  jellyfinApiKey: string;
-}
-
-const jellyfinPlugin: FastifyPluginAsync<JellyfinPluginOptions> = async (fastify, options) => {
-  const { jellyfinUrl, jellyfinApiKey } = options;
-
-  // Create Jellyfin client and service
-  const jellyfinClient = createJellyfinClient(jellyfinUrl, jellyfinApiKey);
-  const jellyfinService = createJellyfinService(jellyfinClient);
-
-  // Decorate fastify instance
-  fastify.decorate('jellyfin', jellyfinService);
+const jellyfinPlugin: FastifyPluginAsync = async fastify => {
+  fastify.decorate('jellyfin', createJellyfinService(fastify.db));
   fastify.log.info('Jellyfin plugin registered');
 };
 
 export default fp(jellyfinPlugin, {
   name: 'jellyfin',
-  dependencies: ['database'], // Needs database for sync
+  dependencies: ['database'],
 });

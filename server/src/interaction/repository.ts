@@ -3,11 +3,11 @@ import type {
   InteractionType,
   MediaInteraction,
   MediaInteractionWithUser,
+  DbMedia,
 } from '@findarr/shared';
 import { isDefined, media, userMediaInteractions } from '@findarr/shared';
 import { and, desc, eq, inArray, ne, sql } from 'drizzle-orm';
 import type { DB } from '../db/setup.js';
-import type { MediaDbRow } from '../media/repository.js';
 
 // ============================================================================
 // Basic CRUD Operations
@@ -192,7 +192,7 @@ export async function getVoteCountsBatch(
  * Get all media records where a user has ANY interaction (liked or disliked)
  * Returns the media DB rows ordered by interaction creation time (most recent first)
  */
-export async function getMediaByUserInteractions(db: DB, userId: number): Promise<MediaDbRow[]> {
+export async function getMediaByUserInteractions(db: DB, userId: number): Promise<DbMedia[]> {
   return await db
     .selectDistinct({
       id: media.id,
@@ -217,7 +217,7 @@ export async function getMediaByUserInteraction(
   db: DB,
   userId: number,
   action: InteractionType
-): Promise<MediaDbRow[]> {
+): Promise<DbMedia[]> {
   const results = await db.query.userMediaInteractions.findMany({
     where: and(eq(userMediaInteractions.userId, userId), eq(userMediaInteractions.action, action)),
     with: { media: true },
@@ -231,10 +231,7 @@ export async function getMediaByUserInteraction(
  * Get all media records that have a specific interaction from any user
  * Returns distinct media records ordered by media creation time (most recent first)
  */
-export async function getMediaByInteraction(
-  db: DB,
-  action: InteractionType
-): Promise<MediaDbRow[]> {
+export async function getMediaByInteraction(db: DB, action: InteractionType): Promise<DbMedia[]> {
   const rows = await db
     .selectDistinct({
       id: media.id,
@@ -258,7 +255,7 @@ export async function getMediaByInteraction(
  * Excludes available media that came from Jellyfin sync
  * Returns media ordered by creation time (most recent first)
  */
-export async function getAllMediaWithInteractions(db: DB): Promise<MediaDbRow[]> {
+export async function getAllMediaWithInteractions(db: DB): Promise<DbMedia[]> {
   return await db.query.media.findMany({
     where: ne(media.status, 'available'),
     orderBy: (media, { desc }) => [desc(media.createdAt)],

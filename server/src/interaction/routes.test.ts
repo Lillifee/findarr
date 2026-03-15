@@ -38,6 +38,19 @@ describe('interactionRoutes', () => {
       getDetails: vi.fn(),
     });
 
+    // Mock arr service
+    app.decorate('arr', {
+      requestMedia: vi.fn(),
+      requestMovie: vi.fn(),
+      requestSeries: vi.fn(),
+      testRadarrConnection: vi.fn(),
+      testSonarrConnection: vi.fn(),
+      getRadarrProfiles: vi.fn(),
+      getRadarrRootFolders: vi.fn(),
+      getSonarrProfiles: vi.fn(),
+      getSonarrRootFolders: vi.fn(),
+    });
+
     // Mock catalog service
     app.decorate('catalog', {
       initialize: vi.fn().mockResolvedValue(undefined),
@@ -86,6 +99,7 @@ describe('interactionRoutes', () => {
     expect(res.statusCode).toBe(200);
     expect(interactionService.createInteraction).toHaveBeenCalledWith(
       app.tmdb,
+      app.arr,
       app.db,
       payload,
       user

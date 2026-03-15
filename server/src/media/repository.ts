@@ -1,23 +1,8 @@
-import type { MediaStatus, Media, MediaRecord } from '@findarr/shared';
+import type { MediaStatus, Media, DbMedia, MediaRecord } from '@findarr/shared';
 import { media } from '@findarr/shared';
 import { and, eq, or } from 'drizzle-orm';
 import type { DB } from '../db/setup.js';
 import { Conflict, NotFound } from '../utils/errors.js';
-
-/**
- * Database row from 'media' table (internal use)
- * Stores only application state - TMDB is the source of truth for metadata
- * For API responses, use Media with enriched state instead
- */
-export interface MediaDbRow {
-  id: number;
-  tmdbId: number;
-  type: 'movie' | 'tv';
-  jellyfinId: string | null;
-  status: MediaStatus;
-  createdAt: number;
-  updatedAt: number;
-}
 
 // ============================================================================
 // Media Repository - Raw database operations for the media table
@@ -26,10 +11,10 @@ export interface MediaDbRow {
 /**
  * Get media record by internal database ID
  */
-export const getMediaById = async (db: DB, mediaId: number): Promise<MediaDbRow | undefined> =>
+export const getMediaById = async (db: DB, mediaId: number): Promise<DbMedia | undefined> =>
   (await db.query.media.findFirst({
     where: eq(media.id, mediaId),
-  })) as MediaDbRow | undefined;
+  })) as DbMedia | undefined;
 
 /**
  * Get media record by TMDB ID and type
@@ -38,10 +23,10 @@ export const getMediaByTmdbId = async (
   db: DB,
   tmdbId: number,
   type: 'movie' | 'tv'
-): Promise<MediaDbRow | undefined> =>
+): Promise<DbMedia | undefined> =>
   (await db.query.media.findFirst({
     where: and(eq(media.tmdbId, tmdbId), eq(media.type, type)),
-  })) as MediaDbRow | undefined;
+  })) as DbMedia | undefined;
 
 /**
  * Create a new media record in the database

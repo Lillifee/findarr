@@ -10,6 +10,7 @@ const interactionRoutes: FastifyPluginAsync = async fastify => {
   fastify.post('/', request =>
     createInteraction(
       fastify.tmdb,
+      fastify.arr,
       fastify.db,
       CreateInteractionSchema.parse(request.body),
       request.user
