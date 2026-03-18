@@ -1,9 +1,33 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "22c49075-66c9-42df-92a3-c8f80c6c74cd",
+  "id": "f1d790cb-7dfe-437d-9903-67184ff497af",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
+    "settings": {
+      "name": "settings",
+      "columns": {
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "value": {
+          "name": "value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "catalog_cache": {
       "name": "catalog_cache",
       "columns": {
@@ -117,7 +141,10 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "catalog_cache_tmdbId_type_pk": {
-          "columns": ["tmdbId", "type"],
+          "columns": [
+            "tmdbId",
+            "type"
+          ],
           "name": "catalog_cache_tmdbId_type_pk"
         }
       },
@@ -134,16 +161,16 @@
           "notNull": true,
           "autoincrement": true
         },
-        "tmdbId": {
-          "name": "tmdbId",
-          "type": "integer",
+        "type": {
+          "name": "type",
+          "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "type": {
-          "name": "type",
-          "type": "text",
+        "tmdbId": {
+          "name": "tmdbId",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -183,22 +210,32 @@
       "indexes": {
         "idx_media_tmdb": {
           "name": "idx_media_tmdb",
-          "columns": ["tmdbId", "type"],
+          "columns": [
+            "tmdbId",
+            "type"
+          ],
           "isUnique": false
         },
         "idx_media_status": {
           "name": "idx_media_status",
-          "columns": ["status"],
+          "columns": [
+            "status"
+          ],
           "isUnique": false
         },
         "idx_media_jellyfin": {
           "name": "idx_media_jellyfin",
-          "columns": ["jellyfinId"],
+          "columns": [
+            "jellyfinId"
+          ],
           "isUnique": false
         },
         "media_tmdbId_type_unique": {
           "name": "media_tmdbId_type_unique",
-          "columns": ["tmdbId", "type"],
+          "columns": [
+            "tmdbId",
+            "type"
+          ],
           "isUnique": true
         }
       },
@@ -251,7 +288,9 @@
       "indexes": {
         "idx_user_genre_preferences_user": {
           "name": "idx_user_genre_preferences_user",
-          "columns": ["userId"],
+          "columns": [
+            "userId"
+          ],
           "isUnique": false
         }
       },
@@ -260,15 +299,22 @@
           "name": "user_genre_preferences_userId_users_id_fk",
           "tableFrom": "user_genre_preferences",
           "tableTo": "users",
-          "columnsFrom": ["userId"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
         "user_genre_preferences_userId_genreId_pk": {
-          "columns": ["userId", "genreId"],
+          "columns": [
+            "userId",
+            "genreId"
+          ],
           "name": "user_genre_preferences_userId_genreId_pk"
         }
       },
@@ -319,7 +365,9 @@
       "indexes": {
         "idx_user_keyword_preferences_user": {
           "name": "idx_user_keyword_preferences_user",
-          "columns": ["userId"],
+          "columns": [
+            "userId"
+          ],
           "isUnique": false
         }
       },
@@ -328,15 +376,22 @@
           "name": "user_keyword_preferences_userId_users_id_fk",
           "tableFrom": "user_keyword_preferences",
           "tableTo": "users",
-          "columnsFrom": ["userId"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
         "user_keyword_preferences_userId_keywordId_pk": {
-          "columns": ["userId", "keywordId"],
+          "columns": [
+            "userId",
+            "keywordId"
+          ],
           "name": "user_keyword_preferences_userId_keywordId_pk"
         }
       },
@@ -386,17 +441,27 @@
       "indexes": {
         "idx_user_media_interactions_user": {
           "name": "idx_user_media_interactions_user",
-          "columns": ["userId", "action"],
+          "columns": [
+            "userId",
+            "action"
+          ],
           "isUnique": false
         },
         "idx_user_media_interactions_media": {
           "name": "idx_user_media_interactions_media",
-          "columns": ["mediaId", "action"],
+          "columns": [
+            "mediaId",
+            "action"
+          ],
           "isUnique": false
         },
         "user_media_interactions_mediaId_userId_action_unique": {
           "name": "user_media_interactions_mediaId_userId_action_unique",
-          "columns": ["mediaId", "userId", "action"],
+          "columns": [
+            "mediaId",
+            "userId",
+            "action"
+          ],
           "isUnique": true
         }
       },
@@ -405,8 +470,12 @@
           "name": "user_media_interactions_mediaId_media_id_fk",
           "tableFrom": "user_media_interactions",
           "tableTo": "media",
-          "columnsFrom": ["mediaId"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "mediaId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -414,8 +483,12 @@
           "name": "user_media_interactions_userId_users_id_fk",
           "tableFrom": "user_media_interactions",
           "tableTo": "users",
-          "columnsFrom": ["userId"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -474,12 +547,16 @@
       "indexes": {
         "users_email_unique": {
           "name": "users_email_unique",
-          "columns": ["email"],
+          "columns": [
+            "email"
+          ],
           "isUnique": true
         },
         "idx_users_email": {
           "name": "idx_users_email",
-          "columns": ["email"],
+          "columns": [
+            "email"
+          ],
           "isUnique": false
         }
       },

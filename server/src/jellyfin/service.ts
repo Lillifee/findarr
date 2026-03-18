@@ -7,8 +7,8 @@ import { jellyfinItemToMedia } from './transformers.js';
 export function createJellyfinService(db: DB) {
   async function getClient() {
     const s = await getJellyfinSettingsFull(db);
-    if (!s.url || !s.apiKey) return null;
-    return createJellyfinClient(s.url, s.apiKey);
+    if (!s.jellyfinUrl || !s.jellyfinApiKey) return null;
+    return createJellyfinClient(s.jellyfinUrl, s.jellyfinApiKey);
   }
 
   async function fetchMedia(itemTypes: ('Movie' | 'Series')[]): Promise<JellyfinMedia[]> {
@@ -53,11 +53,12 @@ export function createJellyfinService(db: DB) {
       apiKeySet: boolean;
     }> {
       const s = await getJellyfinSettingsFull(db);
-      if (!s.url || !s.apiKey) return { url: s.url, connected: false, apiKeySet: s.apiKeySet };
-      const connected = await createJellyfinClient(s.url, s.apiKey)
+      if (!s.jellyfinUrl || !s.jellyfinApiKey)
+        return { url: s.jellyfinUrl, connected: false, apiKeySet: s.jellyfinApiKeySet };
+      const connected = await createJellyfinClient(s.jellyfinUrl, s.jellyfinApiKey)
         .testConnection()
         .catch(() => false);
-      return { url: s.url, connected, apiKeySet: s.apiKeySet };
+      return { url: s.jellyfinUrl, connected, apiKeySet: s.jellyfinApiKeySet };
     },
 
     async getAllMedia(): Promise<JellyfinMedia[]> {

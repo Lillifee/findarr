@@ -3,7 +3,8 @@ import type {
   ArrRootFolder,
   ArrTestResult,
   JellyfinTestResult,
-  ArrSettings,
+  RadarrSettings,
+  SonarrSettings,
 } from '@findarr/shared';
 import { useState, useEffect, useCallback } from 'react';
 import { adminArrService, adminJellyfinService } from '../../services/api';
@@ -28,12 +29,27 @@ interface ArrSectionProps {
 function ArrSection({ service, title, description, accentColor }: ArrSectionProps) {
   const svc = adminArrService[service];
 
-  const [settings, setSettings] = useState<ArrSettings>({
-    qualityProfileId: null,
-    rootFolderPath: null,
-    url: null,
-    apiKeySet: false,
+  // Normalize prefixed settings fields to local names for the form
+  type AnyArrSettings = RadarrSettings | SonarrSettings;
+  const norm = (settings: AnyArrSettings) => ({
+    url: (settings as Record<string, unknown>)[`${service}Url`] as string | null,
+    apiKeySet: (settings as Record<string, unknown>)[`${service}ApiKeySet`] as boolean,
+    qualityProfileId: (settings as Record<string, unknown>)[`${service}QualityProfileId`] as
+      | number
+      | null,
+    rootFolderPath: (settings as Record<string, unknown>)[`${service}RootFolderPath`] as
+      | string
+      | null,
   });
+
+  const defaultSettings: RadarrSettings = {
+    radarrUrl: null,
+    radarrApiKeySet: false,
+    radarrQualityProfileId: null,
+    radarrRootFolderPath: null,
+  };
+
+  const [settings, setSettings] = useState<AnyArrSettings>(defaultSettings);
   const [profiles, setProfiles] = useState<ArrQualityProfile[]>([]);
   const [rootFolders, setRootFolders] = useState<ArrRootFolder[]>([]);
   const [testResult, setTestResult] = useState<ArrTestResult | null>(null);
@@ -49,7 +65,7 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
   const [selectedRootFolder, setSelectedRootFolder] = useState('');
 
   // True when the user has edited URL or API key since the last save/load
-  const isDirty = urlInput !== (settings.url ?? '') || apiKeyInput !== '';
+  const isDirty = urlInput !== (settings ? (norm(settings).url ?? '') : '') || apiKeyInput !== '';
 
   const loadProfiles = useCallback(async () => {
     const [p, f] = await Promise.all([svc.getProfiles(), svc.getRootFolders()]);
@@ -63,9 +79,9 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
       const [currentSettings, result] = await Promise.all([svc.getSettings(), svc.test()]);
       setSettings(currentSettings);
       setTestResult(result);
-      setUrlInput(currentSettings.url ?? '');
-      setSelectedProfileId(currentSettings.qualityProfileId?.toString() ?? '');
-      setSelectedRootFolder(currentSettings.rootFolderPath ?? '');
+      setUrlInput(norm(currentSettings).url ?? '');
+      setSelectedProfileId(norm(currentSettings).qualityProfileId?.toString() ?? '');
+      setSelectedRootFolder(norm(currentSettings).rootFolderPath ?? '');
       if (result.connected) await loadProfiles();
     } catch {
       // ignore
@@ -98,12 +114,13 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
     setSuccess('');
     setIsSaving(true);
     try {
-      await svc.saveSettings({
-        ...(urlInput ? { url: urlInput } : {}),
-        ...(apiKeyInput ? { apiKey: apiKeyInput } : {}),
-        ...(selectedProfileId ? { qualityProfileId: Number.parseInt(selectedProfileId, 10) } : {}),
-        ...(selectedRootFolder ? { rootFolderPath: selectedRootFolder } : {}),
-      });
+      const body: Record<string, unknown> = {};
+      if (urlInput) body[`${service}Url`] = urlInput;
+      if (apiKeyInput) body[`${service}ApiKey`] = apiKeyInput;
+      if (selectedProfileId)
+        body[`${service}QualityProfileId`] = Number.parseInt(selectedProfileId, 10);
+      if (selectedRootFolder) body[`${service}RootFolderPath`] = selectedRootFolder;
+      await svc.saveSettings(body as never);
       setApiKeyInput('');
       setSuccess('Settings saved');
       await init();
@@ -175,7 +192,7 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
         <div>
           <label className="block mb-1.5 text-sm text-gray-300">
             API Key
-            {settings.apiKeySet && !apiKeyInput && (
+            {norm(settings).apiKeySet && !apiKeyInput && (
               <span className="ml-2 text-xs text-gray-500 font-normal">
                 (already set — leave blank to keep)
               </span>
@@ -185,7 +202,7 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
             type="password"
             value={apiKeyInput}
             onChange={e => setApiKeyInput(e.target.value)}
-            placeholder={settings.apiKeySet ? '••••••••••••••••' : 'Enter API key'}
+            placeholder={norm(settings).apiKeySet ? '••••••••••••••••' : 'Enter API key'}
             autoComplete="new-password"
             className={inputClass}
           />
@@ -209,8 +226,8 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
             </select>
           ) : (
             <div className={readonlyClass}>
-              {settings.qualityProfileId
-                ? `Profile ID: ${settings.qualityProfileId}`
+              {norm(settings).qualityProfileId
+                ? `Profile ID: ${norm(settings).qualityProfileId}`
                 : '— No profile selected —'}
             </div>
           )}
@@ -235,7 +252,7 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
             </select>
           ) : (
             <div className={readonlyClass}>
-              {settings.rootFolderPath ?? '— No folder selected —'}
+              {norm(settings).rootFolderPath ?? '— No folder selected —'}
             </div>
           )}
         </div>
@@ -294,8 +311,8 @@ function JellyfinSection() {
         adminJellyfinService.getSettings(),
         adminJellyfinService.test(),
       ]);
-      setSavedUrl(settings.url);
-      setUrlInput(settings.url ?? '');
+      setSavedUrl(settings.jellyfinUrl);
+      setUrlInput(settings.jellyfinUrl ?? '');
       setTestResult(result);
     } catch {
       // ignore
@@ -327,8 +344,8 @@ function JellyfinSection() {
     setIsSaving(true);
     try {
       await adminJellyfinService.saveSettings({
-        ...(urlInput ? { url: urlInput } : {}),
-        ...(apiKeyInput ? { apiKey: apiKeyInput } : {}),
+        ...(urlInput ? { jellyfinUrl: urlInput } : {}),
+        ...(apiKeyInput ? { jellyfinApiKey: apiKeyInput } : {}),
       });
       setApiKeyInput('');
       setSuccess('Settings saved');

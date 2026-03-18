@@ -13,7 +13,8 @@ import type {
   Login,
   CreateUser,
   CreateMediaInteraction,
-  ArrSettings,
+  RadarrSettings,
+  SonarrSettings,
   ArrQualityProfile,
   ArrRootFolder,
   ArrTestResult,
@@ -128,39 +129,55 @@ export const interactionService = {
   },
 };
 
-function makeArrService(prefix: 'radarr' | 'sonarr') {
-  return {
-    getSettings: async (): Promise<ArrSettings> => {
-      const response = await api.get(`/admin/${prefix}/settings`);
+export const adminArrService = {
+  radarr: {
+    getSettings: async (): Promise<RadarrSettings> => {
+      const response = await api.get('/admin/radarr/settings');
       return response.data;
     },
-    saveSettings: async (settings: {
-      url?: string;
-      apiKey?: string;
-      qualityProfileId?: number;
-      rootFolderPath?: string;
-    }): Promise<ArrSettings> => {
-      const response = await api.put(`/admin/${prefix}/settings`, settings);
+    saveSettings: async (
+      settings: Partial<RadarrSettings & { radarrApiKey?: string }>
+    ): Promise<RadarrSettings> => {
+      const response = await api.put('/admin/radarr/settings', settings);
       return response.data;
     },
     getProfiles: async (): Promise<ArrQualityProfile[]> => {
-      const response = await api.get(`/admin/${prefix}/quality-profiles`);
+      const response = await api.get('/admin/radarr/quality-profiles');
       return response.data;
     },
     getRootFolders: async (): Promise<ArrRootFolder[]> => {
-      const response = await api.get(`/admin/${prefix}/root-folders`);
+      const response = await api.get('/admin/radarr/root-folders');
       return response.data;
     },
     test: async (): Promise<ArrTestResult> => {
-      const response = await api.post(`/admin/${prefix}/test`);
+      const response = await api.post('/admin/radarr/test');
       return response.data;
     },
-  };
-}
-
-export const adminArrService = {
-  radarr: makeArrService('radarr'),
-  sonarr: makeArrService('sonarr'),
+  },
+  sonarr: {
+    getSettings: async (): Promise<SonarrSettings> => {
+      const response = await api.get('/admin/sonarr/settings');
+      return response.data;
+    },
+    saveSettings: async (
+      settings: Partial<SonarrSettings & { sonarrApiKey?: string }>
+    ): Promise<SonarrSettings> => {
+      const response = await api.put('/admin/sonarr/settings', settings);
+      return response.data;
+    },
+    getProfiles: async (): Promise<ArrQualityProfile[]> => {
+      const response = await api.get('/admin/sonarr/quality-profiles');
+      return response.data;
+    },
+    getRootFolders: async (): Promise<ArrRootFolder[]> => {
+      const response = await api.get('/admin/sonarr/root-folders');
+      return response.data;
+    },
+    test: async (): Promise<ArrTestResult> => {
+      const response = await api.post('/admin/sonarr/test');
+      return response.data;
+    },
+  },
 };
 
 export const adminJellyfinService = {
@@ -168,7 +185,10 @@ export const adminJellyfinService = {
     const response = await api.get('/admin/jellyfin/settings');
     return response.data;
   },
-  saveSettings: async (settings: { url?: string; apiKey?: string }): Promise<JellyfinSettings> => {
+  saveSettings: async (settings: {
+    jellyfinUrl?: string;
+    jellyfinApiKey?: string;
+  }): Promise<JellyfinSettings> => {
     const response = await api.put('/admin/jellyfin/settings', settings);
     return response.data;
   },

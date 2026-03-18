@@ -106,26 +106,48 @@ export const InteractionIdSchema = z.object({
 // Admin / Integration Schemas (Radarr, Sonarr, Jellyfin)
 // ============================================================================
 
-/** Request body for PUT /admin/radarr/settings and PUT /admin/sonarr/settings */
-export const ArrSettingsBodySchema = z.object({
-  url: z.string().optional(),
-  apiKey: z.string().optional(),
-  qualityProfileId: z.coerce.number().int().positive().optional(),
-  rootFolderPath: z.string().min(1).optional(),
+/** Request body for PUT /admin/radarr/settings */
+export const RadarrSettingsBodySchema = z.object({
+  radarrUrl: z.string().optional(),
+  radarrApiKey: z.string().optional(),
+  radarrQualityProfileId: z.coerce.number().int().positive().optional(),
+  radarrRootFolderPath: z.string().min(1).optional(),
+});
+
+/** Request body for PUT /admin/sonarr/settings */
+export const SonarrSettingsBodySchema = z.object({
+  sonarrUrl: z.string().optional(),
+  sonarrApiKey: z.string().optional(),
+  sonarrQualityProfileId: z.coerce.number().int().positive().optional(),
+  sonarrRootFolderPath: z.string().min(1).optional(),
 });
 
 /** Request body for PUT /admin/jellyfin/settings */
 export const JellyfinSettingsBodySchema = z.object({
-  url: z.string().optional(),
-  apiKey: z.string().optional(),
+  jellyfinUrl: z.string().optional(),
+  jellyfinApiKey: z.string().optional(),
 });
 
-/** Response shape for GET /admin/radarr/settings and GET /admin/sonarr/settings */
-export const ArrSettingsSchema = z.object({
-  url: z.string().nullable(),
-  apiKeySet: z.boolean(),
-  qualityProfileId: z.number().int().nullable(),
-  rootFolderPath: z.string().nullable(),
+/** Response shape for GET /admin/radarr/settings */
+export const RadarrSettingsSchema = z.object({
+  radarrUrl: z.string().nullable(),
+  radarrApiKeySet: z.boolean(),
+  radarrQualityProfileId: z.number().int().nullable(),
+  radarrRootFolderPath: z.string().nullable(),
+});
+
+/** Response shape for GET /admin/sonarr/settings */
+export const SonarrSettingsSchema = z.object({
+  sonarrUrl: z.string().nullable(),
+  sonarrApiKeySet: z.boolean(),
+  sonarrQualityProfileId: z.number().int().nullable(),
+  sonarrRootFolderPath: z.string().nullable(),
+});
+
+/** Response shape for GET /admin/jellyfin/settings */
+export const JellyfinSettingsSchema = z.object({
+  jellyfinUrl: z.string().nullable(),
+  jellyfinApiKeySet: z.boolean(),
 });
 
 /** Quality profile returned by Radarr/Sonarr */
@@ -148,12 +170,6 @@ export const ArrTestResultSchema = z.object({
   url: z.string().nullable(),
 });
 
-/** Response shape for GET /admin/jellyfin/settings */
-export const JellyfinSettingsSchema = z.object({
-  url: z.string().nullable(),
-  apiKeySet: z.boolean(),
-});
-
 /** Response shape for POST /admin/jellyfin/test */
 export const JellyfinTestResultSchema = z.object({
   url: z.string().nullable(),
@@ -161,7 +177,12 @@ export const JellyfinTestResultSchema = z.object({
   apiKeySet: z.boolean(),
 });
 
-export type ArrSettings = z.infer<typeof ArrSettingsSchema>;
+export type RadarrSettingsBody = z.infer<typeof RadarrSettingsBodySchema>;
+export type SonarrSettingsBody = z.infer<typeof SonarrSettingsBodySchema>;
+export type JellyfinSettingsBody = z.infer<typeof JellyfinSettingsBodySchema>;
+
+export type RadarrSettings = z.infer<typeof RadarrSettingsSchema>;
+export type SonarrSettings = z.infer<typeof SonarrSettingsSchema>;
 export type ArrQualityProfile = z.infer<typeof ArrQualityProfileSchema>;
 export type ArrRootFolder = z.infer<typeof ArrRootFolderSchema>;
 export type ArrTestResult = z.infer<typeof ArrTestResultSchema>;

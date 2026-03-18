@@ -9,6 +9,8 @@ import {
   assertDefined as expectDefined,
   createTestMedia as createMediaTestHelper,
   createTestUserInDb,
+  createTestMovieDetail,
+  createTestTVDetail,
 } from '../utils/testHelper.js';
 import { hasInteraction, getVoteCounts } from './repository.js';
 import {
@@ -52,24 +54,15 @@ describe('interaction service - integration tests', () => {
       fetchDiscover: vi.fn(),
       fetchTrending: vi.fn(),
       getGenres: vi.fn(),
-      getDetails: vi.fn().mockResolvedValue({
-        id: 123,
-        type: 'movie',
-        name: 'Test Movie',
-        genres: [
-          { id: 28, name: 'Action' },
-          { id: 12, name: 'Adventure' },
-        ],
-        date: '2024-01-01',
-        posterPath: '/test.jpg',
-        backdropPath: undefined,
-        overview: 'Test overview',
-        voteAverage: 7.5,
-        voteCount: 1000,
-        popularity: 100,
-        originalLanguage: 'en',
-        originCountry: undefined,
-      }),
+      getDetails: vi.fn().mockResolvedValue(
+        createTestMovieDetail({
+          tmdbId: 123,
+          genres: [
+            { id: 28, name: 'Action' },
+            { id: 12, name: 'Adventure' },
+          ],
+        })
+      ),
     } as TMDBService;
   });
 
@@ -350,40 +343,12 @@ describe('interaction service - integration tests', () => {
       fetchDiscover: vi.fn(),
       fetchTrending: vi.fn(),
       getGenres: vi.fn(),
-      getDetails: vi.fn().mockResolvedValue({
-        tmdbId: 123,
-        type: 'movie',
-        name: 'Test Movie',
-        genres: [],
-        date: '2024-01-01',
-        posterPath: null,
-        backdropPath: null,
-        overview: 'Test',
-        voteAverage: 7,
-        voteCount: 100,
-        popularity: 50,
-        originalLanguage: 'en',
-        originCountry: undefined,
-      }),
+      getDetails: vi.fn().mockResolvedValue(createTestMovieDetail({ tmdbId: 123 })),
     } as TMDBService;
 
     beforeEach(() => {
       vi.clearAllMocks();
-      vi.mocked(tmdbWithTvdb.getDetails).mockResolvedValue({
-        tmdbId: 123,
-        type: 'movie',
-        name: 'Test Movie',
-        genres: [],
-        date: '2024-01-01',
-        posterPath: null,
-        backdropPath: null,
-        overview: 'Test',
-        voteAverage: 7,
-        voteCount: 100,
-        popularity: 50,
-        originalLanguage: 'en',
-        originCountry: undefined,
-      });
+      vi.mocked(tmdbWithTvdb.getDetails).mockResolvedValue(createTestMovieDetail({ tmdbId: 123 }));
     });
 
     it('should call requestMovie when a movie reaches the request threshold', async () => {
@@ -410,22 +375,9 @@ describe('interaction service - integration tests', () => {
         tmdbId: 456,
         action: 'liked',
       };
-      vi.mocked(tmdbWithTvdb.getDetails).mockResolvedValue({
-        tmdbId: 456,
-        type: 'tv',
-        name: 'Test Show',
-        tvdbId: 81_189,
-        genres: [],
-        date: '2022-01-01',
-        posterPath: null,
-        backdropPath: null,
-        overview: 'A show',
-        voteAverage: 8,
-        voteCount: 500,
-        popularity: 80,
-        originalLanguage: 'en',
-        originCountry: undefined,
-      } as never);
+      vi.mocked(tmdbWithTvdb.getDetails).mockResolvedValue(
+        createTestTVDetail({ tmdbId: 456, name: 'Test Show', tvdbId: 81_189 }) as never
+      );
 
       const user1 = await createTestUserInDb(db, { email: 'tv1@test.com', displayName: 'U1' });
       const user2 = await createTestUserInDb(db, { email: 'tv2@test.com', displayName: 'U2' });

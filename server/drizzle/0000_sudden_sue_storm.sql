@@ -1,3 +1,8 @@
+CREATE TABLE `settings` (
+	`key` text PRIMARY KEY NOT NULL,
+	`value` text NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE `catalog_cache` (
 	`tmdbId` integer NOT NULL,
 	`type` text NOT NULL,
@@ -19,8 +24,8 @@ CREATE TABLE `catalog_cache` (
 --> statement-breakpoint
 CREATE TABLE `media` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`tmdbId` integer NOT NULL,
 	`type` text NOT NULL,
+	`tmdbId` integer NOT NULL,
 	`jellyfinId` text,
 	`status` text DEFAULT 'pending' NOT NULL,
 	`createdAt` integer DEFAULT (unixepoch() * 1000) NOT NULL,

@@ -1,7 +1,8 @@
 import {
   CreateUserSchema,
   DeleteUserSchema,
-  ArrSettingsBodySchema,
+  RadarrSettingsBodySchema,
+  SonarrSettingsBodySchema,
   JellyfinSettingsBodySchema,
 } from '@findarr/shared';
 import type { FastifyPluginAsync } from 'fastify';
@@ -43,7 +44,8 @@ const adminRoutes: FastifyPluginAsync = async fastify => {
   fastify.get('/radarr/settings', () => getRadarrSettings(fastify.db));
 
   fastify.put('/radarr/settings', async r => {
-    await setRadarrSettings(fastify.db, ArrSettingsBodySchema.parse(r.body));
+    const body = RadarrSettingsBodySchema.parse(r.body);
+    await setRadarrSettings(fastify.db, body);
     return getRadarrSettings(fastify.db);
   });
 
@@ -54,7 +56,11 @@ const adminRoutes: FastifyPluginAsync = async fastify => {
   fastify.post('/radarr/test', async () => {
     const settings = await getRadarrSettings(fastify.db);
     const connected = await fastify.arr.testRadarrConnection();
-    return { configured: settings.apiKeySet && !!settings.url, connected, url: settings.url };
+    return {
+      configured: settings.radarrApiKeySet && !!settings.radarrUrl,
+      connected,
+      url: settings.radarrUrl,
+    };
   });
 
   // ============================================================================
@@ -64,7 +70,7 @@ const adminRoutes: FastifyPluginAsync = async fastify => {
   fastify.get('/sonarr/settings', () => getSonarrSettings(fastify.db));
 
   fastify.put('/sonarr/settings', async r => {
-    await setSonarrSettings(fastify.db, ArrSettingsBodySchema.parse(r.body));
+    await setSonarrSettings(fastify.db, SonarrSettingsBodySchema.parse(r.body));
     return getSonarrSettings(fastify.db);
   });
 
@@ -75,7 +81,11 @@ const adminRoutes: FastifyPluginAsync = async fastify => {
   fastify.post('/sonarr/test', async () => {
     const settings = await getSonarrSettings(fastify.db);
     const connected = await fastify.arr.testSonarrConnection();
-    return { configured: settings.apiKeySet && !!settings.url, connected, url: settings.url };
+    return {
+      configured: settings.sonarrApiKeySet && !!settings.sonarrUrl,
+      connected,
+      url: settings.sonarrUrl,
+    };
   });
 
   // ============================================================================

@@ -3,6 +3,7 @@ import {
   type CreateUser,
   type Media,
   type MovieDetails,
+  type TVDetails,
   type User,
 } from '@findarr/shared';
 import { createUser } from '../auth/repository.js';
@@ -45,7 +46,22 @@ export const createTestMedia = (props?: Partial<Media>): Media => ({
   ...props,
 });
 
-export const createTestMediaDetail = (props?: Partial<MovieDetails>): MovieDetails => ({
+export const createTestTVDetail = (props?: Partial<TVDetails>): TVDetails => ({
+  ...createTestMedia({ type: 'tv' }),
+  type: 'tv',
+  originalName: 'Test Show',
+  episodeRunTime: [45],
+  showType: 'Scripted',
+  numberOfSeasons: 1,
+  numberOfEpisodes: 10,
+  status: 'Returning Series',
+  homepage: undefined,
+  tvdbId: undefined,
+  imdbId: undefined,
+  ...props,
+});
+
+export const createTestMovieDetail = (props?: Partial<MovieDetails>): MovieDetails => ({
   ...createTestMedia(),
   type: 'movie',
   tagline: 'Test tagline',

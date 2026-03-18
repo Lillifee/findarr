@@ -49,10 +49,10 @@ describe('arr service', () => {
 
   // Helpers to seed connection config into the DB
   async function configureRadarr() {
-    await setRadarrSettings(db, { url: 'http://radarr:7878', apiKey: 'radarr-key' });
+    await setRadarrSettings(db, { radarrUrl: 'http://radarr:7878', radarrApiKey: 'radarr-key' });
   }
   async function configureSonarr() {
-    await setSonarrSettings(db, { url: 'http://sonarr:8989', apiKey: 'sonarr-key' });
+    await setSonarrSettings(db, { sonarrUrl: 'http://sonarr:8989', sonarrApiKey: 'sonarr-key' });
   }
 
   describe('testRadarrConnection / testSonarrConnection', () => {
@@ -99,10 +99,10 @@ describe('arr service', () => {
 
     it('should call addMovie with correct params from DB settings', async () => {
       await setRadarrSettings(db, {
-        url: 'http://radarr:7878',
-        apiKey: 'radarr-key',
-        qualityProfileId: 4,
-        rootFolderPath: '/movies',
+        radarrUrl: 'http://radarr:7878',
+        radarrApiKey: 'radarr-key',
+        radarrQualityProfileId: 4,
+        radarrRootFolderPath: '/movies',
       });
       const service = createArrService(db);
 
@@ -118,10 +118,10 @@ describe('arr service', () => {
 
     it('should propagate errors from radarr client', async () => {
       await setRadarrSettings(db, {
-        url: 'http://radarr:7878',
-        apiKey: 'radarr-key',
-        qualityProfileId: 1,
-        rootFolderPath: '/movies',
+        radarrUrl: 'http://radarr:7878',
+        radarrApiKey: 'radarr-key',
+        radarrQualityProfileId: 1,
+        radarrRootFolderPath: '/movies',
       });
       vi.mocked(mockRadarrClient.addMovie).mockRejectedValueOnce(new Error('Radarr API error'));
       const service = createArrService(db);
@@ -148,10 +148,10 @@ describe('arr service', () => {
 
     it('should call addSeries with correct params from DB settings', async () => {
       await setSonarrSettings(db, {
-        url: 'http://sonarr:8989',
-        apiKey: 'sonarr-key',
-        qualityProfileId: 2,
-        rootFolderPath: '/tv',
+        sonarrUrl: 'http://sonarr:8989',
+        sonarrApiKey: 'sonarr-key',
+        sonarrQualityProfileId: 2,
+        sonarrRootFolderPath: '/tv',
       });
       const service = createArrService(db);
 
@@ -167,10 +167,10 @@ describe('arr service', () => {
 
     it('should propagate errors from sonarr client', async () => {
       await setSonarrSettings(db, {
-        url: 'http://sonarr:8989',
-        apiKey: 'sonarr-key',
-        qualityProfileId: 2,
-        rootFolderPath: '/tv',
+        sonarrUrl: 'http://sonarr:8989',
+        sonarrApiKey: 'sonarr-key',
+        sonarrQualityProfileId: 2,
+        sonarrRootFolderPath: '/tv',
       });
       vi.mocked(mockSonarrClient.addSeries).mockRejectedValueOnce(new Error('Sonarr API error'));
       const service = createArrService(db);

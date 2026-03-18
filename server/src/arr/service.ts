@@ -6,41 +6,41 @@ import type { ArrQualityProfile, ArrRootFolder } from './schemas.js';
 export function createArrService(db: DB) {
   async function getRadarrClient() {
     const s = await getRadarrSettingsFull(db);
-    if (!s.url || !s.apiKey) return null;
-    return createRadarrClient(s.url, s.apiKey);
+    if (!s.radarrUrl || !s.radarrApiKey) return null;
+    return createRadarrClient(s.radarrUrl, s.radarrApiKey);
   }
 
   async function getSonarrClient() {
     const s = await getSonarrSettingsFull(db);
-    if (!s.url || !s.apiKey) return null;
-    return createSonarrClient(s.url, s.apiKey);
+    if (!s.sonarrUrl || !s.sonarrApiKey) return null;
+    return createSonarrClient(s.sonarrUrl, s.sonarrApiKey);
   }
 
   async function getRadarrClientAndConfig() {
     const s = await getRadarrSettingsFull(db);
-    if (!s.url || !s.apiKey) throw new Error('Radarr is not configured');
-    if (!s.qualityProfileId || !s.rootFolderPath)
+    if (!s.radarrUrl || !s.radarrApiKey) throw new Error('Radarr is not configured');
+    if (!s.radarrQualityProfileId || !s.radarrRootFolderPath)
       throw new Error(
         'Radarr settings not configured. Set quality profile ID and root folder path via admin settings.'
       );
     return {
-      client: createRadarrClient(s.url, s.apiKey),
-      qualityProfileId: s.qualityProfileId,
-      rootFolderPath: s.rootFolderPath,
+      client: createRadarrClient(s.radarrUrl, s.radarrApiKey),
+      qualityProfileId: s.radarrQualityProfileId,
+      rootFolderPath: s.radarrRootFolderPath,
     };
   }
 
   async function getSonarrClientAndConfig() {
     const s = await getSonarrSettingsFull(db);
-    if (!s.url || !s.apiKey) throw new Error('Sonarr is not configured');
-    if (!s.qualityProfileId || !s.rootFolderPath)
+    if (!s.sonarrUrl || !s.sonarrApiKey) throw new Error('Sonarr is not configured');
+    if (!s.sonarrQualityProfileId || !s.sonarrRootFolderPath)
       throw new Error(
         'Sonarr settings not configured. Set quality profile ID and root folder path via admin settings.'
       );
     return {
-      client: createSonarrClient(s.url, s.apiKey),
-      qualityProfileId: s.qualityProfileId,
-      rootFolderPath: s.rootFolderPath,
+      client: createSonarrClient(s.sonarrUrl, s.sonarrApiKey),
+      qualityProfileId: s.sonarrQualityProfileId,
+      rootFolderPath: s.sonarrRootFolderPath,
     };
   }
 
@@ -70,25 +70,25 @@ export function createArrService(db: DB) {
     async getRadarrProfiles(): Promise<ArrQualityProfile[]> {
       const client = await getRadarrClient();
       if (!client) return [];
-      return client.getQualityProfiles().catch(() => []);
+      return client.getQualityProfiles();
     },
 
     async getRadarrRootFolders(): Promise<ArrRootFolder[]> {
       const client = await getRadarrClient();
       if (!client) return [];
-      return client.getRootFolders().catch(() => []);
+      return client.getRootFolders();
     },
 
     async getSonarrProfiles(): Promise<ArrQualityProfile[]> {
       const client = await getSonarrClient();
       if (!client) return [];
-      return client.getQualityProfiles().catch(() => []);
+      return client.getQualityProfiles();
     },
 
     async getSonarrRootFolders(): Promise<ArrRootFolder[]> {
       const client = await getSonarrClient();
       if (!client) return [];
-      return client.getRootFolders().catch(() => []);
+      return client.getRootFolders();
     },
   };
 }

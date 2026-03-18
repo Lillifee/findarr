@@ -6,7 +6,7 @@ import { createDatabase, type DB } from '../db/setup.js';
 import { createMedia } from '../media/repository.js';
 import { updateGenrePreference, updateKeywordPreference } from '../preferences/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
-import { createTestMedia, createTestMediaDetail, createTestUserInDb } from '../utils/testHelper.js';
+import { createTestMedia, createTestMovieDetail, createTestUserInDb } from '../utils/testHelper.js';
 import { upsertCatalogCache } from './repository.js';
 import { createCatalogService } from './service.js';
 
@@ -48,7 +48,7 @@ describe('catalog service - integration tests', () => {
   it('should delegate discover, getDetails, getGenres', async () => {
     const searchResult: SearchResponse = { results: [], totalPages: 1, page: 0, totalResults: 0 };
     const fetchResult: DiscoverResponse = { results: [createTestMedia({ tmdbId: 1 })] };
-    const detailsResult: MediaDetails = createTestMediaDetail({ tmdbId: 1 });
+    const detailsResult: MediaDetails = createTestMovieDetail({ tmdbId: 1 });
     const genresResult = { genres: [] };
 
     tmdbServiceMock.search.mockResolvedValue(searchResult);

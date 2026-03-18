@@ -8,10 +8,6 @@ import { integer, sqliteTable, text, index, unique, primaryKey } from 'drizzle-o
 export const appSettings = sqliteTable('settings', {
   key: text('key').primaryKey(),
   value: text('value').notNull(),
-  updatedAt: integer('updatedAt')
-    .notNull()
-    .default(sql`(unixepoch() * 1000)`)
-    .$type<number>(),
 });
 
 // ============================================================================
@@ -111,10 +107,10 @@ export const userGenrePreferences = sqliteTable(
     score: integer('score').notNull().default(0),
     count: integer('count').notNull().default(1), // Track number of ratings for Bayesian normalization
   },
-  table => ({
-    pk: primaryKey({ columns: [table.userId, table.genreId] }),
-    userIdx: index('idx_user_genre_preferences_user').on(table.userId),
-  })
+  table => [
+    primaryKey({ columns: [table.userId, table.genreId] }),
+    index('idx_user_genre_preferences_user').on(table.userId),
+  ]
 );
 
 // ============================================================================
@@ -140,9 +136,7 @@ export const catalogCache = sqliteTable(
     keywords: text('keywords'), // JSON array of {id, name} - null = not fetched, '[]' = fetched but none
     trendingRank: integer('trendingRank'), // Trending position (null = not trending)
   },
-  table => ({
-    pk: primaryKey({ columns: [table.tmdbId, table.type] }),
-  })
+  table => [primaryKey({ columns: [table.tmdbId, table.type] })]
 );
 
 // ============================================================================
@@ -160,10 +154,10 @@ export const userKeywordPreferences = sqliteTable(
     score: integer('score').notNull().default(0),
     count: integer('count').notNull().default(1), // Track number of ratings for Bayesian normalization
   },
-  table => ({
-    pk: primaryKey({ columns: [table.userId, table.keywordId] }),
-    userIdx: index('idx_user_keyword_preferences_user').on(table.userId),
-  })
+  table => [
+    primaryKey({ columns: [table.userId, table.keywordId] }),
+    index('idx_user_keyword_preferences_user').on(table.userId),
+  ]
 );
 
 // ============================================================================
