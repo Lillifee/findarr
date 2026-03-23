@@ -33,7 +33,7 @@ export interface Keyword {
   name: string;
 }
 
-export type MediaStatus = 'pending' | 'requested' | 'available';
+export type MediaStatus = 'pending' | 'requested' | 'downloading' | 'downloaded' | 'available';
 export type InteractionType = 'liked' | 'disliked';
 
 export interface MediaScore {
@@ -117,6 +117,7 @@ export interface MovieDetails extends Movie {
   status: string;
   homepage: string | undefined;
   imdbId: string | undefined;
+  keywords: Keyword[];
 }
 
 /**
@@ -132,6 +133,7 @@ export interface TVDetails extends TVShow {
   homepage: string | undefined;
   tvdbId: number | undefined;
   imdbId: string | undefined;
+  keywords: Keyword[];
 }
 
 export type MediaDetails = MovieDetails | TVDetails;

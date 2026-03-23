@@ -64,7 +64,7 @@ export const MediaTypeChips: React.FC<MediaTypeChipsProps> = ({
           disabled={disabled}
           className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all cursor-pointer ${
             selectedType === type.value
-              ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-inner'
+              ? 'bg-linear-to-r from-amber-600 to-orange-600 text-white shadow-inner'
               : 'text-gray-300 hover:bg-gray-700/80'
           } ${index > 0 ? 'border-l border-gray-700/50' : ''} disabled:opacity-50 disabled:cursor-not-allowed`}
         >

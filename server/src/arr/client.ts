@@ -6,10 +6,16 @@ import {
   ArrRootFolderSchema,
   RadarrAddMovieResponseSchema,
   SonarrAddSeriesResponseSchema,
+  RadarrMovieSchema,
+  SonarrSeriesSchema,
+  ArrQueueResponseSchema,
   type ArrQualityProfile,
   type ArrRootFolder,
   type RadarrAddMovieResponse,
   type SonarrAddSeriesResponse,
+  type RadarrMovie,
+  type SonarrSeries,
+  type ArrQueueResponse,
 } from './schemas.js';
 
 function createHttpClient(baseUrl: string, apiKey: string): AxiosInstance {
@@ -40,6 +46,11 @@ function createSharedMethods(http: AxiosInstance) {
     async getRootFolders(): Promise<ArrRootFolder[]> {
       const response = await http.get('/rootfolder');
       return z.array(ArrRootFolderSchema).parse(response.data);
+    },
+
+    async getQueue(): Promise<ArrQueueResponse> {
+      const response = await http.get('/queue');
+      return ArrQueueResponseSchema.parse(response.data);
     },
   };
 }
@@ -75,6 +86,11 @@ export function createRadarrClient(baseUrl: string, apiKey: string) {
       });
       return RadarrAddMovieResponseSchema.parse(response.data);
     },
+
+    async getMovies(): Promise<RadarrMovie[]> {
+      const response = await http.get('/movie');
+      return z.array(RadarrMovieSchema).parse(response.data);
+    },
   };
 }
 
@@ -95,6 +111,11 @@ export function createSonarrClient(baseUrl: string, apiKey: string) {
         addOptions: { searchForMissingEpisodes: true },
       });
       return SonarrAddSeriesResponseSchema.parse(response.data);
+    },
+
+    async getSeries(): Promise<SonarrSeries[]> {
+      const response = await http.get('/series');
+      return z.array(SonarrSeriesSchema).parse(response.data);
     },
   };
 }

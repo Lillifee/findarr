@@ -131,7 +131,7 @@ export const RegionChips: React.FC<RegionChipsProps> = ({
               disabled={disabled}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer ${
                 isSelected
-                  ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white border-2 border-amber-400 shadow-md'
+                  ? 'bg-linear-to-r from-amber-600 to-orange-600 text-white border-2 border-amber-400 shadow-md'
                   : 'bg-gray-800/60 backdrop-blur-sm text-gray-300 border-2 border-gray-600/50 hover:bg-gray-700/80 hover:border-gray-500'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >

@@ -1,7 +1,15 @@
 import type { DB } from '../db/setup.js';
 import { getRadarrSettingsFull, getSonarrSettingsFull } from '../settings/repository.js';
 import { createRadarrClient, createSonarrClient } from './client.js';
-import type { ArrQualityProfile, ArrRootFolder } from './schemas.js';
+import type {
+  ArrQualityProfile,
+  ArrRootFolder,
+  RadarrMovie,
+  SonarrSeries,
+  ArrQueueResponse,
+  RadarrAddMovieResponse,
+  SonarrAddSeriesResponse,
+} from './schemas.js';
 
 export function createArrService(db: DB) {
   async function getRadarrClient() {
@@ -18,11 +26,8 @@ export function createArrService(db: DB) {
 
   async function getRadarrClientAndConfig() {
     const s = await getRadarrSettingsFull(db);
-    if (!s.radarrUrl || !s.radarrApiKey) throw new Error('Radarr is not configured');
-    if (!s.radarrQualityProfileId || !s.radarrRootFolderPath)
-      throw new Error(
-        'Radarr settings not configured. Set quality profile ID and root folder path via admin settings.'
-      );
+    if (!s.radarrUrl || !s.radarrApiKey) return null;
+    if (!s.radarrQualityProfileId || !s.radarrRootFolderPath) return null;
     return {
       client: createRadarrClient(s.radarrUrl, s.radarrApiKey),
       qualityProfileId: s.radarrQualityProfileId,
@@ -32,11 +37,8 @@ export function createArrService(db: DB) {
 
   async function getSonarrClientAndConfig() {
     const s = await getSonarrSettingsFull(db);
-    if (!s.sonarrUrl || !s.sonarrApiKey) throw new Error('Sonarr is not configured');
-    if (!s.sonarrQualityProfileId || !s.sonarrRootFolderPath)
-      throw new Error(
-        'Sonarr settings not configured. Set quality profile ID and root folder path via admin settings.'
-      );
+    if (!s.sonarrUrl || !s.sonarrApiKey) return null;
+    if (!s.sonarrQualityProfileId || !s.sonarrRootFolderPath) return null;
     return {
       client: createSonarrClient(s.sonarrUrl, s.sonarrApiKey),
       qualityProfileId: s.sonarrQualityProfileId,
@@ -57,14 +59,24 @@ export function createArrService(db: DB) {
       return client.testConnection().catch(() => false);
     },
 
-    async requestMovie(tmdbId: number, title: string): Promise<void> {
-      const { client, qualityProfileId, rootFolderPath } = await getRadarrClientAndConfig();
-      await client.addMovie({ tmdbId, title, qualityProfileId, rootFolderPath });
+    async requestMovie(
+      tmdbId: number,
+      title: string
+    ): Promise<RadarrAddMovieResponse | Record<string, never>> {
+      const config = await getRadarrClientAndConfig();
+      if (!config) return {};
+      const { client, qualityProfileId, rootFolderPath } = config;
+      return await client.addMovie({ tmdbId, title, qualityProfileId, rootFolderPath });
     },
 
-    async requestSeries(tvdbId: number | undefined, title: string): Promise<void> {
-      const { client, qualityProfileId, rootFolderPath } = await getSonarrClientAndConfig();
-      await client.addSeries({ tvdbId, title, qualityProfileId, rootFolderPath });
+    async requestSeries(
+      tvdbId: number | undefined,
+      title: string
+    ): Promise<SonarrAddSeriesResponse | Record<string, never>> {
+      const config = await getSonarrClientAndConfig();
+      if (!config) return {};
+      const { client, qualityProfileId, rootFolderPath } = config;
+      return await client.addSeries({ tvdbId, title, qualityProfileId, rootFolderPath });
     },
 
     async getRadarrProfiles(): Promise<ArrQualityProfile[]> {
@@ -89,6 +101,30 @@ export function createArrService(db: DB) {
       const client = await getSonarrClient();
       if (!client) return [];
       return client.getRootFolders();
+    },
+
+    async getRadarrMovies(): Promise<RadarrMovie[]> {
+      const config = await getRadarrClientAndConfig();
+      if (!config) return [];
+      return config.client.getMovies();
+    },
+
+    async getSonarrSeries(): Promise<SonarrSeries[]> {
+      const config = await getSonarrClientAndConfig();
+      if (!config) return [];
+      return config.client.getSeries();
+    },
+
+    async getRadarrQueue(): Promise<ArrQueueResponse> {
+      const client = await getRadarrClient();
+      if (!client) return { records: [] };
+      return client.getQueue();
+    },
+
+    async getSonarrQueue(): Promise<ArrQueueResponse> {
+      const client = await getSonarrClient();
+      if (!client) return { records: [] };
+      return client.getQueue();
     },
   };
 }

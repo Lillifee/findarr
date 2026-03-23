@@ -7,6 +7,9 @@ import {
   write,
   getRadarrSettings,
   getSonarrSettings,
+  getJellyfinSettings,
+  getJellyfinSettingsFull,
+  setJellyfinSettings,
 } from './repository.js';
 
 describe('settings repository', () => {
@@ -92,6 +95,65 @@ describe('settings repository', () => {
       const sonarr = await getSonarrSettings(db);
       expect(radarr.radarrRootFolderPath).toBe('/movies');
       expect(sonarr.sonarrRootFolderPath).toBe('/tv');
+    });
+  });
+
+  describe('getJellyfinSettings', () => {
+    it('should return null values when not set', async () => {
+      const settings = await getJellyfinSettings(db);
+      expect(settings.jellyfinUrl).toBeNull();
+      expect(settings.jellyfinApiKeySet).toBe(false);
+    });
+
+    it('should set and retrieve jellyfin settings', async () => {
+      await setJellyfinSettings(db, {
+        jellyfinUrl: 'http://jellyfin:8096',
+        jellyfinApiKey: 'jf-api-key',
+      });
+      const settings = await getJellyfinSettings(db);
+      expect(settings.jellyfinUrl).toBe('http://jellyfin:8096');
+      expect(settings.jellyfinApiKeySet).toBe(true);
+    });
+
+    it('should not expose api key in getJellyfinSettings', async () => {
+      await setJellyfinSettings(db, {
+        jellyfinUrl: 'http://jellyfin:8096',
+        jellyfinApiKey: 'secret-key',
+      });
+      const settings = await getJellyfinSettings(db);
+      expect(settings).not.toHaveProperty('jellyfinApiKey');
+      expect(settings.jellyfinApiKeySet).toBe(true);
+    });
+
+    it('should expose api key in getJellyfinSettingsFull', async () => {
+      await setJellyfinSettings(db, {
+        jellyfinUrl: 'http://jellyfin:8096',
+        jellyfinApiKey: 'secret-key',
+      });
+      const settings = await getJellyfinSettingsFull(db);
+      expect(settings.jellyfinApiKey).toBe('secret-key');
+      expect(settings.jellyfinApiKeySet).toBe(true);
+    });
+
+    it('should partially update jellyfin settings', async () => {
+      await setJellyfinSettings(db, {
+        jellyfinUrl: 'http://jellyfin:8096',
+        jellyfinApiKey: 'key1',
+      });
+      await setJellyfinSettings(db, { jellyfinUrl: 'http://new-jellyfin:8096' });
+      const settings = await getJellyfinSettingsFull(db);
+      expect(settings.jellyfinUrl).toBe('http://new-jellyfin:8096');
+      expect(settings.jellyfinApiKey).toBe('key1'); // Should retain old key
+      expect(settings.jellyfinApiKeySet).toBe(true);
+    });
+
+    it('should maintain jellyfin settings independently from other settings', async () => {
+      await write(db, { radarrUrl: 'http://radarr:7878' });
+      await setJellyfinSettings(db, { jellyfinUrl: 'http://jellyfin:8096' });
+      const radarr = await getRadarrSettings(db);
+      const jellyfin = await getJellyfinSettings(db);
+      expect(radarr.radarrUrl).toBe('http://radarr:7878');
+      expect(jellyfin.jellyfinUrl).toBe('http://jellyfin:8096');
     });
   });
 });

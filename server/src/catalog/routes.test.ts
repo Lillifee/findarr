@@ -88,7 +88,7 @@ describe('catalogRoutes', () => {
     const res = await app.inject({ method: 'GET', url: '/details', query });
 
     expect(res.statusCode).toBe(200);
-    expect(mockCatalog.getDetails).toHaveBeenCalledWith({ ...query, id: 123 });
+    expect(mockCatalog.getDetails).toHaveBeenCalledWith({ ...query, id: 123 }, user.id);
   });
 
   it('should call catalog.getGenres', async () => {

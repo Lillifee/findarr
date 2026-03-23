@@ -1,6 +1,8 @@
-import { type CreateMediaInteraction, type Media, type User } from '@findarr/shared';
+import type { CreateMediaInteraction, Media, MediaStatus, User } from '@findarr/shared';
+import { updateMediaExternalIds } from '../arr/repository.js';
 import type { ArrService } from '../arr/service.js';
 import { getCatalogCacheBatch } from '../catalog/repository.js';
+import type { CatalogService } from '../catalog/service.js';
 import type { DB } from '../db/setup.js';
 import { fetchTMDBDetails, enrichWithInteractions } from '../media/enrichment.js';
 import {
@@ -8,6 +10,7 @@ import {
   getMediaById,
   getMediaByTmdbId,
   updateMediaStatus,
+  getMediaByStatus,
 } from '../media/repository.js';
 import { updatePreferencesForInteraction } from '../preferences/service.js';
 import type { TMDBService } from '../tmdb/service.js';
@@ -26,14 +29,16 @@ const LIKE_THRESHOLD = 3;
  * Create or toggle a media interaction (like/dislike)
  * Automatically creates media request when vote threshold is met (3 votes) or if admin likes it
  * Stores user genre preferences for personalized scoring
+ * Returns enriched media with updated state (TMDB + DB + interactions + votes)
  */
 export const createInteraction = async (
   tmdbService: TMDBService,
   arrService: ArrService,
+  catalogService: CatalogService,
   db: DB,
   data: CreateMediaInteraction,
   user?: User
-) => {
+): Promise<Media | undefined> => {
   if (!user?.id) return;
 
   // Get or create media record
@@ -61,16 +66,19 @@ export const createInteraction = async (
     if (currentMedia && currentMedia.status === 'pending') {
       // Update to requested status (trigger download workflow)
       await updateMediaStatus(db, media.id, 'requested');
-      // Forward to Radarr/Sonarr (best-effort, non-fatal)
-      requestMediaToArr(tmdbService, arrService, data).catch(() => {});
+      // Forward to Radarr/Sonarr and store external IDs (best-effort, non-fatal)
+      requestMediaToArr(tmdbService, arrService, db, media.id, data);
     }
   }
 
   // Update user genre preferences (fire-and-forget - don't block response)
   await updateUserPreferences(tmdbService, db, data, user.id, isToggle);
 
-  // Return the updated media record
-  return await getMediaById(db, media.id);
+  // Return enriched media with updated state using catalog service
+  return catalogService.getDetails(
+    { id: data.tmdbId, type: data.mediaType },
+    user.id
+  ) as Promise<Media>;
 };
 
 /**
@@ -84,51 +92,52 @@ async function updateUserPreferences(
   userId: number,
   isToggle: boolean
 ): Promise<void> {
-  // Try to get from catalog cache first (popular items have keywords)
-  const cachedItems = await getCatalogCacheBatch(db, [
+  const [cachedItem] = await getCatalogCacheBatch(db, [
     { tmdbId: data.tmdbId, type: data.mediaType },
   ]);
 
-  const cachedItem = cachedItems[0];
-  if (cachedItem) {
-    // Item is in catalog cache - use genres and keywords
-    await updatePreferencesForInteraction(
-      db,
-      userId,
-      cachedItem.genres,
-      cachedItem.keywords,
-      data.action,
-      isToggle
-    );
-  } else {
-    // Item not in catalog cache - fetch from TMDB (no keywords available yet)
-    const details = await tmdbService.getDetails({ id: data.tmdbId, type: data.mediaType });
-    await updatePreferencesForInteraction(
-      db,
-      userId,
-      details.genres,
-      undefined,
-      data.action,
-      isToggle
-    );
-  }
+  const source =
+    cachedItem ??
+    (await tmdbService.getDetails({
+      id: data.tmdbId,
+      type: data.mediaType,
+    }));
+
+  await updatePreferencesForInteraction(
+    db,
+    userId,
+    source.genres,
+    source.keywords,
+    data.action,
+    isToggle
+  );
 }
 
 /**
  * Forward a newly-requested media item to Radarr (movies) or Sonarr (TV shows).
  * Resolves the title from catalog cache first, falls back to TMDB.
  * For TV shows, the TVDB ID is lazily fetched and cached on the media record.
+ * Stores Radarr/Sonarr IDs immediately for tracking if the service is configured.
+ * If Radarr/Sonarr is not configured, this is a no-op (gracefully skipped).
  */
 async function requestMediaToArr(
   tmdbService: TMDBService,
   arrService: ArrService,
+  db: DB,
+  mediaId: number,
   data: CreateMediaInteraction
 ): Promise<void> {
   const details = await tmdbService.getDetails({ id: data.tmdbId, type: data.mediaType });
 
-  await (details.type === 'movie'
-    ? arrService.requestMovie(details.tmdbId, details.name)
-    : arrService.requestSeries(details.tvdbId, details.name));
+  if (details.type === 'movie') {
+    const response = await arrService.requestMovie(details.tmdbId, details.name);
+    // Response is already parsed; extract IDs (empty if not configured)
+    await updateMediaExternalIds(db, mediaId, { radarrId: response.id });
+  } else {
+    const response = await arrService.requestSeries(details.tvdbId, details.name);
+    // Response is already parsed; extract IDs (empty if not configured)
+    await updateMediaExternalIds(db, mediaId, { sonarrId: response.id, tvdbId: response.tvdbId });
+  }
 }
 
 /**
@@ -167,5 +176,29 @@ export async function getAllInteractionsEnriched(
   const enrichedMedia = await fetchTMDBDetails(tmdbService, dbRecords);
 
   // Add all interactions with user info and vote counts in optimized batch queries
+  return await enrichWithInteractions(db, enrichedMedia);
+}
+
+/**
+ * Get requested media enriched with TMDB metadata
+ * Optionally filter by specific statuses (requested, downloading, downloaded)
+ */
+export async function getRequestedMedia(
+  tmdbService: TMDBService,
+  db: DB,
+  statuses?: MediaStatus[]
+): Promise<Media[]> {
+  // Default to all "in-progress" statuses if not specified
+  const statusFilter = statuses ?? ['requested', 'downloading', 'downloaded'];
+
+  // Get media records by status
+  const dbRecords = await getMediaByStatus(db, statusFilter);
+
+  if (dbRecords.length === 0) return [];
+
+  // Fetch TMDB details for all requested media
+  const enrichedMedia = await fetchTMDBDetails(tmdbService, dbRecords);
+
+  // Add interactions and vote counts in optimized batch queries
   return await enrichWithInteractions(db, enrichedMedia);
 }

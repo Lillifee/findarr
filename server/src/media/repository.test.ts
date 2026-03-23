@@ -1,5 +1,7 @@
 import type { DbMedia, Media } from '@findarr/shared';
+import { media } from '@findarr/shared';
 import SqlDatabase from 'better-sqlite3';
+import { eq } from 'drizzle-orm';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { createDatabase, type DB } from '../db/setup.js';
 import { createTestMedia as createMediaTestHelper } from '../utils/testHelper.js';
@@ -9,6 +11,7 @@ import {
   createMedia,
   updateMediaStatus,
   getMediaRecordsBatch,
+  getMediaByStatus,
 } from './repository.js';
 
 describe('mediaRepository', () => {
@@ -209,6 +212,89 @@ describe('mediaRepository', () => {
       });
       expect(record?.createdAt).toBeDefined();
       expect(record?.updatedAt).toBeDefined();
+    });
+  });
+
+  describe('getMediaByStatus', () => {
+    it('should return empty array when no statuses provided', async () => {
+      await createMedia(db, 123, 'movie', 'requested');
+      const result = await getMediaByStatus(db, []);
+      expect(result).toEqual([]);
+    });
+
+    it('should return media with matching status', async () => {
+      await createMedia(db, 123, 'movie', 'requested');
+      await createMedia(db, 456, 'tv', 'available');
+      await createMedia(db, 789, 'movie', 'downloading');
+
+      const result = await getMediaByStatus(db, ['requested']);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        tmdbId: 123,
+        type: 'movie',
+        status: 'requested',
+      });
+    });
+
+    it('should return media matching multiple statuses', async () => {
+      await createMedia(db, 123, 'movie', 'requested');
+      await createMedia(db, 456, 'tv', 'downloading');
+      await createMedia(db, 789, 'movie', 'available');
+
+      const result = await getMediaByStatus(db, ['requested', 'downloading']);
+
+      expect(result).toHaveLength(2);
+      expect(result.map(m => m.status)).toEqual(
+        expect.arrayContaining(['requested', 'downloading'])
+      );
+    });
+
+    it('should return empty array when no media match the status', async () => {
+      await createMedia(db, 123, 'movie', 'available');
+
+      const result = await getMediaByStatus(db, ['requested']);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should order results by updatedAt descending', async () => {
+      // Create media with different timestamps
+      const media1 = await createMedia(db, 123, 'movie', 'requested');
+      const media2 = await createMedia(db, 456, 'tv', 'requested');
+      const media3 = await createMedia(db, 789, 'movie', 'requested');
+
+      // Manually update timestamps to ensure distinct values
+      await db.update(media).set({ updatedAt: 1000 }).where(eq(media.id, media1.id));
+      await db.update(media).set({ updatedAt: 2000 }).where(eq(media.id, media2.id));
+      await db.update(media).set({ updatedAt: 3000 }).where(eq(media.id, media3.id));
+
+      const result = await getMediaByStatus(db, ['requested']);
+
+      expect(result).toHaveLength(3);
+      // Most recent first
+      expect(result[0]?.id).toBe(media3.id);
+      expect(result[1]?.id).toBe(media2.id);
+      expect(result[2]?.id).toBe(media1.id);
+    });
+
+    it('should include all required fields', async () => {
+      await createMedia(db, 123, 'movie', 'requested');
+
+      const result = await getMediaByStatus(db, ['requested']);
+
+      expect(result).toHaveLength(1);
+      const record = result[0];
+      expect(record).toHaveProperty('id');
+      expect(record).toHaveProperty('type');
+      expect(record).toHaveProperty('tmdbId');
+      expect(record).toHaveProperty('tvdbId');
+      expect(record).toHaveProperty('radarrId');
+      expect(record).toHaveProperty('sonarrId');
+      expect(record).toHaveProperty('status');
+      expect(record).toHaveProperty('jellyfinId');
+      expect(record).toHaveProperty('createdAt');
+      expect(record).toHaveProperty('updatedAt');
     });
   });
 });

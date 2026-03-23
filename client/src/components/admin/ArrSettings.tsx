@@ -64,8 +64,15 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
   const [selectedProfileId, setSelectedProfileId] = useState('');
   const [selectedRootFolder, setSelectedRootFolder] = useState('');
 
-  // True when the user has edited URL or API key since the last save/load
-  const isDirty = urlInput !== (settings ? (norm(settings).url ?? '') : '') || apiKeyInput !== '';
+  // Connection settings changed (URL or API key) - requires re-test
+  const connectionDirty =
+    urlInput !== (settings ? (norm(settings).url ?? '') : '') || apiKeyInput !== '';
+
+  // Any setting changed (including profile/folder) - enables save button
+  const isDirty =
+    connectionDirty ||
+    selectedProfileId !== (norm(settings).qualityProfileId?.toString() ?? '') ||
+    selectedRootFolder !== (norm(settings).rootFolderPath ?? '');
 
   const loadProfiles = useCallback(async () => {
     const [p, f] = await Promise.all([svc.getProfiles(), svc.getRootFolders()]);
@@ -138,7 +145,7 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
   let statusBadge: React.ReactNode;
   if (isLoading) {
     statusBadge = <span className={`${badgeBase} bg-gray-700 text-gray-400`}>Checking…</span>;
-  } else if (isDirty) {
+  } else if (connectionDirty) {
     statusBadge = (
       <span className={`${badgeBase} bg-yellow-900/50 text-yellow-400 border border-yellow-700`}>
         Unsaved changes
@@ -211,7 +218,7 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
         {/* Quality Profile */}
         <div>
           <label className="block mb-1.5 text-sm text-gray-300">Quality Profile</label>
-          {!isDirty && testResult?.connected && profiles.length > 0 ? (
+          {!connectionDirty && testResult?.connected && profiles.length > 0 ? (
             <select
               value={selectedProfileId}
               onChange={e => setSelectedProfileId(e.target.value)}
@@ -236,7 +243,7 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
         {/* Root Folder */}
         <div>
           <label className="block mb-1.5 text-sm text-gray-300">Root Folder</label>
-          {!isDirty && testResult?.connected && rootFolders.length > 0 ? (
+          {!connectionDirty && testResult?.connected && rootFolders.length > 0 ? (
             <select
               value={selectedRootFolder}
               onChange={e => setSelectedRootFolder(e.target.value)}
@@ -279,7 +286,7 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
           <button
             type="button"
             onClick={handleTest}
-            disabled={isTesting || isDirty}
+            disabled={isTesting || connectionDirty}
             className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {isTesting ? 'Testing…' : 'Test Connection'}

@@ -5,6 +5,11 @@ import { ServerEnvSchema } from '@findarr/shared';
 import Fastify from 'fastify';
 import { adminRoutes } from './admin/routes.js';
 import arrPlugin from './arr/plugin.js';
+import {
+  syncArrComplete,
+  startArrLibrarySyncScheduler,
+  startArrQueueSyncScheduler,
+} from './arr/sync.js';
 import authPlugin from './auth/plugin.js';
 import authRoutes from './auth/routes.js';
 import catalogPlugin from './catalog/plugin.js';
@@ -100,6 +105,17 @@ async function start() {
 
     // Start catalog cache sync scheduler (runs every 6 hours)
     const catalogCacheTimer = startCatalogCacheScheduler(server);
+
+    // Initial Radarr/Sonarr library sync (movies/series + TVDB enrichment)
+    syncArrComplete(server).catch(error => {
+      server.log.error({ error }, 'Initial Radarr/Sonarr library sync failed');
+    });
+
+    // Start Radarr/Sonarr library sync scheduler (runs every 30 minutes)
+    startArrLibrarySyncScheduler(server);
+
+    // Start Radarr/Sonarr queue sync scheduler
+    startArrQueueSyncScheduler(server);
 
     // Cleanup on server close
     server.addHook('onClose', async () => {

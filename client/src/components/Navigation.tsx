@@ -16,7 +16,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     `w-full px-4 py-3 rounded-lg flex items-center gap-3 text-left transition-all ${
       isActive
-        ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-md'
+        ? 'bg-linear-to-r from-amber-600 to-orange-600 text-white shadow-md'
         : 'text-gray-300 hover:bg-gray-700'
     }`;
 

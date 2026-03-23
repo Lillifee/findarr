@@ -54,7 +54,7 @@ export function MediaDetailPage() {
   return (
     <div className="pb-20 md:pb-8">
       {/* Back button - Mobile: top-left, Desktop: aligned with content (accounting for sidebar) */}
-      <div className="fixed top-4 md:top-8 left-0 right-0 md:left-64 z-[100] pointer-events-none">
+      <div className="fixed top-4 md:top-8 left-0 right-0 md:left-64 z-100 pointer-events-none">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
           <button
             onClick={handleBack}

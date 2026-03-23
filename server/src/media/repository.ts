@@ -98,6 +98,9 @@ export async function getMediaRecordsBatch(
       id: true,
       tmdbId: true,
       type: true,
+      tvdbId: true,
+      radarrId: true,
+      sonarrId: true,
       status: true,
       jellyfinId: true,
       createdAt: true,
@@ -110,6 +113,9 @@ export async function getMediaRecordsBatch(
     const key = `${row.tmdbId}_${row.type}`;
     mediaRecords.set(key, {
       id: row.id,
+      tvdbId: row.tvdbId,
+      radarrId: row.radarrId,
+      sonarrId: row.sonarrId,
       status: row.status,
       jellyfinId: row.jellyfinId,
       createdAt: row.createdAt,
@@ -118,4 +124,46 @@ export async function getMediaRecordsBatch(
   }
 
   return mediaRecords;
+}
+
+/**
+ * Get all media by status (optionally multiple statuses)
+ */
+export async function getMediaByStatus(
+  db: DB,
+  statuses: MediaStatus[]
+): Promise<
+  Array<{
+    id: number;
+    type: 'movie' | 'tv';
+    tmdbId: number;
+    tvdbId: number | null;
+    radarrId: number | null;
+    sonarrId: number | null;
+    status: MediaStatus;
+    jellyfinId: string | null;
+    createdAt: number;
+    updatedAt: number;
+  }>
+> {
+  if (statuses.length === 0) return [];
+
+  const statusConditions = statuses.map(status => eq(media.status, status));
+
+  return db.query.media.findMany({
+    columns: {
+      id: true,
+      type: true,
+      tmdbId: true,
+      tvdbId: true,
+      radarrId: true,
+      sonarrId: true,
+      status: true,
+      jellyfinId: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+    where: or(...statusConditions),
+    orderBy: (media, { desc }) => [desc(media.updatedAt)],
+  });
 }

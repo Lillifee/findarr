@@ -44,7 +44,7 @@ export function TimeRangeSlider({ value, onChange }: TimeRangeSliderProps) {
           </svg>
           <span>Time Range</span>
         </label>
-        <span className="bg-gradient-to-r from-amber-600 to-orange-600 text-white px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium shadow-md">
+        <span className="bg-linear-to-r from-amber-600 to-orange-600 text-white px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium shadow-md">
           {currentPeriod.label}
         </span>
       </div>

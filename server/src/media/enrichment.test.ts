@@ -1,4 +1,4 @@
-import type { DbMedia, Media } from '@findarr/shared';
+import type { DbMedia, Media, MediaRecord } from '@findarr/shared';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { DB } from '../db/setup.js';
 import * as interactionRepository from '../interaction/repository.js';
@@ -21,6 +21,9 @@ describe('enrichment service', () => {
     type: 'movie',
     status: 'requested',
     jellyfinId: null,
+    tvdbId: null,
+    radarrId: null,
+    sonarrId: null,
     createdAt: Date.now(),
     updatedAt: Date.now(),
   };
@@ -53,13 +56,16 @@ describe('enrichment service', () => {
         createTestMedia({ tmdbId: 456, type: 'tv' }),
       ];
 
-      const dbRecordsMap = new Map([
+      const dbRecordsMap = new Map<string, MediaRecord>([
         [
           '123_movie',
           {
             id: 1,
             status: 'requested' as const,
             jellyfinId: null,
+            tvdbId: null,
+            radarrId: null,
+            sonarrId: null,
             createdAt: 1000,
             updatedAt: 1000,
           },
@@ -70,6 +76,9 @@ describe('enrichment service', () => {
             id: 2,
             status: 'available' as const,
             jellyfinId: 'jf-123',
+            tvdbId: null,
+            radarrId: null,
+            sonarrId: null,
             createdAt: 2000,
             updatedAt: 2000,
           },
@@ -84,6 +93,9 @@ describe('enrichment service', () => {
         id: 1,
         status: 'requested',
         jellyfinId: null,
+        tvdbId: null,
+        radarrId: null,
+        sonarrId: null,
         createdAt: 1000,
         updatedAt: 1000,
       });
@@ -91,6 +103,9 @@ describe('enrichment service', () => {
         id: 2,
         status: 'available',
         jellyfinId: 'jf-123',
+        tvdbId: null,
+        radarrId: null,
+        sonarrId: null,
         createdAt: 2000,
         updatedAt: 2000,
       });
@@ -118,6 +133,9 @@ describe('enrichment service', () => {
               id: 1,
               status: 'requested',
               jellyfinId: null,
+              tvdbId: null,
+              radarrId: null,
+              sonarrId: null,
               createdAt: 1000,
               updatedAt: 1000,
             },
@@ -159,6 +177,9 @@ describe('enrichment service', () => {
               id: 1,
               status: 'requested',
               jellyfinId: null,
+              tvdbId: null,
+              radarrId: null,
+              sonarrId: null,
               createdAt: 1000,
               updatedAt: 1000,
             },

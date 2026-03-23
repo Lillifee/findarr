@@ -25,7 +25,10 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   );
 
   // Details endpoint: GET /details?id=123&type=movie&language=en-US
-  fastify.get('/details', r => fastify.catalog.getDetails(DetailsQuerySchema.parse(r.query)));
+  // Returns enriched media with DB state if authenticated
+  fastify.get('/details', r =>
+    fastify.catalog.getDetails(DetailsQuerySchema.parse(r.query), r.user?.id)
+  );
 
   // Genres endpoint: GET /genres?type=movie
   fastify.get('/genres', r => fastify.catalog.getGenres(GenresQuerySchema.parse(r.query)));

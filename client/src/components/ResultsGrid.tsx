@@ -1,24 +1,20 @@
-import React, { useState } from 'react';
+import React from 'react';
 import type { Media } from '../../../shared/dist/types';
 import { LikeDislikeButton } from './LikeDislikeButton';
 
 interface ResultsGridProps {
   results: Media[];
   onSelectItem: (item: Media) => void;
+  onUpdateItem?: (updatedItem: Media) => void;
 }
 
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
 
-export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem }) => {
-  // Track local interaction states for immediate UI updates
-  const [interactions, setInteractions] = useState<Record<number, 'liked' | 'disliked' | null>>({});
-
-  const handleInteractionToggle = (tmdbId: number, action: 'liked' | 'disliked' | null) => {
-    setInteractions(prev => ({
-      ...prev,
-      [tmdbId]: action,
-    }));
-  };
+export const ResultsGrid: React.FC<ResultsGridProps> = ({
+  results,
+  onSelectItem,
+  onUpdateItem,
+}) => {
   if (results.length === 0) {
     return (
       <div className="text-center py-16 text-gray-400">
@@ -51,18 +47,8 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
         const year = releaseDate ? new Date(releaseDate).getFullYear() : 'N/A';
         const posterPath = item.posterPath;
 
-        // Determine interaction status - use local state first, fallback to server state
-        const localInteraction = interactions[item.tmdbId];
-        const serverInteraction = item.state?.interactions?.find(i => i.action === 'liked')
-          ? 'liked'
-          : item.state?.interactions?.find(i => i.action === 'disliked')
-            ? 'disliked'
-            : null;
-        const currentInteraction =
-          localInteraction === undefined ? serverInteraction : localInteraction;
-
-        const isLiked = currentInteraction === 'liked';
-        const isDisliked = currentInteraction === 'disliked';
+        const isLiked = item.state?.interactions?.find(i => i.action === 'liked');
+        const isDisliked = item.state?.interactions?.find(i => i.action === 'disliked');
         const hasInteraction = isLiked || isDisliked;
 
         return (
@@ -80,9 +66,61 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
                 </div>
               )}
 
+              {/* Status Badges */}
               {item.state?.record?.status === 'available' && (
-                <div className="absolute top-1.5 md:top-3 right-1.5 md:right-3 bg-linear-to-r from-amber-500 to-orange-500 text-white px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-md text-xs font-bold shadow-lg z-10">
-                  AVAILABLE
+                <div className="absolute top-1.5 md:top-3 left-1.5 md:left-3 bg-green-600 text-white px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-md text-xs font-bold shadow-lg z-10 flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Available
+                </div>
+              )}
+              {item.state?.record?.status === 'downloaded' && (
+                <div className="absolute top-1.5 md:top-3 left-1.5 md:left-3 bg-emerald-600 text-white px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-md text-xs font-bold shadow-lg z-10 flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Downloaded
+                </div>
+              )}
+              {item.state?.record?.status === 'downloading' && (
+                <div className="absolute top-1.5 md:top-3 left-1.5 md:left-3 bg-blue-600 text-white px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-md text-xs font-bold shadow-lg z-10 flex items-center gap-1">
+                  <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  Downloading
+                </div>
+              )}
+              {item.state?.record?.status === 'requested' && (
+                <div className="absolute top-1.5 md:top-3 left-1.5 md:left-3 bg-yellow-600 text-white px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-md text-xs font-bold shadow-lg z-10 flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Requested
                 </div>
               )}
 
@@ -146,8 +184,8 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ results, onSelectItem 
                   <LikeDislikeButton
                     tmdbId={item.tmdbId}
                     mediaType={item.type}
-                    initialAction={currentInteraction}
-                    onToggle={action => handleInteractionToggle(item.tmdbId, action)}
+                    initialAction={isLiked ? 'liked' : isDisliked ? 'disliked' : null}
+                    {...(onUpdateItem && { onUpdate: onUpdateItem })}
                     compact
                   />
                 </div>

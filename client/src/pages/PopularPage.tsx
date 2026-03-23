@@ -108,6 +108,17 @@ export function PopularPage() {
     navigate(`/${item.type}/${item.tmdbId}`);
   };
 
+  const handleUpdateItem = (updatedItem: Media) => {
+    setSearchResults(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        results: prev.results.map(item =>
+          item.tmdbId === updatedItem.tmdbId && item.type === updatedItem.type ? updatedItem : item
+        ),
+      };
+    });
+  };
   return (
     <>
       {/* Sticky Media Type & Filter Toggle Row - Full Width */}
@@ -256,7 +267,11 @@ export function PopularPage() {
               )}
             </div>
 
-            <ResultsGrid results={searchResults.results} onSelectItem={handleSelectItem} />
+            <ResultsGrid
+              results={searchResults.results}
+              onSelectItem={handleSelectItem}
+              onUpdateItem={handleUpdateItem}
+            />
 
             {/* Pagination Controls */}
             {searchResults.totalPages && searchResults.totalPages > 1 && (
@@ -269,7 +284,7 @@ export function PopularPage() {
                     className={`inline-flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all ${
                       currentPage <= 1
                         ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 cursor-pointer shadow-md'
+                        : 'bg-linear-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 cursor-pointer shadow-md'
                     } disabled:cursor-not-allowed`}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -315,7 +330,7 @@ export function PopularPage() {
                           disabled={loading}
                           className={`${isMobileHidden ? 'hidden sm:block' : ''} px-2 md:px-3 py-2 rounded-lg text-xs md:text-sm transition-all cursor-pointer ${
                             pageNum === currentPage
-                              ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white font-semibold border-2 border-amber-500 shadow-md'
+                              ? 'bg-linear-to-r from-amber-600 to-orange-600 text-white font-semibold border-2 border-amber-500 shadow-md'
                               : 'bg-gray-800/60 backdrop-blur-sm text-amber-400 border border-gray-600/50 hover:bg-gray-700/80'
                           } disabled:cursor-not-allowed`}
                         >
@@ -347,7 +362,7 @@ export function PopularPage() {
                     className={`inline-flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all ${
                       currentPage >= (searchResults?.totalPages ?? 1)
                         ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 cursor-pointer shadow-md'
+                        : 'bg-linear-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 cursor-pointer shadow-md'
                     } disabled:cursor-not-allowed`}
                   >
                     <span className="hidden sm:inline">Next</span>

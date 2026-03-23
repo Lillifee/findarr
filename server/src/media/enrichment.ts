@@ -78,14 +78,27 @@ export async function fetchTMDBDetails(
   mediaDbRows: DbMedia[]
 ): Promise<Media[]> {
   const results = await Promise.all(
-    mediaDbRows.map(async ({ tmdbId, type, id, status, jellyfinId, createdAt, updatedAt }) => {
-      const details = await tmdbService.getDetails({ id: tmdbId, type }).catch(() => undefined);
+    mediaDbRows.map(async row => {
+      const details = await tmdbService
+        .getDetails({ id: row.tmdbId, type: row.type })
+        .catch(() => undefined);
 
       // Attach database record to TMDB data
       return (
         details && {
           ...details,
-          state: { record: { id, status, jellyfinId, createdAt, updatedAt } },
+          state: {
+            record: {
+              id: row.id,
+              tvdbId: row.tvdbId,
+              radarrId: row.radarrId,
+              sonarrId: row.sonarrId,
+              status: row.status,
+              jellyfinId: row.jellyfinId,
+              createdAt: row.createdAt,
+              updatedAt: row.updatedAt,
+            },
+          },
         }
       );
     })

@@ -40,8 +40,13 @@ export const media = sqliteTable(
     id: integer('id').primaryKey({ autoIncrement: true }),
     type: text('type', { enum: ['movie', 'tv'] }).notNull(),
     tmdbId: integer('tmdbId').notNull(),
+    tvdbId: integer('tvdbId'), // TVDB ID for TV shows (for Sonarr)
+    radarrId: integer('radarrId'), // Radarr movie ID
+    sonarrId: integer('sonarrId'), // Sonarr series ID
     jellyfinId: text('jellyfinId'),
-    status: text('status', { enum: ['pending', 'requested', 'available'] })
+    status: text('status', {
+      enum: ['pending', 'requested', 'downloading', 'downloaded', 'available'],
+    })
       .notNull()
       .default('pending'),
     createdAt: integer('createdAt')
@@ -55,6 +60,9 @@ export const media = sqliteTable(
   },
   table => [
     index('idx_media_tmdb').on(table.tmdbId, table.type),
+    index('idx_media_tvdb').on(table.tvdbId),
+    index('idx_media_radarr').on(table.radarrId),
+    index('idx_media_sonarr').on(table.sonarrId),
     index('idx_media_status').on(table.status),
     index('idx_media_jellyfin').on(table.jellyfinId),
     unique('media_tmdbId_type_unique').on(table.tmdbId, table.type),

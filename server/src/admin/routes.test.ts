@@ -3,6 +3,7 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as authRepository from '../auth/repository.js';
 import * as interactionService from '../interaction/service.js';
+import * as settingsRepository from '../settings/repository.js';
 import { createTestMedia, createTestUser, mockDb } from '../utils/testHelper.js';
 import { adminRoutes } from './routes.js';
 
@@ -19,6 +20,9 @@ describe('adminRoutes', () => {
         id: 1,
         status: 'requested',
         jellyfinId: null,
+        tvdbId: null,
+        radarrId: null,
+        sonarrId: null,
         createdAt: Date.now(),
         updatedAt: Date.now(),
       },
@@ -44,7 +48,6 @@ describe('adminRoutes', () => {
 
     // Mock arr service
     app.decorate('arr', {
-      requestMedia: vi.fn(),
       requestMovie: vi.fn(),
       requestSeries: vi.fn(),
       testRadarrConnection: vi.fn().mockResolvedValue(false),
@@ -53,6 +56,19 @@ describe('adminRoutes', () => {
       getRadarrRootFolders: vi.fn().mockResolvedValue([]),
       getSonarrProfiles: vi.fn().mockResolvedValue([]),
       getSonarrRootFolders: vi.fn().mockResolvedValue([]),
+      getRadarrMovies: vi.fn().mockResolvedValue([]),
+      getSonarrSeries: vi.fn().mockResolvedValue([]),
+      getRadarrQueue: vi.fn().mockResolvedValue({ records: [] }),
+      getSonarrQueue: vi.fn().mockResolvedValue({ records: [] }),
+    });
+
+    // Mock jellyfin service
+    app.decorate('jellyfin', {
+      testConnection: vi.fn().mockResolvedValue(false),
+      getConnectionInfo: vi
+        .fn()
+        .mockResolvedValue({ url: null, connected: false, apiKeySet: false }),
+      getAllMedia: vi.fn().mockResolvedValue([]),
     });
 
     // inject authenticated user for every request
@@ -122,5 +138,160 @@ describe('adminRoutes', () => {
 
     expect(res.statusCode).toBe(200);
     expect(interactionService.getAllInteractionsEnriched).toHaveBeenCalled();
+  });
+
+  describe('Radarr settings', () => {
+    beforeEach(() => {
+      vi.spyOn(settingsRepository, 'getRadarrSettings').mockResolvedValue({
+        radarrUrl: 'http://radarr:7878',
+        radarrApiKeySet: true,
+        radarrQualityProfileId: null,
+        radarrRootFolderPath: null,
+      });
+      vi.spyOn(settingsRepository, 'setRadarrSettings').mockResolvedValue(undefined);
+    });
+
+    it('should get Radarr settings', async () => {
+      const res = await app.inject({ method: 'GET', url: '/radarr/settings' });
+
+      expect(res.statusCode).toBe(200);
+      expect(settingsRepository.getRadarrSettings).toHaveBeenCalledWith(mockDb);
+      const settings = res.json();
+      expect(settings.radarrUrl).toBe('http://radarr:7878');
+      expect(settings.radarrApiKeySet).toBe(true);
+    });
+
+    it('should update Radarr settings', async () => {
+      const newSettings = {
+        radarrUrl: 'http://new-radarr:7878',
+        radarrApiKey: 'new-api-key',
+      };
+
+      const res = await app.inject({
+        method: 'PUT',
+        url: '/radarr/settings',
+        payload: newSettings,
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(settingsRepository.setRadarrSettings).toHaveBeenCalledWith(mockDb, newSettings);
+      expect(settingsRepository.getRadarrSettings).toHaveBeenCalled();
+    });
+
+    it('should test Radarr connection', async () => {
+      vi.mocked(app.arr.testRadarrConnection).mockResolvedValue(true);
+
+      const res = await app.inject({ method: 'POST', url: '/radarr/test' });
+
+      expect(res.statusCode).toBe(200);
+      const result = res.json();
+      expect(result.configured).toBe(true);
+      expect(result.connected).toBe(true);
+      expect(result.url).toBe('http://radarr:7878');
+    });
+  });
+
+  describe('Sonarr settings', () => {
+    beforeEach(() => {
+      vi.spyOn(settingsRepository, 'getSonarrSettings').mockResolvedValue({
+        sonarrUrl: 'http://sonarr:8989',
+        sonarrApiKeySet: true,
+        sonarrQualityProfileId: null,
+        sonarrRootFolderPath: null,
+      });
+      vi.spyOn(settingsRepository, 'setSonarrSettings').mockResolvedValue(undefined);
+    });
+
+    it('should get Sonarr settings', async () => {
+      const res = await app.inject({ method: 'GET', url: '/sonarr/settings' });
+
+      expect(res.statusCode).toBe(200);
+      expect(settingsRepository.getSonarrSettings).toHaveBeenCalledWith(mockDb);
+      const settings = res.json();
+      expect(settings.sonarrUrl).toBe('http://sonarr:8989');
+      expect(settings.sonarrApiKeySet).toBe(true);
+    });
+
+    it('should update Sonarr settings', async () => {
+      const newSettings = {
+        sonarrUrl: 'http://new-sonarr:8989',
+        sonarrApiKey: 'new-api-key',
+      };
+
+      const res = await app.inject({
+        method: 'PUT',
+        url: '/sonarr/settings',
+        payload: newSettings,
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(settingsRepository.setSonarrSettings).toHaveBeenCalledWith(mockDb, newSettings);
+      expect(settingsRepository.getSonarrSettings).toHaveBeenCalled();
+    });
+
+    it('should test Sonarr connection', async () => {
+      vi.mocked(app.arr.testSonarrConnection).mockResolvedValue(true);
+
+      const res = await app.inject({ method: 'POST', url: '/sonarr/test' });
+
+      expect(res.statusCode).toBe(200);
+      const result = res.json();
+      expect(result.configured).toBe(true);
+      expect(result.connected).toBe(true);
+      expect(result.url).toBe('http://sonarr:8989');
+    });
+  });
+
+  describe('Jellyfin settings', () => {
+    beforeEach(() => {
+      vi.spyOn(settingsRepository, 'getJellyfinSettings').mockResolvedValue({
+        jellyfinUrl: 'http://jellyfin:8096',
+        jellyfinApiKeySet: true,
+      });
+      vi.spyOn(settingsRepository, 'setJellyfinSettings').mockResolvedValue(undefined);
+    });
+
+    it('should get Jellyfin settings', async () => {
+      const res = await app.inject({ method: 'GET', url: '/jellyfin/settings' });
+
+      expect(res.statusCode).toBe(200);
+      expect(settingsRepository.getJellyfinSettings).toHaveBeenCalledWith(mockDb);
+      const settings = res.json();
+      expect(settings.jellyfinUrl).toBe('http://jellyfin:8096');
+      expect(settings.jellyfinApiKeySet).toBe(true);
+    });
+
+    it('should update Jellyfin settings', async () => {
+      const newSettings = {
+        jellyfinUrl: 'http://new-jellyfin:8096',
+        jellyfinApiKey: 'new-api-key',
+      };
+
+      const res = await app.inject({
+        method: 'PUT',
+        url: '/jellyfin/settings',
+        payload: newSettings,
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(settingsRepository.setJellyfinSettings).toHaveBeenCalledWith(mockDb, newSettings);
+      expect(settingsRepository.getJellyfinSettings).toHaveBeenCalled();
+    });
+
+    it('should test Jellyfin connection', async () => {
+      vi.mocked(app.jellyfin.getConnectionInfo).mockResolvedValue({
+        url: 'http://jellyfin:8096',
+        connected: true,
+        apiKeySet: true,
+      });
+
+      const res = await app.inject({ method: 'POST', url: '/jellyfin/test' });
+
+      expect(res.statusCode).toBe(200);
+      const result = res.json();
+      expect(result.url).toBe('http://jellyfin:8096');
+      expect(result.connected).toBe(true);
+      expect(result.apiKeySet).toBe(true);
+    });
   });
 });

@@ -7,7 +7,6 @@ import type {
   SearchResponse,
   DiscoverResponse,
   Genre,
-  MediaDetails,
   Media,
 } from '@findarr/shared';
 import type { DB } from '../db/setup.js';
@@ -50,11 +49,21 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
   }
 
   /**
-   * Get detailed information about a media item
-   * Currently delegates to TMDB
+   * Get media details with DB state and interactions
+   * Returns enriched media (TMDB + DB record + interactions if available)
+   * Does NOT create a database record - only fetches existing state
    */
-  async function getDetails(params: DetailsQuery): Promise<MediaDetails> {
-    return await tmdbService.getDetails(params);
+  async function getDetails(params: DetailsQuery, userId?: number): Promise<Media> {
+    // Fetch TMDB details
+    const mediaItem = await tmdbService.getDetails(params);
+
+    // Add database record if exists
+    const withRecord = await enrichWithRecords(db, [mediaItem]);
+
+    // Add interactions if user is authenticated and record exists
+    const withInteractions = await enrichWithInteractions(db, withRecord, userId);
+
+    return withInteractions[0] || mediaItem;
   }
 
   /**

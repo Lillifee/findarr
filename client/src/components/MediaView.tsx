@@ -43,7 +43,7 @@ export function MediaView({ media }: MediaDetailsProps) {
             className="w-full h-full object-cover"
           />
           {/* Gradient overlay - stronger on mobile, softer on desktop */}
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gray-900/60 to-gray-900" />
+          <div className="absolute inset-0 bg-linear-to-b from-transparent via-gray-900/60 to-gray-900" />
 
           {/* Title overlay on backdrop for desktop - positioned higher to be above the card */}
           <div className="hidden md:block absolute top-1/2 left-0 right-0">
@@ -67,7 +67,7 @@ export function MediaView({ media }: MediaDetailsProps) {
       {/* Content Container - Overlaps backdrop slightly */}
       <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-8 -mt-16 md:-mt-20">
         {/* Content card with background for readability where it overlaps */}
-        <div className="bg-gradient-to-b from-gray-900/95 to-gray-900 rounded-t-2xl md:rounded-t-3xl shadow-2xl p-4 md:p-8 pt-6 md:pt-10">
+        <div className="bg-linear-to-b from-gray-900/95 to-gray-900 rounded-t-2xl md:rounded-t-3xl shadow-2xl p-4 md:p-8 pt-6 md:pt-10">
           {/* Title - Only show on mobile (on desktop it's in the backdrop) */}
           <h1 className="md:hidden m-0 mb-2 text-2xl font-bold text-white">{title}</h1>
 
@@ -264,21 +264,6 @@ export function MediaView({ media }: MediaDetailsProps) {
               <br />
               {media.originalLanguage?.toUpperCase()}
             </div>
-
-            {media.type === 'movie' && media.imdbId && (
-              <div className="text-gray-300 text-sm md:text-base">
-                <strong className="text-white">IMDB:</strong>
-                <br />
-                <a
-                  href={`https://www.imdb.com/title/${media.imdbId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-amber-400 hover:text-amber-300 no-underline transition-colors"
-                >
-                  View on IMDB →
-                </a>
-              </div>
-            )}
           </div>
 
           {/* Homepage link */}

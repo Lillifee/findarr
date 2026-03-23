@@ -12,7 +12,6 @@ import type {
   Media,
   Login,
   CreateUser,
-  CreateMediaInteraction,
   RadarrSettings,
   SonarrSettings,
   ArrQualityProfile,
@@ -102,11 +101,12 @@ export const adminUserService = {
 // User interaction service
 export const interactionService = {
   // Toggle like/dislike on media (automatically creates media record if needed)
+  // Returns enriched media with updated state
   toggleInteraction: async (
     tmdbId: number,
     mediaType: 'movie' | 'tv',
     action: 'liked' | 'disliked'
-  ): Promise<Media> => {
+  ): Promise<Media | undefined> => {
     const response = await api.post('/interactions', { tmdbId, mediaType, action });
     return response.data;
   },
@@ -117,14 +117,10 @@ export const interactionService = {
     return response.data;
   },
 
-  // Legacy support - kept for backwards compatibility
-  create: async (interaction: CreateMediaInteraction): Promise<Media> => {
-    const response = await api.post('/interactions', interaction);
-    return response.data;
-  },
-
-  list: async (): Promise<Media[]> => {
-    const response = await api.get('/interactions');
+  // Get requested media (with optional status filter)
+  getRequested: async (statuses?: string[]): Promise<Media[]> => {
+    const params = statuses ? { status: statuses.join(',') } : {};
+    const response = await api.get('/interactions/requested', { params });
     return response.data;
   },
 };

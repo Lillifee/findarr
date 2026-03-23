@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import type { Media } from '../../../shared/dist/types';
 import { interactionService } from '../services/api';
 
 interface LikeDislikeButtonProps {
   tmdbId: number;
   mediaType: 'movie' | 'tv';
   initialAction?: 'liked' | 'disliked' | null;
-  onToggle?: (action: 'liked' | 'disliked' | null) => void;
+  onUpdate?: (updatedMedia: Media) => void;
   compact?: boolean;
 }
 
@@ -13,7 +14,7 @@ export function LikeDislikeButton({
   tmdbId,
   mediaType,
   initialAction = null,
-  onToggle,
+  onUpdate,
   compact = false,
 }: LikeDislikeButtonProps) {
   const [currentAction, setCurrentAction] = useState<'liked' | 'disliked' | null>(initialAction);
@@ -22,16 +23,16 @@ export function LikeDislikeButton({
   const handleAction = async (action: 'liked' | 'disliked') => {
     setIsLoading(true);
     try {
-      // Toggle: if clicking same action, it will be removed by the server
-      await interactionService.toggleInteraction(tmdbId, mediaType, action);
-
+      const updatedMedia = await interactionService.toggleInteraction(tmdbId, mediaType, action);
       const newAction = currentAction === action ? null : action;
       setCurrentAction(newAction);
-      onToggle?.(newAction);
+
+      // Update parent with enriched media (has state.record.status, state.votes, etc.)
+      if (updatedMedia) {
+        onUpdate?.(updatedMedia);
+      }
     } catch (error) {
       console.error('Failed to update interaction:', error);
-      // Revert on error
-      setCurrentAction(currentAction);
     } finally {
       setIsLoading(false);
     }

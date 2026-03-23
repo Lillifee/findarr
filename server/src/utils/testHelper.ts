@@ -13,9 +13,11 @@ export const mockDb = {} as unknown as DB;
 // Utility functions to assert
 
 export function assertDefined<T>(value: T): asserts value is NonNullable<T> {
+  /* v8 ignore start */
   if (!isDefined(value)) {
     throw new Error(`Expected value to be defined, but got ${value}`);
   }
+  /* v8 ignore end */
 }
 
 // Factory functions to create test data
@@ -58,6 +60,7 @@ export const createTestTVDetail = (props?: Partial<TVDetails>): TVDetails => ({
   homepage: undefined,
   tvdbId: undefined,
   imdbId: undefined,
+  keywords: [],
   ...props,
 });
 
@@ -71,6 +74,7 @@ export const createTestMovieDetail = (props?: Partial<MovieDetails>): MovieDetai
   status: 'Released',
   homepage: 'https://example.com',
   imdbId: 'tt1234567',
+  keywords: [],
   ...props,
 });
 

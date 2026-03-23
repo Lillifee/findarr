@@ -9,6 +9,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'html'],
       reportsDirectory: './coverage',
+      exclude: ['**/db-schema.ts', '**/node_modules/**'],
     },
   },
 });

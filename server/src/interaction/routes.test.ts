@@ -14,6 +14,9 @@ describe('interactionRoutes', () => {
         id: 1,
         status: 'requested',
         jellyfinId: null,
+        tvdbId: null,
+        radarrId: null,
+        sonarrId: null,
         createdAt: Date.now(),
         updatedAt: Date.now(),
       },
@@ -40,7 +43,6 @@ describe('interactionRoutes', () => {
 
     // Mock arr service
     app.decorate('arr', {
-      requestMedia: vi.fn(),
       requestMovie: vi.fn(),
       requestSeries: vi.fn(),
       testRadarrConnection: vi.fn(),
@@ -49,6 +51,10 @@ describe('interactionRoutes', () => {
       getRadarrRootFolders: vi.fn(),
       getSonarrProfiles: vi.fn(),
       getSonarrRootFolders: vi.fn(),
+      getRadarrMovies: vi.fn().mockResolvedValue([]),
+      getSonarrSeries: vi.fn().mockResolvedValue([]),
+      getRadarrQueue: vi.fn().mockResolvedValue({ records: [] }),
+      getSonarrQueue: vi.fn().mockResolvedValue({ records: [] }),
     });
 
     // Mock catalog service
@@ -67,17 +73,27 @@ describe('interactionRoutes', () => {
     });
 
     // Mock service methods
-    vi.spyOn(interactionService, 'createInteraction').mockResolvedValue({
-      id: 1,
-      tmdbId: 123,
-      type: 'movie',
-      jellyfinId: null,
-      status: 'requested',
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    });
+    vi.spyOn(interactionService, 'createInteraction').mockResolvedValue(
+      createTestMedia({
+        tmdbId: 123,
+        type: 'movie',
+        state: {
+          record: {
+            id: 1,
+            status: 'requested',
+            jellyfinId: null,
+            tvdbId: null,
+            radarrId: null,
+            sonarrId: null,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          },
+        },
+      })
+    );
     vi.spyOn(mediaService, 'updateMediaStatus').mockResolvedValue();
     vi.spyOn(interactionService, 'getUserInteractionsEnriched').mockResolvedValue([enrichedMedia]);
+    vi.spyOn(interactionService, 'getRequestedMedia').mockResolvedValue([enrichedMedia]);
 
     await app.register(interactionRoutes, { prefix: '/interactions' });
     await app.ready();
@@ -100,6 +116,7 @@ describe('interactionRoutes', () => {
     expect(interactionService.createInteraction).toHaveBeenCalledWith(
       app.tmdb,
       app.arr,
+      app.catalog,
       app.db,
       payload,
       user
@@ -111,5 +128,26 @@ describe('interactionRoutes', () => {
 
     expect(res.statusCode).toBe(200);
     expect(interactionService.getUserInteractionsEnriched).toHaveBeenCalled();
+  });
+
+  it('should get requested media', async () => {
+    const res = await app.inject({ method: 'GET', url: '/interactions/requested' });
+
+    expect(res.statusCode).toBe(200);
+    expect(interactionService.getRequestedMedia).toHaveBeenCalledWith(app.tmdb, app.db, undefined);
+  });
+
+  it('should get requested media with status filter', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/interactions/requested',
+      query: { status: 'requested,downloading' },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(interactionService.getRequestedMedia).toHaveBeenCalledWith(app.tmdb, app.db, [
+      'requested',
+      'downloading',
+    ]);
   });
 });

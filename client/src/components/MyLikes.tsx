@@ -127,7 +127,11 @@ export function MyLikes() {
                     tmdbId={media.tmdbId}
                     mediaType={media.type}
                     initialAction={media.state?.interactions?.[0]?.action ?? null}
-                    onToggle={action => handleToggle(media.tmdbId, action)}
+                    onUpdate={updatedMedia => {
+                      const action =
+                        updatedMedia.state?.interactions?.find(i => i.action)?.action ?? null;
+                      handleToggle(media.tmdbId, action);
+                    }}
                     compact
                   />
                 </div>
