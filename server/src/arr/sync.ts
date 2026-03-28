@@ -1,6 +1,6 @@
 import { isDefined, type MediaStatus } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
-import { HttpError } from '../utils/errors.js';
+import { processWithWorkerPool } from '../tmdb/helpers.js';
 import {
   upsertMediaFromArr,
   getMediaWithArrIds,
@@ -11,20 +11,6 @@ import {
 import type { ArrLibraryItem } from './schemas.js';
 import type { AnyArrService } from './service.js';
 
-const CONCURRENCY = 8;
-const MAX_RETRIES = 2;
-const BASE_DELAY = 500; // ms
-
-function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function backoffDelay(attempt: number) {
-  // Exponential backoff + jitter
-  const jitter = Math.random() * 300;
-  return BASE_DELAY * Math.pow(2, attempt) + jitter;
-}
-
 /**
  * Enrich TV shows with TMDB IDs using worker pool pattern
  * Provides smooth, continuous processing with exponential backoff retry logic
@@ -34,72 +20,25 @@ export async function enrichTvShows(
   queue: ArrLibraryItem[]
 ): Promise<number> {
   const { log } = fastify;
-  let queueIndex = 0;
 
-  async function fetchTmdbId(tvdbId: number, attempt = 0): Promise<number | null> {
-    try {
-      const tmdbId = await fastify.tmdb.findByExternalId({
-        tvdbId,
-        type: 'tv',
-      });
+  log.info(`Enriching ${queue.length} new TV shows with TMDB IDs...`);
 
-      return tmdbId !== undefined && tmdbId > 0 ? tmdbId : null;
-    } catch (error: unknown) {
-      if (error instanceof HttpError && error.statusCode === 404) {
-        // Not found in TMDB → return null (will not be inserted)
-        return null;
-      }
+  const { successCount } = await processWithWorkerPool({
+    items: queue,
+    processFn: async item => {
+      if (!item?.tvdbId) return null;
 
-      if (error instanceof HttpError && error.statusCode === 429 && attempt < MAX_RETRIES) {
-        const delay = backoffDelay(attempt);
-        await sleep(delay);
-        return fetchTmdbId(tvdbId, attempt + 1);
-      }
+      const tmdbId = await fastify.tmdb.findByExternalId({ tvdbId: item.tvdbId, type: 'tv' });
 
-      throw error;
-    }
-  }
+      if (tmdbId) item.tmdbId = tmdbId;
+      return tmdbId || null;
+    },
+    log,
+  });
 
-  const worker = async () => {
-    let localCount = 0;
+  log.info(`Enrichment complete: ${successCount}/${queue.length}`);
 
-    while (true) {
-      const index = queueIndex++;
-      if (index >= queue.length) break;
-
-      const item = queue[index];
-      if (!item?.tvdbId) continue;
-
-      try {
-        const tmdbId = await fetchTmdbId(item.tvdbId);
-
-        if (tmdbId) {
-          item.tmdbId = tmdbId;
-          localCount++;
-        }
-      } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        log.warn({ tvdbId: item.tvdbId, error: message }, 'Enrichment failed');
-      }
-
-      // Progress logging (lightweight)
-      if ((index + 1) % 50 === 0 || index + 1 === queue.length) {
-        log.info(`Enrichment progress: ${index + 1}/${queue.length}`);
-      }
-    }
-
-    return localCount;
-  };
-
-  // Start workers
-  const results = await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
-
-  // Aggregate counts safely
-  const enrichedCount = results.reduce((sum, val) => sum + val, 0);
-
-  log.info(`Enrichment complete: ${enrichedCount}/${queue.length}`);
-
-  return enrichedCount;
+  return successCount;
 }
 
 /**
@@ -127,17 +66,11 @@ export async function syncLibrary(
   // For TV shows: Enrich with tmdbId during sync to avoid duplicate records
   // This prevents conflicts when Jellyfin already has the same show with tmdbId
   if (mediaType === 'tv') {
-    // Get tvdbIds of shows already in database (prevents re-enrichment)
     const alreadyProcessed = await getExistingTvdbIds(db);
-
-    // Only enrich NEW shows not yet in database
     const queue = libraryItems.filter(item => item?.tvdbId && !alreadyProcessed.has(item.tvdbId));
 
     if (queue.length > 0) {
-      log.info(`Enriching ${queue.length} new TV shows with TMDB IDs...`);
       await enrichTvShows(fastify, queue);
-    } else {
-      log.debug('No new TV shows to enrich');
     }
   }
 

@@ -5,7 +5,10 @@ import {
   unifiedGenres,
   regionGroupKeys,
   type DiscoverQuery,
+  sleep,
 } from '@findarr/shared';
+import type { FastifyBaseLogger } from 'fastify';
+import { HttpError } from '../utils/errors.js';
 import type { TMDBDiscoverParams } from './schemas.js';
 
 /**
@@ -94,3 +97,103 @@ export const buildDiscoverParams = (params: DiscoverQuery): TMDBDiscoverParams =
     ...(genreFilter && { with_genres: genreFilter }),
   };
 };
+
+/**
+ * Helper utilities for rate-limited API processing
+ */
+
+function backoffDelay(attempt: number, baseDelay: number): number {
+  // Exponential backoff + jitter
+  const jitter = Math.random() * 300;
+  return baseDelay * Math.pow(2, attempt) + jitter;
+}
+
+/**
+ * Process items with worker pool pattern and rate limiting
+ * Handles TMDB API rate limits with automatic retry and exponential backoff
+ *
+ * @example
+ * ```typescript
+ * const results = await processWithWorkerPool({
+ *   items: tvShows,
+ *   processFn: async (show) => {
+ *     return await fastify.tmdb.findByExternalId({ tvdbId: show.tvdbId, type: 'tv' });
+ *   },
+ *   log: fastify.log,
+ * });
+ * ```
+ */
+export async function processWithWorkerPool<TItem, TResult>(options: {
+  /** Items to process */
+  items: TItem[];
+  /** Function to process each item (should return null on failure) */
+  processFn: (item: TItem) => Promise<TResult | null>;
+  /** Logger instance */
+  log: FastifyBaseLogger;
+}): Promise<{ successCount: number; results: TResult[] }> {
+  const { items, processFn, log } = options;
+
+  // TMDB API rate limiting constants
+  const CONCURRENCY = 8;
+  const MAX_RETRIES = 2;
+  const BASE_DELAY = 500;
+
+  let queueIndex = 0;
+  const results: TResult[] = [];
+
+  async function processWithRetry(item: TItem, attempt = 0): Promise<TResult | null> {
+    try {
+      return await processFn(item);
+    } catch (error: unknown) {
+      // Retry on rate limit errors
+      if (error instanceof HttpError && error.statusCode === 429 && attempt < MAX_RETRIES) {
+        const delay = backoffDelay(attempt, BASE_DELAY);
+        await sleep(delay);
+        return processWithRetry(item, attempt + 1);
+      }
+
+      // Rethrow other errors
+      throw error;
+    }
+  }
+
+  const worker = async (): Promise<number> => {
+    let localCount = 0;
+
+    while (true) {
+      const index = queueIndex++;
+      if (index >= items.length) break;
+
+      const item = items[index];
+      if (!item) continue;
+
+      try {
+        const result = await processWithRetry(item);
+
+        if (result !== null) {
+          results.push(result);
+          localCount++;
+        }
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        log.warn({ error: message }, 'Worker processing failed');
+      }
+
+      // Progress logging
+      if ((index + 1) % 50 === 0 || index + 1 === items.length) {
+        log.info(
+          `Worker progress: ${index + 1}/${items.length} items (${results.length} successful)`
+        );
+      }
+    }
+
+    return localCount;
+  };
+
+  // Start worker pool
+  const workerResults = await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
+
+  const successCount = workerResults.reduce((sum, count) => sum + count, 0);
+
+  return { successCount, results };
+}

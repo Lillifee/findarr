@@ -1,5 +1,6 @@
 import type { Media } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
+import { processWithWorkerPool } from '../tmdb/helpers.js';
 import {
   upsertCatalogCache,
   cleanupCatalogCache,
@@ -67,7 +68,7 @@ export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> 
 /**
  * Enrich catalog cache with keywords from TMDB
  * Phase 2: Background enrichment - fetches detailed data for items without keywords
- * Uses rate limiting to avoid overwhelming TMDB API
+ * Uses worker pool pattern with rate limiting to avoid overwhelming TMDB API
  */
 export async function enrichCatalogKeywords(fastify: FastifyInstance): Promise<void> {
   const startTime = Date.now();
@@ -84,39 +85,17 @@ export async function enrichCatalogKeywords(fastify: FastifyInstance): Promise<v
 
     fastify.log.info(`Enriching ${itemsWithoutKeywords.length} items with keywords...`);
 
-    let successCount = 0;
-    let failCount = 0;
-
-    // Fetch details with keywords for each item
-    for (let i = 0; i < itemsWithoutKeywords.length; i++) {
-      const item = itemsWithoutKeywords[i];
-      if (!item) continue;
-
-      try {
-        // Add delay between requests to avoid rate limiting (10 req/s = 100ms delay)
-        // This also yields to the event loop, preventing server blocking
-        if (i > 0) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
-
+    const { successCount } = await processWithWorkerPool({
+      items: itemsWithoutKeywords,
+      processFn: async item => {
         const details = await fastify.tmdb.getDetails({ id: item.tmdbId, type: item.type });
-
-        // Update only the keywords field
         await updateCatalogKeywords(fastify.db, item.tmdbId, item.type, details.keywords ?? []);
-        successCount++;
+        return item.tmdbId;
+      },
+      log: fastify.log,
+    });
 
-        if ((i + 1) % 20 === 0) {
-          fastify.log.info(`Progress: ${i + 1}/${itemsWithoutKeywords.length} items enriched`);
-        }
-      } catch (error) {
-        failCount++;
-        fastify.log.error(
-          { error, tmdbId: item.tmdbId, type: item.type },
-          'Failed to enrich keywords for item'
-        );
-      }
-    }
-
+    const failCount = itemsWithoutKeywords.length - successCount;
     const durationMs = Date.now() - startTime;
     const durationSec = Math.round(durationMs / 1000);
 
