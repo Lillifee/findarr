@@ -146,6 +146,18 @@ export function createTMDBService(tmdbClient: TMDBClient) {
     return { genres: allGenres };
   }
 
+  /**
+   * Find content by external tvdbId
+   * Returns TMDB ID for content matching the external ID
+   */
+  async function findByExternalId(params: {
+    tvdbId: number;
+    type: 'movie' | 'tv';
+  }): Promise<number | undefined> {
+    const result = await tmdbClient.findByExternalId(params.tvdbId, 'tvdb_id');
+    return params.type === 'movie' ? result.movie_results?.[0]?.id : result.tv_results?.[0]?.id;
+  }
+
   return {
     loadGenres,
     search,
@@ -153,6 +165,7 @@ export function createTMDBService(tmdbClient: TMDBClient) {
     fetchTrending,
     getDetails,
     getGenres,
+    findByExternalId,
   };
 }
 

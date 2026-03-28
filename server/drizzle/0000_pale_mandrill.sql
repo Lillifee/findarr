@@ -25,23 +25,22 @@ CREATE TABLE `catalog_cache` (
 CREATE TABLE `media` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`type` text NOT NULL,
-	`tmdbId` integer NOT NULL,
+	`tmdbId` integer,
 	`tvdbId` integer,
-	`radarrId` integer,
-	`sonarrId` integer,
+	`arrId` integer,
 	`jellyfinId` text,
 	`status` text DEFAULT 'pending' NOT NULL,
 	`createdAt` integer DEFAULT (unixepoch() * 1000) NOT NULL,
 	`updatedAt` integer DEFAULT (unixepoch() * 1000) NOT NULL
 );
 --> statement-breakpoint
-CREATE INDEX `idx_media_tmdb` ON `media` (`tmdbId`,`type`);--> statement-breakpoint
 CREATE INDEX `idx_media_tvdb` ON `media` (`tvdbId`);--> statement-breakpoint
-CREATE INDEX `idx_media_radarr` ON `media` (`radarrId`);--> statement-breakpoint
-CREATE INDEX `idx_media_sonarr` ON `media` (`sonarrId`);--> statement-breakpoint
+CREATE INDEX `idx_media_tmdb` ON `media` (`tmdbId`,`type`);--> statement-breakpoint
+CREATE INDEX `idx_media_arr` ON `media` (`arrId`);--> statement-breakpoint
 CREATE INDEX `idx_media_status` ON `media` (`status`);--> statement-breakpoint
 CREATE INDEX `idx_media_jellyfin` ON `media` (`jellyfinId`);--> statement-breakpoint
 CREATE UNIQUE INDEX `media_tmdbId_type_unique` ON `media` (`tmdbId`,`type`);--> statement-breakpoint
+CREATE UNIQUE INDEX `media_tvdbId_type_unique` ON `media` (`tvdbId`,`type`);--> statement-breakpoint
 CREATE TABLE `user_genre_preferences` (
 	`userId` integer NOT NULL,
 	`genreId` integer NOT NULL,

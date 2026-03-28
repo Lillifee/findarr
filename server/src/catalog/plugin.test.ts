@@ -18,8 +18,9 @@ const mockTMDBService: TMDBService = {
   search: vi.fn(),
   fetchDiscover: vi.fn(),
   fetchTrending: vi.fn(),
-  getGenres: vi.fn().mockReturnValue([]),
+  getGenres: vi.fn(),
   getDetails: vi.fn(),
+  findByExternalId: vi.fn(),
 };
 
 const fakeTMDBPlugin = fp(

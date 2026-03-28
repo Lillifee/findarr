@@ -19,6 +19,7 @@ import type {
   ArrTestResult,
   JellyfinSettings,
   JellyfinTestResult,
+  SchedulerState,
 } from '@findarr/shared';
 import axios from 'axios';
 
@@ -199,6 +200,39 @@ export const adminInteractionService = {
   // Get all media with any interactions (pending, requested, or available)
   listAll: async (): Promise<Media[]> => {
     const response = await api.get('/admin/interactions');
+    return response.data;
+  },
+};
+
+// Scheduler service
+export const schedulerService = {
+  // Get all scheduler states
+  listAll: async (): Promise<SchedulerState[]> => {
+    const response = await api.get('/schedulers');
+    return response.data;
+  },
+  // Get specific scheduler state
+  get: async (name: string): Promise<SchedulerState> => {
+    const response = await api.get(`/schedulers/${name}`);
+    return response.data;
+  },
+};
+
+// Admin scheduler management service
+export const adminSchedulerService = {
+  // Manually trigger a scheduler
+  trigger: async (name: string): Promise<{ success: boolean; message: string }> => {
+    const response = await api.post(`/admin/schedulers/${name}/trigger`);
+    return response.data;
+  },
+  // Start/enable a scheduler
+  start: async (name: string): Promise<{ success: boolean; message: string }> => {
+    const response = await api.post(`/admin/schedulers/${name}/start`);
+    return response.data;
+  },
+  // Stop/disable a scheduler
+  stop: async (name: string): Promise<{ success: boolean; message: string }> => {
+    const response = await api.post(`/admin/schedulers/${name}/stop`);
     return response.data;
   },
 };

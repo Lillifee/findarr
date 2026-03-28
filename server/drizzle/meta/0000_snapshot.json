@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "7470b5b3-925b-4768-a272-36f3cd34b76d",
+  "id": "55265d0f-3c32-4a2f-8270-aeeac9a009e8",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "settings": {
@@ -169,7 +169,7 @@
           "name": "tmdbId",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false
         },
         "tvdbId": {
@@ -179,15 +179,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "radarrId": {
-          "name": "radarrId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "sonarrId": {
-          "name": "sonarrId",
+        "arrId": {
+          "name": "arrId",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -226,24 +219,19 @@
         }
       },
       "indexes": {
-        "idx_media_tmdb": {
-          "name": "idx_media_tmdb",
-          "columns": ["tmdbId", "type"],
-          "isUnique": false
-        },
         "idx_media_tvdb": {
           "name": "idx_media_tvdb",
           "columns": ["tvdbId"],
           "isUnique": false
         },
-        "idx_media_radarr": {
-          "name": "idx_media_radarr",
-          "columns": ["radarrId"],
+        "idx_media_tmdb": {
+          "name": "idx_media_tmdb",
+          "columns": ["tmdbId", "type"],
           "isUnique": false
         },
-        "idx_media_sonarr": {
-          "name": "idx_media_sonarr",
-          "columns": ["sonarrId"],
+        "idx_media_arr": {
+          "name": "idx_media_arr",
+          "columns": ["arrId"],
           "isUnique": false
         },
         "idx_media_status": {
@@ -259,6 +247,11 @@
         "media_tmdbId_type_unique": {
           "name": "media_tmdbId_type_unique",
           "columns": ["tmdbId", "type"],
+          "isUnique": true
+        },
+        "media_tvdbId_type_unique": {
+          "name": "media_tvdbId_type_unique",
+          "columns": ["tvdbId", "type"],
           "isUnique": true
         }
       },

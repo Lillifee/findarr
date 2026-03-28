@@ -1,28 +1,25 @@
 import type { DbMedia, MediaStatus } from '@findarr/shared';
-import { media } from '@findarr/shared';
-import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
+import { isDefined, media } from '@findarr/shared';
+import { and, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm';
 import type { DB } from '../db/setup.js';
 
 /**
- * Update media record with external IDs from Radarr/Sonarr
+ * Update media record with IDs from Radarr/Sonarr
  */
-export async function updateMediaExternalIds(
+export async function updateMediaIds(
   db: DB,
   mediaId: number,
-  externalIds: {
-    radarrId?: number;
-    sonarrId?: number;
-    tvdbId?: number;
+  ids: {
+    tmdbId?: number | undefined;
+    tvdbId?: number | undefined;
+    arrId?: number | undefined;
   }
 ): Promise<void> {
-  const updateData: Record<string, unknown> = {
-    ...externalIds,
-    updatedAt: Date.now(),
-  };
+  const updateData: Record<string, unknown> = { ...ids, updatedAt: Date.now() };
 
   // Filter out undefined values
   const filteredData = Object.fromEntries(
-    Object.entries(updateData).filter(([, value]) => value !== undefined)
+    Object.entries(updateData).filter(([, value]) => isDefined(value))
   );
 
   // Only update if we actually have fields besides updatedAt
@@ -32,94 +29,127 @@ export async function updateMediaExternalIds(
 }
 
 /**
- * Get all TV shows without TVDB ID for enrichment
+ * Get all TV shows without TMDB ID for enrichment (from Sonarr)
+ * These shows have tvdbId but need TMDB ID for display/search
  */
-export async function getMediaWithoutTvdbId(
+export async function getMediaWithoutTmdbId(
   db: DB
-): Promise<Array<Pick<DbMedia, 'id' | 'tmdbId' | 'type'>>> {
+): Promise<Array<Pick<DbMedia, 'id' | 'tvdbId' | 'type'>>> {
   return db
     .select({
       id: media.id,
-      tmdbId: media.tmdbId,
+      tvdbId: media.tvdbId,
       type: media.type,
     })
     .from(media)
-    .where(and(eq(media.type, 'tv'), isNull(media.tvdbId)));
+    .where(and(eq(media.type, 'tv'), isNull(media.tmdbId)));
+}
+
+/**
+ * Get all existing tvdbIds for TV shows in database
+ * Used to skip re-enrichment of shows already processed
+ */
+export async function getExistingTvdbIds(db: DB): Promise<Set<number>> {
+  const results = await db
+    .select({ tvdbId: media.tvdbId })
+    .from(media)
+    .where(and(eq(media.type, 'tv'), isNotNull(media.tvdbId)));
+
+  return new Set(results.map(r => r.tvdbId).filter(x => isDefined(x)));
 }
 
 /**
  * Upsert media from Radarr/Sonarr sync (batched for performance)
+ * Movies: Use tmdbId constraint
+ * TV shows: Use tmdbId constraint if available (enriched), otherwise tvdbId
  */
 export async function upsertMediaFromArr(
   db: DB,
-  items: Array<{
-    type: 'movie' | 'tv';
-    tmdbId: number;
-    tvdbId?: number;
-    radarrId?: number;
-    sonarrId?: number;
-    status: MediaStatus;
-  }>
+  items: Array<Pick<DbMedia, 'type' | 'tvdbId' | 'tmdbId' | 'arrId' | 'status'>>
 ): Promise<void> {
   if (items.length === 0) return;
 
   const now = Date.now();
 
-  await db
-    .insert(media)
-    .values(
-      items.map(item => ({
-        ...item,
-        createdAt: now,
-        updatedAt: now,
-      }))
-    )
-    .onConflictDoUpdate({
-      target: [media.tmdbId, media.type],
-      set: {
-        tvdbId: sql`excluded.tvdbId`,
-        radarrId: sql`excluded.radarrId`,
-        sonarrId: sql`excluded.sonarrId`,
-        status: sql`excluded.status`,
-        updatedAt: now,
-      },
-    });
-}
+  // Items with valid tmdbId (> 0) - use tmdbId constraint
+  // This merges Sonarr + Jellyfin records when they share the same tmdbId
+  const itemsWithTmdbId = items.filter(item => item.tmdbId && item.tmdbId > 0);
+  if (itemsWithTmdbId.length > 0) {
+    await db
+      .insert(media)
+      .values(
+        itemsWithTmdbId.map(item => ({
+          ...item,
+          createdAt: now,
+          updatedAt: now,
+        }))
+      )
+      .onConflictDoUpdate({
+        target: [media.tmdbId, media.type],
+        set: {
+          arrId: sql`excluded.arrId`,
+          tvdbId: sql`COALESCE(media.tvdbId, excluded.tvdbId)`,
+          status: sql`CASE WHEN media.status = 'available' THEN 'available' ELSE excluded.status END`,
+          updatedAt: now,
+        },
+      });
+  }
 
-/**
- * Generic status updater (eliminates Radarr/Sonarr duplication)
- */
-async function updateMediaStatusByField(
-  db: DB,
-  field: 'radarrId' | 'sonarrId',
-  id: number,
-  status: MediaStatus
-): Promise<void> {
-  await db.update(media).set({ status, updatedAt: Date.now() }).where(eq(media[field], id));
-}
-
-/**
- * Batch update media status by radarr/sonarr IDs
- */
-export async function batchUpdateMediaStatus(
-  db: DB,
-  updates: Array<{
-    radarrId?: number;
-    sonarrId?: number;
-    status: MediaStatus;
-  }>
-): Promise<void> {
-  for (const { radarrId, sonarrId, status } of updates) {
-    if (radarrId) {
-      await updateMediaStatusByField(db, 'radarrId', radarrId, status);
-    } else if (sonarrId) {
-      await updateMediaStatusByField(db, 'sonarrId', sonarrId, status);
-    }
+  // TV shows without valid tmdbId (null, undefined, or -1) - use tvdbId constraint
+  // These are shows enrichment failed for or shows without tvdbId from Sonarr
+  const tvItemsWithoutValidTmdbId = items.filter(
+    item => item.type === 'tv' && (!item.tmdbId || item.tmdbId <= 0) && item.tvdbId
+  );
+  if (tvItemsWithoutValidTmdbId.length > 0) {
+    await db
+      .insert(media)
+      .values(
+        tvItemsWithoutValidTmdbId.map(item => ({
+          ...item,
+          createdAt: now,
+          updatedAt: now,
+        }))
+      )
+      .onConflictDoUpdate({
+        target: [media.tvdbId, media.type],
+        set: {
+          arrId: sql`excluded.arrId`,
+          tmdbId: sql`COALESCE(media.tmdbId, excluded.tmdbId)`, // Preserve -1 if already set
+          status: sql`CASE WHEN media.status = 'available' THEN 'available' ELSE excluded.status END`,
+          updatedAt: now,
+        },
+      });
   }
 }
 
 /**
- * Get all media with radarr/sonarr IDs for sync matching
+ * Update media status by arrId
+ */
+export async function updateMediaStatusByArrId(
+  db: DB,
+  arrId: number,
+  status: MediaStatus
+): Promise<void> {
+  await db.update(media).set({ status, updatedAt: Date.now() }).where(eq(media.arrId, arrId));
+}
+
+/**
+ * Batch update media status by arr IDs
+ */
+export async function batchUpdateMediaStatus(
+  db: DB,
+  updates: Array<{
+    arrId: number;
+    status: MediaStatus;
+  }>
+): Promise<void> {
+  for (const { arrId, status } of updates) {
+    await updateMediaStatusByArrId(db, arrId, status);
+  }
+}
+
+/**
+ * Get all media with arr IDs for sync matching
  */
 export async function getMediaWithArrIds(
   db: DB
@@ -128,10 +158,9 @@ export async function getMediaWithArrIds(
     .select({
       id: media.id,
       type: media.type,
-      tmdbId: media.tmdbId,
       tvdbId: media.tvdbId,
-      radarrId: media.radarrId,
-      sonarrId: media.sonarrId,
+      tmdbId: media.tmdbId,
+      arrId: media.arrId,
       jellyfinId: media.jellyfinId,
       status: media.status,
     })
@@ -140,12 +169,11 @@ export async function getMediaWithArrIds(
 }
 
 /**
- * Generic clear removed items (eliminates Radarr/Sonarr duplication)
+ * Clear removed items from Radarr/Sonarr
  */
-async function clearRemovedItems(
+export async function clearRemovedArrItems(
   db: DB,
   ids: number[],
-  field: 'radarrId' | 'sonarrId',
   type: 'movie' | 'tv'
 ): Promise<number> {
   if (ids.length === 0) return 0;
@@ -154,7 +182,7 @@ async function clearRemovedItems(
 
   for (const id of ids) {
     const current = (await db.query.media.findFirst({
-      where: and(eq(media[field], id), eq(media.type, type)),
+      where: and(eq(media.arrId, id), eq(media.type, type)),
       columns: { id: true, status: true },
     })) as Pick<DbMedia, 'id' | 'status'> | undefined;
 
@@ -165,7 +193,7 @@ async function clearRemovedItems(
     await db
       .update(media)
       .set({
-        [field]: null,
+        arrId: null,
         status: newStatus,
         updatedAt: Date.now(),
       })
@@ -176,15 +204,3 @@ async function clearRemovedItems(
 
   return cleared;
 }
-
-/**
- * Clear Radarr-removed movies
- */
-export const clearRemovedRadarrItems = (db: DB, ids: number[]) =>
-  clearRemovedItems(db, ids, 'radarrId', 'movie');
-
-/**
- * Clear Sonarr-removed series
- */
-export const clearRemovedSonarrItems = (db: DB, ids: number[]) =>
-  clearRemovedItems(db, ids, 'sonarrId', 'tv');

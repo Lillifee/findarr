@@ -289,8 +289,7 @@ describe('mediaRepository', () => {
       expect(record).toHaveProperty('type');
       expect(record).toHaveProperty('tmdbId');
       expect(record).toHaveProperty('tvdbId');
-      expect(record).toHaveProperty('radarrId');
-      expect(record).toHaveProperty('sonarrId');
+      expect(record).toHaveProperty('arrId');
       expect(record).toHaveProperty('status');
       expect(record).toHaveProperty('jellyfinId');
       expect(record).toHaveProperty('createdAt');

@@ -40,6 +40,8 @@ export function createJellyfinClient(baseUrl: string, apiKey: string): JellyfinC
           Limit: limit,
           Recursive: recursive,
           Fields: 'ProviderIds,Overview,ProductionYear',
+          SortBy: 'DateCreated',
+          SortOrder: 'Descending',
         },
       });
 

@@ -49,13 +49,13 @@ const adminRoutes: FastifyPluginAsync = async fastify => {
     return getRadarrSettings(fastify.db);
   });
 
-  fastify.get('/radarr/quality-profiles', () => fastify.arr.getRadarrProfiles());
+  fastify.get('/radarr/quality-profiles', () => fastify.radarr.getProfiles());
 
-  fastify.get('/radarr/root-folders', () => fastify.arr.getRadarrRootFolders());
+  fastify.get('/radarr/root-folders', () => fastify.radarr.getRootFolders());
 
   fastify.post('/radarr/test', async () => {
     const settings = await getRadarrSettings(fastify.db);
-    const connected = await fastify.arr.testRadarrConnection();
+    const connected = await fastify.radarr.testConnection();
     return {
       configured: settings.radarrApiKeySet && !!settings.radarrUrl,
       connected,
@@ -74,13 +74,13 @@ const adminRoutes: FastifyPluginAsync = async fastify => {
     return getSonarrSettings(fastify.db);
   });
 
-  fastify.get('/sonarr/quality-profiles', () => fastify.arr.getSonarrProfiles());
+  fastify.get('/sonarr/quality-profiles', () => fastify.sonarr.getProfiles());
 
-  fastify.get('/sonarr/root-folders', () => fastify.arr.getSonarrRootFolders());
+  fastify.get('/sonarr/root-folders', () => fastify.sonarr.getRootFolders());
 
   fastify.post('/sonarr/test', async () => {
     const settings = await getSonarrSettings(fastify.db);
-    const connected = await fastify.arr.testSonarrConnection();
+    const connected = await fastify.sonarr.testConnection();
     return {
       configured: settings.sonarrApiKeySet && !!settings.sonarrUrl,
       connected,

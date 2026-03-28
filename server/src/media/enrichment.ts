@@ -79,6 +79,7 @@ export async function fetchTMDBDetails(
 ): Promise<Media[]> {
   const results = await Promise.all(
     mediaDbRows.map(async row => {
+      if (!isDefined(row.tmdbId)) return undefined;
       const details = await tmdbService
         .getDetails({ id: row.tmdbId, type: row.type })
         .catch(() => undefined);
@@ -91,8 +92,7 @@ export async function fetchTMDBDetails(
             record: {
               id: row.id,
               tvdbId: row.tvdbId,
-              radarrId: row.radarrId,
-              sonarrId: row.sonarrId,
+              arrId: row.arrId,
               status: row.status,
               jellyfinId: row.jellyfinId,
               createdAt: row.createdAt,

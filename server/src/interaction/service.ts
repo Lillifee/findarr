@@ -1,6 +1,5 @@
 import type { CreateMediaInteraction, Media, MediaStatus, User } from '@findarr/shared';
-import { updateMediaExternalIds } from '../arr/repository.js';
-import type { ArrService } from '../arr/service.js';
+import type { AnyArrService } from '../arr/service.js';
 import { getCatalogCacheBatch } from '../catalog/repository.js';
 import type { CatalogService } from '../catalog/service.js';
 import type { DB } from '../db/setup.js';
@@ -33,7 +32,8 @@ const LIKE_THRESHOLD = 3;
  */
 export const createInteraction = async (
   tmdbService: TMDBService,
-  arrService: ArrService,
+  radarrService: AnyArrService,
+  sonarrService: AnyArrService,
   catalogService: CatalogService,
   db: DB,
   data: CreateMediaInteraction,
@@ -67,7 +67,7 @@ export const createInteraction = async (
       // Update to requested status (trigger download workflow)
       await updateMediaStatus(db, media.id, 'requested');
       // Forward to Radarr/Sonarr and store external IDs (best-effort, non-fatal)
-      requestMediaToArr(tmdbService, arrService, db, media.id, data);
+      requestMediaToArr(tmdbService, radarrService, sonarrService, media.id, data);
     }
   }
 
@@ -118,26 +118,22 @@ async function updateUserPreferences(
  * Resolves the title from catalog cache first, falls back to TMDB.
  * For TV shows, the TVDB ID is lazily fetched and cached on the media record.
  * Stores Radarr/Sonarr IDs immediately for tracking if the service is configured.
+ * Triggers fast queue sync scheduler to detect when download starts.
  * If Radarr/Sonarr is not configured, this is a no-op (gracefully skipped).
  */
 async function requestMediaToArr(
   tmdbService: TMDBService,
-  arrService: ArrService,
-  db: DB,
+  radarrService: AnyArrService,
+  sonarrService: AnyArrService,
   mediaId: number,
   data: CreateMediaInteraction
 ): Promise<void> {
   const details = await tmdbService.getDetails({ id: data.tmdbId, type: data.mediaType });
 
-  if (details.type === 'movie') {
-    const response = await arrService.requestMovie(details.tmdbId, details.name);
-    // Response is already parsed; extract IDs (empty if not configured)
-    await updateMediaExternalIds(db, mediaId, { radarrId: response.id });
-  } else {
-    const response = await arrService.requestSeries(details.tvdbId, details.name);
-    // Response is already parsed; extract IDs (empty if not configured)
-    await updateMediaExternalIds(db, mediaId, { sonarrId: response.id, tvdbId: response.tvdbId });
-  }
+  const service = details.type === 'movie' ? radarrService : sonarrService;
+  const externalId = details.type === 'movie' ? details.tmdbId : details.tvdbId;
+
+  await service.request(mediaId, externalId, details.name);
 }
 
 /**

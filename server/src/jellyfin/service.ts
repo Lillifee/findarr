@@ -1,3 +1,4 @@
+import { isDefined } from '@findarr/shared';
 import type { DB } from '../db/setup.js';
 import { getJellyfinSettingsFull } from '../settings/repository.js';
 import { createJellyfinClient } from './client.js';
@@ -11,36 +12,12 @@ export function createJellyfinService(db: DB) {
     return createJellyfinClient(s.jellyfinUrl, s.jellyfinApiKey);
   }
 
-  async function fetchMedia(itemTypes: ('Movie' | 'Series')[]): Promise<JellyfinMedia[]> {
-    const client = await getClient();
-    if (!client) return [];
-
-    const allItems: JellyfinMedia[] = [];
-    const limit = 100;
-    let startIndex = 0;
-    let hasMore = true;
-
-    while (hasMore) {
-      const response = await client.getItems({
-        itemTypes,
-        startIndex,
-        limit,
-        recursive: true,
-      });
-
-      const transformed = response.Items.map(item => jellyfinItemToMedia(item)).filter(
-        (item): item is JellyfinMedia => item !== undefined
-      );
-
-      allItems.push(...transformed);
-      startIndex += response.Items.length;
-      hasMore = startIndex < response.TotalRecordCount;
-    }
-
-    return allItems;
-  }
-
   return {
+    async isConfigured(): Promise<boolean> {
+      const s = await getJellyfinSettingsFull(db);
+      return !!(s.jellyfinUrl && s.jellyfinApiKey);
+    },
+
     async testConnection(): Promise<boolean> {
       const client = await getClient();
       if (!client) return false;
@@ -62,7 +39,31 @@ export function createJellyfinService(db: DB) {
     },
 
     async getAllMedia(): Promise<JellyfinMedia[]> {
-      return fetchMedia(['Movie', 'Series']);
+      const client = await getClient();
+      if (!client) return [];
+
+      const allItems: JellyfinMedia[] = [];
+      const limit = 100;
+      let startIndex = 0;
+      let hasMore = true;
+
+      while (hasMore) {
+        const response = await client.getItems({
+          itemTypes: ['Movie', 'Series'],
+          startIndex,
+          limit,
+        });
+
+        const transformed = response.Items.map(item => jellyfinItemToMedia(item)).filter(item =>
+          isDefined(item)
+        );
+
+        allItems.push(...transformed);
+        startIndex += response.Items.length;
+        hasMore = startIndex < response.TotalRecordCount;
+      }
+
+      return allItems;
     },
   };
 }

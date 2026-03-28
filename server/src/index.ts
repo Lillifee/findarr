@@ -5,24 +5,15 @@ import { ServerEnvSchema } from '@findarr/shared';
 import Fastify from 'fastify';
 import { adminRoutes } from './admin/routes.js';
 import arrPlugin from './arr/plugin.js';
-import {
-  syncArrComplete,
-  startArrLibrarySyncScheduler,
-  startArrQueueSyncScheduler,
-} from './arr/sync.js';
 import authPlugin from './auth/plugin.js';
 import authRoutes from './auth/routes.js';
 import catalogPlugin from './catalog/plugin.js';
 import { catalogRoutes } from './catalog/routes.js';
-import {
-  startCatalogCacheScheduler,
-  syncCatalogCache,
-  enrichCatalogKeywords,
-} from './catalog/sync.js';
 import databasePlugin from './db/plugin.js';
 import { interactionRoutes } from './interaction/routes.js';
 import jellyfinPlugin from './jellyfin/plugin.js';
-import { startSyncScheduler, syncJellyfinLibrary } from './jellyfin/sync.js';
+import schedulerPlugin from './scheduler/plugin.js';
+import { adminSchedulerRoutes, schedulerRoutes } from './scheduler/routes.js';
 import tmdbPlugin from './tmdb/plugin.js';
 import { registerErrorHandler } from './utils/errors.js';
 
@@ -76,6 +67,7 @@ async function start() {
     await server.register(jellyfinPlugin);
     await server.register(arrPlugin);
     await server.register(catalogPlugin);
+    await server.register(schedulerPlugin);
 
     // Health check endpoint
     server.get('/health', async () => ({
@@ -88,42 +80,11 @@ async function start() {
     await server.register(adminRoutes, { prefix: '/api/admin' });
     await server.register(interactionRoutes, { prefix: '/api/interactions' });
     await server.register(catalogRoutes, { prefix: '/api' });
+    await server.register(schedulerRoutes, { prefix: '/api' });
+    await server.register(adminSchedulerRoutes, { prefix: '/api/admin' });
 
-    // Initial Jellyfin sync
-    await syncJellyfinLibrary(server);
-
-    // Start Jellyfin sync scheduler
-    const syncTimer = startSyncScheduler(server, env.JELLYFIN_SYNC_INTERVAL_MIN);
-
-    // Initial catalog cache sync (two-phase: basic media + keyword enrichment)
-    await syncCatalogCache(server);
-
-    // Start keyword enrichment in background (don't block server startup)
-    enrichCatalogKeywords(server).catch(error => {
-      server.log.error({ error }, 'Initial keyword enrichment failed');
-    });
-
-    // Start catalog cache sync scheduler (runs every 6 hours)
-    const catalogCacheTimer = startCatalogCacheScheduler(server);
-
-    // Initial Radarr/Sonarr library sync (movies/series + TVDB enrichment)
-    syncArrComplete(server).catch(error => {
-      server.log.error({ error }, 'Initial Radarr/Sonarr library sync failed');
-    });
-
-    // Start Radarr/Sonarr library sync scheduler (runs every 30 minutes)
-    startArrLibrarySyncScheduler(server);
-
-    // Start Radarr/Sonarr queue sync scheduler
-    startArrQueueSyncScheduler(server);
-
-    // Cleanup on server close
-    server.addHook('onClose', async () => {
-      server.log.info('Shutting down Jellyfin sync scheduler...');
-      clearInterval(syncTimer);
-      server.log.info('Shutting down catalog cache sync scheduler...');
-      clearInterval(catalogCacheTimer);
-    });
+    // Start scheduler orchestration
+    server.scheduler.startOrchestration();
 
     // Start server
     const address = await server.listen({

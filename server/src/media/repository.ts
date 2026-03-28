@@ -30,7 +30,7 @@ export const getMediaByTmdbId = async (
 
 /**
  * Create a new media record in the database
- * Returns the newly created record
+ * Returns the newly created record or existing record if already exists
  */
 export const createMedia = async (
   db: DB,
@@ -38,6 +38,10 @@ export const createMedia = async (
   type: 'movie' | 'tv',
   status: MediaStatus = 'pending'
 ) => {
+  // Check if media already exists (prevent duplicates since we removed the unique constraint)
+  const existing = await getMediaByTmdbId(db, tmdbId, type);
+  if (existing) return existing;
+
   const result = await db
     .insert(media)
     .values({
@@ -96,11 +100,10 @@ export async function getMediaRecordsBatch(
   const rows = await db.query.media.findMany({
     columns: {
       id: true,
-      tmdbId: true,
       type: true,
+      tmdbId: true,
       tvdbId: true,
-      radarrId: true,
-      sonarrId: true,
+      arrId: true,
       status: true,
       jellyfinId: true,
       createdAt: true,
@@ -113,11 +116,10 @@ export async function getMediaRecordsBatch(
     const key = `${row.tmdbId}_${row.type}`;
     mediaRecords.set(key, {
       id: row.id,
+      arrId: row.arrId,
       tvdbId: row.tvdbId,
-      radarrId: row.radarrId,
-      sonarrId: row.sonarrId,
-      status: row.status,
       jellyfinId: row.jellyfinId,
+      status: row.status,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     });
@@ -129,23 +131,7 @@ export async function getMediaRecordsBatch(
 /**
  * Get all media by status (optionally multiple statuses)
  */
-export async function getMediaByStatus(
-  db: DB,
-  statuses: MediaStatus[]
-): Promise<
-  Array<{
-    id: number;
-    type: 'movie' | 'tv';
-    tmdbId: number;
-    tvdbId: number | null;
-    radarrId: number | null;
-    sonarrId: number | null;
-    status: MediaStatus;
-    jellyfinId: string | null;
-    createdAt: number;
-    updatedAt: number;
-  }>
-> {
+export async function getMediaByStatus(db: DB, statuses: MediaStatus[]): Promise<Array<DbMedia>> {
   if (statuses.length === 0) return [];
 
   const statusConditions = statuses.map(status => eq(media.status, status));
@@ -156,8 +142,7 @@ export async function getMediaByStatus(
       type: true,
       tmdbId: true,
       tvdbId: true,
-      radarrId: true,
-      sonarrId: true,
+      arrId: true,
       status: true,
       jellyfinId: true,
       createdAt: true,

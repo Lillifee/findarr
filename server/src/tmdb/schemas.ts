@@ -188,6 +188,15 @@ export const TMDBGenresResponseSchema = z.object({
   genres: z.array(TMDBGenreSchema),
 });
 
+// TMDB Find by External ID response
+export const TMDBFindResponseSchema = z.object({
+  movie_results: z.array(TMDBMovieSchema),
+  tv_results: z.array(TMDBTVSchema),
+  person_results: z.array(z.unknown()),
+  tv_episode_results: z.array(z.unknown()),
+  tv_season_results: z.array(z.unknown()),
+});
+
 /**
  * TMDB API Parameter Type Definitions
  * TypeScript interfaces for internal type safety (not runtime validation)

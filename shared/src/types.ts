@@ -33,7 +33,14 @@ export interface Keyword {
   name: string;
 }
 
-export type MediaStatus = 'pending' | 'requested' | 'downloading' | 'downloaded' | 'available';
+export type MediaStatus =
+  | 'pending'
+  | 'requested'
+  | 'downloading'
+  | 'downloaded'
+  | 'available'
+  | 'warning';
+
 export type InteractionType = 'liked' | 'disliked';
 
 export interface MediaScore {
@@ -199,3 +206,19 @@ export type DeleteUser = z.infer<typeof DeleteUserSchema>;
 // ============================================================================
 
 export type CreateMediaInteraction = z.infer<typeof CreateInteractionSchema>;
+
+// ============================================================================
+// Scheduler Types
+// ============================================================================
+
+export interface SchedulerState {
+  name: string;
+  description: string;
+  enabled: boolean;
+  isRunning: boolean;
+  lastRun: number | null; // Timestamp
+  nextRun: number | null; // Timestamp (null = stopped/manual trigger only)
+  lastDuration: number | null; // ms
+  lastError: string | null;
+  interval: number; // Default interval in milliseconds
+}

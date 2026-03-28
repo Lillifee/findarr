@@ -1,21 +1,18 @@
 import axios, { type AxiosInstance } from 'axios';
 import { z } from 'zod';
+import { type ArrServiceConfig } from './config.js';
 import {
   ArrSystemStatusSchema,
   ArrQualityProfileSchema,
   ArrRootFolderSchema,
-  RadarrAddMovieResponseSchema,
-  SonarrAddSeriesResponseSchema,
-  RadarrMovieSchema,
-  SonarrSeriesSchema,
-  ArrQueueResponseSchema,
   type ArrQualityProfile,
   type ArrRootFolder,
-  type RadarrAddMovieResponse,
-  type SonarrAddSeriesResponse,
-  type RadarrMovie,
-  type SonarrSeries,
   type ArrQueueResponse,
+  type ArrAddMediaResponse,
+  type SonarrSeries,
+  type RadarrMovie,
+  ArrAddMediaResponseSchema,
+  ArrQueueResponseSchema,
 } from './schemas.js';
 
 function createHttpClient(baseUrl: string, apiKey: string): AxiosInstance {
@@ -29,8 +26,17 @@ function createHttpClient(baseUrl: string, apiKey: string): AxiosInstance {
   });
 }
 
-// Shared endpoints — identical on Radarr and Sonarr v3
-function createSharedMethods(http: AxiosInstance) {
+/**
+ * Generic Arr client factory - works for both Radarr and Sonarr
+ * Provides unified interface with service-specific implementations
+ */
+export function createArrClient<T extends ArrServiceConfig>(
+  config: T,
+  baseUrl: string,
+  apiKey: string
+) {
+  const http = createHttpClient(baseUrl, apiKey);
+
   return {
     async testConnection(): Promise<boolean> {
       const response = await http.get('/system/status', { timeout: 5000 });
@@ -52,73 +58,35 @@ function createSharedMethods(http: AxiosInstance) {
       const response = await http.get('/queue');
       return ArrQueueResponseSchema.parse(response.data);
     },
-  };
-}
 
-export interface AddMovieParams {
-  tmdbId: number;
-  title: string;
-  qualityProfileId: number;
-  rootFolderPath: string;
-}
-
-export interface AddSeriesParams {
-  tvdbId: number | undefined;
-  title: string;
-  qualityProfileId: number;
-  rootFolderPath: string;
-}
-
-export function createRadarrClient(baseUrl: string, apiKey: string) {
-  const http = createHttpClient(baseUrl, apiKey);
-
-  return {
-    ...createSharedMethods(http),
-
-    async addMovie(params: AddMovieParams): Promise<RadarrAddMovieResponse> {
-      const response = await http.post('/movie', {
-        tmdbId: params.tmdbId,
+    async requestMedia(
+      params: {
+        id: number | undefined;
+        title: string;
+      },
+      profileConfig: {
+        qualityProfileId: number;
+        rootFolderPath: string;
+      }
+    ): Promise<ArrAddMediaResponse> {
+      const response = await http.post(config.mediaEndpoint, {
+        [config.mediaIdField]: params.id,
         title: params.title,
-        qualityProfileId: params.qualityProfileId,
-        rootFolderPath: params.rootFolderPath,
         monitored: true,
-        addOptions: { searchForMovie: true },
+        ...profileConfig,
+        ...config.extraFields,
       });
-      return RadarrAddMovieResponseSchema.parse(response.data);
+
+      return ArrAddMediaResponseSchema.parse(response.data);
     },
 
-    async getMovies(): Promise<RadarrMovie[]> {
-      const response = await http.get('/movie');
-      return z.array(RadarrMovieSchema).parse(response.data);
+    async getLibrary(): Promise<Array<RadarrMovie | SonarrSeries>> {
+      const response = await http.get(config.mediaEndpoint);
+      return z.array(config.libraryItemSchema).parse(response.data);
     },
   };
 }
 
-export function createSonarrClient(baseUrl: string, apiKey: string) {
-  const http = createHttpClient(baseUrl, apiKey);
-
-  return {
-    ...createSharedMethods(http),
-
-    async addSeries(params: AddSeriesParams): Promise<SonarrAddSeriesResponse> {
-      const response = await http.post('/series', {
-        tvdbId: params.tvdbId,
-        title: params.title,
-        qualityProfileId: params.qualityProfileId,
-        rootFolderPath: params.rootFolderPath,
-        monitored: true,
-        seasons: [],
-        addOptions: { searchForMissingEpisodes: true },
-      });
-      return SonarrAddSeriesResponseSchema.parse(response.data);
-    },
-
-    async getSeries(): Promise<SonarrSeries[]> {
-      const response = await http.get('/series');
-      return z.array(SonarrSeriesSchema).parse(response.data);
-    },
-  };
-}
-
-export type RadarrClient = ReturnType<typeof createRadarrClient>;
-export type SonarrClient = ReturnType<typeof createSonarrClient>;
+export type ArrClient<T extends ArrServiceConfig = ArrServiceConfig> = ReturnType<
+  typeof createArrClient<T>
+>;

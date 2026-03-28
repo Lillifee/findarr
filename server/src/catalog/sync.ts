@@ -74,9 +74,6 @@ export async function enrichCatalogKeywords(fastify: FastifyInstance): Promise<v
   fastify.log.info('Starting keyword enrichment (phase 2)...');
 
   try {
-    // TODO - use language setting from config
-    const language = 'de-DE';
-
     // Get items that need keyword enrichment
     const itemsWithoutKeywords = await getCatalogItemsWithoutKeywords(fastify.db);
 
@@ -102,11 +99,7 @@ export async function enrichCatalogKeywords(fastify: FastifyInstance): Promise<v
           await new Promise(resolve => setTimeout(resolve, 100));
         }
 
-        const details = await fastify.tmdb.getDetails({
-          id: item.tmdbId,
-          type: item.type,
-          language,
-        });
+        const details = await fastify.tmdb.getDetails({ id: item.tmdbId, type: item.type });
 
         // Update only the keywords field
         await updateCatalogKeywords(fastify.db, item.tmdbId, item.type, details.keywords ?? []);
@@ -159,36 +152,4 @@ function deduplicateMedia(items: Media[]): Media[] {
   }
 
   return [...map.values()];
-}
-
-/**
- * Start background catalog cache sync scheduler
- * Runs two-phase sync: (1) quick sync of basic media, (2) background keyword enrichment
- * Returns timer handle for cleanup
- */
-export function startCatalogCacheScheduler(fastify: FastifyInstance, intervalHours: number = 6) {
-  const intervalMs = intervalHours * 60 * 60 * 1000;
-
-  fastify.log.info(`Starting catalog cache sync scheduler (every ${intervalHours} hours)`);
-
-  const run = async (): Promise<void> => {
-    // Phase 1: Quick sync (basic media)
-    await syncCatalogCache(fastify).catch(error => {
-      fastify.log.error({ error }, 'Catalog cache sync (phase 1) failed');
-    });
-
-    // Phase 2: Keyword enrichment (runs after phase 1)
-    await enrichCatalogKeywords(fastify).catch(error => {
-      fastify.log.error({ error }, 'Keyword enrichment (phase 2) failed');
-    });
-
-    // Schedule next run
-    timer = setTimeout(run, intervalMs);
-    timer.unref();
-  };
-
-  let timer = setTimeout(run, intervalMs);
-  timer.unref();
-
-  return timer;
 }

@@ -30,6 +30,7 @@ describe('catalog service - integration tests', () => {
       fetchTrending: vi.fn(),
       getDetails: vi.fn(),
       getGenres: vi.fn(),
+      findByExternalId: vi.fn(),
     } as Mocked<TMDBService>;
 
     catalogService = createCatalogService(db, tmdbServiceMock);

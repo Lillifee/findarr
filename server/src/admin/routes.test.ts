@@ -1,6 +1,8 @@
 import type { CreateUser } from '@findarr/shared';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { arrConfig } from '../arr/config.js';
+import type { ArrService } from '../arr/service.js';
 import * as authRepository from '../auth/repository.js';
 import * as interactionService from '../interaction/service.js';
 import * as settingsRepository from '../settings/repository.js';
@@ -21,8 +23,7 @@ describe('adminRoutes', () => {
         status: 'requested',
         jellyfinId: null,
         tvdbId: null,
-        radarrId: null,
-        sonarrId: null,
+        arrId: null,
         createdAt: Date.now(),
         updatedAt: Date.now(),
       },
@@ -44,26 +45,35 @@ describe('adminRoutes', () => {
       fetchTrending: vi.fn(),
       getGenres: vi.fn().mockReturnValue([]),
       getDetails: vi.fn(),
+      findByExternalId: vi.fn(),
     });
 
-    // Mock arr service
-    app.decorate('arr', {
-      requestMovie: vi.fn(),
-      requestSeries: vi.fn(),
-      testRadarrConnection: vi.fn().mockResolvedValue(false),
-      testSonarrConnection: vi.fn().mockResolvedValue(false),
-      getRadarrProfiles: vi.fn().mockResolvedValue([]),
-      getRadarrRootFolders: vi.fn().mockResolvedValue([]),
-      getSonarrProfiles: vi.fn().mockResolvedValue([]),
-      getSonarrRootFolders: vi.fn().mockResolvedValue([]),
-      getRadarrMovies: vi.fn().mockResolvedValue([]),
-      getSonarrSeries: vi.fn().mockResolvedValue([]),
-      getRadarrQueue: vi.fn().mockResolvedValue({ records: [] }),
-      getSonarrQueue: vi.fn().mockResolvedValue({ records: [] }),
-    });
+    // Mock arr services (Radarr and Sonarr)
+    app.decorate('radarr', {
+      config: arrConfig.radarr,
+      isConfigured: vi.fn().mockResolvedValue(true),
+      testConnection: vi.fn().mockResolvedValue(false),
+      request: vi.fn(),
+      getProfiles: vi.fn().mockResolvedValue([]),
+      getRootFolders: vi.fn().mockResolvedValue([]),
+      getLibrary: vi.fn().mockResolvedValue([]),
+      getQueue: vi.fn().mockResolvedValue({ records: [] }),
+    } satisfies ArrService<typeof arrConfig.radarr>);
+
+    app.decorate('sonarr', {
+      config: arrConfig.sonarr,
+      isConfigured: vi.fn().mockResolvedValue(true),
+      testConnection: vi.fn().mockResolvedValue(false),
+      request: vi.fn(),
+      getProfiles: vi.fn().mockResolvedValue([]),
+      getRootFolders: vi.fn().mockResolvedValue([]),
+      getLibrary: vi.fn().mockResolvedValue([]),
+      getQueue: vi.fn().mockResolvedValue({ records: [] }),
+    } satisfies ArrService<typeof arrConfig.sonarr>);
 
     // Mock jellyfin service
     app.decorate('jellyfin', {
+      isConfigured: vi.fn().mockResolvedValue(true),
       testConnection: vi.fn().mockResolvedValue(false),
       getConnectionInfo: vi
         .fn()
@@ -179,7 +189,7 @@ describe('adminRoutes', () => {
     });
 
     it('should test Radarr connection', async () => {
-      vi.mocked(app.arr.testRadarrConnection).mockResolvedValue(true);
+      vi.mocked(app.radarr.testConnection).mockResolvedValue(true);
 
       const res = await app.inject({ method: 'POST', url: '/radarr/test' });
 
@@ -230,7 +240,7 @@ describe('adminRoutes', () => {
     });
 
     it('should test Sonarr connection', async () => {
-      vi.mocked(app.arr.testSonarrConnection).mockResolvedValue(true);
+      vi.mocked(app.sonarr.testConnection).mockResolvedValue(true);
 
       const res = await app.inject({ method: 'POST', url: '/sonarr/test' });
 

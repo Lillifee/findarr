@@ -69,6 +69,50 @@ export async function setSetting(db: DB, key: SettingKey, value: string): Promis
 // Typed settings helpers
 // ============================================================================
 
+/**
+ * Generic Arr settings interface (normalized structure without service prefix)
+ */
+export interface ArrSettings {
+  url: string | null;
+  apiKey: string | null;
+  apiKeySet: boolean;
+  qualityProfileId: number | null;
+  rootFolderPath: string | null;
+}
+
+/**
+ * Generic Arr settings getter - works for both Radarr and Sonarr
+ * Returns normalized settings structure
+ */
+export async function getArrSettingsFull(
+  db: DB,
+  service: 'radarr' | 'sonarr'
+): Promise<ArrSettings> {
+  if (service === 'radarr') {
+    const s = await read(db, radarrKeys);
+    return {
+      url: s.radarrUrl,
+      apiKey: s.radarrApiKey,
+      apiKeySet: !!s.radarrApiKey,
+      qualityProfileId: s.radarrQualityProfileId
+        ? Number.parseInt(s.radarrQualityProfileId, 10)
+        : null,
+      rootFolderPath: s.radarrRootFolderPath,
+    };
+  } else {
+    const s = await read(db, sonarrKeys);
+    return {
+      url: s.sonarrUrl,
+      apiKey: s.sonarrApiKey,
+      apiKeySet: !!s.sonarrApiKey,
+      qualityProfileId: s.sonarrQualityProfileId
+        ? Number.parseInt(s.sonarrQualityProfileId, 10)
+        : null,
+      rootFolderPath: s.sonarrRootFolderPath,
+    };
+  }
+}
+
 export async function setRadarrSettings(db: DB, settings: RadarrSettingsBody): Promise<void> {
   await write(db, {
     ...settings,

@@ -1,470 +1,276 @@
-import type { MediaStatus } from '@findarr/shared';
+import { isDefined, type MediaStatus } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
+import { HttpError } from '../utils/errors.js';
 import {
   upsertMediaFromArr,
-  updateMediaExternalIds,
-  getMediaWithoutTvdbId,
-  batchUpdateMediaStatus,
   getMediaWithArrIds,
-  clearRemovedRadarrItems,
-  clearRemovedSonarrItems,
+  batchUpdateMediaStatus,
+  clearRemovedArrItems,
+  getExistingTvdbIds,
 } from './repository.js';
-import type { RadarrMovie, SonarrSeries } from './schemas.js';
+import type { ArrLibraryItem } from './schemas.js';
+import type { AnyArrService } from './service.js';
 
-/**
- * Sync media library from Radarr and Sonarr
- * Phase 1: Quick sync - stores/updates media records with Radarr/Sonarr IDs
- * TVDB IDs are enriched separately by enrichTvdbIds()
- */
-export async function syncArrLibrary(fastify: FastifyInstance): Promise<void> {
-  const startTime = Date.now();
-  fastify.log.info('Starting Radarr/Sonarr library sync (phase 1)...');
+const CONCURRENCY = 8;
+const MAX_RETRIES = 2;
+const BASE_DELAY = 500; // ms
 
-  try {
-    let radarrCount = 0;
-    let sonarrCount = 0;
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-    // Fetch existing media once for both Radarr and Sonarr sync
-    const existingMedia = await getMediaWithArrIds(fastify.db);
-
-    // Fetch all movies from Radarr (returns empty array if not configured)
-    const radarrMovies = await fastify.arr.getRadarrMovies();
-    if (radarrMovies.length > 0) {
-      fastify.log.info(`Fetched ${radarrMovies.length} movies from Radarr`);
-      await syncRadarrMovies(fastify, radarrMovies, existingMedia);
-      radarrCount = radarrMovies.length;
-    }
-
-    // Fetch all series from Sonarr (returns empty array if not configured)
-    const sonarrSeries = await fastify.arr.getSonarrSeries();
-    if (sonarrSeries.length > 0) {
-      fastify.log.info(`Fetched ${sonarrSeries.length} series from Sonarr`);
-      await syncSonarrSeries(fastify, sonarrSeries, existingMedia);
-      sonarrCount = sonarrSeries.length;
-    }
-
-    const durationMs = Date.now() - startTime;
-    const durationSec = Math.round(durationMs / 1000);
-
-    fastify.log.info(
-      {
-        radarrCount,
-        sonarrCount,
-        totalItems: radarrCount + sonarrCount,
-        durationSec,
-      },
-      'Radarr/Sonarr library sync completed (phase 1)'
-    );
-  } catch (error) {
-    fastify.log.error({ error }, 'Radarr/Sonarr library sync failed');
-    throw error;
-  }
+function backoffDelay(attempt: number) {
+  // Exponential backoff + jitter
+  const jitter = Math.random() * 300;
+  return BASE_DELAY * Math.pow(2, attempt) + jitter;
 }
 
 /**
- * Sync Radarr movies to database
+ * Enrich TV shows with TMDB IDs using worker pool pattern
+ * Provides smooth, continuous processing with exponential backoff retry logic
  */
-async function syncRadarrMovies(
+export async function enrichTvShows(
   fastify: FastifyInstance,
-  radarrMovies: RadarrMovie[],
-  existingMedia: Awaited<ReturnType<typeof getMediaWithArrIds>>
-): Promise<void> {
-  // Use pre-fetched existing media
-  const existingByTmdbId = new Map(
-    existingMedia.filter(m => m.type === 'movie').map(m => [m.tmdbId, m])
-  );
+  queue: ArrLibraryItem[]
+): Promise<number> {
+  const { log } = fastify;
+  let queueIndex = 0;
 
-  const itemsToUpsert = radarrMovies.map(movie => {
-    const existing = existingByTmdbId.get(movie.tmdbId);
+  async function fetchTmdbId(tvdbId: number, attempt = 0): Promise<number | null> {
+    try {
+      const tmdbId = await fastify.tmdb.findByExternalId({
+        tvdbId,
+        type: 'tv',
+      });
 
-    let status: MediaStatus;
-    if (existing?.status === 'available') {
-      status = 'available'; // Preserve 'available' from Jellyfin - don't downgrade
-    } else if (movie.hasFile) {
-      status = 'downloaded'; // Has file but not yet in Jellyfín
-    } else {
-      status = 'requested'; // In Radarr but no file yet
+      return tmdbId !== undefined && tmdbId > 0 ? tmdbId : null;
+    } catch (error: unknown) {
+      if (error instanceof HttpError && error.statusCode === 404) {
+        // Not found in TMDB → return null (will not be inserted)
+        return null;
+      }
+
+      if (error instanceof HttpError && error.statusCode === 429 && attempt < MAX_RETRIES) {
+        const delay = backoffDelay(attempt);
+        await sleep(delay);
+        return fetchTmdbId(tvdbId, attempt + 1);
+      }
+
+      throw error;
     }
-
-    return {
-      type: 'movie' as const,
-      tmdbId: movie.tmdbId,
-      radarrId: movie.id,
-      status,
-    };
-  });
-
-  await upsertMediaFromArr(fastify.db, itemsToUpsert);
-
-  // Cleanup: Find movies in DB that are no longer in Radarr
-  const currentRadarrIds = new Set(radarrMovies.map(m => m.id));
-  const removedRadarrIds = existingMedia
-    .filter(m => m.type === 'movie' && m.radarrId !== null && !currentRadarrIds.has(m.radarrId))
-    .map(m => m.radarrId as number);
-
-  if (removedRadarrIds.length > 0) {
-    const clearedCount = await clearRemovedRadarrItems(fastify.db, removedRadarrIds);
-    fastify.log.info(`Cleaned up ${clearedCount} movies removed from Radarr (reset to pending)`);
   }
-}
 
-/**
- * Sync Sonarr series to database
- */
-async function syncSonarrSeries(
-  fastify: FastifyInstance,
-  sonarrSeries: SonarrSeries[],
-  existingMedia: Awaited<ReturnType<typeof getMediaWithArrIds>>
-): Promise<void> {
-  // Use pre-fetched existing media
-  const existingByTvdbId = new Map(
-    existingMedia
-      .filter(m => m.type === 'tv' && m.tvdbId !== null)
-      .map(m => [m.tvdbId as number, m])
-  );
+  const worker = async () => {
+    let localCount = 0;
 
-  const itemsToUpsert = sonarrSeries.map(series => {
-    const existing = existingByTvdbId.get(series.tvdbId);
+    while (true) {
+      const index = queueIndex++;
+      if (index >= queue.length) break;
 
-    let status: MediaStatus;
-    const hasEpisodes = (series.statistics?.episodeFileCount ?? 0) > 0;
-
-    if (existing?.status === 'available') {
-      status = 'available'; // Preserve 'available' from Jellyfin - don't downgrade
-    } else if (hasEpisodes) {
-      status = 'downloaded'; // Has episodes but not yet in Jellyfin
-    } else {
-      status = 'requested'; // In Sonarr but no episodes yet
-    }
-
-    return {
-      type: 'tv' as const,
-      tmdbId: 0, // Will be enriched later if needed (or if we already have it, upsert preserves it)
-      tvdbId: series.tvdbId,
-      sonarrId: series.id,
-      status,
-    };
-  });
-
-  await upsertMediaFromArr(fastify.db, itemsToUpsert);
-
-  // Cleanup: Find series in DB that are no longer in Sonarr
-  const currentSonarrIds = new Set(sonarrSeries.map(s => s.id));
-  const removedSonarrIds = existingMedia
-    .filter(m => m.type === 'tv' && m.sonarrId !== null && !currentSonarrIds.has(m.sonarrId))
-    .map(m => m.sonarrId as number);
-
-  if (removedSonarrIds.length > 0) {
-    const clearedCount = await clearRemovedSonarrItems(fastify.db, removedSonarrIds);
-    fastify.log.info(`Cleaned up ${clearedCount} series removed from Sonarr (reset to pending)`);
-  }
-}
-
-/**
- * Enrich TV shows with TVDB IDs from TMDB
- * Phase 2: Background enrichment - fetches TVDB IDs for shows without them
- * Uses rate limiting to avoid overwhelming TMDB API
- */
-export async function enrichTvdbIds(fastify: FastifyInstance): Promise<void> {
-  const startTime = Date.now();
-  fastify.log.info('Starting TVDB ID enrichment (phase 2)...');
-
-  try {
-    // Get TV shows that need TVDB ID enrichment
-    const itemsWithoutTvdbId = await getMediaWithoutTvdbId(fastify.db);
-
-    if (itemsWithoutTvdbId.length === 0) {
-      fastify.log.info('No TV shows need TVDB ID enrichment');
-      return;
-    }
-
-    fastify.log.info(`Enriching ${itemsWithoutTvdbId.length} TV shows with TVDB IDs...`);
-
-    let successCount = 0;
-    let failCount = 0;
-
-    // Fetch TVDB ID for each show
-    for (let i = 0; i < itemsWithoutTvdbId.length; i++) {
-      const item = itemsWithoutTvdbId[i];
-      if (!item) continue;
+      const item = queue[index];
+      if (!item?.tvdbId) continue;
 
       try {
-        // Add delay between requests to avoid rate limiting (10 req/s = 100ms delay)
-        if (i > 0) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
+        const tmdbId = await fetchTmdbId(item.tvdbId);
 
-        // Fetch details with external_ids
-        const details = await fastify.tmdb.getDetails({ id: item.tmdbId, type: 'tv' });
-
-        if (details.type === 'tv' && details.tvdbId) {
-          await updateMediaExternalIds(fastify.db, item.id, {
-            tvdbId: details.tvdbId,
-          });
-          successCount++;
-        } else {
-          // Store -1 as sentinel value to prevent retrying this item in future syncs
-          await updateMediaExternalIds(fastify.db, item.id, {
-            tvdbId: -1,
-          });
-          failCount++;
-          fastify.log.warn(
-            { tmdbId: item.tmdbId },
-            'TVDB ID not found in TMDB - marked as unavailable (tvdbId = -1)'
-          );
+        if (tmdbId) {
+          item.tmdbId = tmdbId;
+          localCount++;
         }
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        log.warn({ tvdbId: item.tvdbId, error: message }, 'Enrichment failed');
+      }
 
-        // Log progress every 20 items
-        if ((i + 1) % 20 === 0 || i === itemsWithoutTvdbId.length - 1) {
-          fastify.log.info(
-            `TVDB enrichment progress: ${i + 1}/${itemsWithoutTvdbId.length} (${successCount} success, ${failCount} fail)`
-          );
-        }
-      } catch (error) {
-        // Store -1 as sentinel value to prevent retrying this item in future syncs
-        await updateMediaExternalIds(fastify.db, item.id, {
-          tvdbId: -1,
-        });
-        failCount++;
-        fastify.log.warn(
-          { error, tmdbId: item.tmdbId },
-          'Failed to fetch TVDB ID - marked as unavailable'
-        );
+      // Progress logging (lightweight)
+      if ((index + 1) % 50 === 0 || index + 1 === queue.length) {
+        log.info(`Enrichment progress: ${index + 1}/${queue.length}`);
       }
     }
 
-    const durationMs = Date.now() - startTime;
-    const durationSec = Math.round(durationMs / 1000);
+    return localCount;
+  };
 
-    fastify.log.info(
-      {
-        total: itemsWithoutTvdbId.length,
-        successCount,
-        failCount,
-        durationSec,
-      },
-      'TVDB ID enrichment completed (phase 2)'
-    );
-  } catch (error) {
-    fastify.log.error({ error }, 'TVDB ID enrichment failed');
-    throw error;
-  }
+  // Start workers
+  const results = await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
+
+  // Aggregate counts safely
+  const enrichedCount = results.reduce((sum, val) => sum + val, 0);
+
+  log.info(`Enrichment complete: ${enrichedCount}/${queue.length}`);
+
+  return enrichedCount;
 }
 
 /**
- * Sync download queue status from Radarr and Sonarr
- * Updates media status to 'downloading' for active downloads
- * Returns current queue state for completion detection
+ * Generic library sync for Radarr or Sonarr
+ * Fetches all items from the service and updates database
  */
-export async function syncArrQueue(fastify: FastifyInstance): Promise<{
-  activeCount: number;
-  currentDownloadingIds: {
-    radarr: Set<number>;
-    sonarr: Set<number>;
-  };
+export async function syncLibrary(
+  fastify: FastifyInstance,
+  arrService: AnyArrService
+): Promise<void> {
+  const { db, log } = fastify;
+  const { config } = arrService;
+  const { mediaType, service } = config;
+
+  // Fetch library items (already transformed to ArrLibraryItem)
+  const libraryItems = await arrService.getLibrary();
+
+  if (libraryItems.length === 0) {
+    log.info(`No ${service} items found`);
+    return;
+  }
+
+  log.info(`Fetched ${libraryItems.length} items from ${service}`);
+
+  // For TV shows: Enrich with tmdbId during sync to avoid duplicate records
+  // This prevents conflicts when Jellyfin already has the same show with tmdbId
+  if (mediaType === 'tv') {
+    // Get tvdbIds of shows already in database (prevents re-enrichment)
+    const alreadyProcessed = await getExistingTvdbIds(db);
+
+    // Only enrich NEW shows not yet in database
+    const queue = libraryItems.filter(item => item?.tvdbId && !alreadyProcessed.has(item.tvdbId));
+
+    if (queue.length > 0) {
+      log.info(`Enriching ${queue.length} new TV shows with TMDB IDs...`);
+      await enrichTvShows(fastify, queue);
+    } else {
+      log.debug('No new TV shows to enrich');
+    }
+  }
+
+  // Map library items to upsert format
+  const itemsToUpsert = libraryItems.map(item => ({
+    type: mediaType,
+    arrId: item.id,
+    tvdbId: item.tvdbId ?? null,
+    tmdbId: item.tmdbId ?? null,
+    status: (item.hasFile ? 'downloaded' : 'requested') as MediaStatus,
+  }));
+
+  // Count items that will be skipped due to missing IDs
+  const itemsWithRequiredIds =
+    mediaType === 'tv'
+      ? itemsToUpsert.filter(item => item.tvdbId !== null)
+      : itemsToUpsert.filter(item => item.tmdbId !== null);
+
+  const skippedCount = itemsToUpsert.length - itemsWithRequiredIds.length;
+  if (skippedCount > 0) {
+    log.warn(
+      { skippedCount, mediaType },
+      `Skipping ${skippedCount} ${service} items missing required external ID`
+    );
+  }
+  await upsertMediaFromArr(db, itemsToUpsert);
+
+  // Cleanup: Find items in DB that are no longer in Radarr/Sonarr
+  const existingMedia = await getMediaWithArrIds(db);
+  const currentArrIds = new Set(libraryItems.map(item => item.id));
+  const removedArrIds = existingMedia
+    .map(m => m.arrId)
+    .filter(arrId => isDefined(arrId))
+    .filter(arrId => !currentArrIds.has(arrId));
+
+  if (removedArrIds.length > 0) {
+    const clearedCount = await clearRemovedArrItems(db, removedArrIds, mediaType);
+    log.info(`Cleaned up ${clearedCount} removed from ${service} (reset to pending)`);
+  }
+
+  log.info(`${service} library synced ${libraryItems.length} items`);
+}
+
+/**
+ * Generic queue sync for Radarr or Sonarr
+ * Updates media status for items in the download queue
+ * Returns current state for completion detection
+ */
+export async function syncQueue(
+  fastify: FastifyInstance,
+  arrService: AnyArrService,
+  previousDownloadingIds: Set<number>
+): Promise<{
+  currentDownloadingIds: Set<number>;
+  completedIds: number[];
+  hasActiveDownloads: boolean;
 }> {
-  const startTime = Date.now();
-  fastify.log.debug('Starting Radarr/Sonarr queue sync...');
+  const statusUpdates: Array<{ arrId: number; status: MediaStatus }> = [];
+  const currentDownloadingIds = new Set<number>();
 
-  try {
-    const queueUpdates: Array<{
-      radarrId?: number;
-      sonarrId?: number;
-      status: 'downloading';
-    }> = [];
+  // Get queue from service
+  const queue = await arrService.getQueue();
 
-    const currentlyDownloadingIds = {
-      radarr: new Set<number>(),
-      sonarr: new Set<number>(),
-    };
-
-    // Fetch Radarr queue
-    try {
-      const radarrQueue = await fastify.arr.getRadarrQueue();
-      for (const item of radarrQueue.records) {
-        if (item.movieId) {
-          currentlyDownloadingIds.radarr.add(item.movieId);
-          queueUpdates.push({ radarrId: item.movieId, status: 'downloading' });
-        }
+  // Process queue items
+  for (const item of queue.records) {
+    if (item.arrId) {
+      if (item.trackedDownloadStatus === 'warning') {
+        // Mark as warning - don't count as active download
+        statusUpdates.push({ arrId: item.arrId, status: 'warning' });
+        fastify.log.warn(
+          { arrId: item.arrId, status: item.trackedDownloadStatus },
+          'Download requires manual intervention'
+        );
+      } else {
+        // Normal downloading state
+        currentDownloadingIds.add(item.arrId);
+        statusUpdates.push({ arrId: item.arrId, status: 'downloading' });
       }
-      if (radarrQueue.records.length > 0) {
-        fastify.log.info(`Found ${radarrQueue.records.length} items in Radarr queue`);
-      }
-    } catch (error) {
-      fastify.log.warn({ error }, 'Failed to fetch Radarr queue');
-    }
-
-    // Fetch Sonarr queue
-    try {
-      const sonarrQueue = await fastify.arr.getSonarrQueue();
-      for (const item of sonarrQueue.records) {
-        if (item.seriesId) {
-          currentlyDownloadingIds.sonarr.add(item.seriesId);
-          queueUpdates.push({ sonarrId: item.seriesId, status: 'downloading' });
-        }
-      }
-      if (sonarrQueue.records.length > 0) {
-        fastify.log.info(`Found ${sonarrQueue.records.length} items in Sonarr queue`);
-      }
-    } catch (error) {
-      fastify.log.warn({ error }, 'Failed to fetch Sonarr queue');
-    }
-
-    // Update statuses for items IN queue
-    if (queueUpdates.length > 0) {
-      await batchUpdateMediaStatus(fastify.db, queueUpdates);
-      fastify.log.info(`Updated ${queueUpdates.length} items to 'downloading' status`);
-    }
-
-    const durationMs = Date.now() - startTime;
-    const durationSec = Math.round(durationMs / 1000);
-
-    fastify.log.debug(
-      {
-        queueItems: queueUpdates.length,
-        durationSec,
-      },
-      'Radarr/Sonarr queue sync completed'
-    );
-
-    return {
-      activeCount: queueUpdates.length,
-      currentDownloadingIds: currentlyDownloadingIds,
-    };
-  } catch (error) {
-    fastify.log.error({ error }, 'Radarr/Sonarr queue sync failed');
-    throw error;
-  }
-}
-
-/**
- * Run complete Radarr/Sonarr library sync (library + TVDB enrichment)
- * Queue sync runs separately on its own faster schedule
- */
-export async function syncArrComplete(fastify: FastifyInstance): Promise<void> {
-  fastify.log.info('Starting Radarr/Sonarr library sync...');
-  const startTime = Date.now();
-
-  try {
-    // Phase 1: Library sync (fast, stores basic data)
-    await syncArrLibrary(fastify);
-
-    // Phase 2: TVDB enrichment (slower, API rate limited)
-    await enrichTvdbIds(fastify);
-
-    const durationMs = Date.now() - startTime;
-    const durationMin = Math.round(durationMs / 60_000);
-
-    fastify.log.info({ durationMin }, 'Radarr/Sonarr library sync finished successfully');
-  } catch (error) {
-    fastify.log.error({ error }, 'Radarr/Sonarr library sync failed');
-  }
-}
-
-/**
- * Start recurring Radarr/Sonarr library sync scheduler
- * Runs library sync (movies/series + TVDB enrichment) every 30 minutes
- * Queue sync runs on a separate faster schedule
- */
-export function startArrLibrarySyncScheduler(fastify: FastifyInstance): void {
-  const SYNC_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
-
-  async function runScheduledSync() {
-    try {
-      await syncArrComplete(fastify);
-    } catch (error) {
-      fastify.log.error({ error }, 'Scheduled Radarr/Sonarr library sync failed');
-    } finally {
-      // Reschedule next run
-      const timer = setTimeout(runScheduledSync, SYNC_INTERVAL_MS);
-      timer.unref(); // Don't keep Node.js process alive for this timer
     }
   }
 
-  // Start first run
-  fastify.log.info({ intervalMinutes: 30 }, 'Starting Radarr/Sonarr library sync scheduler');
-  runScheduledSync();
-}
+  // Update statuses for items IN queue
+  if (statusUpdates.length > 0) {
+    await batchUpdateMediaStatus(fastify.db, statusUpdates);
+  }
 
-/**
- * Start recurring Radarr/Sonarr queue sync scheduler
- * Adaptive polling: 2 minutes when idle, 10 seconds when downloads are active
- * Detects completions by comparing previous vs current downloading IDs
- * Triggers library sync immediately when any download completes
- */
-export function startArrQueueSyncScheduler(fastify: FastifyInstance): void {
-  const IDLE_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes when no active downloads
-  const ACTIVE_INTERVAL_MS = 10 * 1000; // 10 seconds when downloads are active
-  let hasActiveDownloads = false;
+  // Detect completions by comparing previous vs current downloading IDs
+  const completedIds = [...previousDownloadingIds].filter(id => !currentDownloadingIds.has(id));
 
-  // Track downloading IDs across runs to detect completions
-  let previousDownloadingIds = {
-    radarr: new Set<number>(),
-    sonarr: new Set<number>(),
+  return {
+    currentDownloadingIds,
+    completedIds,
+    hasActiveDownloads: currentDownloadingIds.size > 0,
   };
+}
 
-  async function runScheduledQueueSync() {
-    try {
-      // Track if there were active downloads before this run
-      const previouslyActive = hasActiveDownloads;
+/**
+ * Generic complete sync for Radarr or Sonarr
+ * Library sync with inline enrichment for TV shows
+ */
+export async function syncComplete(
+  fastify: FastifyInstance,
+  arrService: AnyArrService
+): Promise<void> {
+  fastify.log.info(`Starting ${arrService.config.service} library sync...`);
+  const startTime = Date.now();
+  const { log } = fastify;
 
-      // Check queue and update statuses
-      const queueResult = await syncArrQueue(fastify);
+  // Check if service is configured
+  const isConfigured = await arrService.isConfigured();
 
-      // Determine if there are currently active downloads
-      hasActiveDownloads = queueResult.activeCount > 0;
-
-      // Detect completions by comparing previous vs current downloading IDs
-      const completedRadarrIds = [...previousDownloadingIds.radarr].filter(
-        id => !queueResult.currentDownloadingIds.radarr.has(id)
-      );
-      const completedSonarrIds = [...previousDownloadingIds.sonarr].filter(
-        id => !queueResult.currentDownloadingIds.sonarr.has(id)
-      );
-
-      const hasCompletions = completedRadarrIds.length > 0 || completedSonarrIds.length > 0;
-
-      if (hasCompletions) {
-        fastify.log.info(
-          {
-            completedMovies: completedRadarrIds.length,
-            completedSeries: completedSonarrIds.length,
-          },
-          'Downloads completed - triggering library sync for immediate status update'
-        );
-
-        // Trigger library sync to upgrade completed items to 'downloaded' status
-        syncArrLibrary(fastify).catch(error => {
-          fastify.log.warn({ error }, 'Triggered library sync after completed downloads failed');
-        });
-      }
-
-      // Store current downloading IDs for next comparison
-      previousDownloadingIds = queueResult.currentDownloadingIds;
-
-      // Log state transitions
-      if (!previouslyActive && hasActiveDownloads) {
-        fastify.log.info(
-          { activeDownloads: queueResult.activeCount },
-          'Active downloads detected - switching to fast polling (10s)'
-        );
-      } else if (previouslyActive && !hasActiveDownloads) {
-        fastify.log.info('No active downloads - switching to slow polling (2min)');
-      }
-    } catch (error) {
-      fastify.log.error({ error }, 'Scheduled Radarr/Sonarr queue sync failed');
-    } finally {
-      // Adaptive interval: faster when downloads are active
-      const interval = hasActiveDownloads ? ACTIVE_INTERVAL_MS : IDLE_INTERVAL_MS;
-      const timer = setTimeout(runScheduledQueueSync, interval);
-      timer.unref(); // Don't keep Node.js process alive for this timer
-    }
+  if (!isConfigured) {
+    log.debug(`${arrService.config.service} not configured - skipping sync`);
+    return;
   }
 
-  // Start first run
+  // Test connection
+  const isConnected = await arrService.testConnection();
+
+  if (!isConnected) {
+    throw new Error(`${arrService.config.service} connection test failed`);
+  }
+
+  log.debug(`${arrService.config.service} connection successful`);
+
+  // Library sync with inline enrichment for TV shows
+  await syncLibrary(fastify, arrService);
+
+  const durationMs = Date.now() - startTime;
+  const durationSec = Math.round(durationMs / 1000);
+
   fastify.log.info(
-    { idleIntervalSec: 120, activeIntervalSec: 10 },
-    'Starting Radarr/Sonarr queue sync scheduler (adaptive polling with completion detection)'
+    { durationSec },
+    `${arrService.config.service} library sync finished successfully`
   );
-  runScheduledQueueSync();
 }

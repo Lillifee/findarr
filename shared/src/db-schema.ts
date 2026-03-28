@@ -39,13 +39,12 @@ export const media = sqliteTable(
   {
     id: integer('id').primaryKey({ autoIncrement: true }),
     type: text('type', { enum: ['movie', 'tv'] }).notNull(),
-    tmdbId: integer('tmdbId').notNull(),
-    tvdbId: integer('tvdbId'), // TVDB ID for TV shows (for Sonarr)
-    radarrId: integer('radarrId'), // Radarr movie ID
-    sonarrId: integer('sonarrId'), // Sonarr series ID
+    tmdbId: integer('tmdbId'), // TMDB ID - canonical identifier for both movies and TV
+    tvdbId: integer('tvdbId'), // TVDB ID - only for TV shows, used for Sonarr sync
+    arrId: integer('arrId'), // Radarr movie ID or Sonarr series ID (determined by type)
     jellyfinId: text('jellyfinId'),
     status: text('status', {
-      enum: ['pending', 'requested', 'downloading', 'downloaded', 'available'],
+      enum: ['pending', 'requested', 'downloading', 'downloaded', 'available', 'warning'],
     })
       .notNull()
       .default('pending'),
@@ -59,13 +58,16 @@ export const media = sqliteTable(
       .$type<number>(),
   },
   table => [
-    index('idx_media_tmdb').on(table.tmdbId, table.type),
     index('idx_media_tvdb').on(table.tvdbId),
-    index('idx_media_radarr').on(table.radarrId),
-    index('idx_media_sonarr').on(table.sonarrId),
+    index('idx_media_tmdb').on(table.tmdbId, table.type),
+    index('idx_media_arr').on(table.arrId),
     index('idx_media_status').on(table.status),
     index('idx_media_jellyfin').on(table.jellyfinId),
+    // Unique constraints:
+    // - tmdbId + type: Canonical TMDB identifier (NULL allowed for TV before enrichment)
+    // - tvdbId + type: TV show sync identifier (allows efficient batch upsert from Sonarr)
     unique('media_tmdbId_type_unique').on(table.tmdbId, table.type),
+    unique('media_tvdbId_type_unique').on(table.tvdbId, table.type),
   ]
 );
 

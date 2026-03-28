@@ -1,5 +1,7 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { arrConfig } from '../arr/config.js';
+import type { ArrService } from '../arr/service.js';
 import * as mediaService from '../media/repository.js';
 import { createTestMedia, mockDb, createTestUser } from '../utils/testHelper.js';
 import { interactionRoutes } from './routes.js';
@@ -15,8 +17,7 @@ describe('interactionRoutes', () => {
         status: 'requested',
         jellyfinId: null,
         tvdbId: null,
-        radarrId: null,
-        sonarrId: null,
+        arrId: null,
         createdAt: Date.now(),
         updatedAt: Date.now(),
       },
@@ -39,23 +40,32 @@ describe('interactionRoutes', () => {
       fetchTrending: vi.fn(),
       getGenres: vi.fn().mockReturnValue([]),
       getDetails: vi.fn(),
+      findByExternalId: vi.fn(),
     });
 
-    // Mock arr service
-    app.decorate('arr', {
-      requestMovie: vi.fn(),
-      requestSeries: vi.fn(),
-      testRadarrConnection: vi.fn(),
-      testSonarrConnection: vi.fn(),
-      getRadarrProfiles: vi.fn(),
-      getRadarrRootFolders: vi.fn(),
-      getSonarrProfiles: vi.fn(),
-      getSonarrRootFolders: vi.fn(),
-      getRadarrMovies: vi.fn().mockResolvedValue([]),
-      getSonarrSeries: vi.fn().mockResolvedValue([]),
-      getRadarrQueue: vi.fn().mockResolvedValue({ records: [] }),
-      getSonarrQueue: vi.fn().mockResolvedValue({ records: [] }),
-    });
+    // Mock radarr service
+    app.decorate('radarr', {
+      config: arrConfig.radarr,
+      request: vi.fn(),
+      testConnection: vi.fn(),
+      isConfigured: vi.fn().mockResolvedValue(true),
+      getProfiles: vi.fn(),
+      getRootFolders: vi.fn(),
+      getLibrary: vi.fn().mockResolvedValue([]),
+      getQueue: vi.fn().mockResolvedValue({ records: [] }),
+    } satisfies ArrService<typeof arrConfig.radarr>);
+
+    // Mock sonarr service
+    app.decorate('sonarr', {
+      config: arrConfig.sonarr,
+      request: vi.fn(),
+      testConnection: vi.fn(),
+      isConfigured: vi.fn().mockResolvedValue(true),
+      getProfiles: vi.fn(),
+      getRootFolders: vi.fn(),
+      getLibrary: vi.fn().mockResolvedValue([]),
+      getQueue: vi.fn().mockResolvedValue({ records: [] }),
+    } satisfies ArrService<typeof arrConfig.sonarr>);
 
     // Mock catalog service
     app.decorate('catalog', {
@@ -65,6 +75,15 @@ describe('interactionRoutes', () => {
       discover: vi.fn(),
       getDetails: vi.fn(),
       getGenres: vi.fn(),
+    });
+
+    app.decorate('scheduler', {
+      start: vi.fn(),
+      stop: vi.fn(),
+      trigger: vi.fn(),
+      getState: vi.fn(),
+      startOrchestration: vi.fn(),
+      stopOrchestration: vi.fn(),
     });
 
     // inject authenticated user
@@ -83,8 +102,7 @@ describe('interactionRoutes', () => {
             status: 'requested',
             jellyfinId: null,
             tvdbId: null,
-            radarrId: null,
-            sonarrId: null,
+            arrId: null,
             createdAt: Date.now(),
             updatedAt: Date.now(),
           },
@@ -115,7 +133,8 @@ describe('interactionRoutes', () => {
     expect(res.statusCode).toBe(200);
     expect(interactionService.createInteraction).toHaveBeenCalledWith(
       app.tmdb,
-      app.arr,
+      app.radarr,
+      app.sonarr,
       app.catalog,
       app.db,
       payload,

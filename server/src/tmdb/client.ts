@@ -10,6 +10,7 @@ import {
   TMDBTVDetailsSchema,
   type TMDBGenresParams,
   TMDBGenresResponseSchema,
+  TMDBFindResponseSchema,
 } from './schemas.js';
 
 /**
@@ -79,6 +80,17 @@ export function createTMDBClient(
     async getGenres(type: 'movie' | 'tv', params?: TMDBGenresParams) {
       const response = await client.get(`/genre/${type}/list`, { params });
       return TMDBGenresResponseSchema.parse(response.data);
+    },
+
+    /**
+     * Find content by external ID (TVDB, IMDB, etc.)
+     * Returns movie_results and tv_results arrays
+     */
+    async findByExternalId(externalId: string | number, externalSource: 'tvdb_id' | 'imdb_id') {
+      const response = await client.get(`/find/${externalId}`, {
+        params: { external_source: externalSource },
+      });
+      return TMDBFindResponseSchema.parse(response.data);
     },
   };
 }

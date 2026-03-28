@@ -4,7 +4,34 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug Vitest with Node",
+      "name": "Debug Server (Backend)",
+      "program": "${workspaceFolder}/server/src/index.ts",
+      "runtimeArgs": ["--import", "tsx"],
+      "cwd": "${workspaceFolder}/server",
+      "envFile": "${workspaceFolder}/server/.env",
+      "console": "integratedTerminal",
+      "restart": true,
+      "skipFiles": ["<node_internals>/**"],
+      "outputCapture": "std",
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Debug Client (Frontend)",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/client",
+      "sourceMaps": true,
+      "sourceMapPathOverrides": {
+        "webpack:///./src/*": "${workspaceFolder}/client/src/*"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Vitest Tests",
       "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
       "args": ["run", "${file}"],
       "runtimeArgs": ["--inspect-brk"],
@@ -13,8 +40,20 @@
       "console": "integratedTerminal",
       "env": {
         "NODE_ENV": "test",
-        "VITEST_THREAD": "false",
-      },
-    },
+        "VITEST_THREAD": "false"
+      }
+    }
   ],
+  "compounds": [
+    {
+      "name": "Debug Full Stack (Client + Server)",
+      "configurations": ["Debug Server (Backend)", "Debug Client (Frontend)"],
+      "stopAll": true,
+      "presentation": {
+        "hidden": false,
+        "group": "full-stack",
+        "order": 1
+      }
+    }
+  ]
 }
