@@ -41,6 +41,16 @@ CREATE INDEX `idx_media_status` ON `media` (`status`);--> statement-breakpoint
 CREATE INDEX `idx_media_jellyfin` ON `media` (`jellyfinId`);--> statement-breakpoint
 CREATE UNIQUE INDEX `media_tmdbId_type_unique` ON `media` (`tmdbId`,`type`);--> statement-breakpoint
 CREATE UNIQUE INDEX `media_tvdbId_type_unique` ON `media` (`tvdbId`,`type`);--> statement-breakpoint
+CREATE TABLE `media_stats` (
+	`mediaType` text PRIMARY KEY NOT NULL,
+	`minPopularity` integer NOT NULL,
+	`maxPopularity` integer NOT NULL,
+	`minVoteCount` integer NOT NULL,
+	`maxVoteCount` integer NOT NULL,
+	`maxAvgRating` integer NOT NULL,
+	`updatedAt` integer DEFAULT (unixepoch() * 1000) NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE `user_genre_preferences` (
 	`userId` integer NOT NULL,
 	`genreId` integer NOT NULL,

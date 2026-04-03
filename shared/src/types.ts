@@ -49,10 +49,12 @@ export interface MediaScore {
   popularityScore: number;
   weightedRating: number;
   baseScore: number;
+  baseTrendingScore: number;
   genreScore: number;
   keywordScore: number;
   userScore: number;
   finalScore: number;
+  finalTrendingScore: number;
 }
 
 /**
@@ -133,6 +135,7 @@ export interface MovieDetails extends Movie {
 export interface TVDetails extends TVShow {
   originalName: string;
   episodeRunTime: number[];
+  lastAirDate: string | undefined;
   showType: string;
   numberOfSeasons: number;
   numberOfEpisodes: number;

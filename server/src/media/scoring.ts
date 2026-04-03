@@ -5,119 +5,98 @@ import type {
   UserKeywordPreference,
 } from '@findarr/shared';
 
-const MS_PER_DAY = 1000 * 60 * 60 * 24;
+/**
+ * Maximum trending rank (5 pages × 20 items per page from TMDB)
+ * Used for normalizing trending scores
+ */
+export const MAX_TRENDING_RANK = 100;
 
-type TypeStats = {
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+const clamp = (v: number) => Math.max(0, Math.min(1, v));
+
+// ============================================================================
+// Types
+// ============================================================================
+
+/**
+ * Media statistics for normalizing scores
+ * Describes the distribution of media characteristics (popularity, votes, ratings)
+ * Precomputed from catalog cache and stored in database
+ * Max values only increase, min values only decrease over time (growth strategy)
+ */
+export type MediaStats = {
+  mediaType: 'movie' | 'tv';
   minPopularity: number;
   maxPopularity: number;
   minVoteCount: number;
   maxVoteCount: number;
-  ratingSum: number;
-  ratingCount: number;
+  maxAvgRating: number;
+  updatedAt: number;
 };
 
-const clamp = (v: number) => Math.max(0, Math.min(1, v));
+// ============================================================================
+// Batch Scoring with Precomputed Stats
+// ============================================================================
 
-function scoreMedia(
-  item: Media,
-  stats: TypeStats,
-  maxTrendingRank: number,
-  globalAverage: number
-): MediaScore {
-  const popularityScore = Math.log10(item.popularity + 1) / Math.log10(stats.maxPopularity + 1);
+/**
+ * Score media items using precomputed global stats from database
+ * Works on arrays of any size (including single items)
+ * Stats are computed during catalog sync and grow over time
+ */
+export function scoreMediaItems(
+  items: Media[],
+  movieStats: MediaStats,
+  tvStats: MediaStats
+): Media[] {
+  if (items.length === 0) return items;
 
   const MIN_VOTES = 300;
 
-  const bayes =
-    (item.voteCount / (item.voteCount + MIN_VOTES)) * (item.voteAverage || 0) +
-    (MIN_VOTES / (item.voteCount + MIN_VOTES)) * globalAverage;
-
-  const weightedRating = bayes / 10;
-
-  const trendingScore = item.trendingRank
-    ? clamp(1 - (item.trendingRank - 1) / maxTrendingRank)
-    : 0;
-
-  const recencyScore = item.date
-    ? Math.exp(-Math.abs(Date.now() - new Date(item.date).getTime()) / MS_PER_DAY / 365)
-    : 0;
-
-  const baseScore =
-    0.25 * trendingScore + 0.2 * popularityScore + 0.3 * recencyScore + 0.25 * weightedRating;
-
-  return {
-    recencyScore,
-    trendingScore,
-    popularityScore,
-    weightedRating,
-    baseScore,
-    genreScore: 0,
-    keywordScore: 0,
-    userScore: 0,
-    finalScore: baseScore,
-  };
-}
-
-export function scoreMediaItems(items: Media[]): Media[] {
-  const createTypeStats = (): TypeStats => ({
-    minPopularity: Infinity,
-    maxPopularity: 0,
-    minVoteCount: Infinity,
-    maxVoteCount: 0,
-    ratingSum: 0,
-    ratingCount: 0,
-  });
-
-  const movieStats: TypeStats = createTypeStats();
-  const tvStats: TypeStats = createTypeStats();
-
-  let maxTrendingRank = 1;
-
-  // 1️⃣ Collect stats in ONE pass
-  for (const item of items) {
-    const stats = item.type === 'movie' ? movieStats : tvStats;
-
-    const popularity = item.popularity;
-    const voteCount = item.voteCount;
-    const trendingRank = item.trendingRank || 0;
-
-    stats.minPopularity = Math.min(stats.minPopularity, popularity);
-    stats.maxPopularity = Math.max(stats.maxPopularity, popularity);
-
-    stats.minVoteCount = Math.min(stats.minVoteCount, voteCount);
-    stats.maxVoteCount = Math.max(stats.maxVoteCount, voteCount);
-
-    if (item.voteAverage) {
-      stats.ratingSum += item.voteAverage;
-      stats.ratingCount++;
-    }
-    if (trendingRank > maxTrendingRank) {
-      maxTrendingRank = trendingRank;
-    }
-  }
-
-  // Handle empty types safely
-  if (movieStats.minPopularity === Infinity) movieStats.minPopularity = 0;
-  if (movieStats.minVoteCount === Infinity) movieStats.minVoteCount = 0;
-
-  if (tvStats.minPopularity === Infinity) tvStats.minPopularity = 0;
-  if (tvStats.minVoteCount === Infinity) tvStats.minVoteCount = 0;
-
-  const movieGlobalAverage =
-    movieStats.ratingCount > 0 ? movieStats.ratingSum / movieStats.ratingCount : 0;
-
-  const tvGlobalAverage = tvStats.ratingCount > 0 ? tvStats.ratingSum / tvStats.ratingCount : 0;
-
-  // 2️⃣ Score
   const scored = items.map<Media>(item => {
-    const typeStats = item.type === 'movie' ? movieStats : tvStats;
-    const globalAverage = item.type === 'movie' ? movieGlobalAverage : tvGlobalAverage;
-    const score = scoreMedia(item, typeStats, maxTrendingRank, globalAverage);
+    const stats = item.type === 'movie' ? movieStats : tvStats;
+    const globalAverage = stats.maxAvgRating;
+
+    // Normalize popularity (log scale)
+    const popularityScore = Math.log10(item.popularity + 1) / Math.log10(stats.maxPopularity + 1);
+
+    // Bayesian weighted rating
+    const bayes =
+      (item.voteCount / (item.voteCount + MIN_VOTES)) * (item.voteAverage || 0) +
+      (MIN_VOTES / (item.voteCount + MIN_VOTES)) * globalAverage;
+    const weightedRating = bayes / 10;
+
+    // Trending score (0 if not trending)
+    const trendingScore = item.trendingRank
+      ? clamp(1 - (item.trendingRank - 1) / MAX_TRENDING_RANK)
+      : 0;
+
+    // Recency score (kept for potential future use, not used in scoring)
+    const recencyScore = item.date
+      ? Math.exp(-Math.abs(Date.now() - new Date(item.date).getTime()) / MS_PER_DAY / 365)
+      : 0;
+
+    // Base score (popularity + rating, no trending penalty)
+    const baseScore = 0.5 * popularityScore + 0.5 * weightedRating;
+
+    // Trending-boosted score (for popular page sorting)
+    const baseTrendingScore = 0.6 * baseScore + 0.2 * trendingScore + 0.2 * recencyScore;
+
+    const score: MediaScore = {
+      recencyScore,
+      trendingScore,
+      popularityScore,
+      weightedRating,
+      baseScore,
+      baseTrendingScore,
+      genreScore: 0,
+      keywordScore: 0,
+      userScore: 0,
+      finalScore: baseScore,
+      finalTrendingScore: baseTrendingScore,
+    };
+
     return { ...item, state: { ...item.state, score } };
   });
-
-  // 3️⃣ Sort
-  scored.sort((a, b) => (b.state?.score?.baseScore || 0) - (a.state?.score?.baseScore || 0));
 
   return scored;
 }
@@ -142,45 +121,37 @@ export function scoreMediaItemsForUser(
   }
 
   // Bayesian smoothing to prevent small-sample bias (3 pseudo-ratings at 0 score)
-  // Lower prior = more responsive to initial preferences while still preventing extremes
   const PRIOR_WEIGHT = 3;
   const PRIOR_SCORE = 0;
+
+  // Helper: Calculate score contribution with diminishing returns
+  const scoreContribution = (normalized: number) =>
+    Math.sqrt(Math.max(0, normalized)) - Math.sqrt(Math.max(0, -normalized));
 
   const scored = items.map<Media>(item => {
     let genreScore = 0;
     let keywordScore = 0;
-
-    // Helper: Calculate score contribution with diminishing returns
-    const scoreContribution = (normalized: number) =>
-      Math.sqrt(Math.max(0, normalized)) - Math.sqrt(Math.max(0, -normalized));
 
     // ---------- GENRE SCORING ----------
     if (genrePreferences.size > 0 && item.genres?.length) {
       let rawScore = 0;
       let matched = false;
 
-      // Process all genres (typically 2-4 per item)
       for (const genre of item.genres) {
         const pref = genrePreferences.get(genre.id);
         if (pref) {
           matched = true;
-          // Bayesian normalized score - already on reasonable scale (roughly -1 to +1)
           const normalized =
             (pref.score + PRIOR_WEIGHT * PRIOR_SCORE) / (pref.count + PRIOR_WEIGHT);
           rawScore += scoreContribution(normalized);
         }
       }
 
-      // tanh gives (-1, +1) range: negative = disliked, 0 = neutral, positive = liked
-      // Only set if at least one genre matched — no match → 0 (neutral, no ranking impact)
       if (matched) genreScore = Math.tanh(rawScore);
     }
 
     // ---------- KEYWORD SCORING ----------
     if (keywordPreferences.size > 0 && item.keywords?.length) {
-      // Process ALL matching keywords (not just top N)
-      // The sqrt() diminishing returns prevent keyword spam from dominating
-      // This captures cumulative signal: many disliked keywords = strong negative signal
       let rawScore = 0;
       let matched = false;
 
@@ -189,44 +160,43 @@ export function scoreMediaItemsForUser(
         if (!pref) continue;
 
         matched = true;
-        // Bayesian normalized score - already on reasonable scale (roughly -1 to +1)
         const normalized = (pref.score + PRIOR_WEIGHT * PRIOR_SCORE) / (pref.count + PRIOR_WEIGHT);
         rawScore += scoreContribution(normalized);
       }
 
-      // Only set if at least one keyword matched — no match → 0
       if (matched) keywordScore = Math.tanh(rawScore);
     } else if (!item.keywords?.length) {
       // If no keywords exist, copy genre score to avoid penalizing items without keywords
-      // This effectively gives genres 30% weight (15% + 15%) when keywords are absent
       keywordScore = genreScore;
     }
 
     // ---------- BASE SCORE ----------
     const baseScore = item.state?.score?.baseScore || 0;
+    const baseTrendingScore = item.state?.score?.baseTrendingScore || 0;
 
-    // ---------- FINAL SCORE ----------
-    const userScore = 0.5 * genreScore + 0.5 * keywordScore; // For display purposes (0 to 1 range)
+    // ---------- FINAL SCORES ----------
+    const userScore = 0.5 * genreScore + 0.5 * keywordScore;
     const finalScore = 0.7 * baseScore + 0.3 * userScore;
+    const finalTrendingScore = 0.7 * baseTrendingScore + 0.3 * userScore;
 
-    const score = {
+    const score: MediaScore = {
       ...(item.state?.score ?? {
         recencyScore: 0,
         trendingScore: 0,
         popularityScore: 0,
         weightedRating: 0,
         baseScore: 0,
+        baseTrendingScore: 0,
       }),
       genreScore,
       keywordScore,
       userScore,
       finalScore,
+      finalTrendingScore,
     };
 
     return { ...item, state: { ...item.state, score } };
   });
-
-  scored.sort((a, b) => (b.state?.score?.finalScore || 0) - (a.state?.score?.finalScore || 0));
 
   return scored;
 }

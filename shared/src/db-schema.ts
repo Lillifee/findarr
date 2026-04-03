@@ -150,6 +150,23 @@ export const catalogCache = sqliteTable(
 );
 
 // ============================================================================
+// Media Stats Table
+// ============================================================================
+
+export const mediaStats = sqliteTable('media_stats', {
+  mediaType: text('mediaType', { enum: ['movie', 'tv'] }).primaryKey(),
+  minPopularity: integer('minPopularity').notNull(),
+  maxPopularity: integer('maxPopularity').notNull(),
+  minVoteCount: integer('minVoteCount').notNull(),
+  maxVoteCount: integer('maxVoteCount').notNull(),
+  maxAvgRating: integer('maxAvgRating').notNull(), // Highest average rating seen (0-10 scale)
+  updatedAt: integer('updatedAt')
+    .notNull()
+    .default(sql`(unixepoch() * 1000)`)
+    .$type<number>(),
+});
+
+// ============================================================================
 // User Keyword Preferences Table
 // ============================================================================
 
@@ -220,6 +237,7 @@ export const schema = {
   userMediaInteractions,
   userGenrePreferences,
   catalogCache,
+  mediaStats,
   userKeywordPreferences,
 };
 

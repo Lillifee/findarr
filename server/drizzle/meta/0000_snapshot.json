@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "55265d0f-3c32-4a2f-8270-aeeac9a009e8",
+  "id": "03c2f8ac-1126-4f7c-ab9d-0629f1213922",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "settings": {
@@ -141,7 +141,10 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "catalog_cache_tmdbId_type_pk": {
-          "columns": ["tmdbId", "type"],
+          "columns": [
+            "tmdbId",
+            "type"
+          ],
           "name": "catalog_cache_tmdbId_type_pk"
         }
       },
@@ -221,40 +224,117 @@
       "indexes": {
         "idx_media_tvdb": {
           "name": "idx_media_tvdb",
-          "columns": ["tvdbId"],
+          "columns": [
+            "tvdbId"
+          ],
           "isUnique": false
         },
         "idx_media_tmdb": {
           "name": "idx_media_tmdb",
-          "columns": ["tmdbId", "type"],
+          "columns": [
+            "tmdbId",
+            "type"
+          ],
           "isUnique": false
         },
         "idx_media_arr": {
           "name": "idx_media_arr",
-          "columns": ["arrId"],
+          "columns": [
+            "arrId"
+          ],
           "isUnique": false
         },
         "idx_media_status": {
           "name": "idx_media_status",
-          "columns": ["status"],
+          "columns": [
+            "status"
+          ],
           "isUnique": false
         },
         "idx_media_jellyfin": {
           "name": "idx_media_jellyfin",
-          "columns": ["jellyfinId"],
+          "columns": [
+            "jellyfinId"
+          ],
           "isUnique": false
         },
         "media_tmdbId_type_unique": {
           "name": "media_tmdbId_type_unique",
-          "columns": ["tmdbId", "type"],
+          "columns": [
+            "tmdbId",
+            "type"
+          ],
           "isUnique": true
         },
         "media_tvdbId_type_unique": {
           "name": "media_tvdbId_type_unique",
-          "columns": ["tvdbId", "type"],
+          "columns": [
+            "tvdbId",
+            "type"
+          ],
           "isUnique": true
         }
       },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "media_stats": {
+      "name": "media_stats",
+      "columns": {
+        "mediaType": {
+          "name": "mediaType",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "minPopularity": {
+          "name": "minPopularity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "maxPopularity": {
+          "name": "maxPopularity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "minVoteCount": {
+          "name": "minVoteCount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "maxVoteCount": {
+          "name": "maxVoteCount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "maxAvgRating": {
+          "name": "maxAvgRating",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch() * 1000)"
+        }
+      },
+      "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
@@ -304,7 +384,9 @@
       "indexes": {
         "idx_user_genre_preferences_user": {
           "name": "idx_user_genre_preferences_user",
-          "columns": ["userId"],
+          "columns": [
+            "userId"
+          ],
           "isUnique": false
         }
       },
@@ -313,15 +395,22 @@
           "name": "user_genre_preferences_userId_users_id_fk",
           "tableFrom": "user_genre_preferences",
           "tableTo": "users",
-          "columnsFrom": ["userId"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
         "user_genre_preferences_userId_genreId_pk": {
-          "columns": ["userId", "genreId"],
+          "columns": [
+            "userId",
+            "genreId"
+          ],
           "name": "user_genre_preferences_userId_genreId_pk"
         }
       },
@@ -372,7 +461,9 @@
       "indexes": {
         "idx_user_keyword_preferences_user": {
           "name": "idx_user_keyword_preferences_user",
-          "columns": ["userId"],
+          "columns": [
+            "userId"
+          ],
           "isUnique": false
         }
       },
@@ -381,15 +472,22 @@
           "name": "user_keyword_preferences_userId_users_id_fk",
           "tableFrom": "user_keyword_preferences",
           "tableTo": "users",
-          "columnsFrom": ["userId"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
         "user_keyword_preferences_userId_keywordId_pk": {
-          "columns": ["userId", "keywordId"],
+          "columns": [
+            "userId",
+            "keywordId"
+          ],
           "name": "user_keyword_preferences_userId_keywordId_pk"
         }
       },
@@ -439,17 +537,27 @@
       "indexes": {
         "idx_user_media_interactions_user": {
           "name": "idx_user_media_interactions_user",
-          "columns": ["userId", "action"],
+          "columns": [
+            "userId",
+            "action"
+          ],
           "isUnique": false
         },
         "idx_user_media_interactions_media": {
           "name": "idx_user_media_interactions_media",
-          "columns": ["mediaId", "action"],
+          "columns": [
+            "mediaId",
+            "action"
+          ],
           "isUnique": false
         },
         "user_media_interactions_mediaId_userId_action_unique": {
           "name": "user_media_interactions_mediaId_userId_action_unique",
-          "columns": ["mediaId", "userId", "action"],
+          "columns": [
+            "mediaId",
+            "userId",
+            "action"
+          ],
           "isUnique": true
         }
       },
@@ -458,8 +566,12 @@
           "name": "user_media_interactions_mediaId_media_id_fk",
           "tableFrom": "user_media_interactions",
           "tableTo": "media",
-          "columnsFrom": ["mediaId"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "mediaId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -467,8 +579,12 @@
           "name": "user_media_interactions_userId_users_id_fk",
           "tableFrom": "user_media_interactions",
           "tableTo": "users",
-          "columnsFrom": ["userId"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -527,12 +643,16 @@
       "indexes": {
         "users_email_unique": {
           "name": "users_email_unique",
-          "columns": ["email"],
+          "columns": [
+            "email"
+          ],
           "isUnique": true
         },
         "idx_users_email": {
           "name": "idx_users_email",
-          "columns": ["email"],
+          "columns": [
+            "email"
+          ],
           "isUnique": false
         }
       },

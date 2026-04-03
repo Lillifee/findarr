@@ -47,13 +47,15 @@ export function createSchedulerService(
         );
       } else {
         // Scheduler wants to self-terminate - check minimum runtime
-        if (scheduler.config.minRuntime && duration < scheduler.config.minRuntime) {
+        const totalRuntime = scheduler.state.startedAt ? Date.now() - scheduler.state.startedAt : 0;
+        if (scheduler.config.minRuntime && totalRuntime < scheduler.config.minRuntime) {
           // Too early to terminate - reschedule instead
           scheduler.state.nextRun = Date.now() + scheduler.config.interval;
           fastify.log.debug(
             {
               name: scheduler.config.name,
               duration,
+              totalRuntime,
               minRuntime: scheduler.config.minRuntime,
               nextRunIn: Math.round(scheduler.config.interval / 1000),
             },
@@ -63,7 +65,11 @@ export function createSchedulerService(
           // Allow self-termination
           scheduler.state.nextRun = null;
           scheduler.state.enabled = false;
-          fastify.log.info({ name: scheduler.config.name, duration }, `Scheduler self-terminated`);
+          scheduler.state.startedAt = null; // Reset for next start
+          fastify.log.info(
+            { name: scheduler.config.name, duration, totalRuntime },
+            `Scheduler self-terminated`
+          );
         }
       }
     } catch (error) {
@@ -122,7 +128,12 @@ export function createSchedulerService(
     start(name: SchedulerName): void {
       const scheduler = schedulers[name];
 
-      scheduler.start();
+      scheduler.state.enabled = true;
+
+      // Initialize startedAt if first start
+      if (scheduler.state.startedAt === null) {
+        scheduler.state.startedAt = Date.now();
+      }
 
       // Schedule immediate run if not already running
       if (!scheduler.state.isRunning && scheduler.state.nextRun === null) {
@@ -138,7 +149,12 @@ export function createSchedulerService(
     stop(name: SchedulerName): void {
       const scheduler = schedulers[name];
 
-      scheduler.stop();
+      scheduler.state.enabled = false;
+
+      // Clear scheduling state
+      scheduler.state.nextRun = null;
+      scheduler.state.startedAt = null;
+
       fastify.log.info({ name }, `Scheduler '${name}' stopped`);
     },
 

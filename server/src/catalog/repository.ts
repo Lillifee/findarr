@@ -1,7 +1,8 @@
 import type { Media, Genre, Keyword, DbCatalogCache } from '@findarr/shared';
 import { catalogCache } from '@findarr/shared';
-import { eq, and, isNull } from 'drizzle-orm';
+import { eq, and, isNull, sql } from 'drizzle-orm';
 import type { DB } from '../db/setup.js';
+import type { MediaStats } from '../media/scoring.js';
 
 // ============================================================================
 // Catalog Cache Repository - Database operations for catalog_cache table
@@ -179,4 +180,45 @@ export const updateCatalogKeywords = async (
     .update(catalogCache)
     .set({ keywords: JSON.stringify(keywords) })
     .where(and(eq(catalogCache.tmdbId, tmdbId), eq(catalogCache.type, type)));
+};
+
+/**
+ * Compute media statistics from catalog cache (trending + recent releases)
+ * Used during catalog sync to update normalization bounds
+ */
+export const computeMediaStats = async (
+  db: DB,
+  mediaType: 'movie' | 'tv'
+): Promise<Omit<MediaStats, 'mediaType' | 'updatedAt'>> => {
+  const result = await db
+    .select({
+      minPopularity: sql<number>`MIN(${catalogCache.popularity})`,
+      maxPopularity: sql<number>`MAX(${catalogCache.popularity})`,
+      minVoteCount: sql<number>`MIN(${catalogCache.voteCount})`,
+      maxVoteCount: sql<number>`MAX(${catalogCache.voteCount})`,
+      avgRating: sql<number>`AVG(${catalogCache.voteAverage})`,
+    })
+    .from(catalogCache)
+    .where(eq(catalogCache.type, mediaType));
+
+  const row = result[0];
+
+  // Handle case where catalog is empty for this type
+  if (!row) {
+    return {
+      minPopularity: 0,
+      maxPopularity: 0,
+      minVoteCount: 0,
+      maxVoteCount: 0,
+      maxAvgRating: 0,
+    };
+  }
+
+  return {
+    minPopularity: row.minPopularity ?? 0,
+    maxPopularity: row.maxPopularity ?? 0,
+    minVoteCount: row.minVoteCount ?? 0,
+    maxVoteCount: row.maxVoteCount ?? 0,
+    maxAvgRating: row.avgRating ?? 0,
+  };
 };

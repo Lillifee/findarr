@@ -146,6 +146,7 @@ function transformTVDetails(tmdbTV: TMDBTVDetails): TVDetails {
     type: tmdbTV.type,
     name: tmdbTV.name,
     date: tmdbTV.first_air_date ?? undefined,
+    lastAirDate: tmdbTV.last_air_date ?? undefined,
     posterPath: tmdbTV.poster_path ?? undefined,
     backdropPath: tmdbTV.backdrop_path ?? undefined,
     overview: tmdbTV.overview ?? undefined,

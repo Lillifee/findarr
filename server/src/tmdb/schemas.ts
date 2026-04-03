@@ -155,6 +155,7 @@ export const TMDBTVDetailsSchema = TMDBBaseFieldsSchema.omit({ genre_ids: true }
   .extend({
     name: z.string(),
     first_air_date: z.string().nullish(),
+    last_air_date: z.string().nullish(),
     original_name: z.string(),
     genres: z.array(TMDBGenreSchema),
     episode_run_time: z.array(z.number()),

@@ -1,11 +1,13 @@
 import type { Media } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
+import { seedMediaStats, upsertMediaStats } from '../media/repository.js';
 import { processWithWorkerPool } from '../tmdb/helpers.js';
 import {
   upsertCatalogCache,
   cleanupCatalogCache,
   getCatalogItemsWithoutKeywords,
   updateCatalogKeywords,
+  computeMediaStats,
 } from './repository.js';
 
 /**
@@ -17,52 +19,78 @@ export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> 
   const startTime = Date.now();
   fastify.log.info('Starting catalog cache sync (phase 1: basic media)...');
 
-  try {
-    // TODO - use language setting from config
-    const language = 'de-DE';
+  // TODO - use language setting from config
+  const language = 'de-DE';
 
-    // Fetch both trending and recent releases (already includes basic metadata)
-    fastify.log.info('Fetching trending and discover results from TMDB...');
-    const [trendingResult, discoverResult] = await Promise.all([
-      fastify.tmdb.fetchTrending({ language, time_window: 'week' }, [1, 2, 3, 4, 5]),
-      fastify.tmdb.fetchDiscover(
-        { language, type: 'both', recentDays: 365 },
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-      ),
-    ]);
+  // Fetch both trending and recent releases (already includes basic metadata)
+  fastify.log.info('Fetching trending and discover results from TMDB...');
+  const [trendingResult, discoverResult] = await Promise.all([
+    fastify.tmdb.fetchTrending({ language, time_window: 'week' }, [1, 2, 3, 4, 5]),
+    fastify.tmdb.fetchDiscover(
+      { language, type: 'both', recentDays: 365 },
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    ),
+  ]);
 
-    // Merge and deduplicate (prefer items with trendingRank)
-    const merged = [...trendingResult.results, ...discoverResult.results];
-    const deduped = deduplicateMedia(merged);
+  // Merge and deduplicate (prefer items with trendingRank)
+  const merged = [...trendingResult.results, ...discoverResult.results];
+  const deduped = deduplicateMedia(merged);
 
-    fastify.log.info(`Fetched ${deduped.length} unique items, storing to database...`);
+  fastify.log.info(`Fetched ${deduped.length} unique items, storing to database...`);
 
-    // Store basic media immediately (keywords will be empty arrays)
-    await upsertCatalogCache(fastify.db, deduped);
+  // Store basic media immediately (keywords will be empty arrays)
+  await upsertCatalogCache(fastify.db, deduped);
 
-    // Cleanup old entries (items not in current popular list)
-    const currentIds = deduped.map(item => ({
-      tmdbId: item.tmdbId,
-      type: item.type,
-    }));
-    const deletedCount = await cleanupCatalogCache(fastify.db, currentIds);
+  // Cleanup old entries (items not in current popular list)
+  const currentIds = deduped.map(item => ({
+    tmdbId: item.tmdbId,
+    type: item.type,
+  }));
+  const deletedCount = await cleanupCatalogCache(fastify.db, currentIds);
 
-    const durationMs = Date.now() - startTime;
-    const durationSec = Math.round(durationMs / 1000);
+  // Compute and update catalog stats for both types
+  // Seed with defaults if first run, then update with growth strategy
+  await seedMediaStats(fastify.db);
 
-    fastify.log.info(
-      {
-        totalItems: deduped.length,
-        deletedCount,
-        durationSec,
-        language,
+  fastify.log.info('Computing catalog stats from current cache...');
+  const [movieStats, tvStats] = await Promise.all([
+    computeMediaStats(fastify.db, 'movie'),
+    computeMediaStats(fastify.db, 'tv'),
+  ]);
+
+  await Promise.all([
+    upsertMediaStats(fastify.db, 'movie', movieStats),
+    upsertMediaStats(fastify.db, 'tv', tvStats),
+  ]);
+
+  fastify.log.info(
+    {
+      movieStats: {
+        popularity: `${movieStats.minPopularity}-${movieStats.maxPopularity}`,
+        voteCount: `${movieStats.minVoteCount}-${movieStats.maxVoteCount}`,
+        avgRating: movieStats.maxAvgRating.toFixed(2),
       },
-      'Catalog cache sync completed (phase 1)'
-    );
-  } catch (error) {
-    fastify.log.error({ error }, 'Catalog cache sync failed');
-    throw error;
-  }
+      tvStats: {
+        popularity: `${tvStats.minPopularity}-${tvStats.maxPopularity}`,
+        voteCount: `${tvStats.minVoteCount}-${tvStats.maxVoteCount}`,
+        avgRating: tvStats.maxAvgRating.toFixed(2),
+      },
+    },
+    'Catalog stats updated'
+  );
+
+  const durationMs = Date.now() - startTime;
+  const durationSec = Math.round(durationMs / 1000);
+
+  fastify.log.info(
+    {
+      totalItems: deduped.length,
+      deletedCount,
+      durationSec,
+      language,
+    },
+    'Catalog cache sync completed (phase 1)'
+  );
 }
 
 /**

@@ -168,9 +168,9 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
                   <div className="flex items-center gap-1 md:gap-1.5 bg-black/60 backdrop-blur-sm px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-md">
                     <span className="text-yellow-400 text-xs md:text-sm">★</span>
                     <span className="text-white text-xs md:text-sm font-semibold">
-                      {item.state?.score?.keywordScore?.toFixed(1)}-
-                      {item.state?.score?.genreScore?.toFixed(1)} =
-                      {item.state?.score?.userScore?.toFixed(1)}
+                      {item.state?.score?.keywordScore?.toFixed(2)}-
+                      {item.state?.score?.genreScore?.toFixed(2)} =
+                      {item.state?.score?.finalScore?.toFixed(1)}
                       {/* {item.state?.score?.popularityScore?.toFixed(1)}
                       {item.state?.score?.recencyScore.toFixed(1)}
                       {item.state?.score?.trendingScore?.toFixed(1)}

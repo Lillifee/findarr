@@ -1,5 +1,6 @@
 import type { MovieDetails, TVDetails } from '@findarr/shared';
 import { LikeDislikeButton } from './LikeDislikeButton';
+import { ScoreBreakdown } from './ScoreBreakdown';
 
 interface MediaDetailsProps {
   media: MovieDetails | TVDetails;
@@ -226,6 +227,9 @@ export function MediaView({ media }: MediaDetailsProps) {
               <p className="leading-relaxed text-gray-300 text-sm md:text-base">{media.overview}</p>
             </div>
           )}
+
+          {/* Score Breakdown */}
+          {media.state?.score && <ScoreBreakdown score={media.state.score} />}
 
           {/* Info grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 md:mb-8 p-3 md:p-4 bg-gray-800/50 border border-gray-700 rounded-lg">

@@ -26,6 +26,7 @@ export interface SchedulerState {
   lastError: string | null;
   interval: number; // Default interval in milliseconds
   minRuntime: number; // Minimum runtime in ms before allowing self-termination
+  startedAt: number | null; // Timestamp when scheduler was first enabled (for minRuntime check)
 }
 
 /**
@@ -40,16 +41,6 @@ export interface Scheduler {
    * @returns true to continue (reschedule), false to stop (self-terminate)
    */
   run: (fastify: FastifyInstance) => Promise<boolean>;
-
-  /**
-   * Enable and schedule next run
-   */
-  start: () => void;
-
-  /**
-   * Disable and clear next run
-   */
-  stop: () => void;
 }
 
 /**
@@ -70,19 +61,13 @@ export function createScheduler(
     lastError: null,
     minRuntime: config.minRuntime ?? 0,
     interval: config.interval,
+    startedAt: null,
   };
 
   const scheduler: Scheduler = {
     config,
     state,
     run: runFn,
-    start() {
-      scheduler.state.enabled = true;
-    },
-    stop() {
-      scheduler.state.enabled = false;
-      scheduler.state.nextRun = null;
-    },
   };
 
   return scheduler;

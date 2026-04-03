@@ -236,6 +236,7 @@ describe('tmdb/transformers', () => {
           "homepage": undefined,
           "imdbId": undefined,
           "keywords": [],
+          "lastAirDate": undefined,
           "name": "Show",
           "numberOfEpisodes": 10,
           "numberOfSeasons": 1,

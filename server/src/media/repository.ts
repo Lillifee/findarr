@@ -1,8 +1,9 @@
 import type { MediaStatus, Media, DbMedia, MediaRecord } from '@findarr/shared';
-import { media } from '@findarr/shared';
-import { and, eq, or } from 'drizzle-orm';
+import { media, mediaStats } from '@findarr/shared';
+import { and, eq, or, sql } from 'drizzle-orm';
 import type { DB } from '../db/setup.js';
 import { Conflict, NotFound } from '../utils/errors.js';
+import type { MediaStats } from './scoring.js';
 
 // ============================================================================
 // Media Repository - Raw database operations for the media table
@@ -152,3 +153,88 @@ export async function getMediaByStatus(db: DB, statuses: MediaStatus[]): Promise
     orderBy: (media, { desc }) => [desc(media.updatedAt)],
   });
 }
+
+// ============================================================================
+// Media Stats Repository - Database operations for media statistics
+// Stores MediaStats in media_stats table (computed from catalog cache)
+// ============================================================================
+
+/**
+ * Default TMDB stat bounds for initial seeding
+ * Based on research of catalog sync data (trending + recent releases)
+ */
+const TMDB_STAT_DEFAULTS = {
+  minPopularity: 0,
+  maxPopularity: 300, // Upper bound of trending + recent catalog range
+  minVoteCount: 0,
+  maxVoteCount: 1000, // Conservative upper bound for popular items
+  maxAvgRating: 5, // Neutral starting point (0-10 scale)
+};
+
+/**
+ * Seed media stats with default values if table is empty
+ * Only runs once on first startup before catalog sync
+ */
+export const seedMediaStats = async (db: DB): Promise<void> => {
+  const existing = await db.select().from(mediaStats);
+
+  if (existing.length === 0) {
+    const now = Date.now();
+    await db.insert(mediaStats).values([
+      { mediaType: 'movie', ...TMDB_STAT_DEFAULTS, updatedAt: now },
+      { mediaType: 'tv', ...TMDB_STAT_DEFAULTS, updatedAt: now },
+    ]);
+  }
+};
+
+/**
+ * Get media stats for both movie and TV
+ * Returns Map for O(1) lookup by media type
+ */
+export const getMediaStats = async (db: DB): Promise<Map<'movie' | 'tv', MediaStats>> => {
+  const rows = await db.select().from(mediaStats);
+
+  const statsMap = new Map<'movie' | 'tv', MediaStats>();
+  for (const row of rows) {
+    statsMap.set(row.mediaType, row as MediaStats);
+  }
+
+  return statsMap;
+};
+
+/**
+ * Update media stats with growth strategy
+ * Maximums only increase, minimums only decrease over time
+ * Uses SQL GREATEST/LEAST to accumulate extremes
+ */
+export const upsertMediaStats = async (
+  db: DB,
+  mediaType: 'movie' | 'tv',
+  stats: Omit<MediaStats, 'mediaType' | 'updatedAt'>
+): Promise<void> => {
+  const now = Date.now();
+
+  await db
+    .insert(mediaStats)
+    .values({
+      mediaType,
+      minPopularity: stats.minPopularity,
+      maxPopularity: stats.maxPopularity,
+      minVoteCount: stats.minVoteCount,
+      maxVoteCount: stats.maxVoteCount,
+      maxAvgRating: stats.maxAvgRating,
+      updatedAt: now,
+    })
+    .onConflictDoUpdate({
+      target: mediaStats.mediaType,
+      set: {
+        // Growth strategy: max values only increase, min values only decrease
+        minPopularity: sql`MIN(${mediaStats.minPopularity}, ${stats.minPopularity})`,
+        maxPopularity: sql`MAX(${mediaStats.maxPopularity}, ${stats.maxPopularity})`,
+        minVoteCount: sql`MIN(${mediaStats.minVoteCount}, ${stats.minVoteCount})`,
+        maxVoteCount: sql`MAX(${mediaStats.maxVoteCount}, ${stats.maxVoteCount})`,
+        maxAvgRating: sql`MAX(${mediaStats.maxAvgRating}, ${stats.maxAvgRating})`,
+        updatedAt: now,
+      },
+    });
+};

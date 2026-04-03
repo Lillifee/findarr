@@ -10,10 +10,12 @@ import type {
   Media,
 } from '@findarr/shared';
 import type { DB } from '../db/setup.js';
-import { enrichWithRecords, enrichWithInteractions } from '../media/enrichment.js';
+import {
+  enrichWithRecords,
+  enrichWithInteractions,
+  enrichWithScoring,
+} from '../media/enrichment.js';
 import { filterByCriteria } from '../media/filter.js';
-import { scoreMediaItems, scoreMediaItemsForUser } from '../media/scoring.js';
-import { getUserGenrePreferences, getUserKeywordPreferences } from '../preferences/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { getAllCatalogCache } from './repository.js';
 
@@ -57,13 +59,9 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
     // Fetch TMDB details
     const mediaItem = await tmdbService.getDetails(params);
 
-    // Add database record if exists
-    const withRecord = await enrichWithRecords(db, [mediaItem]);
-
-    // Add interactions if user is authenticated and record exists
-    const withInteractions = await enrichWithInteractions(db, withRecord, userId);
-
-    return withInteractions[0] || mediaItem;
+    // Enrich with scoring, DB record, and interactions
+    const enriched = await enrichResults([mediaItem], userId);
+    return enriched[0] || mediaItem;
   }
 
   /**
@@ -93,24 +91,18 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
       })
     );
 
-    // Calculate base scores (trending, popularity, recency, rating)
-    filteredResults = scoreMediaItems(filteredResults);
+    // Score items (BEFORE pagination to ensure best matches on first pages)
+    filteredResults = await enrichResults(filteredResults, userId, {
+      scoring: true,
+      records: false,
+      interactions: false,
+    });
 
-    // Apply user preference scoring if authenticated (BEFORE pagination)
-    if (userId) {
-      const [genrePreferences, keywordPreferences] = await Promise.all([
-        getUserGenrePreferences(db, userId),
-        getUserKeywordPreferences(db, userId),
-      ]);
-
-      if (genrePreferences.size > 0 || keywordPreferences.size > 0) {
-        filteredResults = scoreMediaItemsForUser(
-          filteredResults,
-          genrePreferences,
-          keywordPreferences
-        );
-      }
-    }
+    // Sort by trending-boosted score (includes trending bonus for popular items)
+    filteredResults.sort(
+      (a, b) =>
+        (b.state?.score?.finalTrendingScore || 0) - (a.state?.score?.finalTrendingScore || 0)
+    );
 
     // Paginate AFTER scoring (so best matches appear on first pages)
     const ITEMS_PER_PAGE = 20;
@@ -118,8 +110,8 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
     const endIndex = startIndex + ITEMS_PER_PAGE;
     const paginatedResults = filteredResults.slice(startIndex, endIndex);
 
-    // Enrich with database state
-    const results = await enrichResults(paginatedResults, userId);
+    // Add database state (records and interactions)
+    const results = await enrichResults(paginatedResults, userId, { scoring: false }); // Skip scoring (already done)
 
     return {
       results,
@@ -130,14 +122,32 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
   }
 
   /**
-   * Helper: Enrich TMDB items with database state
-   * Adds media records first, then optionally user interactions
+   * Helper: Enrich TMDB items with complete state
+   * Adds scoring, media records, and optionally user interactions
    */
-  async function enrichResults(items: Media[], userId?: number): Promise<Media[]> {
-    let enriched = await enrichWithRecords(db, items);
-    if (userId) {
+  async function enrichResults(
+    items: Media[],
+    userId?: number,
+    options: { scoring?: boolean; records?: boolean; interactions?: boolean } = {}
+  ): Promise<Media[]> {
+    let enriched = items;
+    const { scoring = true, records = true, interactions = true } = options;
+
+    // Add scores (base + user preferences if authenticated)
+    if (scoring) {
+      enriched = await enrichWithScoring(db, enriched, userId);
+    }
+
+    // Add database records (status, arrId, jellyfinId)
+    if (records) {
+      enriched = await enrichWithRecords(db, enriched);
+    }
+
+    // Add user interactions and vote counts
+    if (interactions && userId) {
       enriched = await enrichWithInteractions(db, enriched, userId);
     }
+
     return enriched;
   }
 

@@ -5,8 +5,10 @@ import {
   getAllInteractionsWithUsersBatch,
   getVoteCountsBatch,
 } from '../interaction/repository.js';
+import { getUserGenrePreferences, getUserKeywordPreferences } from '../preferences/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
-import { getMediaRecordsBatch } from './repository.js';
+import { getMediaRecordsBatch, getMediaStats } from './repository.js';
+import { scoreMediaItems, scoreMediaItemsForUser } from './scoring.js';
 
 // ============================================================================
 // Enrichment Utilities - Add database state to TMDB media items
@@ -67,6 +69,46 @@ export async function enrichWithInteractions(
       },
     };
   });
+}
+
+/**
+ * Enrich media items with scoring
+ * Uses precomputed catalog stats from database and applies user preferences if authenticated
+ * Returns items with scores attached (does not sort)
+ */
+export async function enrichWithScoring(
+  db: DB,
+  mediaItems: Media[],
+  userId?: number
+): Promise<Media[]> {
+  if (mediaItems.length === 0) return mediaItems;
+
+  // Get precomputed catalog stats from database
+  const statsMap = await getMediaStats(db);
+  const movieStats = statsMap.get('movie');
+  const tvStats = statsMap.get('tv');
+
+  // If stats not available (first run before sync), return items unscored
+  if (!movieStats || !tvStats) {
+    return mediaItems;
+  }
+
+  // Apply base scoring (trending, popularity, recency, rating)
+  let scoredItems: Media[] = scoreMediaItems(mediaItems, movieStats, tvStats);
+
+  // Apply user preference scoring if authenticated
+  if (userId) {
+    const [genrePreferences, keywordPreferences] = await Promise.all([
+      getUserGenrePreferences(db, userId),
+      getUserKeywordPreferences(db, userId),
+    ]);
+
+    if (genrePreferences.size > 0 || keywordPreferences.size > 0) {
+      scoredItems = scoreMediaItemsForUser(scoredItems, genrePreferences, keywordPreferences);
+    }
+  }
+
+  return scoredItems;
 }
 
 /**
