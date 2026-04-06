@@ -161,14 +161,15 @@ export async function getMediaByStatus(db: DB, statuses: MediaStatus[]): Promise
 
 /**
  * Default TMDB stat bounds for initial seeding
- * Based on research of catalog sync data (trending + recent releases)
+ * Based on trending + popular fixtures (last updated: April 2026)
+ * Run the "should compute stats from real fixtures" test to regenerate these values
  */
 const TMDB_STAT_DEFAULTS = {
-  minPopularity: 0,
-  maxPopularity: 300, // Upper bound of trending + recent catalog range
+  minPopularity: 3,
+  maxPopularity: 1319,
   minVoteCount: 0,
-  maxVoteCount: 1000, // Conservative upper bound for popular items
-  maxAvgRating: 5, // Neutral starting point (0-10 scale)
+  maxVoteCount: 10_935,
+  maxAvgRating: 8,
 };
 
 /**

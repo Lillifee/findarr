@@ -1,0 +1,775 @@
+{
+  "adult": false,
+  "backdrop_path": "/q8eejQcg1bAqImEV8jh8RtBD4uH.jpg",
+  "created_by": [
+    {
+      "id": 2000007,
+      "credit_id": "62d5e468c92c5d004f0d1201",
+      "name": "Christian Linke",
+      "original_name": "Christian Linke",
+      "gender": 2,
+      "profile_path": "/u1uCJkmVSeLQC1CwSB7UzXAVbqO.jpg"
+    },
+    {
+      "id": 3299121,
+      "credit_id": "62d5e46e72c13e062e7196aa",
+      "name": "Alex Yee",
+      "original_name": "Alex Yee",
+      "gender": 2,
+      "profile_path": "/kvRKbXZcCnM6d1vcND4917iQ4kp.jpg"
+    }
+  ],
+  "episode_run_time": [],
+  "first_air_date": "2021-11-06",
+  "genres": [
+    {
+      "id": 16,
+      "name": "Animation"
+    },
+    {
+      "id": 10759,
+      "name": "Action & Adventure"
+    }
+  ],
+  "homepage": "https://arcane.com",
+  "id": 94605,
+  "in_production": false,
+  "languages": ["en"],
+  "last_air_date": "2024-11-23",
+  "last_episode_to_air": {
+    "id": 5609651,
+    "name": "The Dirt Under Your Nails",
+    "overview": "Magic. Science. Power. Revenge. Destinies clash in an epic final chapter, igniting an all-out war.",
+    "vote_average": 7.43,
+    "vote_count": 79,
+    "air_date": "2024-11-23",
+    "episode_number": 9,
+    "episode_type": "finale",
+    "production_code": "",
+    "runtime": 51,
+    "season_number": 2,
+    "show_id": 94605,
+    "still_path": "/7wYoQZAdbB6e3CFDDYvxQY1sM7.jpg"
+  },
+  "name": "Arcane",
+  "next_episode_to_air": null,
+  "networks": [
+    {
+      "id": 213,
+      "logo_path": "/wwemzKWzjKYJFfCeiB57q3r4Bcm.png",
+      "name": "Netflix",
+      "origin_country": ""
+    }
+  ],
+  "number_of_episodes": 18,
+  "number_of_seasons": 2,
+  "origin_country": ["US"],
+  "original_language": "en",
+  "original_name": "Arcane",
+  "overview": "Amid the stark discord of twin cities Piltover and Zaun, two sisters fight on rival sides of a war between magic technologies and clashing convictions.",
+  "popularity": 49.7795,
+  "poster_path": "/fqldf2t8ztc9aiwn3k6mlX3tvRT.jpg",
+  "production_companies": [
+    {
+      "id": 99496,
+      "logo_path": "/6WTCdsmIH6qR2zFVHlqjpIZhD5A.png",
+      "name": "Fortiche Production",
+      "origin_country": "FR"
+    },
+    {
+      "id": 124172,
+      "logo_path": "/sBlhznEktXKBqC87Bsfwpo1YbYR.png",
+      "name": "Riot Games",
+      "origin_country": "US"
+    }
+  ],
+  "production_countries": [
+    {
+      "iso_3166_1": "FR",
+      "name": "France"
+    },
+    {
+      "iso_3166_1": "US",
+      "name": "United States of America"
+    }
+  ],
+  "seasons": [
+    {
+      "air_date": "2024-10-08",
+      "episode_count": 25,
+      "id": 427899,
+      "name": "Specials",
+      "overview": "",
+      "poster_path": "/4ZmnQwv6MZH9ahlfzbgcNJPXhuj.jpg",
+      "season_number": 0,
+      "vote_average": 0
+    },
+    {
+      "air_date": "2021-11-06",
+      "episode_count": 9,
+      "id": 134187,
+      "name": "Season 1",
+      "overview": "Two sisters. Two cities. One discovery that will change the world forever. In the cities of Piltover and Zaun, unrest stirs as inventors and thieves, politicians and crime lords chafe against the constraints of a society torn asunder.",
+      "poster_path": "/6FMWx79iAtZx8WHtOrRj0VlM8Tp.jpg",
+      "season_number": 1,
+      "vote_average": 8.8
+    },
+    {
+      "air_date": "2024-11-09",
+      "episode_count": 9,
+      "id": 351997,
+      "name": "Season 2",
+      "overview": "Alliances are forged, allegiances are smashed and fresh dangers emerge as the battle between Piltover and Zaun inspires both glory and heartbreak.",
+      "poster_path": "/oTGEwkp1mPgWNMgVSM53TWfzgSc.jpg",
+      "season_number": 2,
+      "vote_average": 7.8
+    }
+  ],
+  "spoken_languages": [
+    {
+      "english_name": "English",
+      "iso_639_1": "en",
+      "name": "English"
+    }
+  ],
+  "status": "Ended",
+  "tagline": "The hunt is on.",
+  "type": "Scripted",
+  "vote_average": 8.8,
+  "vote_count": 5784,
+  "credits": {
+    "cast": [
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 130640,
+        "known_for_department": "Acting",
+        "name": "Hailee Steinfeld",
+        "original_name": "Hailee Steinfeld",
+        "popularity": 7.8476,
+        "profile_path": "/uEmcx5nLzSuw9YGybvfKQRlfmLq.jpg",
+        "character": "Vi (voice)",
+        "credit_id": "614fdc8c397561008c5d43a0",
+        "order": 0
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 989325,
+        "known_for_department": "Acting",
+        "name": "Ella Purnell",
+        "original_name": "Ella Purnell",
+        "popularity": 4.255,
+        "profile_path": "/jqrYg35GHuMGwGqEVUthqTLQnay.jpg",
+        "character": "Jinx (voice)",
+        "credit_id": "614fdccb397561008c5d4422",
+        "order": 1
+      }
+    ],
+    "crew": [
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 3299119,
+        "known_for_department": "Directing",
+        "name": "Arnaud Delord",
+        "original_name": "Arnaud Delord",
+        "popularity": 0.2617,
+        "profile_path": "/qUiWtDE38mU0E6zUK4vUBM8jbWt.jpg",
+        "credit_id": "677224f5cfe62644df13294a",
+        "department": "Directing",
+        "job": "Other"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1957346,
+        "known_for_department": "Visual Effects",
+        "name": "Pascal Charrue",
+        "original_name": "Pascal Charrue",
+        "popularity": 0.2341,
+        "profile_path": "/4z0axhC1oXySE1RBFydKjIkJbpZ.jpg",
+        "credit_id": "677224e305c46ab3fc929d73",
+        "department": "Directing",
+        "job": "Other"
+      },
+      {
+        "adult": false,
+        "gender": 0,
+        "id": 4220079,
+        "known_for_department": "Production",
+        "name": "Ethan Hubbert",
+        "original_name": "Ethan Hubbert",
+        "popularity": 0.2669,
+        "profile_path": null,
+        "credit_id": "67386002bbb49f06a00d6677",
+        "department": "Production",
+        "job": "Casting Associate"
+      },
+      {
+        "adult": false,
+        "gender": 0,
+        "id": 5062659,
+        "known_for_department": "Art",
+        "name": "Julien Georgei",
+        "original_name": "Julien Georgei",
+        "popularity": 0.1567,
+        "profile_path": null,
+        "credit_id": "67385f97119917bc1f5e66f5",
+        "department": "Art",
+        "job": "Art Direction"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 3299500,
+        "known_for_department": "Sound",
+        "name": "Alex Seaver",
+        "original_name": "Alex Seaver",
+        "popularity": 0.077,
+        "profile_path": null,
+        "credit_id": "67385e8a119917bc1f5e66b6",
+        "department": "Sound",
+        "job": "Songs"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 214830,
+        "known_for_department": "Acting",
+        "name": "Mike Shinoda",
+        "original_name": "Mike Shinoda",
+        "popularity": 0.5059,
+        "profile_path": "/6QV8pguozgwFJ86pNEYhhMDYqDY.jpg",
+        "credit_id": "67385e315859f981eedf7d74",
+        "department": "Sound",
+        "job": "Songs"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1957347,
+        "known_for_department": "Visual Effects",
+        "name": "Jérôme Combe",
+        "original_name": "Jérôme Combe",
+        "popularity": 0.153,
+        "profile_path": null,
+        "credit_id": "67385dc6bbb49f06a00d65e9",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 3299119,
+        "known_for_department": "Directing",
+        "name": "Arnaud Delord",
+        "original_name": "Arnaud Delord",
+        "popularity": 0.2617,
+        "profile_path": "/qUiWtDE38mU0E6zUK4vUBM8jbWt.jpg",
+        "credit_id": "67385dbcff0e18373ceeb9b8",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1957346,
+        "known_for_department": "Visual Effects",
+        "name": "Pascal Charrue",
+        "original_name": "Pascal Charrue",
+        "popularity": 0.2341,
+        "profile_path": "/4z0axhC1oXySE1RBFydKjIkJbpZ.jpg",
+        "credit_id": "67385db35859f981eedf7d5a",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 5062655,
+        "known_for_department": "Production",
+        "name": "Ken Basin",
+        "original_name": "Ken Basin",
+        "popularity": 0.2812,
+        "profile_path": "/3S2nuiJ6zVq1uqZUYmIkHsMQdHz.jpg",
+        "credit_id": "67385d936a02a24d7b215031",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2530697,
+        "known_for_department": "Production",
+        "name": "Hervé Dupont",
+        "original_name": "Hervé Dupont",
+        "popularity": 0.2292,
+        "profile_path": "/tFEjtbUvghc4tqNQoBVqQvwp1Wm.jpg",
+        "credit_id": "67385d886a02a24d7b215026",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 0,
+        "id": 3299123,
+        "known_for_department": "Production",
+        "name": "Melinda Wunsch Dilger",
+        "original_name": "Melinda Wunsch Dilger",
+        "popularity": 0.2576,
+        "profile_path": null,
+        "credit_id": "67385d7e5859f981eedf7d4a",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1695622,
+        "known_for_department": "Production",
+        "name": "Brian Wright",
+        "original_name": "Brian Wright",
+        "popularity": 0.1923,
+        "profile_path": null,
+        "credit_id": "67385d5da181a717eac8960d",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 0,
+        "id": 5062654,
+        "known_for_department": "Production",
+        "name": "Shauna Spenley",
+        "original_name": "Shauna Spenley",
+        "popularity": 0.1872,
+        "profile_path": null,
+        "credit_id": "67385cee6a02a24d7b21500f",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 3299121,
+        "known_for_department": "Production",
+        "name": "Alex Yee",
+        "original_name": "Alex Yee",
+        "popularity": 0.8508,
+        "profile_path": "/kvRKbXZcCnM6d1vcND4917iQ4kp.jpg",
+        "credit_id": "67385cb7281ac972ea449cf0",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 1656216,
+        "known_for_department": "Writing",
+        "name": "Amanda Overton",
+        "original_name": "Amanda Overton",
+        "popularity": 0.1937,
+        "profile_path": null,
+        "credit_id": "67385c97a181a717eac895b1",
+        "department": "Production",
+        "job": "Co-Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 0,
+        "id": 1341081,
+        "known_for_department": "Production",
+        "name": "Christine Ponzevera",
+        "original_name": "Christine Ponzevera",
+        "popularity": 0.1849,
+        "profile_path": null,
+        "credit_id": "67385c839c16dafa06f99bf7",
+        "department": "Production",
+        "job": "Co-Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 0,
+        "id": 3324611,
+        "known_for_department": "Art",
+        "name": "Julien Georgel",
+        "original_name": "Julien Georgel",
+        "popularity": 0.2717,
+        "profile_path": null,
+        "credit_id": "67385c355859f981eedf7cf5",
+        "department": "Art",
+        "job": "Production Design"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 3324610,
+        "known_for_department": "Art",
+        "name": "Arnaud-Loris Baudry",
+        "original_name": "Arnaud-Loris Baudry",
+        "popularity": 0.2174,
+        "profile_path": null,
+        "credit_id": "633cabff481382007aa0dc34",
+        "department": "Art",
+        "job": "Production Design"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2000008,
+        "known_for_department": "Sound",
+        "name": "Alexander Temple",
+        "original_name": "Alexander Temple",
+        "popularity": 0.1162,
+        "profile_path": null,
+        "credit_id": "6186bda01fd36f008fb25828",
+        "department": "Sound",
+        "job": "Original Music Composer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 3299503,
+        "known_for_department": "Production",
+        "name": "David Lyerly",
+        "original_name": "David Lyerly",
+        "popularity": 0.181,
+        "profile_path": null,
+        "credit_id": "6186be420752880063ccff1e",
+        "department": "Production",
+        "job": "Casting"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 3299500,
+        "known_for_department": "Sound",
+        "name": "Alex Seaver",
+        "original_name": "Alex Seaver",
+        "popularity": 0.077,
+        "profile_path": null,
+        "credit_id": "6186bd9a1fd36f006283ef52",
+        "department": "Sound",
+        "job": "Original Music Composer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2000054,
+        "known_for_department": "Acting",
+        "name": "Brandon Beck",
+        "original_name": "Brandon Beck",
+        "popularity": 0.3683,
+        "profile_path": "/17UtrvkKDBS31XtoBWMpDMONjQC.jpg",
+        "credit_id": "6186672313a3880044ee1d5f",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 3,
+        "id": 2220249,
+        "known_for_department": "Acting",
+        "name": "Justin Tranter",
+        "original_name": "Justin Tranter",
+        "popularity": 0.4303,
+        "profile_path": "/pPf6zI416Kctfd6Mj316RSf4YFz.jpg",
+        "credit_id": "67385f5c119917bc1f5e66e5",
+        "department": "Sound",
+        "job": "Songs"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1314954,
+        "known_for_department": "Acting",
+        "name": "Wayne Sermon",
+        "original_name": "Wayne Sermon",
+        "popularity": 0.415,
+        "profile_path": "/hb5fnyCejZfLU8hOmW3cqsN1MZy.jpg",
+        "credit_id": "67385f4ebbb49f06a00d6655",
+        "department": "Sound",
+        "job": "Songs"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 3696633,
+        "known_for_department": "Acting",
+        "name": "JID",
+        "original_name": "JID",
+        "popularity": 0.5579,
+        "profile_path": "/y1lLHllCwuMgupwGDy6XEjUa7uW.jpg",
+        "credit_id": "67385f3f119917bc1f5e66d8",
+        "department": "Sound",
+        "job": "Songs"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1314952,
+        "known_for_department": "Acting",
+        "name": "Dan Reynolds",
+        "original_name": "Dan Reynolds",
+        "popularity": 0.7151,
+        "profile_path": "/cZ3qu8mLLTSGOV6BX3dj9tDc4UB.jpg",
+        "credit_id": "67385f2cbbb49f06a00d6649",
+        "department": "Sound",
+        "job": "Songs"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1314955,
+        "known_for_department": "Acting",
+        "name": "Daniel Platzman",
+        "original_name": "Daniel Platzman",
+        "popularity": 0.2485,
+        "profile_path": "/lxF7i5u7foaO36jmImiyYEatL8s.jpg",
+        "credit_id": "67385f1bff0e18373ceeba52",
+        "department": "Sound",
+        "job": "Songs"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1314953,
+        "known_for_department": "Acting",
+        "name": "Ben McKee",
+        "original_name": "Ben McKee",
+        "popularity": 0.5035,
+        "profile_path": "/fxyDVZsrXH4zyH3LHabXKSQ97wP.jpg",
+        "credit_id": "67385f0c9c16dafa06f99c84",
+        "department": "Sound",
+        "job": "Songs"
+      },
+      {
+        "adult": false,
+        "gender": 0,
+        "id": 3201854,
+        "known_for_department": "Acting",
+        "name": "Mattias Larsson",
+        "original_name": "Mattias Larsson",
+        "popularity": 0.1085,
+        "profile_path": null,
+        "credit_id": "67385ef89c16dafa06f99c7c",
+        "department": "Sound",
+        "job": "Songs"
+      },
+      {
+        "adult": false,
+        "gender": 0,
+        "id": 5062657,
+        "known_for_department": "Sound",
+        "name": "Robin Fredriksson",
+        "original_name": "Robin Fredriksson",
+        "popularity": 0.0943,
+        "profile_path": null,
+        "credit_id": "67385ee6bbb49f06a00d6636",
+        "department": "Sound",
+        "job": "Songs"
+      },
+      {
+        "adult": false,
+        "gender": 0,
+        "id": 3299111,
+        "known_for_department": "Production",
+        "name": "Jane Chung",
+        "original_name": "Jane Chung",
+        "popularity": 0.1471,
+        "profile_path": null,
+        "credit_id": "6186678f13a3880044ee1d98",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 3299109,
+        "known_for_department": "Production",
+        "name": "Marc Merrill",
+        "original_name": "Marc Merrill",
+        "popularity": 0.3769,
+        "profile_path": "/jaokNgkziOsPgAwmw4l11pRQWoi.jpg",
+        "credit_id": "6186670375f1ad008e413746",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2000007,
+        "known_for_department": "Creator",
+        "name": "Christian Linke",
+        "original_name": "Christian Linke",
+        "popularity": 0.7348,
+        "profile_path": "/u1uCJkmVSeLQC1CwSB7UzXAVbqO.jpg",
+        "credit_id": "618666c513a388002b162821",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 0,
+        "id": 3299112,
+        "known_for_department": "Production",
+        "name": "Thomas Vu",
+        "original_name": "Thomas Vu",
+        "popularity": 0.1933,
+        "profile_path": null,
+        "credit_id": "618667ade741460084c2ae76",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1314953,
+        "known_for_department": "Acting",
+        "name": "Ben McKee",
+        "original_name": "Ben McKee",
+        "popularity": 0.5035,
+        "profile_path": "/fxyDVZsrXH4zyH3LHabXKSQ97wP.jpg",
+        "credit_id": "62bf6ec8325a5100c1fa7653",
+        "department": "Sound",
+        "job": "Theme Song Performance"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1314952,
+        "known_for_department": "Acting",
+        "name": "Dan Reynolds",
+        "original_name": "Dan Reynolds",
+        "popularity": 0.7151,
+        "profile_path": "/cZ3qu8mLLTSGOV6BX3dj9tDc4UB.jpg",
+        "credit_id": "62bf6ecd22e4800495defe67",
+        "department": "Sound",
+        "job": "Theme Song Performance"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1314955,
+        "known_for_department": "Acting",
+        "name": "Daniel Platzman",
+        "original_name": "Daniel Platzman",
+        "popularity": 0.2485,
+        "profile_path": "/lxF7i5u7foaO36jmImiyYEatL8s.jpg",
+        "credit_id": "62bf6ed8af6e94046c70771b",
+        "department": "Sound",
+        "job": "Theme Song Performance"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1314954,
+        "known_for_department": "Acting",
+        "name": "Wayne Sermon",
+        "original_name": "Wayne Sermon",
+        "popularity": 0.415,
+        "profile_path": "/hb5fnyCejZfLU8hOmW3cqsN1MZy.jpg",
+        "credit_id": "62bf6ed3924ce60059ccc4a4",
+        "department": "Sound",
+        "job": "Theme Song Performance"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 3696633,
+        "known_for_department": "Acting",
+        "name": "JID",
+        "original_name": "JID",
+        "popularity": 0.5579,
+        "profile_path": "/y1lLHllCwuMgupwGDy6XEjUa7uW.jpg",
+        "credit_id": "64a906976a3448012ce44ca4",
+        "department": "Sound",
+        "job": "Theme Song Performance"
+      }
+    ]
+  },
+  "keywords": {
+    "results": [
+      {
+        "name": "magic",
+        "id": 2343
+      },
+      {
+        "name": "war of independence",
+        "id": 7947
+      },
+      {
+        "name": "class differences",
+        "id": 14514
+      },
+      {
+        "name": "battle",
+        "id": 14643
+      },
+      {
+        "name": "based on video game",
+        "id": 41645
+      },
+      {
+        "name": "death in family",
+        "id": 146946
+      },
+      {
+        "name": "adult animation",
+        "id": 161919
+      },
+      {
+        "name": "warrior",
+        "id": 192913
+      },
+      {
+        "name": "broken family",
+        "id": 193319
+      },
+      {
+        "name": "war",
+        "id": 273967
+      },
+      {
+        "name": "3d animation",
+        "id": 278823
+      },
+      {
+        "name": "sisters",
+        "id": 280940
+      },
+      {
+        "name": "web series",
+        "id": 281372
+      },
+      {
+        "name": "inspirational",
+        "id": 281585
+      },
+      {
+        "name": "power",
+        "id": 288793
+      },
+      {
+        "name": "intense",
+        "id": 321464
+      },
+      {
+        "name": "amused",
+        "id": 325765
+      }
+    ]
+  },
+  "external_ids": {
+    "imdb_id": "tt11126994",
+    "freebase_mid": null,
+    "freebase_id": null,
+    "tvdb_id": 371028,
+    "tvrage_id": null,
+    "wikidata_id": "Q85518571",
+    "facebook_id": "arcaneshow",
+    "instagram_id": "arcaneshow",
+    "twitter_id": "arcaneshow"
+  }
+}

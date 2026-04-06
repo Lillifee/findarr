@@ -1,5 +1,10 @@
+import { isDefined } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
-import { upsertMediaFromJellyfin } from './repository.js';
+import {
+  clearRemovedJellyfinItems,
+  getMediaWithJellyfinIds,
+  upsertMediaFromJellyfin,
+} from './repository.js';
 
 /**
  * Sync Jellyfin library to database
@@ -38,11 +43,21 @@ export async function syncJellyfinLibrary(fastify: FastifyInstance): Promise<voi
 
   // Upsert media items into database
   const affectedRows = await upsertMediaFromJellyfin(fastify.db, jellyfinItems);
-  const durationMs = Date.now() - startTime;
 
-  // TODO - until now only insert and update is implemented. we also need to delete items that are no longer available in jellyfin.
-  // we can do this by adding a "lastSeen" column to the media table and updating it with the current timestamp during sync.
-  // or get all media items with jellyfinId and check if they are still in the fetched items. if not delete them.
+  // Cleanup: Find items in DB that are no longer in Jellyfin
+  const existingMedia = await getMediaWithJellyfinIds(fastify.db);
+  const currentJellyfinIds = new Set(jellyfinItems.map(item => item.jellyfinId));
+  const removedJellyfinIds = existingMedia
+    .map(m => m.jellyfinId)
+    .filter(jellyfinId => isDefined(jellyfinId))
+    .filter(jellyfinId => !currentJellyfinIds.has(jellyfinId));
+
+  if (removedJellyfinIds.length > 0) {
+    const clearedCount = await clearRemovedJellyfinItems(fastify.db, removedJellyfinIds);
+    fastify.log.info(`Cleaned up ${clearedCount} items removed from Jellyfin`);
+  }
+
+  const durationMs = Date.now() - startTime;
 
   fastify.log.info(
     {

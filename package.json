@@ -20,6 +20,7 @@
     "test": "npm run test:run --workspaces --if-present",
     "test:update": "npm run test:run --workspaces --if-present -- -u",
     "test:coverage": "npm run test:coverage --workspaces --if-present",
+    "test:fixtures": "npm run test:fixtures --workspace=@findarr/server",
     "code:check": "npm run type-check && npm run lint && npm run format:check && npm run build",
     "code:fix": "npm run type-check && npm run lint:fix && npm run format && npm run build",
     "type-check": "npm run type-check --workspace=@findarr/shared && npm run type-check --workspace=@findarr/server && npm run type-check --workspace=@findarr/client",

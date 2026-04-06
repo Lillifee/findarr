@@ -1,0 +1,657 @@
+{
+  "adult": false,
+  "backdrop_path": "/2eIlCirgcvEwmCSYh2wDfz5Sxvz.jpg",
+  "created_by": [
+    {
+      "id": 52001,
+      "credit_id": "5259743a760ee34661a5a053",
+      "name": "Jon Bokenkamp",
+      "original_name": "Jon Bokenkamp",
+      "gender": 2,
+      "profile_path": "/dhH9oElislVwxUUyt9jTT7jA3OK.jpg"
+    }
+  ],
+  "episode_run_time": [],
+  "first_air_date": "2013-09-23",
+  "genres": [
+    {
+      "id": 18,
+      "name": "Drama"
+    },
+    {
+      "id": 80,
+      "name": "Crime"
+    },
+    {
+      "id": 9648,
+      "name": "Mystery"
+    }
+  ],
+  "homepage": "https://www.nbc.com/the-blacklist",
+  "id": 46952,
+  "in_production": false,
+  "languages": ["en"],
+  "last_air_date": "2023-07-13",
+  "last_episode_to_air": {
+    "id": 4406558,
+    "name": "Raymond Reddington: Good Night (2)",
+    "overview": "The future of the FBI's Reddington Task Force is decided.",
+    "vote_average": 7,
+    "vote_count": 13,
+    "air_date": "2023-07-13",
+    "episode_number": 22,
+    "episode_type": "finale",
+    "production_code": "",
+    "runtime": 43,
+    "season_number": 10,
+    "show_id": 46952,
+    "still_path": "/qOlHi2z7cGY9dY7RhhGaWIKnMgk.jpg"
+  },
+  "name": "The Blacklist",
+  "next_episode_to_air": null,
+  "networks": [
+    {
+      "id": 6,
+      "logo_path": "/cm111bsDVlYaC1foL0itvEI4yLG.png",
+      "name": "NBC",
+      "origin_country": "US"
+    }
+  ],
+  "number_of_episodes": 218,
+  "number_of_seasons": 10,
+  "origin_country": ["US"],
+  "original_language": "en",
+  "original_name": "The Blacklist",
+  "overview": "Raymond \"Red\" Reddington, one of the FBI's most wanted fugitives, surrenders in person at FBI Headquarters in Washington, D.C. He claims that he and the FBI have the same interests: bringing down dangerous criminals and terrorists. In the last two decades, he's made a list of criminals and terrorists that matter the most but the FBI cannot find because it does not know they exist. Reddington calls this \"The Blacklist\". Reddington will co-operate, but insists that he will speak only to Elizabeth Keen, a rookie FBI profiler.",
+  "popularity": 143.3272,
+  "poster_path": "/4HTfd1PhgFUenJxVuBDNdLmdr0c.jpg",
+  "production_companies": [
+    {
+      "id": 11073,
+      "logo_path": "/wHs44fktdoj6c378ZbSWfzKsM2Z.png",
+      "name": "Sony Pictures Television",
+      "origin_country": "US"
+    },
+    {
+      "id": 1302,
+      "logo_path": "/zC3b70ixHh89qJIikLQPEvLqbPM.png",
+      "name": "Davis Entertainment",
+      "origin_country": "US"
+    },
+    {
+      "id": 26727,
+      "logo_path": "/jeTxdjXhzgKZyLr3l9MllkTn3fy.png",
+      "name": "Universal Television",
+      "origin_country": "US"
+    }
+  ],
+  "production_countries": [
+    {
+      "iso_3166_1": "US",
+      "name": "United States of America"
+    }
+  ],
+  "seasons": [
+    {
+      "air_date": "2013-09-10",
+      "episode_count": 11,
+      "id": 55083,
+      "name": "Specials",
+      "overview": "",
+      "poster_path": "/jPT3J4xlQ3yF5fczAopLofHBGq3.jpg",
+      "season_number": 0,
+      "vote_average": 0
+    },
+    {
+      "air_date": "2013-09-23",
+      "episode_count": 22,
+      "id": 55082,
+      "name": "Season 1",
+      "overview": "For decades, ex-government agent Raymond \"Red\" Reddington has been one of the FBI’s Most Wanted fugitives. Brokering shadowy deals for criminals across the globe, Red was known by many as the \"Concierge of Crime.\" Now, he’s mysteriously surrendered to the FBI with an explosive offer: he will help catch the world’s most elusive criminals, under the condition that he speaks only to Elizabeth \"Liz\" Keen, an FBI profiler fresh out of Quantico. For Liz, it’s going to be one hell of a first day on the job.",
+      "poster_path": "/c18fZsOjPKbYioz7PaCY5GQiwY4.jpg",
+      "season_number": 1,
+      "vote_average": 7.9
+    },
+    {
+      "air_date": "2014-09-22",
+      "episode_count": 22,
+      "id": 61357,
+      "name": "Season 2",
+      "overview": "For decades, ex-government agent Raymond \"Red\" Reddington has been one of the FBI's Most Wanted fugitives. He mysteriously surrendered to the FBI but now the FBI works for him as he identifies a \"blacklist\" of politicians, mobsters, spies and international terrorists. He will help catch them all... with the caveat that Elizabeth \"Liz\" Keen continues to work as his partner. Red will teach Liz to think like a criminal and \"see the bigger picture\"... whether she wants to or not.",
+      "poster_path": "/4q6rIEn62nqxxgeuF9rDdDkUnl1.jpg",
+      "season_number": 2,
+      "vote_average": 7.9
+    },
+    {
+      "air_date": "2015-10-01",
+      "episode_count": 23,
+      "id": 70935,
+      "name": "Season 3",
+      "overview": "Now a fugitive on the run, Liz must figure out how to protect herself from the fallout of her actions in the explosive season two finale.",
+      "poster_path": "/mivR9jhIye1XT4vdGL5pWC28cYz.jpg",
+      "season_number": 3,
+      "vote_average": 7.8
+    },
+    {
+      "air_date": "2016-09-22",
+      "episode_count": 22,
+      "id": 80082,
+      "name": "Season 4",
+      "overview": "A mysterious man claiming to be Liz’s real father targets her, but first she must resolve the mystery of her lost childhood and reconcile her true identity with the elusive memories corrupted by Reddington. Without the truth, every day holds more danger for herself, her baby and her husband Tom. Meanwhile, the Task Force reels from Liz’s resurrection and friendships are fractured. Betrayed by those closest to him, Reddington’s specific moral code demands justice, all the while battling an army of new and unexpected blacklisters.",
+      "poster_path": "/d5AJOxPzGkAHiaCHcESVCim1vHu.jpg",
+      "season_number": 4,
+      "vote_average": 7.5
+    },
+    {
+      "air_date": "2017-09-27",
+      "episode_count": 22,
+      "id": 91328,
+      "name": "Season 5",
+      "overview": "Feeling surprisingly unencumbered, Raymond Reddington is back, and in the process of rebuilding his criminal empire. His lust for life is ever-present as he lays the foundation for this new enterprise - one that he'll design with Elizabeth Keen by his side. Living with the reality that Red is her father, Liz finds herself torn between her role as an FBI agent and the temptation to act on her more criminal instincts. In a world where the search for Blacklisters has become a family trade, Red will undoubtedly reclaim his moniker as the “Concierge of Crime.”",
+      "poster_path": "/rl3yjCHmTIFKOkHtBjtxw4H18K0.jpg",
+      "season_number": 5,
+      "vote_average": 7.7
+    },
+    {
+      "air_date": "2019-01-03",
+      "episode_count": 22,
+      "id": 112279,
+      "name": "Season 6",
+      "overview": "Following the startling revelation that Raymond \"Red\" Reddington isn't who he says he is, Elizabeth Keen is torn between the relationship she's developed with the man assumed to be her father and her desire to get to the bottom of years of secrets and lies. Meanwhile, Red leads Liz and the FBI to some of the most strange and dangerous criminals yet, growing his empire and eliminating rivals in the process. All throughout, Liz and Red engage in an uneasy cat-and-mouse game in which lines will be crossed and the truth will be revealed.",
+      "poster_path": "/kjisSucFkzVVgyQlgUY0RwHmO1o.jpg",
+      "season_number": 6,
+      "vote_average": 7.6
+    },
+    {
+      "air_date": "2019-10-04",
+      "episode_count": 19,
+      "id": 132066,
+      "name": "Season 7",
+      "overview": "After being abducted by Katarina Rostova, Raymond \"Red\" Reddington finds himself alone in hostile territory, unsure of who, if anyone, he can trust. Surrounded by old enemies and new allies, Red must stay one step ahead of the Blacklist's most dangerous criminal, who will stop at nothing to unearth the very truth Red wants no one to know about. To find it, Katarina will insinuate herself into the life of Elizabeth Keen, who has finally reunited with her daughter Agnes. Katarina’s presence will bring danger to Liz’s doorstep and forever alter her relationship with Red.",
+      "poster_path": "/ybIqiVAYlKtLoAd52hbiz42ZC4R.jpg",
+      "season_number": 7,
+      "vote_average": 7.1
+    },
+    {
+      "air_date": "2020-11-13",
+      "episode_count": 22,
+      "id": 165869,
+      "name": "Season 8",
+      "overview": "With his back against the wall, Raymond Reddington faces his most formidable enemy yet: Elizabeth Keen. Aligned with her mother, infamous Russian spy Katarina Rostova, Liz must decide how far she is willing to go to find out why Reddington has entered her life and what his endgame really is. The fallout between Reddington and Keen will have devastating consequences for all that lie in their wake, including the Task Force they helped to create.",
+      "poster_path": "/yDELZilMblqHRnBb4E2jxza6072.jpg",
+      "season_number": 8,
+      "vote_average": 7.3
+    },
+    {
+      "air_date": "2021-10-21",
+      "episode_count": 22,
+      "id": 200816,
+      "name": "Season 9",
+      "overview": "In the two years following the death of Elizabeth Keen, Raymond Reddington and the members of the FBI Task Force have disbanded – their lives now changed in unexpected ways and with Reddington’s whereabouts unknown. Finding themselves each at a crossroads, a common purpose compels them to renew their original mission: to take down dangerous, vicious and eccentric Blacklisters. In the process, they begin to uncover lethal adversaries, unimaginable conspiracies and surprising betrayals that will threaten alliances and spur vengeance for the past.",
+      "poster_path": "/tNL3qMtEmLTQPVNry3Uloc6GjCr.jpg",
+      "season_number": 9,
+      "vote_average": 7.2
+    },
+    {
+      "air_date": "2023-02-26",
+      "episode_count": 22,
+      "id": 315608,
+      "name": "Season 10",
+      "overview": "With Reddington's covert role as an FBI informant facing exposure, former Blacklisters will unite against him in their lethal desire for revenge – testing Red and the FBI Task Force as never before.",
+      "poster_path": "/o37EENvesJ8x1r70uhl0JPv8gQv.jpg",
+      "season_number": 10,
+      "vote_average": 8.5
+    }
+  ],
+  "spoken_languages": [
+    {
+      "english_name": "English",
+      "iso_639_1": "en",
+      "name": "English"
+    }
+  ],
+  "status": "Ended",
+  "tagline": "Never trust a criminal... Until you have to.",
+  "type": "Scripted",
+  "vote_average": 7.633,
+  "vote_count": 3522,
+  "credits": {
+    "cast": [
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 13548,
+        "known_for_department": "Acting",
+        "name": "James Spader",
+        "original_name": "James Spader",
+        "popularity": 5.6651,
+        "profile_path": "/uET0mbf2bMkUXbRb1Oxi8Qjqcw3.jpg",
+        "character": "Raymond 'Red' Reddington",
+        "credit_id": "52597435760ee34661a59fbf",
+        "order": 0
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 142193,
+        "known_for_department": "Acting",
+        "name": "Diego Klattenhoff",
+        "original_name": "Diego Klattenhoff",
+        "popularity": 1.9906,
+        "profile_path": "/mpdtCA5birAW89dtkuAdR73wr2H.jpg",
+        "character": "Donald Ressler",
+        "credit_id": "5352fdb4c3a3681d8700315d",
+        "order": 2
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 144583,
+        "known_for_department": "Acting",
+        "name": "Hisham Tawfiq",
+        "original_name": "Hisham Tawfiq",
+        "popularity": 1.1543,
+        "profile_path": "/go8XkwY6pbqfUDExs7o1U6O1r5u.jpg",
+        "character": "Dembe Zuma",
+        "credit_id": "53084ac692514111170018bf",
+        "order": 3
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 2622043,
+        "known_for_department": "Acting",
+        "name": "Anya Banerjee",
+        "original_name": "Anya Banerjee",
+        "popularity": 0.7218,
+        "profile_path": "/wQXxOrJAP0BCIacCMtraDoZh24Y.jpg",
+        "character": "Siya Malik",
+        "credit_id": "63f22464524978009e780e76",
+        "order": 5
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 9464,
+        "known_for_department": "Acting",
+        "name": "Harry Lennix",
+        "original_name": "Harry Lennix",
+        "popularity": 1.7243,
+        "profile_path": "/kNGiizWpetf4pyAkINkjkWacmCL.jpg",
+        "character": "Harold Cooper",
+        "credit_id": "5352fe87c3a3681d87003168",
+        "order": 7
+      }
+    ],
+    "crew": [
+      {
+        "adult": false,
+        "gender": 0,
+        "id": 4527747,
+        "known_for_department": "Costume & Make-Up",
+        "name": "Hailei Call",
+        "original_name": "Hailei Call",
+        "popularity": 0.177,
+        "profile_path": null,
+        "credit_id": "673e494a374a6995278965ac",
+        "department": "Costume & Make-Up",
+        "job": "Hair Department Head"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1915008,
+        "known_for_department": "Writing",
+        "name": "Noah Schechter",
+        "original_name": "Noah Schechter",
+        "popularity": 0.1143,
+        "profile_path": null,
+        "credit_id": "63fe18c99653f6007c1cb335",
+        "department": "Production",
+        "job": "Supervising Producer"
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 1664012,
+        "known_for_department": "Writing",
+        "name": "Taylor Martin",
+        "original_name": "Taylor Martin",
+        "popularity": 0.23,
+        "profile_path": null,
+        "credit_id": "63fe18bc9653f600853c91b1",
+        "department": "Production",
+        "job": "Co-Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1472743,
+        "known_for_department": "Writing",
+        "name": "Aiah Samba",
+        "original_name": "Aiah Samba",
+        "popularity": 0.1081,
+        "profile_path": null,
+        "credit_id": "63fe1868c7176d00db58cc38",
+        "department": "Production",
+        "job": "Co-Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1818090,
+        "known_for_department": "Writing",
+        "name": "Sam Christopher",
+        "original_name": "Sam Christopher",
+        "popularity": 0.0798,
+        "profile_path": null,
+        "credit_id": "63fe18569653f6007c1cb2e0",
+        "department": "Production",
+        "job": "Co-Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2105886,
+        "known_for_department": "Crew",
+        "name": "Chad Hessler",
+        "original_name": "Chad Hessler",
+        "popularity": 0.1439,
+        "profile_path": null,
+        "credit_id": "63fe180c7a4ee700b916c266",
+        "department": "Crew",
+        "job": "Stunt Coordinator"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1217138,
+        "known_for_department": "Writing",
+        "name": "Peter Noah",
+        "original_name": "Peter Noah",
+        "popularity": 0.4914,
+        "profile_path": null,
+        "credit_id": "6910b781104a5c0a2ddd1dd0",
+        "department": "Production",
+        "job": "Consulting Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2016521,
+        "known_for_department": "Writing",
+        "name": "T Cooper",
+        "original_name": "T Cooper",
+        "popularity": 0.2935,
+        "profile_path": null,
+        "credit_id": "61780164e9da6900434633ed",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 2016522,
+        "known_for_department": "Writing",
+        "name": "Allison Glock-Cooper",
+        "original_name": "Allison Glock-Cooper",
+        "popularity": 0.156,
+        "profile_path": null,
+        "credit_id": "6178011ff2cf25002cf995f0",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 587028,
+        "known_for_department": "Writing",
+        "name": "Sean Hennen",
+        "original_name": "Sean Hennen",
+        "popularity": 0.2347,
+        "profile_path": null,
+        "credit_id": "617801bfb458b80047515bf1",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 1897199,
+        "known_for_department": "Production",
+        "name": "Breanna Mosley",
+        "original_name": "Breanna Mosley",
+        "popularity": 0.057,
+        "profile_path": null,
+        "credit_id": "617801f1cf4b8b0042931483",
+        "department": "Production",
+        "job": "Co-Producer"
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 1200198,
+        "known_for_department": "Production",
+        "name": "Bonnie Finnegan",
+        "original_name": "Bonnie Finnegan",
+        "popularity": 0.1085,
+        "profile_path": null,
+        "credit_id": "61780202924ce60064d2d22f",
+        "department": "Production",
+        "job": "Co-Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 44057,
+        "known_for_department": "Production",
+        "name": "Steven Jacobs",
+        "original_name": "Steven Jacobs",
+        "popularity": 0.0716,
+        "profile_path": null,
+        "credit_id": "6178020af85958008e5799ea",
+        "department": "Production",
+        "job": "Co-Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1896837,
+        "known_for_department": "Production",
+        "name": "Zee Hatley",
+        "original_name": "Zee Hatley",
+        "popularity": 0.1037,
+        "profile_path": null,
+        "credit_id": "6178021acf4b8b008a739aa9",
+        "department": "Production",
+        "job": "Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 154623,
+        "known_for_department": "Writing",
+        "name": "Daniel Cerone",
+        "original_name": "Daniel Cerone",
+        "popularity": 0.5924,
+        "profile_path": "/7tULL0DKkjknISvEd63b4RR263V.jpg",
+        "credit_id": "6177e7d5924ce60064d2bace",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 1,
+        "id": 1896838,
+        "known_for_department": "Production",
+        "name": "Laura Benson",
+        "original_name": "Laura Benson",
+        "popularity": 0.2462,
+        "profile_path": null,
+        "credit_id": "5c2de89ac3a3680835a07bcd",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1254577,
+        "known_for_department": "Writing",
+        "name": "Lukas Reiter",
+        "original_name": "Lukas Reiter",
+        "popularity": 0.4924,
+        "profile_path": null,
+        "credit_id": "59ce705f9251416c7701a196",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 27040,
+        "known_for_department": "Art",
+        "name": "Nicholas Lundy",
+        "original_name": "Nicholas Lundy",
+        "popularity": 0.3654,
+        "profile_path": "/fLiVv2wyXBeUCGcinRD1hc4Vo31.jpg",
+        "credit_id": "6177e584abf8e20088d16628",
+        "department": "Art",
+        "job": "Production Design"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 13548,
+        "known_for_department": "Acting",
+        "name": "James Spader",
+        "original_name": "James Spader",
+        "popularity": 5.6651,
+        "profile_path": "/uET0mbf2bMkUXbRb1Oxi8Qjqcw3.jpg",
+        "credit_id": "59ce7071c3a3686a2301a6f2",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1280070,
+        "known_for_department": "Sound",
+        "name": "Dave Porter",
+        "original_name": "Dave Porter",
+        "popularity": 0.357,
+        "profile_path": "/flRW9QknVtU8HG7lLjMvflbhl2a.jpg",
+        "credit_id": "59e350e6c3a368466801099e",
+        "department": "Sound",
+        "job": "Original Music Composer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1522988,
+        "known_for_department": "Production",
+        "name": "John Fox",
+        "original_name": "John Fox",
+        "popularity": 0.5939,
+        "profile_path": null,
+        "credit_id": "59cf6a6e9251412f37018f26",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 2043,
+        "known_for_department": "Production",
+        "name": "John Davis",
+        "original_name": "John Davis",
+        "popularity": 0.627,
+        "profile_path": "/kpXOBMUBZe8XpHYk7s0721kjjIk.jpg",
+        "credit_id": "59cf6a44c3a3681e170186c9",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 110628,
+        "known_for_department": "Art",
+        "name": "Bradley Schmidt",
+        "original_name": "Bradley Schmidt",
+        "popularity": 0.1224,
+        "profile_path": null,
+        "credit_id": "59cec9fe9251412f37005950",
+        "department": "Art",
+        "job": "Art Direction"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 1313811,
+        "known_for_department": "Writing",
+        "name": "John Eisendrath",
+        "original_name": "John Eisendrath",
+        "popularity": 0.5561,
+        "profile_path": "/wnFhuncDGTTvnxzftf6P3rQhJ0Q.jpg",
+        "credit_id": "59ce70d29251416c2001b764",
+        "department": "Production",
+        "job": "Executive Producer"
+      },
+      {
+        "adult": false,
+        "gender": 2,
+        "id": 52001,
+        "known_for_department": "Writing",
+        "name": "Jon Bokenkamp",
+        "original_name": "Jon Bokenkamp",
+        "popularity": 0.9392,
+        "profile_path": "/dhH9oElislVwxUUyt9jTT7jA3OK.jpg",
+        "credit_id": "59ce70b39251416c2001b726",
+        "department": "Production",
+        "job": "Executive Producer"
+      }
+    ]
+  },
+  "keywords": {
+    "results": [
+      {
+        "name": "fbi",
+        "id": 1812
+      },
+      {
+        "name": "investigation",
+        "id": 5340
+      },
+      {
+        "name": "terrorism",
+        "id": 13015
+      },
+      {
+        "name": "criminal mastermind",
+        "id": 18023
+      },
+      {
+        "name": "crime lord",
+        "id": 167352
+      },
+      {
+        "name": "hidden identity",
+        "id": 186189
+      },
+      {
+        "name": "criminal consultant",
+        "id": 212513
+      }
+    ]
+  },
+  "external_ids": {
+    "imdb_id": "tt2741602",
+    "freebase_mid": "/m/0s8xvyw",
+    "freebase_id": null,
+    "tvdb_id": 266189,
+    "tvrage_id": 35048,
+    "wikidata_id": "Q13148212",
+    "facebook_id": "NBCBlacklist",
+    "instagram_id": "nbcblacklist",
+    "twitter_id": "NBCBlacklist"
+  }
+}

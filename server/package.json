@@ -12,6 +12,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:fixtures": "tsx scripts/capture-tmdb-fixtures.ts",
     "type-check": "tsc -p tsconfig.json --noEmit",
     "clean": "rimraf dist *.tsbuildinfo",
     "db:generate": "drizzle-kit generate",
