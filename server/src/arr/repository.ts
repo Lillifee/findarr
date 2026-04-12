@@ -65,7 +65,7 @@ export async function getExistingTvdbIds(db: DB): Promise<Set<number>> {
  */
 export async function upsertMediaFromArr(
   db: DB,
-  items: Array<Pick<DbMedia, 'type' | 'tvdbId' | 'tmdbId' | 'arrId' | 'status'>>
+  items: Array<Pick<DbMedia, 'type' | 'tvdbId' | 'tmdbId' | 'arrId' | 'status' | 'seasons'>>
 ): Promise<void> {
   if (items.length === 0) return;
 
@@ -89,6 +89,7 @@ export async function upsertMediaFromArr(
         set: {
           arrId: sql`excluded.arrId`,
           tvdbId: sql`COALESCE(media.tvdbId, excluded.tvdbId)`,
+          seasons: sql`excluded.seasons`,
           status: sql`CASE WHEN media.status = 'available' THEN 'available' ELSE excluded.status END`,
           updatedAt: now,
         },
@@ -115,6 +116,7 @@ export async function upsertMediaFromArr(
         set: {
           arrId: sql`excluded.arrId`,
           tmdbId: sql`COALESCE(media.tmdbId, excluded.tmdbId)`, // Preserve -1 if already set
+          seasons: sql`excluded.seasons`,
           status: sql`CASE WHEN media.status = 'available' THEN 'available' ELSE excluded.status END`,
           updatedAt: now,
         },
@@ -162,6 +164,7 @@ export async function getMediaWithArrIds(
       tmdbId: media.tmdbId,
       arrId: media.arrId,
       jellyfinId: media.jellyfinId,
+      seasons: media.seasons,
       status: media.status,
     })
     .from(media)

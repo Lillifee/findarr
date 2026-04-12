@@ -76,7 +76,7 @@ export function DiscoverPage() {
       }
     };
 
-    loadDiscoveryContent();
+    void loadDiscoveryContent();
   }, [
     recentDays,
     hasSearched,
@@ -191,7 +191,7 @@ export function DiscoverPage() {
   };
 
   const handleSelectItem = (item: Media) => {
-    navigate(`/${item.type}/${item.tmdbId}`);
+    void navigate(`/${item.type}/${item.tmdbId}`);
   };
 
   const handleUpdateItem = (updatedItem: Media) => {

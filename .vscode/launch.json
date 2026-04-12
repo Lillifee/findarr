@@ -26,6 +26,12 @@
       "sourceMaps": true,
       "sourceMapPathOverrides": {
         "webpack:///./src/*": "${workspaceFolder}/client/src/*"
+      },
+      "preLaunchTask": "Start Client (Vite)",
+      "serverReadyAction": {
+        "pattern": "Local:.*http://localhost:5173",
+        "uriFormat": "http://localhost:5173",
+        "action": "openExternally"
       }
     },
     {

@@ -33,6 +33,16 @@ export interface Keyword {
   name: string;
 }
 
+export interface Season {
+  seasonNumber: number;
+  name: string;
+  episodeCount: number;
+  airDate: string | undefined;
+
+  // Sync status from Sonarr/Jellyfin
+  status?: 'none' | 'requested' | 'monitored' | 'downloaded' | 'available';
+}
+
 export type MediaStatus =
   | 'pending'
   | 'requested'
@@ -139,6 +149,7 @@ export interface TVDetails extends TVShow {
   showType: string;
   numberOfSeasons: number;
   numberOfEpisodes: number;
+  seasons: Season[];
   status: string;
   homepage: string | undefined;
   tvdbId: number | undefined;

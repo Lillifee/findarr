@@ -141,6 +141,14 @@ function transformTVDetails(tmdbTV: TMDBTVDetails): TVDetails {
   // Extract keywords from TV response (nested in results)
   const keywords: Keyword[] = tmdbTV.keywords?.results ?? [];
 
+  // Transform seasons array
+  const seasons = tmdbTV.seasons.map(season => ({
+    seasonNumber: season.season_number,
+    name: season.name,
+    episodeCount: season.episode_count,
+    airDate: season.air_date ?? undefined,
+  }));
+
   return {
     tmdbId: tmdbTV.id,
     type: tmdbTV.type,
@@ -162,6 +170,7 @@ function transformTVDetails(tmdbTV: TMDBTVDetails): TVDetails {
     showType: tmdbTV.show_type,
     numberOfSeasons: tmdbTV.number_of_seasons,
     numberOfEpisodes: tmdbTV.number_of_episodes,
+    seasons,
     status: tmdbTV.status,
     homepage: tmdbTV.homepage ?? undefined,
     tvdbId: tmdbTV.external_ids?.tvdb_id ?? undefined,

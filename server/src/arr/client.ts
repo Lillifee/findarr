@@ -59,6 +59,32 @@ export function createArrClient<T extends ArrServiceConfig>(
       return ArrQueueResponseSchema.parse(response.data);
     },
 
+    async requestOrUpdate(
+      params: {
+        id: number | undefined;
+        title: string;
+        arrId?: number | undefined | null;
+      },
+      profileConfig: {
+        qualityProfileId: number;
+        rootFolderPath: string;
+      },
+      seasonNumbers?: number[]
+    ): Promise<ArrAddMediaResponse> {
+      // Try update if arrId exists
+      if (params.arrId) {
+        const updated = await this.updateLibrarySeasons(params.arrId, seasonNumbers);
+        if (updated) return updated;
+      }
+
+      // Create new or fallback from failed update
+      return this.requestMedia(
+        { id: params.id, title: params.title },
+        profileConfig,
+        seasonNumbers
+      );
+    },
+
     async requestMedia(
       params: {
         id: number | undefined;
@@ -67,22 +93,79 @@ export function createArrClient<T extends ArrServiceConfig>(
       profileConfig: {
         qualityProfileId: number;
         rootFolderPath: string;
-      }
+      },
+      seasonNumbers?: number[]
     ): Promise<ArrAddMediaResponse> {
-      const response = await http.post(config.mediaEndpoint, {
+      const isSonarr = config.service === 'sonarr';
+
+      const payload = {
         [config.mediaIdField]: params.id,
         title: params.title,
         monitored: true,
         ...profileConfig,
         ...config.extraFields,
+        ...(isSonarr && seasonNumbers
+          ? {
+              seasons: seasonNumbers.map(n => ({
+                seasonNumber: n,
+                monitored: true,
+              })),
+            }
+          : {}),
+      };
+
+      const response = await http.post(config.mediaEndpoint, payload);
+      return ArrAddMediaResponseSchema.parse(response.data);
+    },
+
+    async updateLibrarySeasons(
+      arrId: number,
+      seasons?: number[]
+    ): Promise<ArrAddMediaResponse | undefined> {
+      if (config.service !== 'sonarr' || seasons === undefined) {
+        return undefined; // Nothing to update
+      }
+
+      const { parsed, raw } = await this.getLibraryItem(arrId);
+      if (parsed.type !== 'tv') return;
+
+      const series = raw as SonarrSeries;
+
+      await this.updateLibraryItem({
+        ...series,
+        seasons: series.seasons?.map(season => ({
+          ...season,
+          monitored: seasons.includes(season.seasonNumber),
+        })),
       });
 
-      return ArrAddMediaResponseSchema.parse(response.data);
+      await http.post('/command', {
+        name: 'MissingEpisodeSearch',
+        seriesId: arrId,
+      });
+
+      return {
+        id: arrId,
+        tvdbId: parsed.tvdbId,
+        title: parsed.title,
+      };
     },
 
     async getLibrary(): Promise<Array<RadarrMovie | SonarrSeries>> {
       const response = await http.get(config.mediaEndpoint);
       return z.array(config.libraryItemSchema).parse(response.data);
+    },
+
+    async getLibraryItem(
+      arrId: number
+    ): Promise<{ parsed: RadarrMovie | SonarrSeries; raw: Record<string, unknown> }> {
+      const response = await http.get(`${config.mediaEndpoint}/${arrId}`);
+      const parsed = config.libraryItemSchema.parse(response.data);
+      return { parsed, raw: response.data };
+    },
+
+    async updateLibraryItem(rawData: Record<string, unknown>): Promise<void> {
+      await http.put(`${config.mediaEndpoint}/${rawData.id}`, rawData);
     },
   };
 }

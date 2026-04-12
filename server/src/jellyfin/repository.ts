@@ -9,13 +9,44 @@ import type { JellyfinMedia } from './transformers.js';
 
 /**
  * Upsert media from Jellyfin into the database
- * Updates jellyfinId and sets status to 'available' for matching TMDB items
- * Only updates when jellyfinId or status has actually changed
+ * Updates jellyfinId, status, and season availability (for TV shows)
+ * Only updates when jellyfinId, status, or seasons have actually changed
  */
 export async function upsertMediaFromJellyfin(db: DB, items: JellyfinMedia[]): Promise<number> {
   let affectedRows = 0;
 
-  for (const item of items) {
+  const upsertItem = async (item: JellyfinMedia) => {
+    let updatedSeasons: Array<{
+      seasonNumber: number;
+      status: 'none' | 'requested' | 'monitored' | 'downloaded' | 'available';
+    }> | null = null;
+
+    if (item.type === 'tv' && item.availableSeasons) {
+      const existing = await db.query.media.findFirst({
+        where: eq(media.tmdbId, item.tmdbId),
+        columns: { seasons: true },
+      });
+
+      const existingSeasons = (existing?.seasons ?? []) as Array<{
+        seasonNumber: number;
+        status: 'none' | 'requested' | 'monitored' | 'downloaded' | 'available';
+      }>;
+      const availableSet = new Set(item.availableSeasons);
+
+      updatedSeasons =
+        existingSeasons.length > 0
+          ? existingSeasons.map(season => ({
+              seasonNumber: season.seasonNumber,
+              status: (availableSet.has(season.seasonNumber) ? 'available' : season.status) as
+                | 'none'
+                | 'requested'
+                | 'monitored'
+                | 'downloaded'
+                | 'available',
+            }))
+          : null;
+    }
+
     const result = await db
       .insert(media)
       .values({
@@ -23,19 +54,23 @@ export async function upsertMediaFromJellyfin(db: DB, items: JellyfinMedia[]): P
         type: item.type,
         jellyfinId: item.jellyfinId,
         status: 'available',
+        seasons: updatedSeasons ?? undefined,
       })
       .onConflictDoUpdate({
         target: [media.tmdbId, media.type],
         set: {
           jellyfinId: item.jellyfinId,
           status: 'available',
+          seasons: updatedSeasons ?? undefined,
           updatedAt: sql`(unixepoch() * 1000)`,
         },
       });
 
-    if (result.changes > 0) {
-      affectedRows++;
-    }
+    if (result.changes > 0) affectedRows++;
+  };
+
+  for (const item of items) {
+    await upsertItem(item);
   }
 
   return affectedRows;

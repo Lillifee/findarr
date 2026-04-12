@@ -1,4 +1,4 @@
-import type { CreateMediaInteraction, Media, MediaStatus, User } from '@findarr/shared';
+import type { CreateMediaInteraction, Media, MediaStatus, User, DbMedia } from '@findarr/shared';
 import type { AnyArrService } from '../arr/service.js';
 import { getCatalogCacheBatch } from '../catalog/repository.js';
 import type { CatalogService } from '../catalog/service.js';
@@ -9,6 +9,7 @@ import {
   getMediaById,
   getMediaByTmdbId,
   updateMediaStatus,
+  updateMediaSeasons,
   getMediaByStatus,
 } from '../media/repository.js';
 import { updatePreferencesForInteraction } from '../preferences/service.js';
@@ -43,16 +44,28 @@ export const createInteraction = async (
 
   // Get or create media record
   const existing = await getMediaByTmdbId(db, data.tmdbId, data.mediaType);
-  const media = existing ?? (await createMedia(db, data.tmdbId, data.mediaType));
+  const media =
+    existing ?? (await createMedia(db, data.tmdbId, data.mediaType, 'pending', data.seasons));
 
-  // Check if this is a toggle (user clicking same action twice to remove it)
-  const isToggle = await hasInteraction(db, user.id, media.id, data.action);
+  // Update seasons if provided (TV shows only)
+  if (data.mediaType === 'tv' && data.seasons !== undefined) {
+    await updateMediaSeasons(db, media.id, data.seasons);
+  }
+
+  // Determine if this is a toggle vs an update:
+  // - Toggle: clicking same action without seasons (movies or direct button click)
+  // - Update: providing seasons array (TV shows via modal confirmation)
+  const isSeasonUpdate = data.seasons !== undefined;
+  const isToggle = !isSeasonUpdate && (await hasInteraction(db, user.id, media.id, data.action));
+
+  // Handle empty season selection as "unlike" (user deselected all seasons)
+  const isUnlike = isSeasonUpdate && data.seasons?.length === 0;
 
   // Remove all existing interactions for this user on this media
   await removeAllInteractions(db, user.id, media.id);
 
-  // Add new interaction only if not toggling off
-  if (!isToggle) {
+  // Add new interaction unless toggling off or unliking with empty seasons
+  if (!isToggle && !isUnlike) {
     await addInteraction(db, user.id, media.id, data.action);
   }
 
@@ -66,8 +79,10 @@ export const createInteraction = async (
     if (currentMedia && currentMedia.status === 'pending') {
       // Update to requested status (trigger download workflow)
       await updateMediaStatus(db, media.id, 'requested');
-      // Forward to Radarr/Sonarr and store external IDs (best-effort, non-fatal)
-      requestMediaToArr(tmdbService, radarrService, sonarrService, media.id, data);
+    }
+    // Forward to Radarr/Sonarr (handles both create and update based on arrId)
+    if (currentMedia) {
+      await requestMediaToArr(tmdbService, radarrService, sonarrService, currentMedia, data);
     }
   }
 
@@ -75,10 +90,7 @@ export const createInteraction = async (
   await updateUserPreferences(tmdbService, db, data, user.id, isToggle);
 
   // Return enriched media with updated state using catalog service
-  return catalogService.getDetails(
-    { id: data.tmdbId, type: data.mediaType },
-    user.id
-  ) as Promise<Media>;
+  return catalogService.getDetails({ id: data.tmdbId, type: data.mediaType }, user.id);
 };
 
 /**
@@ -114,9 +126,10 @@ async function updateUserPreferences(
 }
 
 /**
- * Forward a newly-requested media item to Radarr (movies) or Sonarr (TV shows).
- * Resolves the title from catalog cache first, falls back to TMDB.
- * For TV shows, the TVDB ID is lazily fetched and cached on the media record.
+ * Forward a media request to Radarr (movies) or Sonarr (TV shows).
+ * Automatically handles both creating new media and updating existing media.
+ * For existing media with arrId, updates monitored seasons instead of creating duplicate.
+ * Resolves title from TMDB, fetches TVDB ID for TV shows if needed.
  * Stores Radarr/Sonarr IDs immediately for tracking if the service is configured.
  * Triggers fast queue sync scheduler to detect when download starts.
  * If Radarr/Sonarr is not configured, this is a no-op (gracefully skipped).
@@ -125,7 +138,7 @@ async function requestMediaToArr(
   tmdbService: TMDBService,
   radarrService: AnyArrService,
   sonarrService: AnyArrService,
-  mediaId: number,
+  mediaRecord: DbMedia,
   data: CreateMediaInteraction
 ): Promise<void> {
   const details = await tmdbService.getDetails({ id: data.tmdbId, type: data.mediaType });
@@ -133,7 +146,7 @@ async function requestMediaToArr(
   const service = details.type === 'movie' ? radarrService : sonarrService;
   const externalId = details.type === 'movie' ? details.tmdbId : details.tvdbId;
 
-  await service.request(mediaId, externalId, details.name);
+  await service.request(mediaRecord.id, externalId, details.name, mediaRecord.arrId, data.seasons);
 }
 
 /**

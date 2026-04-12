@@ -39,3 +39,9 @@ export interface MediaVotes {
   likes?: number;
   dislikes?: number;
 }
+
+export type SeasonRecord = {
+  seasonNumber: number;
+  // Status progression: none (not in Sonarr) -> requested (user wants it) -> monitored (in Sonarr) -> downloaded (complete) -> available (in Jellyfin)
+  status: 'none' | 'requested' | 'monitored' | 'downloaded' | 'available';
+};

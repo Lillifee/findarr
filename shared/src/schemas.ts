@@ -96,6 +96,7 @@ export const CreateInteractionSchema = z.object({
   mediaType: z.enum(['movie', 'tv']),
   tmdbId: z.coerce.number().int().positive(),
   action: z.enum(['liked', 'disliked']),
+  seasons: z.array(z.number().int().min(0)).optional(),
 });
 
 export const InteractionIdSchema = z.object({

@@ -1,4 +1,5 @@
-import type { MovieDetails, TVDetails } from '@findarr/shared';
+import type { MovieDetails, TVDetails, Media } from '@findarr/shared';
+import { useState } from 'react';
 import { LikeDislikeButton } from './LikeDislikeButton';
 import { ScoreBreakdown } from './ScoreBreakdown';
 
@@ -7,6 +8,9 @@ interface MediaDetailsProps {
 }
 
 export function MediaView({ media }: MediaDetailsProps) {
+  // Track local media state for updates
+  const [localMedia, setLocalMedia] = useState<MovieDetails | TVDetails>(media);
+
   // Common data extraction
   const title = media.name;
   const releaseDate = media.date;
@@ -303,15 +307,19 @@ export function MediaView({ media }: MediaDetailsProps) {
           {/* Like/Dislike buttons */}
           <div className="flex justify-center md:justify-start">
             <LikeDislikeButton
-              tmdbId={media.tmdbId}
-              mediaType={media.type}
+              tmdbId={localMedia.tmdbId}
+              mediaType={localMedia.type}
               initialAction={
-                media.state?.interactions?.find(i => i.action === 'liked')
+                localMedia.state?.interactions?.find(i => i.action === 'liked')
                   ? 'liked'
-                  : media.state?.interactions?.find(i => i.action === 'disliked')
+                  : localMedia.state?.interactions?.find(i => i.action === 'disliked')
                     ? 'disliked'
                     : null
               }
+              existingMedia={localMedia}
+              onUpdate={(updatedMedia: Media) => {
+                setLocalMedia(updatedMedia as MovieDetails | TVDetails);
+              }}
             />
           </div>
         </div>

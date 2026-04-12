@@ -102,26 +102,26 @@ export const adminUserService = {
 // User interaction service
 export const interactionService = {
   // Toggle like/dislike on media (automatically creates media record if needed)
+  // For TV shows, seasons controls which seasons to request (omit for all seasons)
   // Returns enriched media with updated state
   toggleInteraction: async (
     tmdbId: number,
     mediaType: 'movie' | 'tv',
-    action: 'liked' | 'disliked'
+    action: 'liked' | 'disliked',
+    seasons?: number[]
   ): Promise<Media | undefined> => {
-    const response = await api.post('/interactions', { tmdbId, mediaType, action });
+    const response = await api.post('/interactions', {
+      tmdbId,
+      mediaType,
+      action,
+      seasons,
+    });
     return response.data;
   },
 
   // Get user's voted media (both likes and dislikes)
   listLiked: async (): Promise<Media[]> => {
     const response = await api.get('/interactions');
-    return response.data;
-  },
-
-  // Get requested media (with optional status filter)
-  getRequested: async (statuses?: string[]): Promise<Media[]> => {
-    const params = statuses ? { status: statuses.join(',') } : {};
-    const response = await api.get('/interactions/requested', { params });
     return response.data;
   },
 };

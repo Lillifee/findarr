@@ -65,19 +65,30 @@ export function createArrService<T extends ArrServiceConfig>(
 
     /**
      * Request media (movie or series)
+     * For TV shows, seasons controls which seasons are monitored (null = all seasons)
+     * If media already exists in Sonarr/Radarr (arrId provided), updates it instead
      */
     async request(
       mediaId: number,
       id: number | undefined,
-      title: string
+      title: string,
+      arrId?: number | null,
+      seasons?: number[]
     ): Promise<ArrAddMediaResponse | undefined> {
       const clientSettings = await getClientAndSettings();
       if (!clientSettings) return undefined;
 
+      // For movies: if already in Radarr, no action needed
+      if (config.service === 'radarr' && arrId) {
+        return { id: arrId, tmdbId: id, title };
+      }
+
       const { client, qualityProfileId, rootFolderPath } = clientSettings;
-      const response = await client.requestMedia(
-        { id, title },
-        { qualityProfileId, rootFolderPath }
+
+      const response = await client.requestOrUpdate(
+        { id, title, arrId },
+        { qualityProfileId, rootFolderPath },
+        seasons
       );
 
       await updateMediaIds(db, mediaId, {
@@ -87,6 +98,7 @@ export function createArrService<T extends ArrServiceConfig>(
       });
 
       fastify.scheduler.start(config.queueFastSyncScheduler);
+      return response;
     },
 
     /**

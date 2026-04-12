@@ -185,6 +185,7 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
                     tmdbId={item.tmdbId}
                     mediaType={item.type}
                     initialAction={isLiked ? 'liked' : isDisliked ? 'disliked' : null}
+                    existingMedia={item}
                     {...(onUpdateItem && { onUpdate: onUpdateItem })}
                     compact
                   />

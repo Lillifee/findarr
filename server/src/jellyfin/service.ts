@@ -38,6 +38,9 @@ export function createJellyfinService(db: DB) {
       return { url: s.jellyfinUrl, connected, apiKeySet: s.jellyfinApiKeySet };
     },
 
+    /**
+     * Get all media with season availability embedded for TV shows
+     */
     async getAllMedia(): Promise<JellyfinMedia[]> {
       const client = await getClient();
       if (!client) return [];
@@ -62,6 +65,32 @@ export function createJellyfinService(db: DB) {
         startIndex += response.Items.length;
         hasMore = startIndex < response.TotalRecordCount;
       }
+
+      // For TV series, fetch and embed available seasons
+      const tvSeries = allItems.filter(item => item.type === 'tv');
+
+      await Promise.all(
+        tvSeries.map(async item => {
+          try {
+            const seasonsResponse = await client.getItems({
+              itemTypes: ['Season'],
+              parentId: item.jellyfinId,
+            });
+
+            const seasonNumbers = seasonsResponse.Items.filter(
+              season =>
+                season.Type === 'Season' && isDefined(season.IndexNumber) && season.IndexNumber > 0
+            ).map(season => season.IndexNumber as number);
+
+            if (seasonNumbers.length > 0) {
+              item.availableSeasons = seasonNumbers;
+            }
+          } catch {
+            // Don't fail entire sync if one series fails
+            // TODO: Add logging here to track failures?
+          }
+        })
+      );
 
       return allItems;
     },

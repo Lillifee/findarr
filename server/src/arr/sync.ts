@@ -81,6 +81,7 @@ export async function syncLibrary(
     tvdbId: item.tvdbId ?? null,
     tmdbId: item.tmdbId ?? null,
     status: (item.hasFile ? 'downloaded' : 'requested') as MediaStatus,
+    seasons: item.seasons ?? null,
   }));
 
   // Count items that will be skipped due to missing IDs

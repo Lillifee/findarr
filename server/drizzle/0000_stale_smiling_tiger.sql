@@ -29,6 +29,7 @@ CREATE TABLE `media` (
 	`tvdbId` integer,
 	`arrId` integer,
 	`jellyfinId` text,
+	`seasons` text,
 	`status` text DEFAULT 'pending' NOT NULL,
 	`createdAt` integer DEFAULT (unixepoch() * 1000) NOT NULL,
 	`updatedAt` integer DEFAULT (unixepoch() * 1000) NOT NULL

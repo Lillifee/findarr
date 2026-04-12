@@ -7,14 +7,15 @@ export const JellyfinProviderIdsSchema = z.object({
   Tvdb: z.string().optional(),
 });
 
-// Jellyfin Item (movie or show)
+// Jellyfin Item (movie, show, or season)
 export const JellyfinItemSchema = z.object({
   Id: z.string(),
   Name: z.string(),
-  Type: z.enum(['Movie', 'Series']),
+  Type: z.enum(['Movie', 'Series', 'Season']),
   ProviderIds: JellyfinProviderIdsSchema.optional(),
   ProductionYear: z.number().optional(),
   Overview: z.string().optional(),
+  IndexNumber: z.number().optional(), // Season number for Season type
   ImageTags: z
     .object({
       Primary: z.string().optional(),

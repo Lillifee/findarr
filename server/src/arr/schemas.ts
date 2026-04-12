@@ -35,6 +35,21 @@ export const RadarrMovieSchema = z
   })
   .transform(data => ({ ...data, type: 'movie' as const }));
 
+// Sonarr season object from GET /api/v3/series
+export const SonarrSeasonSchema = z.object({
+  seasonNumber: z.number(),
+  monitored: z.boolean(),
+  statistics: z
+    .object({
+      episodeFileCount: z.number().optional(),
+      episodeCount: z.number().optional(),
+      totalEpisodeCount: z.number().optional(),
+      sizeOnDisk: z.number().optional(),
+      percentOfEpisodes: z.number().optional(),
+    })
+    .optional(),
+});
+
 // Sonarr series object from GET /api/v3/series
 export const SonarrSeriesSchema = z
   .object({
@@ -44,6 +59,7 @@ export const SonarrSeriesSchema = z
     year: z.number().optional(),
     monitored: z.boolean(),
     seasonFolder: z.boolean().optional(),
+    seasons: z.array(SonarrSeasonSchema).optional(),
     statistics: z
       .object({
         seasonCount: z.number().optional(),
@@ -76,20 +92,28 @@ const BaseQueueItemSchema = z.object({
 // Radarr queue item from GET /api/v3/queue
 export const RadarrQueueItemSchema = BaseQueueItemSchema.extend({
   movieId: z.number().optional(),
-}).transform(data => ({
-  ...data,
-  type: 'movie' as const,
-  arrId: data.movieId,
-}));
+})
+  .refine(data => data.movieId !== undefined, {
+    message: 'Must have movieId for Radarr queue item',
+  })
+  .transform(data => ({
+    ...data,
+    type: 'movie' as const,
+    arrId: data.movieId,
+  }));
 
 // Sonarr queue item from GET /api/v3/queue
 export const SonarrQueueItemSchema = BaseQueueItemSchema.extend({
   seriesId: z.number().optional(),
-}).transform(data => ({
-  ...data,
-  type: 'tv' as const,
-  arrId: data.seriesId,
-}));
+})
+  .refine(data => data.seriesId !== undefined, {
+    message: 'Must have seriesId for Sonarr queue item',
+  })
+  .transform(data => ({
+    ...data,
+    type: 'tv' as const,
+    arrId: data.seriesId,
+  }));
 
 // Unified queue response schema for both Radarr and Sonarr
 export const ArrQueueResponseSchema = z.object({
@@ -103,6 +127,7 @@ export const ArrQueueResponseSchema = z.object({
 
 export type RadarrMovie = z.infer<typeof RadarrMovieSchema>;
 export type SonarrSeries = z.infer<typeof SonarrSeriesSchema>;
+export type SonarrSeason = z.infer<typeof SonarrSeasonSchema>;
 export type ArrQueueResponse = z.infer<typeof ArrQueueResponseSchema>;
 export type ArrAddMediaResponse = z.infer<typeof ArrAddMediaResponseSchema>;
 
@@ -120,4 +145,9 @@ export interface ArrLibraryItem {
   year?: number | undefined;
   monitored: boolean;
   hasFile: boolean; // Computed from hasFile (Radarr) or statistics.episodeFileCount > 0 (Sonarr)
+  seasons?: Array<{
+    // Only for TV shows - season tracking from Sonarr
+    seasonNumber: number;
+    status: 'none' | 'monitored' | 'downloaded';
+  }>;
 }

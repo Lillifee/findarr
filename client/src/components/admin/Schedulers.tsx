@@ -9,7 +9,7 @@ export function Schedulers() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
-    loadSchedulers();
+    void loadSchedulers();
     // Refresh every 5 seconds
     const interval = setInterval(loadSchedulers, 5000);
     return () => clearInterval(interval);

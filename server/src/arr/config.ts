@@ -29,7 +29,6 @@ export const arrConfig = {
     libraryItemSchema: SonarrSeriesSchema,
     extraFields: {
       addOptions: { searchForMissingEpisodes: true },
-      seasons: [],
     },
   },
 } as const;

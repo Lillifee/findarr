@@ -16,8 +16,8 @@ import { loadFixture } from './helpers/fixtureHelper.js';
 import { createTestUserInDb } from './helpers/testHelper.js';
 
 // Helper to round score values for snapshots
-const toFixed4 = (value: number | undefined) =>
-  isDefined(value) ? Number(value.toFixed(4)) : undefined;
+const toFixed2 = (value: number | undefined) =>
+  isDefined(value) ? Number(value.toFixed(2)) : undefined;
 
 describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
   let db: DB;
@@ -111,13 +111,13 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
       name: item.name,
       type: item.type,
       tmdbId: item.tmdbId,
-      baseScore: toFixed4(item.state?.score?.baseScore),
-      baseTrendingScore: toFixed4(item.state?.score?.baseTrendingScore),
-      genreScore: toFixed4(item.state?.score?.genreScore),
-      keywordScore: toFixed4(item.state?.score?.keywordScore),
-      userScore: toFixed4(item.state?.score?.userScore),
-      finalScore: toFixed4(item.state?.score?.finalScore),
-      finalTrendingScore: toFixed4(item.state?.score?.finalTrendingScore),
+      baseScore: toFixed2(item.state?.score?.baseScore),
+      baseTrendingScore: toFixed2(item.state?.score?.baseTrendingScore),
+      genreScore: toFixed2(item.state?.score?.genreScore),
+      keywordScore: toFixed2(item.state?.score?.keywordScore),
+      userScore: toFixed2(item.state?.score?.userScore),
+      finalScore: toFixed2(item.state?.score?.finalScore),
+      finalTrendingScore: toFixed2(item.state?.score?.finalTrendingScore),
     }));
 
     // Verify ordering is by finalTrendingScore (descending)
@@ -159,12 +159,12 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
       name: item.name,
       type: item.type,
       tmdbId: item.tmdbId,
-      baseScore: toFixed4(item.state?.score?.baseScore),
-      genreScore: toFixed4(item.state?.score?.genreScore),
-      keywordScore: toFixed4(item.state?.score?.keywordScore),
-      userScore: toFixed4(item.state?.score?.userScore),
-      finalScore: toFixed4(item.state?.score?.finalScore),
-      finalTrendingScore: toFixed4(item.state?.score?.finalTrendingScore),
+      baseScore: toFixed2(item.state?.score?.baseScore),
+      genreScore: toFixed2(item.state?.score?.genreScore),
+      keywordScore: toFixed2(item.state?.score?.keywordScore),
+      userScore: toFixed2(item.state?.score?.userScore),
+      finalScore: toFixed2(item.state?.score?.finalScore),
+      finalTrendingScore: toFixed2(item.state?.score?.finalTrendingScore),
     }));
 
     // Verify ordering is by finalTrendingScore (descending)

@@ -33,7 +33,7 @@ export async function syncJellyfinLibrary(fastify: FastifyInstance): Promise<voi
 
   fastify.log.debug('Jellyfin connection successful');
 
-  // Fetch items from Jellyfin (full or partial based on mode)
+  // Fetch items from Jellyfin (includes season data embedded for TV shows)
   const jellyfinItems = await fastify.jellyfin.getAllMedia();
 
   if (jellyfinItems.length === 0) {
@@ -41,7 +41,7 @@ export async function syncJellyfinLibrary(fastify: FastifyInstance): Promise<voi
     return;
   }
 
-  // Upsert media items into database
+  // Upsert media items into database (handles seasons for TV shows)
   const affectedRows = await upsertMediaFromJellyfin(fastify.db, jellyfinItems);
 
   // Cleanup: Find items in DB that are no longer in Jellyfin

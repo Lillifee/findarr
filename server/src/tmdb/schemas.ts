@@ -117,6 +117,18 @@ const TMDBTVKeywordsSchema = z.object({
   results: z.array(TMDBKeywordSchema),
 });
 
+// TMDB Season schema (for TV shows)
+const TMDBSeasonSchema = z.object({
+  air_date: z.string().nullish(),
+  episode_count: z.number(),
+  id: z.number(),
+  name: z.string(),
+  overview: z.string(),
+  poster_path: z.string().nullish(),
+  season_number: z.number(),
+  vote_average: z.number(),
+});
+
 // Base append fields (shared between movies and TV)
 const TMDBAppendFieldsSchema = {
   credits: TMDBCreditsSchema.optional(),
@@ -161,6 +173,7 @@ export const TMDBTVDetailsSchema = TMDBBaseFieldsSchema.omit({ genre_ids: true }
     episode_run_time: z.array(z.number()),
     number_of_episodes: z.number(),
     number_of_seasons: z.number(),
+    seasons: z.array(TMDBSeasonSchema),
     status: z.string(),
     type: z.string(),
     homepage: z.string().nullish(),

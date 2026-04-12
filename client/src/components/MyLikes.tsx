@@ -8,7 +8,7 @@ export function MyLikes() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadLikedMedia();
+    void loadLikedMedia();
   }, []);
 
   async function loadLikedMedia() {

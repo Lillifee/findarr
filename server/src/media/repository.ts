@@ -37,11 +37,17 @@ export const createMedia = async (
   db: DB,
   tmdbId: number,
   type: 'movie' | 'tv',
-  status: MediaStatus = 'pending'
+  status: MediaStatus = 'pending',
+  seasonNumbers?: number[] // For initial request: convert to SeasonRecord[]
 ) => {
   // Check if media already exists (prevent duplicates since we removed the unique constraint)
   const existing = await getMediaByTmdbId(db, tmdbId, type);
   if (existing) return existing;
+
+  // Convert season numbers to SeasonRecord format for storage
+  const seasons = seasonNumbers
+    ? seasonNumbers.map(seasonNumber => ({ seasonNumber, status: 'requested' as const }))
+    : null;
 
   const result = await db
     .insert(media)
@@ -49,6 +55,7 @@ export const createMedia = async (
       tmdbId,
       type,
       status,
+      seasons,
     })
     .returning({
       id: media.id,
@@ -83,6 +90,32 @@ export const updateMediaStatus = async (
 };
 
 /**
+ * Update the seasons for a TV show media record
+ * Converts season numbers to SeasonRecord format with monitored=true
+ */
+export const updateMediaSeasons = async (
+  db: DB,
+  mediaId: number,
+  seasonNumbers: number[] | null
+): Promise<void> => {
+  const seasons = seasonNumbers
+    ? seasonNumbers.map(seasonNumber => ({ seasonNumber, status: 'requested' as const }))
+    : null;
+
+  const result = await db
+    .update(media)
+    .set({
+      seasons,
+      updatedAt: Date.now(),
+    })
+    .where(eq(media.id, mediaId));
+
+  if (result.changes === 0) {
+    throw NotFound('Media not found');
+  }
+};
+
+/**
  * Batch query for media records by TMDB IDs and types
  * Used for enriching multiple media items at once
  */
@@ -107,6 +140,7 @@ export async function getMediaRecordsBatch(
       arrId: true,
       status: true,
       jellyfinId: true,
+      seasons: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -120,6 +154,7 @@ export async function getMediaRecordsBatch(
       arrId: row.arrId,
       tvdbId: row.tvdbId,
       jellyfinId: row.jellyfinId,
+      seasons: row.seasons,
       status: row.status,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
@@ -146,6 +181,7 @@ export async function getMediaByStatus(db: DB, statuses: MediaStatus[]): Promise
       arrId: true,
       status: true,
       jellyfinId: true,
+      seasons: true,
       createdAt: true,
       updatedAt: true,
     },

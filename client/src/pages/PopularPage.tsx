@@ -61,7 +61,9 @@ export function PopularPage() {
       }
     };
 
-    loadPopularContent();
+    loadPopularContent().catch(error => {
+      console.error('Error loading popular content:', error);
+    });
   }, [currentSearchType, language, selectedRegions, currentPage, selectedGenres]);
 
   const handleRegionsChange = (regions: RegionGroupId[]) => {
@@ -105,7 +107,7 @@ export function PopularPage() {
   };
 
   const handleSelectItem = (item: Media) => {
-    navigate(`/${item.type}/${item.tmdbId}`);
+    void navigate(`/${item.type}/${item.tmdbId}`);
   };
 
   const handleUpdateItem = (updatedItem: Media) => {

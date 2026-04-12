@@ -186,7 +186,7 @@ export function createSchedulerService(
     /**
      * Start the orchestration loop
      */
-    startOrchestration(): void {
+    async startOrchestration() {
       fastify.log.info(
         { tickIntervalSec: TICK_INTERVAL_MS / 1000 },
         'Starting scheduler orchestration'
@@ -203,7 +203,7 @@ export function createSchedulerService(
       }
 
       // Start tick loop
-      tick();
+      await tick();
     },
 
     /**

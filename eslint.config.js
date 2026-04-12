@@ -49,7 +49,7 @@ export default [
       },
     },
     rules: {
-      // TypeScript
+      // TypeScript (syntax-based)
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -97,6 +97,24 @@ export default [
       'unicorn/consistent-function-scoping': 'off',
       'unicorn/no-array-sort': 'off', // Sort is fine for SQLite result mutation
       'unicorn/no-useless-undefined': 'off',
+    },
+  },
+
+  /* -------------------------------------------------- */
+  /* TypeScript type-aware rules (slower, excludes config/scripts) */
+  /* -------------------------------------------------- */
+  {
+    files: ['**/*.{ts,tsx}'],
+    ignores: ['**/*.config.ts', '**/drizzle.config.ts', '**/scripts/**'],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      // TypeScript (type-aware - requires loading type checker)
+      '@typescript-eslint/no-floating-promises': 'error',
     },
   },
 

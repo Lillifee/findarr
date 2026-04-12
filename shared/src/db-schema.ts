@@ -43,6 +43,10 @@ export const media = sqliteTable(
     tvdbId: integer('tvdbId'), // TVDB ID - only for TV shows, used for Sonarr sync
     arrId: integer('arrId'), // Radarr movie ID or Sonarr series ID (determined by type)
     jellyfinId: text('jellyfinId'),
+    seasons: text('seasons', { mode: 'json' }).$type<Array<{
+      seasonNumber: number;
+      status: 'none' | 'requested' | 'monitored' | 'downloaded' | 'available';
+    }> | null>(), // TV only: season tracking synced from Sonarr/Jellyfin (none=not in Sonarr, requested=user wants it, monitored=in Sonarr, downloaded=complete in Sonarr, available=in Jellyfin)
     status: text('status', {
       enum: ['pending', 'requested', 'downloading', 'downloaded', 'available', 'warning'],
     })

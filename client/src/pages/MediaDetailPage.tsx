@@ -44,11 +44,11 @@ export function MediaDetailPage() {
       }
     };
 
-    loadDetails();
+    void loadDetails();
   }, [type, id, language]);
 
   const handleBack = () => {
-    navigate(-1);
+    void navigate(-1);
   };
 
   return (

@@ -31,16 +31,19 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
 
   // Normalize prefixed settings fields to local names for the form
   type AnyArrSettings = RadarrSettings | SonarrSettings;
-  const norm = (settings: AnyArrSettings) => ({
-    url: (settings as Record<string, unknown>)[`${service}Url`] as string | null,
-    apiKeySet: (settings as Record<string, unknown>)[`${service}ApiKeySet`] as boolean,
-    qualityProfileId: (settings as Record<string, unknown>)[`${service}QualityProfileId`] as
-      | number
-      | null,
-    rootFolderPath: (settings as Record<string, unknown>)[`${service}RootFolderPath`] as
-      | string
-      | null,
-  });
+  const norm = useCallback(
+    (settings: AnyArrSettings) => ({
+      url: (settings as Record<string, unknown>)[`${service}Url`] as string | null,
+      apiKeySet: (settings as Record<string, unknown>)[`${service}ApiKeySet`] as boolean,
+      qualityProfileId: (settings as Record<string, unknown>)[`${service}QualityProfileId`] as
+        | number
+        | null,
+      rootFolderPath: (settings as Record<string, unknown>)[`${service}RootFolderPath`] as
+        | string
+        | null,
+    }),
+    [service]
+  );
 
   const defaultSettings: RadarrSettings = {
     radarrUrl: null,
@@ -95,7 +98,7 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
     } finally {
       setIsLoading(false);
     }
-  }, [svc, loadProfiles]);
+  }, [svc, norm, loadProfiles]);
 
   useEffect(() => {
     void init();

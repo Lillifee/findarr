@@ -4,13 +4,17 @@ export interface JellyfinMedia {
   jellyfinId: string;
   tmdbId: number;
   type: 'movie' | 'tv';
+  availableSeasons?: number[]; // For TV shows - which seasons are available in Jellyfin
 }
 
 /**
  * Transform Jellyfin item to application format
  * Returns undefined if item doesn't have TMDB ID (can't match to our system)
  */
-export function jellyfinItemToMedia(item: JellyfinItem): JellyfinMedia | undefined {
+export function jellyfinItemToMedia(
+  item: JellyfinItem,
+  availableSeasons?: number[]
+): JellyfinMedia | undefined {
   // Must have TMDB ID to match with our media database
   const tmdbId = item.ProviderIds?.Tmdb;
   if (!tmdbId) {
@@ -29,5 +33,6 @@ export function jellyfinItemToMedia(item: JellyfinItem): JellyfinMedia | undefin
     type,
     jellyfinId: item.Id,
     tmdbId: tmdbIdNum,
+    ...(type === 'tv' && availableSeasons ? { availableSeasons } : {}),
   };
 }

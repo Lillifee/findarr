@@ -16,7 +16,8 @@ import { scoreMediaItems, scoreMediaItemsForUser } from './scoring.js';
 // ============================================================================
 
 /**
- * Enrich TMDB media items with database records (status, jellyfinId)
+ * Enrich TMDB media items with database records (status, jellyfinId, arrId, season tracking)
+ * Frontend can match season status by seasonNumber from state.record.seasons if needed
  */
 export async function enrichWithRecords(db: DB, mediaItems: Media[]): Promise<Media[]> {
   if (mediaItems.length === 0) return mediaItems;
@@ -24,12 +25,8 @@ export async function enrichWithRecords(db: DB, mediaItems: Media[]): Promise<Me
   const mediaRecords = await getMediaRecordsBatch(db, mediaItems);
 
   return mediaItems.map(item => {
-    const key = `${item.tmdbId}_${item.type}`;
-    const record = mediaRecords.get(key);
-
-    if (!record) return item;
-
-    return { ...item, state: { ...item.state, record } };
+    const record = mediaRecords.get(`${item.tmdbId}_${item.type}`);
+    return record ? { ...item, state: { ...item.state, record } } : item;
   });
 }
 
@@ -137,6 +134,7 @@ export async function fetchTMDBDetails(
               arrId: row.arrId,
               status: row.status,
               jellyfinId: row.jellyfinId,
+              seasons: row.seasons,
               createdAt: row.createdAt,
               updatedAt: row.updatedAt,
             },

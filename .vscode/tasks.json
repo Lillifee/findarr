@@ -21,6 +21,30 @@
       },
     },
     {
+      "label": "Start Client (Vite)",
+      "type": "shell",
+      "command": "npm run dev:client",
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^$",
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "VITE.*ready",
+          "endsPattern": "Local:.*http://localhost:5173",
+        },
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": false,
+      },
+    },
+    {
       "label": "Build",
       "type": "shell",
       "command": "npm run build",

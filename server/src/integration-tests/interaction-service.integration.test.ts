@@ -67,6 +67,7 @@ const catalogService: CatalogService = {
             jellyfinId: null,
             tvdbId: null,
             arrId: null,
+            seasons: null,
             createdAt: Date.now(),
             updatedAt: Date.now(),
           },
@@ -666,7 +667,7 @@ describe('interaction service - integration tests', () => {
 
       // Allow fire-and-forget to complete
       await vi.waitFor(() =>
-        expect(radarrService.request).toHaveBeenCalledWith(1, 123, 'Test Movie')
+        expect(radarrService.request).toHaveBeenCalledWith(1, 123, 'Test Movie', null, undefined)
       );
     });
 
@@ -675,6 +676,7 @@ describe('interaction service - integration tests', () => {
         mediaType: 'tv',
         tmdbId: 456,
         action: 'liked',
+        seasons: [1, 2],
       };
       vi.mocked(tmdbWithTvdb.getDetails).mockResolvedValue(
         createTestTVDetail({ tmdbId: 456, name: 'Test Show', tvdbId: 81_189 }) as never
@@ -716,7 +718,7 @@ describe('interaction service - integration tests', () => {
       );
 
       await vi.waitFor(() =>
-        expect(sonarrService.request).toHaveBeenCalledWith(1, 81_189, 'Test Show')
+        expect(sonarrService.request).toHaveBeenCalledWith(1, 81_189, 'Test Show', null, [1, 2])
       );
     });
 

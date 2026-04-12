@@ -21,7 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Fetch current user on mount
   useEffect(() => {
-    refreshUser();
+    void refreshUser();
   }, []);
 
   // Add axios interceptor to handle 401 errors

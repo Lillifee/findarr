@@ -57,6 +57,14 @@ export const createTestTVDetail = (props?: Partial<TVDetails>): TVDetails => ({
   showType: 'Scripted',
   numberOfSeasons: 1,
   numberOfEpisodes: 10,
+  seasons: [
+    {
+      seasonNumber: 1,
+      name: 'Season 1',
+      episodeCount: 10,
+      airDate: '2024-01-01',
+    },
+  ],
   status: 'Returning Series',
   homepage: undefined,
   tvdbId: undefined,

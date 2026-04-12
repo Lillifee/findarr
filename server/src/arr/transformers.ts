@@ -22,18 +22,27 @@ export function transformRadarrMovie(radarrMovie: RadarrMovie): ArrLibraryItem {
 /**
  * Transform Sonarr Series to unified ArrLibraryItem type
  */
-export function transformSonarrSeries(sonarrSeries: SonarrSeries): ArrLibraryItem {
-  // Compute hasFile from statistics (series has files if any episodes downloaded)
-  const hasFile = (sonarrSeries.statistics?.episodeFileCount ?? 0) > 0;
+export function transformSonarrSeries(series: SonarrSeries): ArrLibraryItem {
+  const seasons = series.seasons?.map(s => {
+    const stats = s.statistics;
+    const total = stats?.totalEpisodeCount ?? stats?.episodeCount ?? 0;
+    const downloaded = stats?.episodeFileCount ?? 0;
+
+    return {
+      seasonNumber: s.seasonNumber,
+      status: total > 0 && downloaded >= total ? 'downloaded' : s.monitored ? 'monitored' : 'none',
+    } as const;
+  });
 
   return {
-    id: sonarrSeries.id,
+    id: series.id,
     type: 'tv',
-    tvdbId: sonarrSeries.tvdbId,
-    title: sonarrSeries.title,
-    year: sonarrSeries.year,
-    monitored: sonarrSeries.monitored,
-    hasFile,
+    tvdbId: series.tvdbId,
+    title: series.title,
+    year: series.year,
+    monitored: series.monitored,
+    hasFile: (series.statistics?.episodeFileCount ?? 0) > 0,
+    ...(seasons && { seasons }),
   };
 }
 

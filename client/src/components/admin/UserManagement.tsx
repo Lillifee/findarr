@@ -15,7 +15,7 @@ export function UserManagement() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    loadUsers();
+    void loadUsers();
   }, []);
 
   async function loadUsers() {

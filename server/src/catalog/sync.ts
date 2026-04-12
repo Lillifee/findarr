@@ -20,7 +20,7 @@ export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> 
   fastify.log.info('Starting catalog cache sync (phase 1: basic media)...');
 
   // TODO - use language setting from config
-  const language = 'de-DE';
+  const language = 'en-US';
 
   // Fetch both trending and recent releases (already includes basic metadata)
   fastify.log.info('Fetching trending and discover results from TMDB...');

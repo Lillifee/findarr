@@ -7,7 +7,7 @@ export function VoteBasedRequestManagement() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadRequestedMedia();
+    void loadRequestedMedia();
   }, []);
 
   async function loadRequestedMedia() {

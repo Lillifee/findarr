@@ -33,6 +33,18 @@ const server = Fastify({
               ignore: 'pid,hostname',
             },
           },
+          serializers: {
+            err: (
+              err: Error & { code?: string; status?: number; response?: { data?: unknown } }
+            ) => ({
+              type: err.name,
+              message: err.message,
+              code: err.code,
+              status: err.status,
+              data: err.response?.data,
+              stack: err.stack ?? 'no stack trace',
+            }),
+          },
         }
       : {
           level: 'warn',
@@ -84,7 +96,7 @@ async function start() {
     await server.register(adminSchedulerRoutes, { prefix: '/api/admin' });
 
     // Start scheduler orchestration
-    server.scheduler.startOrchestration();
+    await server.scheduler.startOrchestration();
 
     // Start server
     const address = await server.listen({
@@ -99,4 +111,4 @@ async function start() {
   }
 }
 
-start();
+void start();

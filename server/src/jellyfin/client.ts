@@ -7,7 +7,8 @@ export interface JellyfinClient {
 }
 
 export interface GetItemsParams {
-  itemTypes: ('Movie' | 'Series')[];
+  itemTypes: ('Movie' | 'Series' | 'Season')[];
+  parentId?: string;
   startIndex?: number;
   limit?: number;
   recursive?: boolean;
@@ -31,11 +32,12 @@ export function createJellyfinClient(baseUrl: string, apiKey: string): JellyfinC
     },
 
     async getItems(params: GetItemsParams): Promise<JellyfinItemsResponse> {
-      const { itemTypes, startIndex = 0, limit = 100, recursive = true } = params;
+      const { itemTypes, parentId, startIndex = 0, limit = 100, recursive = true } = params;
 
       const response = await client.get('/Items', {
         params: {
           IncludeItemTypes: itemTypes.join(','),
+          ...(parentId && { ParentId: parentId }),
           StartIndex: startIndex,
           Limit: limit,
           Recursive: recursive,
