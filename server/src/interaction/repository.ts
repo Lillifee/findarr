@@ -191,9 +191,25 @@ export async function getVoteCountsBatch(
 /**
  * Get all media records where a user has ANY interaction (liked or disliked)
  * Returns the media DB rows ordered by interaction creation time (most recent first)
+ * Supports pagination with limit and offset
  */
-export async function getMediaByUserInteractions(db: DB, userId: number): Promise<DbMedia[]> {
-  return await db
+export async function getMediaByUserInteractions(
+  db: DB,
+  userId: number,
+  limit?: number,
+  offset?: number
+): Promise<{ results: DbMedia[]; totalCount: number }> {
+  // Get total count for pagination
+  const countResult = await db
+    .select({ count: sql<number>`count(distinct ${media.id})` })
+    .from(media)
+    .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
+    .where(eq(userMediaInteractions.userId, userId));
+
+  const totalCount = Number(countResult[0]?.count ?? 0);
+
+  // Get paginated results
+  let query = db
     .selectDistinct({
       id: media.id,
       type: media.type,
@@ -210,6 +226,17 @@ export async function getMediaByUserInteractions(db: DB, userId: number): Promis
     .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
     .where(eq(userMediaInteractions.userId, userId))
     .orderBy(desc(userMediaInteractions.createdAt));
+
+  if (limit !== undefined) {
+    query = query.limit(limit) as typeof query;
+  }
+  if (offset !== undefined) {
+    query = query.offset(offset) as typeof query;
+  }
+
+  const results = await query;
+
+  return { results, totalCount };
 }
 
 /**

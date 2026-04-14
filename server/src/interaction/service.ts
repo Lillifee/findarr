@@ -151,22 +151,44 @@ async function requestMediaToArr(
 
 /**
  * Get user's interacted media (likes AND dislikes) enriched with TMDB metadata, interactions, and vote counts
+ * Supports pagination for better performance with large vote lists
  */
 export async function getUserInteractionsEnriched(
   tmdbService: TMDBService,
   db: DB,
-  userId?: number
-): Promise<Media[]> {
-  if (!userId) return [];
+  userId?: number,
+  page = 1
+): Promise<{ results: Media[]; page: number; totalPages: number; totalResults: number }> {
+  if (!userId) {
+    return { results: [], page: 1, totalPages: 0, totalResults: 0 };
+  }
 
-  // Get all media where user has any interaction (liked or disliked)
-  const dbRecords = await getMediaByUserInteractions(db, userId);
+  const itemsPerPage = 20;
+  const offset = (page - 1) * itemsPerPage;
+
+  // Get paginated media where user has any interaction (liked or disliked)
+  const { results: dbRecords, totalCount } = await getMediaByUserInteractions(
+    db,
+    userId,
+    itemsPerPage,
+    offset
+  );
+
+  // Calculate pagination metadata
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   // Fetch TMDB details for all interacted media
   const enrichedMedia = await fetchTMDBDetails(tmdbService, dbRecords);
 
   // Add user interactions and vote counts in optimized batch query
-  return await enrichWithInteractions(db, enrichedMedia, userId);
+  const results = await enrichWithInteractions(db, enrichedMedia, userId);
+
+  return {
+    results,
+    page,
+    totalPages,
+    totalResults: totalCount,
+  };
 }
 
 /**

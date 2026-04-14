@@ -1,5 +1,7 @@
 import { type RegionGroupId } from '@findarr/shared';
 import React from 'react';
+import { Badge } from './ui/Badge';
+import { Button } from './ui/Button';
 
 // Region metadata for UI display (TMDB mapping handled server-side)
 const REGION_INFO: Record<RegionGroupId, { name: string }> = {
@@ -81,11 +83,11 @@ interface RegionChipsProps {
   disabled?: boolean;
 }
 
-export const RegionChips: React.FC<RegionChipsProps> = ({
+export function RegionChips({
   selectedRegions,
   onRegionsChange,
   disabled = false,
-}) => {
+}: RegionChipsProps) {
   const allRegions = Object.keys(REGION_INFO) as RegionGroupId[];
 
   const handleRegionToggle = (regionId: RegionGroupId) => {
@@ -107,14 +109,16 @@ export const RegionChips: React.FC<RegionChipsProps> = ({
           Regions {selectedRegions.length > 0 && `(${selectedRegions.length})`}
         </label>
         {selectedRegions.length > 0 && (
-          <button
+          <Button
             type="button"
             onClick={clearAllRegions}
             disabled={disabled}
-            className="text-xs text-amber-400 hover:text-amber-300 transition-colors disabled:opacity-50 cursor-pointer"
+            variant="ghost"
+            size="sm"
+            className="text-xs text-amber-400 hover:text-amber-300"
           >
             Clear all
-          </button>
+          </Button>
         )}
       </div>
 
@@ -124,36 +128,30 @@ export const RegionChips: React.FC<RegionChipsProps> = ({
           const isSelected = selectedRegions.includes(regionId);
 
           return (
-            <button
+            <Badge
               key={regionId}
-              type="button"
-              onClick={() => handleRegionToggle(regionId)}
-              disabled={disabled}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer ${
-                isSelected
-                  ? 'bg-linear-to-r from-amber-600 to-orange-600 text-white border-2 border-amber-400 shadow-md'
-                  : 'bg-gray-800/60 backdrop-blur-sm text-gray-300 border-2 border-gray-600/50 hover:bg-gray-700/80 hover:border-gray-500'
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
+              variant="primary"
+              selected={isSelected}
+              interactive
+              onClick={() => !disabled && handleRegionToggle(regionId)}
+              className={disabled ? 'opacity-50 cursor-not-allowed' : ''}
             >
               {getRegionIcon(regionId)}
               <span>{region.name}</span>
-              <svg
-                className={`w-3 h-3 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0'}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </button>
+              {isSelected && (
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              )}
+            </Badge>
           );
         })}
       </div>
     </div>
   );
-};
+}

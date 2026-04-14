@@ -120,8 +120,11 @@ export const interactionService = {
   },
 
   // Get user's voted media (both likes and dislikes)
-  listLiked: async (): Promise<Media[]> => {
-    const response = await api.get('/interactions');
+  // Supports pagination with page parameter (20 items per page)
+  listLiked: async (page = 1): Promise<DiscoverResponse> => {
+    const response = await api.get('/interactions', {
+      params: { page },
+    });
     return response.data;
   },
 };
@@ -191,15 +194,6 @@ export const adminJellyfinService = {
   },
   test: async (): Promise<JellyfinTestResult> => {
     const response = await api.post('/admin/jellyfin/test');
-    return response.data;
-  },
-};
-
-// Admin interaction management service
-export const adminInteractionService = {
-  // Get all media with any interactions (pending, requested, or available)
-  listAll: async (): Promise<Media[]> => {
-    const response = await api.get('/admin/interactions');
     return response.data;
   },
 };

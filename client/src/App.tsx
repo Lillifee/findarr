@@ -3,7 +3,6 @@ import { LoginForm } from './components/LoginForm';
 import { Navigation } from './components/Navigation';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ArrSettingsPage } from './pages/admin/ArrSettingsPage';
-import { RequestManagementPage } from './pages/admin/RequestManagementPage';
 import { SchedulersPage } from './pages/admin/SchedulersPage';
 import { UserManagementPage } from './pages/admin/UserManagementPage';
 import { DiscoverPage } from './pages/DiscoverPage';
@@ -53,7 +52,6 @@ function MainApp() {
           {isAdmin && (
             <>
               <Route path="/admin/users" element={<UserManagementPage />} />
-              <Route path="/admin/requests" element={<RequestManagementPage />} />
               <Route path="/admin/arr" element={<ArrSettingsPage />} />
               <Route path="/admin/schedulers" element={<SchedulersPage />} />
             </>

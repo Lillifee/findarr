@@ -76,7 +76,7 @@ export function scoreMediaItems(
       : 0;
 
     // Base score (popularity + rating, no trending penalty)
-    const baseScore = 0.5 * popularityScore + 0.5 * weightedRating;
+    const baseScore = 0.3 * popularityScore + 0.7 * weightedRating;
 
     // Trending-boosted score (for popular page sorting)
     const baseTrendingScore = 0.6 * baseScore + 0.2 * trendingScore + 0.2 * recencyScore;

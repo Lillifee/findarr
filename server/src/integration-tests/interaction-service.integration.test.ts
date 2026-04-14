@@ -411,24 +411,26 @@ describe('interaction service - integration tests', () => {
 
       const result = await getUserInteractionsEnriched(tmdbServiceForTest, db, user.id);
 
-      expect(result).toHaveLength(2);
+      expect(result.results).toHaveLength(2);
+      expect(result.page).toBe(1);
+      expect(result.totalResults).toBe(2);
       // Verify both items are present (order may vary)
-      const ids = result.map(r => r.tmdbId);
+      const ids = result.results.map(r => r.tmdbId);
       expect(ids).toContain(123);
       expect(ids).toContain(456);
       expect(tmdbServiceForTest.getDetails).toHaveBeenCalledTimes(2);
     });
 
-    it('should return empty array if no userId', async () => {
+    it('should return empty results if no userId', async () => {
       const tmdbServiceForTest = {} as TMDBService;
       const result = await getUserInteractionsEnriched(tmdbServiceForTest, db, undefined);
-      expect(result).toEqual([]);
+      expect(result).toEqual({ results: [], page: 1, totalPages: 0, totalResults: 0 });
     });
 
-    it('should return empty array for userId with no interactions', async () => {
+    it('should return empty results for userId with no interactions', async () => {
       const tmdbServiceForTest = {} as TMDBService;
       const result = await getUserInteractionsEnriched(tmdbServiceForTest, db, 999);
-      expect(result).toEqual([]);
+      expect(result).toEqual({ results: [], page: 1, totalPages: 0, totalResults: 0 });
     });
   });
 

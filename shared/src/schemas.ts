@@ -103,6 +103,10 @@ export const InteractionIdSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
 
+export const InteractionsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).max(1000).default(1),
+});
+
 // ============================================================================
 // Admin / Integration Schemas (Radarr, Sonarr, Jellyfin)
 // ============================================================================
