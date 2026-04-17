@@ -28,6 +28,7 @@ CREATE TABLE `media` (
 	`tmdbId` integer,
 	`tvdbId` integer,
 	`arrId` integer,
+	`arrUrl` text,
 	`jellyfinId` text,
 	`seasons` text,
 	`status` text DEFAULT 'pending' NOT NULL,
@@ -44,11 +45,9 @@ CREATE UNIQUE INDEX `media_tmdbId_type_unique` ON `media` (`tmdbId`,`type`);--> 
 CREATE UNIQUE INDEX `media_tvdbId_type_unique` ON `media` (`tvdbId`,`type`);--> statement-breakpoint
 CREATE TABLE `media_stats` (
 	`mediaType` text PRIMARY KEY NOT NULL,
-	`minPopularity` integer NOT NULL,
 	`maxPopularity` integer NOT NULL,
-	`minVoteCount` integer NOT NULL,
 	`maxVoteCount` integer NOT NULL,
-	`maxAvgRating` integer NOT NULL,
+	`avgRating` real NOT NULL,
 	`updatedAt` integer DEFAULT (unixepoch() * 1000) NOT NULL
 );
 --> statement-breakpoint

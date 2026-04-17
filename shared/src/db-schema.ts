@@ -1,5 +1,13 @@
 import { relations, sql } from 'drizzle-orm';
-import { integer, sqliteTable, text, index, unique, primaryKey } from 'drizzle-orm/sqlite-core';
+import {
+  integer,
+  real,
+  sqliteTable,
+  text,
+  index,
+  unique,
+  primaryKey,
+} from 'drizzle-orm/sqlite-core';
 
 // ============================================================================
 // Settings Table
@@ -42,6 +50,7 @@ export const media = sqliteTable(
     tmdbId: integer('tmdbId'), // TMDB ID - canonical identifier for both movies and TV
     tvdbId: integer('tvdbId'), // TVDB ID - only for TV shows, used for Sonarr sync
     arrId: integer('arrId'), // Radarr movie ID or Sonarr series ID (determined by type)
+    arrUrl: text('arrUrl'), // Radarr/Sonarr UI path (e.g. /movie/:tmdbId, /series/:titleSlug)
     jellyfinId: text('jellyfinId'),
     seasons: text('seasons', { mode: 'json' }).$type<Array<{
       seasonNumber: number;
@@ -159,11 +168,9 @@ export const catalogCache = sqliteTable(
 
 export const mediaStats = sqliteTable('media_stats', {
   mediaType: text('mediaType', { enum: ['movie', 'tv'] }).primaryKey(),
-  minPopularity: integer('minPopularity').notNull(),
   maxPopularity: integer('maxPopularity').notNull(),
-  minVoteCount: integer('minVoteCount').notNull(),
   maxVoteCount: integer('maxVoteCount').notNull(),
-  maxAvgRating: integer('maxAvgRating').notNull(), // Highest average rating seen (0-10 scale)
+  avgRating: real('avgRating').notNull(),
   updatedAt: integer('updatedAt')
     .notNull()
     .default(sql`(unixepoch() * 1000)`)

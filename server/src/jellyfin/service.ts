@@ -1,6 +1,8 @@
 import { isDefined } from '@findarr/shared';
 import type { DB } from '../db/setup.js';
+import { getMediaById } from '../media/repository.js';
 import { getJellyfinSettingsFull } from '../settings/repository.js';
+import { trimTrailingSlash } from '../utils/links.js';
 import { createJellyfinClient } from './client.js';
 import type { JellyfinMedia } from './transformers.js';
 import { jellyfinItemToMedia } from './transformers.js';
@@ -93,6 +95,23 @@ export function createJellyfinService(db: DB) {
       );
 
       return allItems;
+    },
+
+    /**
+     * Resolve full Jellyfin URL from internal media ID + current Jellyfin settings.
+     * Fetches media record to get jellyfinId, then constructs URL with base URL.
+     */
+    async resolveUrl(mediaId: number): Promise<string | null> {
+      // Fetch media record by internal ID
+      const mediaRecord = await getMediaById(db, mediaId);
+      if (!mediaRecord?.jellyfinId) return null;
+
+      const settings = await getJellyfinSettingsFull(db);
+      const baseUrl = settings.jellyfinUrl;
+
+      if (!baseUrl || !settings.jellyfinApiKey) return null;
+
+      return `${trimTrailingSlash(baseUrl)}/web/index.html?#/details?id=${mediaRecord.jellyfinId}`;
     },
   };
 }

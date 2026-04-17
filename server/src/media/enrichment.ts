@@ -132,6 +132,7 @@ export async function fetchTMDBDetails(
               id: row.id,
               tvdbId: row.tvdbId,
               arrId: row.arrId,
+              arrUrl: row.arrUrl,
               status: row.status,
               jellyfinId: row.jellyfinId,
               seasons: row.seasons,

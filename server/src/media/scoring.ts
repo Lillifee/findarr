@@ -26,11 +26,9 @@ const clamp = (v: number) => Math.max(0, Math.min(1, v));
  */
 export type MediaStats = {
   mediaType: 'movie' | 'tv';
-  minPopularity: number;
   maxPopularity: number;
-  minVoteCount: number;
   maxVoteCount: number;
-  maxAvgRating: number;
+  avgRating: number;
   updatedAt: number;
 };
 
@@ -50,11 +48,11 @@ export function scoreMediaItems(
 ): Media[] {
   if (items.length === 0) return items;
 
-  const MIN_VOTES = 300;
+  const MIN_VOTES = 50;
 
   const scored = items.map<Media>(item => {
     const stats = item.type === 'movie' ? movieStats : tvStats;
-    const globalAverage = stats.maxAvgRating;
+    const globalAverage = stats.avgRating;
 
     // Normalize popularity (log scale)
     const popularityScore = Math.log10(item.popularity + 1) / Math.log10(stats.maxPopularity + 1);
@@ -70,7 +68,7 @@ export function scoreMediaItems(
       ? clamp(1 - (item.trendingRank - 1) / MAX_TRENDING_RANK)
       : 0;
 
-    // Recency score (kept for potential future use, not used in scoring)
+    // Recency score
     const recencyScore = item.date
       ? Math.exp(-Math.abs(Date.now() - new Date(item.date).getTime()) / MS_PER_DAY / 365)
       : 0;
@@ -108,7 +106,6 @@ export function scoreMediaItems(
 /**
  * Apply user preference scoring to media items
  * Calculates genre and keyword match scores, combines with base scores
- * Formula: 70% base + 15% genre + 15% keyword
  * Note: When keywords are absent, keywordScore copies genreScore (effectively 30% genre weight)
  */
 export function scoreMediaItemsForUser(
@@ -120,8 +117,8 @@ export function scoreMediaItemsForUser(
     return items;
   }
 
-  // Bayesian smoothing to prevent small-sample bias (3 pseudo-ratings at 0 score)
-  const PRIOR_WEIGHT = 3;
+  // Bayesian smoothing to prevent small-sample bias (10 pseudo-ratings at 0 score)
+  const PRIOR_WEIGHT = 10;
   const PRIOR_SCORE = 0;
 
   // Helper: Calculate score contribution with diminishing returns
@@ -129,8 +126,9 @@ export function scoreMediaItemsForUser(
     Math.sqrt(Math.max(0, normalized)) - Math.sqrt(Math.max(0, -normalized));
 
   const scored = items.map<Media>(item => {
-    let genreScore = 0;
-    let keywordScore = 0;
+    // Neutral defaults (0.5) so unmatched preferences do not implicitly demote items.
+    let genreScore = 0.5;
+    let keywordScore = 0.5;
 
     // ---------- GENRE SCORING ----------
     if (genrePreferences.size > 0 && item.genres?.length) {
@@ -147,7 +145,10 @@ export function scoreMediaItemsForUser(
         }
       }
 
-      if (matched) genreScore = Math.tanh(rawScore);
+      if (matched) {
+        const signed = Math.tanh(rawScore);
+        genreScore = (signed + 1) / 2;
+      }
     }
 
     // ---------- KEYWORD SCORING ----------
@@ -164,7 +165,10 @@ export function scoreMediaItemsForUser(
         rawScore += scoreContribution(normalized);
       }
 
-      if (matched) keywordScore = Math.tanh(rawScore);
+      if (matched) {
+        const signed = Math.tanh(rawScore);
+        keywordScore = (signed + 1) / 2;
+      }
     } else if (!item.keywords?.length) {
       // If no keywords exist, copy genre score to avoid penalizing items without keywords
       keywordScore = genreScore;
@@ -176,6 +180,7 @@ export function scoreMediaItemsForUser(
 
     // ---------- FINAL SCORES ----------
     const userScore = 0.5 * genreScore + 0.5 * keywordScore;
+
     const finalScore = 0.7 * baseScore + 0.3 * userScore;
     const finalTrendingScore = 0.7 * baseTrendingScore + 0.3 * userScore;
 

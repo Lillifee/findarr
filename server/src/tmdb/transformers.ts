@@ -10,8 +10,17 @@ import type {
   Genre,
   Keyword,
   Media,
+  CastMember,
+  Video,
 } from '@findarr/shared';
-import type { TMDBMovie, TMDBTVShow, TMDBMovieDetails, TMDBTVDetails } from './schemas.js';
+import type {
+  TMDBMovie,
+  TMDBTVShow,
+  TMDBMovieDetails,
+  TMDBTVDetails,
+  TMDBCredits,
+  TMDBVideos,
+} from './schemas.js';
 
 /**
  * Custom state fields that can be added to transformed items
@@ -103,11 +112,58 @@ export function transformDetails(item: TMDBMovieDetails | TMDBTVDetails) {
 }
 
 /**
+ * Helper: Extract and transform cast members
+ * Limits to top 15 actors sorted by order field
+ */
+function extractCast(credits: TMDBCredits | undefined): CastMember[] | undefined {
+  if (!credits?.cast || credits.cast.length === 0) return undefined;
+
+  return credits.cast.slice(0, 6).map(member => ({
+    id: member.id,
+    name: member.name,
+    character: member.character,
+    profilePath: member.profile_path ?? undefined,
+    order: member.order,
+  }));
+}
+
+/**
+ * Helper: Extract and transform videos (trailers)
+ * Filters for official YouTube trailers and teasers
+ */
+function extractVideos(videos: TMDBVideos | undefined): Video[] | undefined {
+  if (!videos?.results || videos.results.length === 0) return undefined;
+
+  const trailerVideos = videos.results
+    .filter(
+      video =>
+        video.site === 'YouTube' &&
+        (video.type === 'Trailer' || video.type === 'Teaser') &&
+        video.official === true
+    )
+    .map(video => ({
+      id: video.id,
+      key: video.key,
+      name: video.name,
+      site: video.site,
+      type: video.type,
+      official: video.official,
+      publishedAt: video.published_at ?? undefined,
+    }));
+
+  return trailerVideos.length > 0 ? trailerVideos : undefined;
+}
+
+/**
  * Transform TMDB Movie Details to application MovieDetails type
  */
 function transformMovieDetails(tmdbMovie: TMDBMovieDetails): MovieDetails {
   // Extract keywords from movie response (direct array)
   const keywords: Keyword[] = tmdbMovie.keywords?.keywords ?? [];
+
+  // Extract rich media data
+  const cast = extractCast(tmdbMovie.credits);
+  const videos = extractVideos(tmdbMovie.videos);
 
   return {
     tmdbId: tmdbMovie.id,
@@ -131,6 +187,8 @@ function transformMovieDetails(tmdbMovie: TMDBMovieDetails): MovieDetails {
     status: tmdbMovie.status,
     homepage: tmdbMovie.homepage ?? undefined,
     imdbId: tmdbMovie.imdb_id ?? undefined,
+    cast,
+    videos,
   };
 }
 
@@ -148,6 +206,10 @@ function transformTVDetails(tmdbTV: TMDBTVDetails): TVDetails {
     episodeCount: season.episode_count,
     airDate: season.air_date ?? undefined,
   }));
+
+  // Extract rich media data
+  const cast = extractCast(tmdbTV.credits);
+  const videos = extractVideos(tmdbTV.videos);
 
   return {
     tmdbId: tmdbTV.id,
@@ -175,5 +237,7 @@ function transformTVDetails(tmdbTV: TMDBTVDetails): TVDetails {
     homepage: tmdbTV.homepage ?? undefined,
     tvdbId: tmdbTV.external_ids?.tvdb_id ?? undefined,
     imdbId: tmdbTV.external_ids?.imdb_id ?? undefined,
+    cast,
+    videos,
   };
 }

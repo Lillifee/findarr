@@ -70,6 +70,8 @@ export const createTestTVDetail = (props?: Partial<TVDetails>): TVDetails => ({
   tvdbId: undefined,
   imdbId: undefined,
   keywords: [],
+  cast: [],
+  videos: [],
   lastAirDate: undefined,
   ...props,
 });
@@ -85,6 +87,8 @@ export const createTestMovieDetail = (props?: Partial<MovieDetails>): MovieDetai
   homepage: 'https://example.com',
   imdbId: 'tt1234567',
   keywords: [],
+  cast: [],
+  videos: [],
   ...props,
 });
 

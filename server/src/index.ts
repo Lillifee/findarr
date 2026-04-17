@@ -5,6 +5,7 @@ import { ServerEnvSchema } from '@findarr/shared';
 import Fastify from 'fastify';
 import { adminRoutes } from './admin/routes.js';
 import arrPlugin from './arr/plugin.js';
+import { arrRoutes } from './arr/routes.js';
 import authPlugin from './auth/plugin.js';
 import authRoutes from './auth/routes.js';
 import catalogPlugin from './catalog/plugin.js';
@@ -12,6 +13,7 @@ import { catalogRoutes } from './catalog/routes.js';
 import databasePlugin from './db/plugin.js';
 import { interactionRoutes } from './interaction/routes.js';
 import jellyfinPlugin from './jellyfin/plugin.js';
+import { jellyfinRoutes } from './jellyfin/routes.js';
 import schedulerPlugin from './scheduler/plugin.js';
 import { adminSchedulerRoutes, schedulerRoutes } from './scheduler/routes.js';
 import tmdbPlugin from './tmdb/plugin.js';
@@ -90,6 +92,8 @@ async function start() {
     // Register API routes
     await server.register(authRoutes, { prefix: '/api/auth' });
     await server.register(adminRoutes, { prefix: '/api/admin' });
+    await server.register(arrRoutes, { prefix: '/api' });
+    await server.register(jellyfinRoutes, { prefix: '/api' });
     await server.register(interactionRoutes, { prefix: '/api/interactions' });
     await server.register(catalogRoutes, { prefix: '/api' });
     await server.register(schedulerRoutes, { prefix: '/api' });

@@ -37,6 +37,7 @@ const radarrService: ArrService<typeof arrConfig.radarr> = {
   getRootFolders: vi.fn().mockResolvedValue([]),
   getLibrary: vi.fn().mockResolvedValue([]),
   getQueue: vi.fn().mockResolvedValue({ records: [] }),
+  resolveUrl: vi.fn().mockResolvedValue(null),
 };
 
 const sonarrService: ArrService<typeof arrConfig.sonarr> = {
@@ -48,6 +49,7 @@ const sonarrService: ArrService<typeof arrConfig.sonarr> = {
   getRootFolders: vi.fn().mockResolvedValue([]),
   getLibrary: vi.fn().mockResolvedValue([]),
   getQueue: vi.fn().mockResolvedValue({ records: [] }),
+  resolveUrl: vi.fn().mockResolvedValue(null),
 };
 
 const catalogService: CatalogService = {
@@ -67,6 +69,7 @@ const catalogService: CatalogService = {
             jellyfinId: null,
             tvdbId: null,
             arrId: null,
+            arrUrl: null,
             seasons: null,
             createdAt: Date.now(),
             updatedAt: Date.now(),
@@ -76,6 +79,7 @@ const catalogService: CatalogService = {
     )
   ),
   getGenres: vi.fn().mockResolvedValue({ genres: [] }),
+  getNextUnvoted: vi.fn().mockResolvedValue({ media: null, remainingCount: 0 }),
 };
 
 describe('interaction service - integration tests', () => {

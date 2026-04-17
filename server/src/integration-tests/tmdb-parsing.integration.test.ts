@@ -160,7 +160,7 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
       expect(media.type).toBe('movie');
       expect(media.name).toBe('Fight Club');
       expect(media.genres.length).toBeGreaterThan(0);
-      expect(media.keywords.length).toBeGreaterThan(0);
+      expect(media.keywords?.length).toBeGreaterThan(0);
       expect(media.voteAverage).toBeGreaterThan(0);
       expect(media.popularity).toBeGreaterThan(0);
     });

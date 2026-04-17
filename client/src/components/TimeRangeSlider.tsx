@@ -11,6 +11,8 @@ const TIME_PERIODS = [
   { days: 180, label: 'Last 6 Months' },
   { days: 365, label: 'Last Year' },
   { days: 730, label: 'Last 2 Years' },
+  { days: 1825, label: 'Last 5 Years' },
+  { days: 3650, label: 'Last 10 Years' },
 ];
 
 export function TimeRangeSlider({ value, onChange }: TimeRangeSliderProps) {

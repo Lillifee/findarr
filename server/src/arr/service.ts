@@ -1,6 +1,8 @@
 import type { FastifyInstance } from 'fastify';
 import type { DB } from '../db/setup.js';
+import { getMediaById } from '../media/repository.js';
 import { getArrSettingsFull } from '../settings/repository.js';
+import { trimTrailingSlash } from '../utils/links.js';
 import { createArrClient, type ArrClient } from './client.js';
 import { arrConfig, type ArrServiceConfig } from './config.js';
 import { updateMediaIds } from './repository.js';
@@ -140,6 +142,23 @@ export function createArrService<T extends ArrServiceConfig>(
       if (!client) return { records: [] };
 
       return client.getQueue();
+    },
+
+    /**
+     * Resolve full ARR URL from internal media ID + current ARR settings.
+     * Assumes the media record type matches this service (radarr for movies, sonarr for TV).
+     */
+    async resolveUrl(mediaId: number): Promise<string | null> {
+      const mediaRecord = await getMediaById(db, mediaId);
+
+      if (!mediaRecord?.arrUrl) return null;
+
+      const settings = await getArrSettingsFull(db, service);
+      const baseUrl = settings.url;
+
+      if (!baseUrl) return null;
+
+      return `${trimTrailingSlash(baseUrl)}${mediaRecord.arrUrl}`;
     },
   };
 }

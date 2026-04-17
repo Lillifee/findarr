@@ -192,9 +192,7 @@ export const computeMediaStats = async (
 ): Promise<Omit<MediaStats, 'mediaType' | 'updatedAt'>> => {
   const result = await db
     .select({
-      minPopularity: sql<number>`MIN(${catalogCache.popularity})`,
       maxPopularity: sql<number>`MAX(${catalogCache.popularity})`,
-      minVoteCount: sql<number>`MIN(${catalogCache.voteCount})`,
       maxVoteCount: sql<number>`MAX(${catalogCache.voteCount})`,
       avgRating: sql<number>`AVG(${catalogCache.voteAverage})`,
     })
@@ -206,19 +204,15 @@ export const computeMediaStats = async (
   // Handle case where catalog is empty for this type
   if (!row) {
     return {
-      minPopularity: 0,
       maxPopularity: 0,
-      minVoteCount: 0,
       maxVoteCount: 0,
-      maxAvgRating: 0,
+      avgRating: 0,
     };
   }
 
   return {
-    minPopularity: row.minPopularity ?? 0,
     maxPopularity: row.maxPopularity ?? 0,
-    minVoteCount: row.minVoteCount ?? 0,
     maxVoteCount: row.maxVoteCount ?? 0,
-    maxAvgRating: row.avgRating ?? 0,
+    avgRating: row.avgRating ?? 0,
   };
 };

@@ -8,6 +8,8 @@ import type {
   DiscoverResponse,
   Genre,
   Media,
+  SwipeNextResponse,
+  MediaDetails,
 } from '@findarr/shared';
 import type { DB } from '../db/setup.js';
 import {
@@ -70,6 +72,37 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
    */
   async function getGenres(params: GenresQuery): Promise<{ genres: Genre[] }> {
     return await tmdbService.getGenres(params);
+  }
+
+  /**
+   * Get next unvoted media for swipe/vote feature
+   * Returns the first unvoted item from popular media with full details
+   * Fetches pages sequentially until an unvoted item is found
+   * Respects same filters as popular page (type, genres, regions)
+   */
+  async function getNextUnvoted(params: PopularQuery, userId?: number): Promise<SwipeNextResponse> {
+    // Check up to 3 pages (60 items) to find an unvoted item
+    const MAX_PAGES = 3;
+
+    for (let page = 1; page <= MAX_PAGES; page++) {
+      const popularPage = await popular({ ...params, page }, userId);
+      const unvotedItem = popularPage.results.find(
+        item => !item.state?.interactions || item.state.interactions.length === 0
+      );
+
+      if (unvotedItem) {
+        // Get full details for the unvoted item
+        const details = (await getDetails(
+          { id: unvotedItem.tmdbId, type: unvotedItem.type, language: params.language },
+          userId
+        )) as MediaDetails;
+
+        return { media: details };
+      }
+    }
+
+    // No unvoted items found in first 60 items
+    return { media: null };
   }
 
   /**
@@ -151,7 +184,7 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
     return enriched;
   }
 
-  return { initialize, search, popular, discover, getDetails, getGenres };
+  return { initialize, search, popular, discover, getDetails, getGenres, getNextUnvoted };
 }
 
 export type CatalogService = ReturnType<typeof createCatalogService>;

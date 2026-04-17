@@ -12,6 +12,7 @@ export function transformRadarrMovie(radarrMovie: RadarrMovie): ArrLibraryItem {
     id: radarrMovie.id,
     type: 'movie',
     tmdbId: radarrMovie.tmdbId,
+    arrUrl: `/movie/${radarrMovie.tmdbId}`,
     title: radarrMovie.title,
     year: radarrMovie.year,
     monitored: radarrMovie.monitored,
@@ -42,6 +43,7 @@ export function transformSonarrSeries(series: SonarrSeries): ArrLibraryItem {
     year: series.year,
     monitored: series.monitored,
     hasFile: (series.statistics?.episodeFileCount ?? 0) > 0,
+    ...(series.titleSlug && { arrUrl: `/series/${series.titleSlug}` }),
     ...(seasons && { seasons }),
   };
 }

@@ -9,6 +9,7 @@ import { DiscoverPage } from './pages/DiscoverPage';
 import { MediaDetailPage } from './pages/MediaDetailPage';
 import { MyRequestsPage } from './pages/MyRequestsPage';
 import { PopularPage } from './pages/PopularPage';
+import { VotePage } from './pages/VotePage';
 
 function MainApp() {
   const { isAuthenticated, isAdmin, isLoading: authLoading, logout, user } = useAuth();
@@ -44,7 +45,8 @@ function MainApp() {
       {/* Main Content - Adjust padding for sidebar on desktop, bottom bar on mobile */}
       <main className="md:ml-64 mb-16 md:mb-0">
         <Routes>
-          <Route path="/" element={<PopularPage />} />
+          <Route path="/vote" element={<VotePage />} />
+          <Route path="/popular" element={<PopularPage />} />
           <Route path="/discover" element={<DiscoverPage />} />
           <Route path="/movie/:id" element={<MediaDetailPage />} />
           <Route path="/tv/:id" element={<MediaDetailPage />} />
@@ -56,7 +58,7 @@ function MainApp() {
               <Route path="/admin/schedulers" element={<SchedulersPage />} />
             </>
           )}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/vote" replace />} />
         </Routes>
       </main>
     </div>

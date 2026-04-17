@@ -8,7 +8,7 @@ import { updateGenrePreference, updateKeywordPreference } from './repository.js'
 
 // Preference score constants (tunable)
 const LIKE_SCORE = 1;
-const DISLIKE_SCORE = -0.5;
+const DISLIKE_SCORE = -1;
 
 /**
  * Update user genre preferences based on an interaction

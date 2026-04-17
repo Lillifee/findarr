@@ -33,7 +33,19 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
         <div>
           {/* Navigation Items */}
           <nav className="p-4 space-y-2 mt-4">
-            <NavLink to="/" className={navLinkClass}>
+            <NavLink to="/vote" className={navLinkClass}>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
+                />
+              </svg>
+              <span className="font-medium">Vote</span>
+            </NavLink>
+
+            <NavLink to="/popular" className={navLinkClass}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -161,7 +173,18 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
       {/* Mobile Bottom Navigation - Hidden on desktop */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-800/90 backdrop-blur-md border-t border-gray-700/50 z-50 safe-area-inset-bottom shadow-2xl">
         <div className="flex justify-around items-center h-16">
-          <NavLink to="/" className={mobileNavLinkClass}>
+          <NavLink to="/vote" className={mobileNavLinkClass}>
+            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
+              />
+            </svg>
+            <span className="text-xs font-medium">Vote</span>
+          </NavLink>
+          <NavLink to="/popular" className={mobileNavLinkClass}>
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"

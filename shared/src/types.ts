@@ -33,6 +33,33 @@ export interface Keyword {
   name: string;
 }
 
+export interface CastMember {
+  id: number;
+  name: string;
+  character: string;
+  profilePath: string | undefined;
+  order: number;
+}
+
+export interface Video {
+  id: string;
+  key: string; // YouTube video key
+  name: string;
+  site: string; // e.g., "YouTube"
+  type: string; // e.g., "Trailer", "Teaser"
+  official: boolean;
+  publishedAt: string | undefined;
+}
+
+export interface Image {
+  filePath: string;
+  width: number;
+  height: number;
+  aspectRatio: number;
+  voteAverage: number;
+  voteCount: number;
+}
+
 export interface Season {
   seasonNumber: number;
   name: string;
@@ -125,24 +152,28 @@ export interface TVShow extends Media {
   type: 'tv';
 }
 
+export interface MediaDetailsBase {
+  status: string;
+  homepage: string | undefined;
+  imdbId: string | undefined;
+  cast: CastMember[] | undefined;
+  videos: Video[] | undefined;
+}
+
 /**
  * Movie Details - extends Movie with additional fields
  */
-export interface MovieDetails extends Movie {
+export interface MovieDetails extends Movie, MediaDetailsBase {
   tagline: string | undefined;
   runtime: number | undefined;
   budget: number;
   revenue: number;
-  status: string;
-  homepage: string | undefined;
-  imdbId: string | undefined;
-  keywords: Keyword[];
 }
 
 /**
  * TV Show Details - extends TVShow with additional fields
  */
-export interface TVDetails extends TVShow {
+export interface TVDetails extends TVShow, MediaDetailsBase {
   originalName: string;
   episodeRunTime: number[];
   lastAirDate: string | undefined;
@@ -150,11 +181,7 @@ export interface TVDetails extends TVShow {
   numberOfSeasons: number;
   numberOfEpisodes: number;
   seasons: Season[];
-  status: string;
-  homepage: string | undefined;
   tvdbId: number | undefined;
-  imdbId: string | undefined;
-  keywords: Keyword[];
 }
 
 export type MediaDetails = MovieDetails | TVDetails;
@@ -177,6 +204,13 @@ export interface DiscoverResponse {
   page?: number;
   totalPages?: number;
   totalResults?: number;
+}
+
+/**
+ * Swipe/Vote response - returns next unvoted media item
+ */
+export interface SwipeNextResponse {
+  media: MediaDetails | null;
 }
 
 // ============================================================================

@@ -20,6 +20,9 @@ import type {
   JellyfinSettings,
   JellyfinTestResult,
   SchedulerState,
+  SwipeNextResponse,
+  ArrLinkQuery,
+  JellyfinLinkQuery,
 } from '@findarr/shared';
 import axios from 'axios';
 
@@ -54,6 +57,11 @@ export const searchService = {
 
   getGenres: async (params: GenresQuery): Promise<{ genres: Genre[] }> => {
     const response = await api.get('/genres', { params });
+    return response.data;
+  },
+
+  getNextSwipe: async (params: PopularQuery = {}): Promise<SwipeNextResponse> => {
+    const response = await api.get('/next', { params });
     return response.data;
   },
 };
@@ -229,4 +237,29 @@ export const adminSchedulerService = {
     const response = await api.post(`/admin/schedulers/${name}/stop`);
     return response.data;
   },
+};
+
+// Link resolution service
+// Provides URLs for media links in Radarr/Sonarr and Jellyfin
+export const linkService = {
+  /**
+   * Get Radarr link for a movie
+   * @param query - { mediaId: number }
+   * @returns URL to Radarr movie page (browser will handle redirect)
+   */
+  radarr: (query: ArrLinkQuery): string => `/api/radarr-link?mediaId=${query.mediaId}`,
+
+  /**
+   * Get Sonarr link for a TV show
+   * @param query - { mediaId: number }
+   * @returns URL to Sonarr series page (browser will handle redirect)
+   */
+  sonarr: (query: ArrLinkQuery): string => `/api/sonarr-link?mediaId=${query.mediaId}`,
+
+  /**
+   * Get Jellyfin link for media
+   * @param query - { mediaId: number }
+   * @returns URL to Jellyfin item page (browser will handle redirect)
+   */
+  jellyfin: (query: JellyfinLinkQuery): string => `/api/jellyfin-link?mediaId=${query.mediaId}`,
 };

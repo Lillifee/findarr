@@ -56,6 +56,7 @@ export const SonarrSeriesSchema = z
     id: z.number(),
     tvdbId: z.number(),
     title: z.string(),
+    titleSlug: z.string().optional(),
     year: z.number().optional(),
     monitored: z.boolean(),
     seasonFolder: z.boolean().optional(),
@@ -141,6 +142,7 @@ export interface ArrLibraryItem {
   type: 'movie' | 'tv'; // Discriminator for type-safe unions
   tmdbId?: number; // TMDB ID (always present for movies, added via enrichment for TV)
   tvdbId?: number; // TVDB ID (only for TV shows)
+  arrUrl?: string; // Relative UI path (e.g. /movie/:tmdbId, /series/:titleSlug)
   title: string;
   year?: number | undefined;
   monitored: boolean;

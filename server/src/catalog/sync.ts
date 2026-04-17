@@ -22,14 +22,13 @@ export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> 
   // TODO - use language setting from config
   const language = 'en-US';
 
+  const arrayOfNumbers = (length: number) => Array.from({ length }).map((_, i) => i + 1);
+
   // Fetch both trending and recent releases (already includes basic metadata)
   fastify.log.info('Fetching trending and discover results from TMDB...');
   const [trendingResult, discoverResult] = await Promise.all([
-    fastify.tmdb.fetchTrending({ language, time_window: 'week' }, [1, 2, 3, 4, 5]),
-    fastify.tmdb.fetchDiscover(
-      { language, type: 'both', recentDays: 365 },
-      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    ),
+    fastify.tmdb.fetchTrending({ language, time_window: 'week' }, arrayOfNumbers(5)),
+    fastify.tmdb.fetchDiscover({ language, type: 'both', recentDays: 500 }, arrayOfNumbers(15)),
   ]);
 
   // Merge and deduplicate (prefer items with trendingRank)
@@ -66,14 +65,14 @@ export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> 
   fastify.log.info(
     {
       movieStats: {
-        popularity: `${movieStats.minPopularity}-${movieStats.maxPopularity}`,
-        voteCount: `${movieStats.minVoteCount}-${movieStats.maxVoteCount}`,
-        avgRating: movieStats.maxAvgRating.toFixed(2),
+        maxPopularity: movieStats.maxPopularity,
+        maxVoteCount: movieStats.maxVoteCount,
+        avgRating: movieStats.avgRating.toFixed(2),
       },
       tvStats: {
-        popularity: `${tvStats.minPopularity}-${tvStats.maxPopularity}`,
-        voteCount: `${tvStats.minVoteCount}-${tvStats.maxVoteCount}`,
-        avgRating: tvStats.maxAvgRating.toFixed(2),
+        maxPopularity: tvStats.maxPopularity,
+        maxVoteCount: tvStats.maxVoteCount,
+        avgRating: tvStats.avgRating.toFixed(2),
       },
     },
     'Catalog stats updated'

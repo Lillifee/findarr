@@ -138,6 +138,7 @@ export async function getMediaRecordsBatch(
       tmdbId: true,
       tvdbId: true,
       arrId: true,
+      arrUrl: true,
       status: true,
       jellyfinId: true,
       seasons: true,
@@ -152,6 +153,7 @@ export async function getMediaRecordsBatch(
     mediaRecords.set(key, {
       id: row.id,
       arrId: row.arrId,
+      arrUrl: row.arrUrl,
       tvdbId: row.tvdbId,
       jellyfinId: row.jellyfinId,
       seasons: row.seasons,
@@ -179,6 +181,7 @@ export async function getMediaByStatus(db: DB, statuses: MediaStatus[]): Promise
       tmdbId: true,
       tvdbId: true,
       arrId: true,
+      arrUrl: true,
       status: true,
       jellyfinId: true,
       seasons: true,
@@ -201,11 +204,9 @@ export async function getMediaByStatus(db: DB, statuses: MediaStatus[]): Promise
  * Run the "should compute stats from real fixtures" test to regenerate these values
  */
 const TMDB_STAT_DEFAULTS = {
-  minPopularity: 3,
   maxPopularity: 1319,
-  minVoteCount: 0,
   maxVoteCount: 10_935,
-  maxAvgRating: 8,
+  avgRating: 7,
 };
 
 /**
@@ -255,22 +256,18 @@ export const upsertMediaStats = async (
     .insert(mediaStats)
     .values({
       mediaType,
-      minPopularity: stats.minPopularity,
       maxPopularity: stats.maxPopularity,
-      minVoteCount: stats.minVoteCount,
       maxVoteCount: stats.maxVoteCount,
-      maxAvgRating: stats.maxAvgRating,
+      avgRating: stats.avgRating,
       updatedAt: now,
     })
     .onConflictDoUpdate({
       target: mediaStats.mediaType,
       set: {
         // Growth strategy: max values only increase, min values only decrease
-        minPopularity: sql`MIN(${mediaStats.minPopularity}, ${stats.minPopularity})`,
         maxPopularity: sql`MAX(${mediaStats.maxPopularity}, ${stats.maxPopularity})`,
-        minVoteCount: sql`MIN(${mediaStats.minVoteCount}, ${stats.minVoteCount})`,
         maxVoteCount: sql`MAX(${mediaStats.maxVoteCount}, ${stats.maxVoteCount})`,
-        maxAvgRating: sql`MAX(${mediaStats.maxAvgRating}, ${stats.maxAvgRating})`,
+        avgRating: stats.avgRating,
         updatedAt: now,
       },
     });

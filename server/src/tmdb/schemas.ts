@@ -134,6 +134,9 @@ const TMDBAppendFieldsSchema = {
   credits: TMDBCreditsSchema.optional(),
   videos: TMDBVideosSchema.optional(),
   images: TMDBImagesSchema.optional(),
+  external_ids: z
+    .object({ tvdb_id: z.number().nullish(), imdb_id: z.string().nullish() })
+    .optional(),
 };
 
 //#endregion
@@ -153,9 +156,9 @@ export const TMDBMovieDetailsSchema = TMDBBaseFieldsSchema.omit({ genre_ids: tru
     homepage: z.string().nullish(),
     imdb_id: z.string().nullish(),
     adult: z.boolean().optional(),
+    keywords: TMDBMovieKeywordsSchema.optional(),
     // Append-to-response fields
     ...TMDBAppendFieldsSchema,
-    keywords: TMDBMovieKeywordsSchema.optional(),
   })
   .transform(data => ({
     ...data,
@@ -177,12 +180,9 @@ export const TMDBTVDetailsSchema = TMDBBaseFieldsSchema.omit({ genre_ids: true }
     status: z.string(),
     type: z.string(),
     homepage: z.string().nullish(),
+    keywords: TMDBTVKeywordsSchema.optional(),
     // Append-to-response fields
     ...TMDBAppendFieldsSchema,
-    keywords: TMDBTVKeywordsSchema.optional(),
-    external_ids: z
-      .object({ tvdb_id: z.number().nullish(), imdb_id: z.string().nullish() })
-      .optional(),
   })
   .transform(data => ({
     ...data,
@@ -423,3 +423,7 @@ export type TMDBTVDetails = z.infer<typeof TMDBTVDetailsSchema>;
 export type TMDBGenre = z.infer<typeof TMDBGenreSchema>;
 export type TMDBSearchResponse = z.infer<typeof TMDBSearchResponseSchema>;
 export type TMDBGenresResponse = z.infer<typeof TMDBGenresResponseSchema>;
+export type TMDBCastMember = z.infer<typeof TMDBCastMemberSchema>;
+export type TMDBCredits = z.infer<typeof TMDBCreditsSchema>;
+export type TMDBVideo = z.infer<typeof TMDBVideoSchema>;
+export type TMDBVideos = z.infer<typeof TMDBVideosSchema>;

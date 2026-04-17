@@ -232,24 +232,18 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
 
     // Create snapshot with computed defaults (copy these to TMDB_STAT_DEFAULTS)
     const computedDefaults = {
-      minPopularity: Math.floor(Math.min(movieStats.minPopularity, tvStats.minPopularity)),
       maxPopularity: Math.ceil(Math.max(movieStats.maxPopularity, tvStats.maxPopularity)),
-      minVoteCount: Math.floor(Math.min(movieStats.minVoteCount, tvStats.minVoteCount)),
       maxVoteCount: Math.ceil(Math.max(movieStats.maxVoteCount, tvStats.maxVoteCount)),
-      maxAvgRating: Math.ceil(Math.max(movieStats.maxAvgRating, tvStats.maxAvgRating)),
+      avgRating: Math.ceil(Math.max(movieStats.avgRating, tvStats.avgRating)),
       movieStats: {
-        minPopularity: movieStats.minPopularity,
         maxPopularity: movieStats.maxPopularity,
-        minVoteCount: movieStats.minVoteCount,
         maxVoteCount: movieStats.maxVoteCount,
-        maxAvgRating: movieStats.maxAvgRating,
+        avgRating: movieStats.avgRating,
       },
       tvStats: {
-        minPopularity: tvStats.minPopularity,
         maxPopularity: tvStats.maxPopularity,
-        minVoteCount: tvStats.minVoteCount,
         maxVoteCount: tvStats.maxVoteCount,
-        maxAvgRating: tvStats.maxAvgRating,
+        avgRating: tvStats.avgRating,
       },
     };
 
@@ -259,9 +253,9 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     // Verify stats are reasonable (not all zeros)
     expect(movieStats.maxPopularity).toBeGreaterThan(0);
     expect(movieStats.maxVoteCount).toBeGreaterThan(0);
-    expect(movieStats.maxAvgRating).toBeGreaterThan(0);
+    expect(movieStats.avgRating).toBeGreaterThan(0);
     expect(tvStats.maxPopularity).toBeGreaterThan(0);
     expect(tvStats.maxVoteCount).toBeGreaterThan(0);
-    expect(tvStats.maxAvgRating).toBeGreaterThan(0);
+    expect(tvStats.avgRating).toBeGreaterThan(0);
   });
 });

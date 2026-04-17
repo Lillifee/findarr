@@ -8,6 +8,7 @@ export function ScoreBreakdown({ score }: ScoreBreakdownProps) {
   // Helper to format percentage
   const toPercent = (value: number) => Math.round(value * 100);
 
+  console.log('Score breakdown:', score);
   // Helper to get color based on score value
   const getColor = (value: number): string => {
     if (value >= 0.7) return 'bg-green-500';
@@ -18,15 +19,9 @@ export function ScoreBreakdown({ score }: ScoreBreakdownProps) {
   const scores = [
     { label: 'Popularity', value: score.popularityScore, icon: '⭐' },
     { label: 'Rating', value: score.weightedRating, icon: '👍' },
+    { label: 'Genre Match', value: score.genreScore, icon: '🎭' },
+    { label: 'Keyword Match', value: score.keywordScore, icon: '🔖' },
   ];
-
-  // Add user scores if they exist
-  if (score.genreScore > 0) {
-    scores.push({ label: 'Genre Match', value: score.genreScore, icon: '🎭' });
-  }
-  if (score.keywordScore > 0) {
-    scores.push({ label: 'Keyword Match', value: score.keywordScore, icon: '🔖' });
-  }
 
   return (
     <div className="mb-6 md:mb-8">

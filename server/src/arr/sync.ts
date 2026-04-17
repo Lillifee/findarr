@@ -78,6 +78,7 @@ export async function syncLibrary(
   const itemsToUpsert = libraryItems.map(item => ({
     type: mediaType,
     arrId: item.id,
+    arrUrl: item.arrUrl ?? null,
     tvdbId: item.tvdbId ?? null,
     tmdbId: item.tmdbId ?? null,
     status: (item.hasFile ? 'downloaded' : 'requested') as MediaStatus,

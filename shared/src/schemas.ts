@@ -66,6 +66,14 @@ export const DetailsQuerySchema = BaseQuerySchema.extend({
   type: z.enum(['movie', 'tv']),
 });
 
+export const ArrLinkQuerySchema = z.object({
+  mediaId: z.coerce.number().int().positive(),
+});
+
+export const JellyfinLinkQuerySchema = z.object({
+  mediaId: z.coerce.number().int().positive(),
+});
+
 export const GenresQuerySchema = z.object({});
 
 // ============================================================================
@@ -185,6 +193,8 @@ export const JellyfinTestResultSchema = z.object({
 export type RadarrSettingsBody = z.infer<typeof RadarrSettingsBodySchema>;
 export type SonarrSettingsBody = z.infer<typeof SonarrSettingsBodySchema>;
 export type JellyfinSettingsBody = z.infer<typeof JellyfinSettingsBodySchema>;
+export type ArrLinkQuery = z.infer<typeof ArrLinkQuerySchema>;
+export type JellyfinLinkQuery = z.infer<typeof JellyfinLinkQuerySchema>;
 
 export type RadarrSettings = z.infer<typeof RadarrSettingsSchema>;
 export type SonarrSettings = z.infer<typeof SonarrSettingsSchema>;
