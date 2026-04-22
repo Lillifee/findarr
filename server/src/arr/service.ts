@@ -10,7 +10,6 @@ import type {
   ArrQualityProfile,
   ArrRootFolder,
   ArrQueueResponse,
-  ArrAddMediaResponse,
   ArrLibraryItem,
 } from './schemas.js';
 import { transformArrMedia } from './transformers.js';
@@ -76,13 +75,13 @@ export function createArrService<T extends ArrServiceConfig>(
       title: string,
       arrId?: number | null,
       seasons?: number[]
-    ): Promise<ArrAddMediaResponse | undefined> {
+    ): Promise<ArrLibraryItem | undefined> {
       const clientSettings = await getClientAndSettings();
       if (!clientSettings) return undefined;
 
       // For movies: if already in Radarr, no action needed
       if (config.service === 'radarr' && arrId) {
-        return { id: arrId, tmdbId: id, title };
+        return undefined; // Already in library, sync will pick it up
       }
 
       const { client, qualityProfileId, rootFolderPath } = clientSettings;
@@ -93,14 +92,18 @@ export function createArrService<T extends ArrServiceConfig>(
         seasons
       );
 
+      // Transform the response to get ArrLibraryItem with arrUrl
+      const libraryItem = transformArrMedia(response);
+
       await updateMediaIds(db, mediaId, {
-        arrId: response.id,
-        tmdbId: response.tmdbId,
-        tvdbId: response.tvdbId,
+        arrId: libraryItem.id,
+        tmdbId: libraryItem.tmdbId,
+        tvdbId: libraryItem.tvdbId,
+        arrUrl: libraryItem.arrUrl,
       });
 
       fastify.scheduler.start(config.queueFastSyncScheduler);
-      return response;
+      return libraryItem;
     },
 
     /**

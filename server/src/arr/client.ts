@@ -8,10 +8,8 @@ import {
   type ArrQualityProfile,
   type ArrRootFolder,
   type ArrQueueResponse,
-  type ArrAddMediaResponse,
   type SonarrSeries,
   type RadarrMovie,
-  ArrAddMediaResponseSchema,
   ArrQueueResponseSchema,
 } from './schemas.js';
 
@@ -70,7 +68,7 @@ export function createArrClient<T extends ArrServiceConfig>(
         rootFolderPath: string;
       },
       seasonNumbers?: number[]
-    ): Promise<ArrAddMediaResponse> {
+    ): Promise<RadarrMovie | SonarrSeries> {
       // Try update if arrId exists
       if (params.arrId) {
         const updated = await this.updateLibrarySeasons(params.arrId, seasonNumbers);
@@ -95,7 +93,7 @@ export function createArrClient<T extends ArrServiceConfig>(
         rootFolderPath: string;
       },
       seasonNumbers?: number[]
-    ): Promise<ArrAddMediaResponse> {
+    ): Promise<RadarrMovie | SonarrSeries> {
       const isSonarr = config.service === 'sonarr';
 
       const payload = {
@@ -115,13 +113,14 @@ export function createArrClient<T extends ArrServiceConfig>(
       };
 
       const response = await http.post(config.mediaEndpoint, payload);
-      return ArrAddMediaResponseSchema.parse(response.data);
+
+      return config.libraryItemSchema.parse(response.data);
     },
 
     async updateLibrarySeasons(
       arrId: number,
       seasons?: number[]
-    ): Promise<ArrAddMediaResponse | undefined> {
+    ): Promise<RadarrMovie | SonarrSeries | undefined> {
       if (config.service !== 'sonarr' || seasons === undefined) {
         return undefined; // Nothing to update
       }
@@ -144,11 +143,7 @@ export function createArrClient<T extends ArrServiceConfig>(
         seriesId: arrId,
       });
 
-      return {
-        id: arrId,
-        tvdbId: parsed.tvdbId,
-        title: parsed.title,
-      };
+      return parsed;
     },
 
     async getLibrary(): Promise<Array<RadarrMovie | SonarrSeries>> {

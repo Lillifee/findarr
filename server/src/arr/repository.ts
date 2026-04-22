@@ -13,6 +13,7 @@ export async function updateMediaIds(
     tmdbId?: number | undefined;
     tvdbId?: number | undefined;
     arrId?: number | undefined;
+    arrUrl?: string | undefined;
   }
 ): Promise<void> {
   const updateData: Record<string, unknown> = { ...ids, updatedAt: Date.now() };

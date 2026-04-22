@@ -13,14 +13,6 @@ export const ArrSystemStatusSchema = z.object({
   appName: z.string().optional(),
 });
 
-// Radarr-specific response for POST /api/v3/movie
-export const ArrAddMediaResponseSchema = z.object({
-  id: z.number(),
-  tmdbId: z.number().optional(),
-  tvdbId: z.number().optional(),
-  title: z.string(),
-});
-
 // Radarr movie object from GET /api/v3/movie
 export const RadarrMovieSchema = z
   .object({
@@ -130,7 +122,6 @@ export type RadarrMovie = z.infer<typeof RadarrMovieSchema>;
 export type SonarrSeries = z.infer<typeof SonarrSeriesSchema>;
 export type SonarrSeason = z.infer<typeof SonarrSeasonSchema>;
 export type ArrQueueResponse = z.infer<typeof ArrQueueResponseSchema>;
-export type ArrAddMediaResponse = z.infer<typeof ArrAddMediaResponseSchema>;
 
 /**
  * Unified library item for both Radarr (movies) and Sonarr (TV shows)
@@ -140,10 +131,10 @@ export type ArrAddMediaResponse = z.infer<typeof ArrAddMediaResponseSchema>;
 export interface ArrLibraryItem {
   id: number; // Radarr movie ID or Sonarr series ID
   type: 'movie' | 'tv'; // Discriminator for type-safe unions
+  title: string;
   tmdbId?: number; // TMDB ID (always present for movies, added via enrichment for TV)
   tvdbId?: number; // TVDB ID (only for TV shows)
   arrUrl?: string; // Relative UI path (e.g. /movie/:tmdbId, /series/:titleSlug)
-  title: string;
   year?: number | undefined;
   monitored: boolean;
   hasFile: boolean; // Computed from hasFile (Radarr) or statistics.episodeFileCount > 0 (Sonarr)

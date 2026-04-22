@@ -624,14 +624,22 @@ describe('interaction service - integration tests', () => {
       vi.mocked(tmdbWithTvdb.getDetails).mockResolvedValue(createTestMovieDetail({ tmdbId: 123 }));
       // Re-mock services after clearAllMocks
       vi.mocked(radarrService.request).mockResolvedValue({
+        type: 'movie',
         id: 1,
         tmdbId: 123,
         title: '',
+        arrUrl: '/movie/123',
+        monitored: true,
+        hasFile: false,
       });
       vi.mocked(sonarrService.request).mockResolvedValue({
+        type: 'tv',
         id: 1,
         tvdbId: 81_189,
         title: '',
+        arrUrl: '/series/test-slug',
+        monitored: true,
+        hasFile: false,
       });
     });
 

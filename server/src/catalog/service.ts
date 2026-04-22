@@ -92,12 +92,12 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
 
       if (unvotedItem) {
         // Get full details for the unvoted item
-        const details = (await getDetails(
+        const media = (await getDetails(
           { id: unvotedItem.tmdbId, type: unvotedItem.type, language: params.language },
           userId
         )) as MediaDetails;
 
-        return { media: details };
+        return { media };
       }
     }
 
