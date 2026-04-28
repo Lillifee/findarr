@@ -1,4 +1,5 @@
 import {
+  type UserSettings,
   type RegionGroupId,
   regionGroups,
   type GenreKey,
@@ -71,15 +72,12 @@ export const buildDateParams = (recentDays: number | undefined, type: 'movie' | 
   return dateParams;
 };
 
-export const buildDiscoverParams = (params: DiscoverQuery): TMDBDiscoverParams => {
-  const {
-    type = 'both',
-    language = 'en-US',
-    recentDays,
-    regionGroups = [],
-    withGenres,
-    page = 1,
-  } = params;
+export const buildDiscoverParams = (
+  params: DiscoverQuery,
+  userSettings: UserSettings
+): TMDBDiscoverParams => {
+  const { type = 'both', recentDays, page = 1 } = params;
+  const { language = 'en-US', regionGroups = [], withGenres } = userSettings;
 
   const region = language.split('-')[1] || 'US';
   const { languageFilter, countryFilter } = buildRegionFilters(regionGroups);

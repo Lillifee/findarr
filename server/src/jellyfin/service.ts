@@ -1,7 +1,7 @@
 import { isDefined } from '@findarr/shared';
 import type { DB } from '../db/setup.js';
+import { getJellyfinSettingsFull } from '../integration/repository.js';
 import { getMediaById } from '../media/repository.js';
-import { getJellyfinSettingsFull } from '../settings/repository.js';
 import { trimTrailingSlash } from '../utils/links.js';
 import { createJellyfinClient } from './client.js';
 import type { JellyfinMedia } from './transformers.js';

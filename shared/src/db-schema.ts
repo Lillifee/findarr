@@ -199,13 +199,44 @@ export const userKeywordPreferences = sqliteTable(
 );
 
 // ============================================================================
+// User Settings Table
+// ============================================================================
+
+export const userSettings = sqliteTable(
+  'user_settings',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    userId: integer('userId')
+      .notNull()
+      .unique()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    language: text('language').notNull().default('en-US'),
+    regionGroups: text('regionGroups', { mode: 'json' })
+      .notNull()
+      .default('["western"]')
+      .$type<string[]>(),
+    withGenres: text('withGenres', { mode: 'json' }).notNull().default('[]').$type<string[]>(),
+    createdAt: integer('createdAt')
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`)
+      .$type<number>(),
+    updatedAt: integer('updatedAt')
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`)
+      .$type<number>(),
+  },
+  table => [index('idx_user_settings_user').on(table.userId)]
+);
+
+// ============================================================================
 // Relations
 // ============================================================================
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   interactions: many(userMediaInteractions),
   genrePreferences: many(userGenrePreferences),
   keywordPreferences: many(userKeywordPreferences),
+  userSettings: one(userSettings),
 }));
 
 export const mediaRelations = relations(media, ({ many }) => ({
@@ -237,6 +268,13 @@ export const userKeywordPreferencesRelations = relations(userKeywordPreferences,
   }),
 }));
 
+export const userSettingsRelations = relations(userSettings, ({ one }) => ({
+  user: one(users, {
+    fields: [userSettings.userId],
+    references: [users.id],
+  }),
+}));
+
 // ============================================================================
 // Schema Export
 // ============================================================================
@@ -250,6 +288,7 @@ export const schema = {
   catalogCache,
   mediaStats,
   userKeywordPreferences,
+  userSettings,
 };
 
 export const relationsSchema = {
@@ -258,4 +297,5 @@ export const relationsSchema = {
   userMediaInteractionsRelations,
   userGenrePreferencesRelations,
   userKeywordPreferencesRelations,
+  userSettingsRelations,
 };

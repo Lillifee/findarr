@@ -18,6 +18,7 @@ import {
   enrichWithScoring,
 } from '../media/enrichment.js';
 import { filterByCriteria } from '../media/filter.js';
+import { getUserSettings } from '../settings/service.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { getAllCatalogCache } from './repository.js';
 
@@ -36,7 +37,7 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
    * Search for media across all sources
    * Currently delegates to TMDB
    */
-  async function search(params: SearchQuery, userId?: number): Promise<SearchResponse> {
+  async function search(params: SearchQuery, userId: number): Promise<SearchResponse> {
     const response = await tmdbService.search(params);
     const results = await enrichResults(response.results, userId);
     return { ...response, results };
@@ -46,8 +47,9 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
    * Discover media - direct TMDB passthrough for browse mode
    * Allows custom date ranges and filters without caching
    */
-  async function discover(params: DiscoverQuery, userId?: number): Promise<DiscoverResponse> {
-    const response = await tmdbService.fetchDiscover(params);
+  async function discover(params: DiscoverQuery, userId: number): Promise<DiscoverResponse> {
+    const settings = await getUserSettings(db, userId);
+    const response = await tmdbService.fetchDiscover(params, settings);
     const results = await enrichResults(response.results, userId);
     return { ...response, results };
   }
@@ -57,7 +59,7 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
    * Returns enriched media (TMDB + DB record + interactions if available)
    * Does NOT create a database record - only fetches existing state
    */
-  async function getDetails(params: DetailsQuery, userId?: number): Promise<Media> {
+  async function getDetails(params: DetailsQuery, userId: number): Promise<Media> {
     // Fetch TMDB details
     const mediaItem = await tmdbService.getDetails(params);
 
@@ -80,9 +82,10 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
    * Fetches pages sequentially until an unvoted item is found
    * Respects same filters as popular page (type, genres, regions)
    */
-  async function getNextUnvoted(params: PopularQuery, userId?: number): Promise<SwipeNextResponse> {
+  async function getNextUnvoted(params: PopularQuery, userId: number): Promise<SwipeNextResponse> {
     // Check up to 3 pages (60 items) to find an unvoted item
     const MAX_PAGES = 3;
+    const settings = await getUserSettings(db, userId);
 
     for (let page = 1; page <= MAX_PAGES; page++) {
       const popularPage = await popular({ ...params, page }, userId);
@@ -93,7 +96,7 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
       if (unvotedItem) {
         // Get full details for the unvoted item
         const media = (await getDetails(
-          { id: unvotedItem.tmdbId, type: unvotedItem.type, language: params.language },
+          { id: unvotedItem.tmdbId, type: unvotedItem.type, language: settings.language },
           userId
         )) as MediaDetails;
 
@@ -109,8 +112,9 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
    * Popular media - sourced from catalog_cache (background sync)
    * Ensures a good mix of movies and TV shows on each page
    */
-  async function popular(params: PopularQuery, userId?: number): Promise<DiscoverResponse> {
+  async function popular(params: PopularQuery, userId: number): Promise<DiscoverResponse> {
     const { page = 1, type = 'both' } = params;
+    const settings = await getUserSettings(db, userId);
 
     // Get all cached media from database
     const allResults = await getAllCatalogCache(db);
@@ -119,8 +123,8 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
     let filteredResults = allResults.filter(item =>
       filterByCriteria(item, {
         type,
-        regions: params.regionGroups || [],
-        genres: params.withGenres || [],
+        regions: settings.regionGroups,
+        genres: settings.withGenres,
       })
     );
 
@@ -160,7 +164,7 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
    */
   async function enrichResults(
     items: Media[],
-    userId?: number,
+    userId: number,
     options: { scoring?: boolean; records?: boolean; interactions?: boolean } = {}
   ): Promise<Media[]> {
     let enriched = items;
@@ -177,7 +181,7 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
     }
 
     // Add user interactions and vote counts
-    if (interactions && userId) {
+    if (interactions) {
       enriched = await enrichWithInteractions(db, enriched, userId);
     }
 

@@ -6,7 +6,8 @@ import { GenreChips } from '../components/GenreChips';
 import { MediaTypeChips } from '../components/MediaTypeChips';
 import { RegionChips } from '../components/RegionChips';
 import { ResultsGrid } from '../components/ResultsGrid';
-import { searchService } from '../services/api';
+import { useUserSettings } from '../hooks/useUserSettings';
+import { searchService, userSettingsService } from '../services/api';
 
 export function PopularPage() {
   const navigate = useNavigate();
@@ -24,6 +25,38 @@ export function PopularPage() {
     Number.parseInt(searchParams.get('page') || '1', 10)
   );
   const [selectedGenres, setSelectedGenres] = useState<GenreKey[]>([]);
+  const [hideVoted, setHideVoted] = useState(false);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+
+  // Load user settings on mount
+  useEffect(() => {
+    const loadUserSettings = async () => {
+      try {
+        console.log('Loading user settings...');
+        const settings = await userSettingsService.get();
+        setLanguage(settings.language);
+        setSelectedRegions(settings.regionGroups);
+        setSelectedGenres(settings.withGenres);
+      } catch (error) {
+        console.error('Failed to load user settings:', error);
+        // Use defaults if load fails
+      } finally {
+        setSettingsLoaded(true);
+      }
+    };
+
+    void loadUserSettings();
+  }, []);
+
+  // Persist user settings with debounce
+  const { settingsVersion } = useUserSettings(
+    {
+      language,
+      regionGroups: selectedRegions,
+      withGenres: selectedGenres,
+    },
+    { enabled: settingsLoaded }
+  );
 
   // Sync state with URL params when they change (e.g., browser back/forward)
   useEffect(() => {
@@ -42,15 +75,14 @@ export function PopularPage() {
   // Load popular content on initial render or when filters change
   useEffect(() => {
     const loadPopularContent = async () => {
+      if (!settingsLoaded) return;
+
       setLoading(true);
 
       try {
         const results = await searchService.popularMedia({
           type: currentSearchType,
           page: currentPage,
-          language,
-          regionGroups: selectedRegions,
-          withGenres: selectedGenres,
         });
 
         setSearchResults(results);
@@ -64,7 +96,7 @@ export function PopularPage() {
     loadPopularContent().catch(error => {
       console.error('Error loading popular content:', error);
     });
-  }, [currentSearchType, language, selectedRegions, currentPage, selectedGenres]);
+  }, [currentSearchType, currentPage, hideVoted, settingsLoaded, settingsVersion]);
 
   const handleRegionsChange = (regions: RegionGroupId[]) => {
     setSelectedRegions(regions);
@@ -89,6 +121,13 @@ export function PopularPage() {
 
   const handleGenreChange = (genres: GenreKey[]) => {
     setSelectedGenres(genres);
+    setCurrentPage(1);
+    setSearchParams({ type: currentSearchType, page: '1' });
+    setSearchResults(null);
+  };
+
+  const handleHideVotedChange = (checked: boolean) => {
+    setHideVoted(checked);
     setCurrentPage(1);
     setSearchParams({ type: currentSearchType, page: '1' });
     setSearchResults(null);
@@ -249,6 +288,20 @@ export function PopularPage() {
                     onRegionsChange={handleRegionsChange}
                     disabled={loading}
                   />
+
+                  {/* Hide Voted Toggle */}
+                  <div className="flex items-center gap-3 w-full pt-2">
+                    <label className="flex items-center gap-2 cursor-pointer flex-1">
+                      <input
+                        type="checkbox"
+                        checked={hideVoted}
+                        onChange={e => handleHideVotedChange(e.target.checked)}
+                        disabled={loading}
+                        className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-amber-500 focus:ring-amber-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      />
+                      <span className="text-sm font-medium text-gray-300">Hide Already Voted</span>
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>

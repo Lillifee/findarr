@@ -13,7 +13,8 @@ import { RegionChips } from '../components/RegionChips';
 import { ResultsGrid } from '../components/ResultsGrid';
 import { SearchBar } from '../components/SearchBar';
 import { TimeRangeSlider } from '../components/TimeRangeSlider';
-import { searchService } from '../services/api';
+import { useUserSettings } from '../hooks/useUserSettings';
+import { searchService, userSettingsService } from '../services/api';
 
 export function DiscoverPage() {
   const navigate = useNavigate();
@@ -36,6 +37,37 @@ export function DiscoverPage() {
   );
   const [currentQuery, setCurrentQuery] = useState<string>('');
   const [selectedGenres, setSelectedGenres] = useState<GenreKey[]>([]);
+  const [hideVoted, setHideVoted] = useState(false);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+
+  // Load user settings on mount
+  useEffect(() => {
+    const loadUserSettings = async () => {
+      try {
+        const settings = await userSettingsService.get();
+        setLanguage(settings.language);
+        setSelectedRegions(settings.regionGroups);
+        setSelectedGenres(settings.withGenres);
+      } catch (error) {
+        console.error('Failed to load user settings:', error);
+        // Use defaults if load fails
+      } finally {
+        setSettingsLoaded(true);
+      }
+    };
+
+    void loadUserSettings();
+  }, []);
+
+  // Persist user settings with debounce
+  const { settingsVersion } = useUserSettings(
+    {
+      language,
+      regionGroups: selectedRegions,
+      withGenres: selectedGenres,
+    },
+    { enabled: settingsLoaded }
+  );
 
   // Sync state with URL params when they change (e.g., browser back/forward)
   useEffect(() => {
@@ -54,7 +86,7 @@ export function DiscoverPage() {
   // Load discovery content on initial render or when filters change
   useEffect(() => {
     const loadDiscoveryContent = async () => {
-      if (hasSearched) return;
+      if (hasSearched || !settingsLoaded) return;
 
       setLoading(true);
 
@@ -62,9 +94,6 @@ export function DiscoverPage() {
         const baseParams = {
           type: currentSearchType,
           page: currentPage,
-          language,
-          regionGroups: selectedRegions,
-          withGenres: selectedGenres,
         };
 
         const discoveryResults = await searchService.discoverMedia({ ...baseParams, recentDays });
@@ -77,15 +106,7 @@ export function DiscoverPage() {
     };
 
     void loadDiscoveryContent();
-  }, [
-    recentDays,
-    hasSearched,
-    currentSearchType,
-    language,
-    selectedRegions,
-    currentPage,
-    selectedGenres,
-  ]);
+  }, [recentDays, hasSearched, currentSearchType, currentPage, settingsLoaded, settingsVersion]);
 
   const handleTimePeriodChange = async (newDays: number) => {
     setRecentDays(newDays);
@@ -137,6 +158,13 @@ export function DiscoverPage() {
 
   const handleGenreChange = (genres: GenreKey[]) => {
     setSelectedGenres(genres);
+    setCurrentPage(1);
+    setSearchParams({ type: currentSearchType, page: '1' });
+    setSearchResults(null);
+  };
+
+  const handleHideVotedChange = (checked: boolean) => {
+    setHideVoted(checked);
     setCurrentPage(1);
     setSearchParams({ type: currentSearchType, page: '1' });
     setSearchResults(null);
@@ -349,6 +377,20 @@ export function DiscoverPage() {
                     onRegionsChange={handleRegionsChange}
                     disabled={loading}
                   />
+
+                  {/* Hide Voted Toggle */}
+                  <div className="flex items-center gap-3 w-full pt-2">
+                    <label className="flex items-center gap-2 cursor-pointer flex-1">
+                      <input
+                        type="checkbox"
+                        checked={hideVoted}
+                        onChange={e => handleHideVotedChange(e.target.checked)}
+                        disabled={loading}
+                        className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-amber-500 focus:ring-amber-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      />
+                      <span className="text-sm font-medium text-gray-300">Hide Already Voted</span>
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>

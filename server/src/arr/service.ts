@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { DB } from '../db/setup.js';
+import { getArrSettingsFull } from '../integration/repository.js';
 import { getMediaById } from '../media/repository.js';
-import { getArrSettingsFull } from '../settings/repository.js';
 import { trimTrailingSlash } from '../utils/links.js';
 import { createArrClient, type ArrClient } from './client.js';
 import { arrConfig, type ArrServiceConfig } from './config.js';
@@ -102,7 +102,7 @@ export function createArrService<T extends ArrServiceConfig>(
         arrUrl: libraryItem.arrUrl,
       });
 
-      fastify.scheduler.start(config.queueFastSyncScheduler);
+      fastify.scheduler.start({ name: config.queueFastSyncScheduler });
       return libraryItem;
     },
 

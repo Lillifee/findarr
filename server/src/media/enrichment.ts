@@ -1,10 +1,6 @@
 import { type DbMedia, type Media, isDefined } from '@findarr/shared';
 import type { DB } from '../db/setup.js';
-import {
-  getInteractionsBatch,
-  getAllInteractionsWithUsersBatch,
-  getVoteCountsBatch,
-} from '../interaction/repository.js';
+import { getInteractionsBatch, getVoteCountsBatch } from '../interaction/repository.js';
 import { getUserGenrePreferences, getUserKeywordPreferences } from '../preferences/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { getMediaRecordsBatch, getMediaStats } from './repository.js';
@@ -38,14 +34,10 @@ export async function enrichWithRecords(db: DB, mediaItems: Media[]): Promise<Me
 export async function enrichWithInteractions(
   db: DB,
   mediaItems: Media[],
-  userId?: number
+  userId: number
 ): Promise<Media[]> {
-  const isAdminView = userId === undefined;
-
   // Fetch interactions (user-specific or all with user info)
-  const interactionsMap = isAdminView
-    ? await getAllInteractionsWithUsersBatch(db, mediaItems)
-    : await getInteractionsBatch(db, mediaItems, userId);
+  const interactionsMap = await getInteractionsBatch(db, mediaItems, userId);
 
   // Fetch vote counts (always aggregated across all users)
   const votesMap = await getVoteCountsBatch(db, mediaItems);
@@ -117,31 +109,15 @@ export async function fetchTMDBDetails(
   mediaDbRows: DbMedia[]
 ): Promise<Media[]> {
   const results = await Promise.all(
-    mediaDbRows.map(async row => {
-      if (!isDefined(row.tmdbId)) return undefined;
+    mediaDbRows.map(async record => {
+      if (!isDefined(record.tmdbId)) return undefined;
+
       const details = await tmdbService
-        .getDetails({ id: row.tmdbId, type: row.type })
+        .getDetails({ id: record.tmdbId, type: record.type })
         .catch(() => undefined);
 
       // Attach database record to TMDB data
-      return (
-        details && {
-          ...details,
-          state: {
-            record: {
-              id: row.id,
-              tvdbId: row.tvdbId,
-              arrId: row.arrId,
-              arrUrl: row.arrUrl,
-              status: row.status,
-              jellyfinId: row.jellyfinId,
-              seasons: row.seasons,
-              createdAt: row.createdAt,
-              updatedAt: row.updatedAt,
-            },
-          },
-        }
-      );
+      return details && { ...details, state: { record } };
     })
   );
 

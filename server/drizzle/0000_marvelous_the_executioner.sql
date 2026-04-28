@@ -86,6 +86,19 @@ CREATE TABLE `user_media_interactions` (
 CREATE INDEX `idx_user_media_interactions_user` ON `user_media_interactions` (`userId`,`action`);--> statement-breakpoint
 CREATE INDEX `idx_user_media_interactions_media` ON `user_media_interactions` (`mediaId`,`action`);--> statement-breakpoint
 CREATE UNIQUE INDEX `user_media_interactions_mediaId_userId_action_unique` ON `user_media_interactions` (`mediaId`,`userId`,`action`);--> statement-breakpoint
+CREATE TABLE `user_settings` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`userId` integer NOT NULL,
+	`language` text DEFAULT 'en-US' NOT NULL,
+	`regionGroups` text DEFAULT '["western"]' NOT NULL,
+	`withGenres` text DEFAULT '[]' NOT NULL,
+	`createdAt` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	`updatedAt` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `user_settings_userId_unique` ON `user_settings` (`userId`);--> statement-breakpoint
+CREATE INDEX `idx_user_settings_user` ON `user_settings` (`userId`);--> statement-breakpoint
 CREATE TABLE `users` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`email` text NOT NULL,

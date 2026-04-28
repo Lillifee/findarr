@@ -8,8 +8,6 @@ import {
   CreateInteractionSchema,
   InteractionIdSchema,
   DiscoverQuerySchema,
-  regionGroupKeys,
-  genreKeys,
 } from './index.js';
 
 describe('schemas', () => {
@@ -136,8 +134,6 @@ describe('schemas', () => {
       expect(result.page).toBeUndefined(); // optional
       expect(result.type).toBeUndefined(); // optional
       expect(result.recentDays).toBeUndefined(); // optional
-      expect(result.regionGroups).toEqual([]); // default applied
-      expect(result.withGenres).toEqual([]); // default applied
     });
 
     it('should coerce string numbers to numbers for page and recentDays', () => {
@@ -168,28 +164,10 @@ describe('schemas', () => {
       expect(DiscoverQuerySchema.safeParse({ type: 'invalid' }).success).toBe(false);
     });
 
-    it('should accept valid regionGroups and withGenres arrays', () => {
-      const validRegion = regionGroupKeys[0];
-      const validGenre = genreKeys[0];
-
-      expect(DiscoverQuerySchema.safeParse({ regionGroups: [validRegion] }).success).toBe(true);
-      expect(DiscoverQuerySchema.safeParse({ withGenres: [validGenre] }).success).toBe(true);
-
-      // invalid values should fail
-      expect(DiscoverQuerySchema.safeParse({ regionGroups: ['invalid'] }).success).toBe(false);
-      expect(DiscoverQuerySchema.safeParse({ withGenres: ['invalid'] }).success).toBe(false);
-
-      // single value without array should be coerced to a valid array
-      const singleValue = DiscoverQuerySchema.safeParse({ regionGroups: validRegion });
-      expect(singleValue.data?.regionGroups).toEqual([validRegion]);
-
-      // invalid types should be coerced to empty arrays
-      const invalidType = DiscoverQuerySchema.safeParse({ regionGroups: 42 });
-      expect(invalidType.data?.regionGroups).toEqual([]);
-
-      // empty string should be coerced to empty array
-      const emptyValue = DiscoverQuerySchema.safeParse({ regionGroups: '' });
-      expect(emptyValue.data?.regionGroups).toEqual([]);
+    it('should ignore user settings fields that are now server-owned', () => {
+      expect(DiscoverQuerySchema.parse({ regionGroups: ['western'] })).toEqual({});
+      expect(DiscoverQuerySchema.parse({ withGenres: ['Action'] })).toEqual({});
+      expect(DiscoverQuerySchema.parse({ language: 'de-DE' })).toEqual({});
     });
 
     it('should handle full valid input', () => {
@@ -197,8 +175,6 @@ describe('schemas', () => {
         page: 10,
         type: 'movie',
         recentDays: 30,
-        regionGroups: [regionGroupKeys[0]],
-        withGenres: [genreKeys[0]],
       };
       const result = DiscoverQuerySchema.parse(input);
       expect(result).toEqual(input);

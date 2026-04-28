@@ -19,7 +19,6 @@ export async function arrRoutes(fastify: FastifyInstance) {
 
   // Sonarr link endpoint: GET /sonarr-link?mediaId=123
   fastify.get('/sonarr-link', async (request, reply) => {
-    console.log('THEEE SONARRR RURRRRLLL', request.query);
     const query = ArrLinkQuerySchema.parse(request.query);
     const url = await fastify.sonarr.resolveUrl(query.mediaId);
 

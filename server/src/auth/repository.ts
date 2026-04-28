@@ -82,7 +82,7 @@ export const createUser = async (db: DB, { email, password, displayName, role }:
 // Delete Operations
 // ============================================================================
 
-export const deleteUser = async (db: DB, id: number, curUserId?: number) => {
+export const deleteUser = async (db: DB, id: number, curUserId: number) => {
   // Prevent deleting yourself
   if (curUserId === id) {
     throw Forbidden('Cannot delete your own account');

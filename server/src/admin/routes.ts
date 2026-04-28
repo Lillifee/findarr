@@ -14,7 +14,8 @@ import {
   setSonarrSettings,
   getJellyfinSettings,
   setJellyfinSettings,
-} from '../settings/repository.js';
+} from '../integration/repository.js';
+import { protectedRoute } from '../utils/routes.js';
 
 const adminRoutes: FastifyPluginAsync = async fastify => {
   // All admin routes require admin role
@@ -28,8 +29,9 @@ const adminRoutes: FastifyPluginAsync = async fastify => {
   fastify.post('/users', r => createUser(fastify.db, CreateUserSchema.parse(r.body)));
 
   // Delete user
-  fastify.delete('/users/:id', r =>
-    deleteUser(fastify.db, DeleteUserSchema.parse(r.params).id, r.user?.id)
+  fastify.delete(
+    '/users/:id',
+    protectedRoute(r => deleteUser(fastify.db, DeleteUserSchema.parse(r.params).id, r.user.id))
   );
 
   // ============================================================================

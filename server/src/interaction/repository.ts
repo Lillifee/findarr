@@ -1,12 +1,6 @@
-import type {
-  Media,
-  InteractionType,
-  MediaInteraction,
-  MediaInteractionWithUser,
-  DbMedia,
-} from '@findarr/shared';
+import type { Media, InteractionType, MediaInteraction, DbMedia } from '@findarr/shared';
 import { isDefined, media, userMediaInteractions } from '@findarr/shared';
-import { and, desc, eq, inArray, ne, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import type { DB } from '../db/setup.js';
 
 // ============================================================================
@@ -107,51 +101,6 @@ export async function getInteractionsBatch(
   }
 
   return interactionsMap;
-}
-
-/**
- * Batch query for ALL interactions on multiple media items with user info
- * Used for admin views that show all user interactions
- */
-export async function getAllInteractionsWithUsersBatch(
-  db: DB,
-  mediaItems: Media[]
-): Promise<Map<number, Array<MediaInteractionWithUser>>> {
-  const allInteractionsMap = new Map<number, Array<MediaInteractionWithUser>>();
-
-  const mediaIds = mediaItems.map(item => item.state?.record?.id).filter(x => isDefined(x));
-  if (mediaIds.length === 0) return allInteractionsMap;
-
-  const results = await db.query.media.findMany({
-    columns: { id: true },
-    where: inArray(media.id, mediaIds),
-    with: {
-      interactions: {
-        columns: {
-          id: true,
-          action: true,
-          createdAt: true,
-        },
-        with: {
-          user: {
-            columns: {
-              id: true,
-              email: true,
-              displayName: true,
-              createdAt: true,
-            },
-          },
-        },
-        orderBy: (interactions, { desc }) => [desc(interactions.createdAt)],
-      },
-    },
-  });
-
-  for (const mediaRecord of results) {
-    allInteractionsMap.set(mediaRecord.id, mediaRecord.interactions);
-  }
-
-  return allInteractionsMap;
 }
 
 /**
@@ -256,45 +205,6 @@ export async function getMediaByUserInteraction(
   });
 
   return results.map(r => r.media);
-}
-
-/**
- * Get all media records that have a specific interaction from any user
- * Returns distinct media records ordered by media creation time (most recent first)
- */
-export async function getMediaByInteraction(db: DB, action: InteractionType): Promise<DbMedia[]> {
-  const rows = await db
-    .selectDistinct({
-      id: media.id,
-      tmdbId: media.tmdbId,
-      type: media.type,
-      jellyfinId: media.jellyfinId,
-      tvdbId: media.tvdbId,
-      arrId: media.arrId,
-      arrUrl: media.arrUrl,
-      seasons: media.seasons,
-      status: media.status,
-      createdAt: media.createdAt,
-      updatedAt: media.updatedAt,
-    })
-    .from(media)
-    .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
-    .where(eq(userMediaInteractions.action, action))
-    .orderBy(desc(media.createdAt));
-
-  return rows;
-}
-
-/**
- * Get all media records with interactions (pending or requested status)
- * Excludes available media that came from Jellyfin sync
- * Returns media ordered by creation time (most recent first)
- */
-export async function getAllMediaWithInteractions(db: DB): Promise<DbMedia[]> {
-  return await db.query.media.findMany({
-    where: ne(media.status, 'available'),
-    orderBy: (media, { desc }) => [desc(media.createdAt)],
-  });
 }
 
 // ============================================================================

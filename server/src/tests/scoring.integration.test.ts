@@ -9,6 +9,7 @@ import { createCatalogService } from '../catalog/service.js';
 import { syncCatalogCache } from '../catalog/sync.js';
 import { createDatabase, type DB } from '../db/setup.js';
 import { updateGenrePreference, updateKeywordPreference } from '../preferences/repository.js';
+import { saveUserSettings } from '../settings/service.js';
 import { TMDBSearchResponseSchema } from '../tmdb/schemas.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { transformMedia } from '../tmdb/transformers.js';
@@ -102,9 +103,15 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     sqliteDb.close();
   });
 
+  async function createCatalogUser(email: string) {
+    vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
+    return await createTestUserInDb(db, { email });
+  }
+
   it('should score and sort popular media consistently - no user', async () => {
     // Get popular without user preferences
-    const page1 = await catalogService.popular({ page: 1, type: 'both' });
+    const user = await createCatalogUser('popular-no-user@test.com');
+    const page1 = await catalogService.popular({ page: 1, type: 'both' }, user.id);
 
     // Extract relevant scoring data for snapshot (round to avoid floating-point precision issues)
     const scoringSnapshot = page1.results.map(item => ({
@@ -179,8 +186,13 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
   });
 
   it('should apply genre filtering to popular results', async () => {
-    // Get popular filtered by Action genre (using GenreKey)
-    const page1 = await catalogService.popular({ page: 1, type: 'both', withGenres: ['Action'] });
+    vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
+
+    const user = await createTestUserInDb(db, { email: 'genre-filter@test.com' });
+    await saveUserSettings(db, user.id, { withGenres: ['Action'] });
+
+    // Get popular filtered by Action genre from server-side user settings
+    const page1 = await catalogService.popular({ page: 1, type: 'both' }, user.id);
 
     // All results should have Action genre (ID 28 for movies, 10759 for TV)
     for (const item of page1.results) {
@@ -199,7 +211,8 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
   });
 
   it('should mix movies and TV shows in popular results', async () => {
-    const page1 = await catalogService.popular({ page: 1, type: 'both' });
+    const user = await createCatalogUser('popular-types@test.com');
+    const page1 = await catalogService.popular({ page: 1, type: 'both' }, user.id);
 
     // Extract types
     const types = page1.results.map(item => ({

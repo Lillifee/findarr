@@ -49,7 +49,7 @@ export function createArrQueueMonitorScheduler(arrService: AnyArrService): Sched
           { activeDownloads: activeCount },
           `Active ${arrService.config.service} downloads detected - starting fast sync`
         );
-        fastify.scheduler.start(fastSyncName);
+        fastify.scheduler.start({ name: fastSyncName });
       }
 
       return true; // Continue
@@ -95,7 +95,7 @@ export function createArrQueueFastSyncScheduler(arrService: AnyArrService): Sche
         await syncLibrary(fastify, arrService);
 
         // Trigger Jellyfin queue sync
-        fastify.scheduler.start('jellyfinQueueSync');
+        fastify.scheduler.start({ name: 'jellyfinQueueSync' });
       }
 
       // Update state for next run

@@ -21,7 +21,7 @@ export function createCatalogCacheSyncScheduler(): Scheduler {
       await syncCatalogCache(fastify);
 
       // Trigger keyword enrichment after sync
-      fastify.scheduler.start('catalogKeywordEnrichment');
+      fastify.scheduler.start({ name: 'catalogKeywordEnrichment' });
 
       return true; // Continue
     }

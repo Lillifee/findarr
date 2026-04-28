@@ -23,6 +23,8 @@ import type {
   SwipeNextResponse,
   ArrLinkQuery,
   JellyfinLinkQuery,
+  UserSettings,
+  UserSettingsBody,
 } from '@findarr/shared';
 import axios from 'axios';
 
@@ -137,6 +139,18 @@ export const interactionService = {
   },
 };
 
+export const userSettingsService = {
+  get: async (): Promise<UserSettings> => {
+    const response = await api.get('/settings');
+    return response.data;
+  },
+
+  update: async (updates: UserSettingsBody): Promise<UserSettings> => {
+    const response = await api.put('/settings', updates);
+    return response.data;
+  },
+};
+
 export const adminArrService = {
   radarr: {
     getSettings: async (): Promise<RadarrSettings> => {
@@ -223,19 +237,16 @@ export const schedulerService = {
 // Admin scheduler management service
 export const adminSchedulerService = {
   // Manually trigger a scheduler
-  trigger: async (name: string): Promise<{ success: boolean; message: string }> => {
-    const response = await api.post(`/admin/schedulers/${name}/trigger`);
-    return response.data;
+  trigger: async (name: string): Promise<void> => {
+    await api.post(`/admin/schedulers/${name}/trigger`);
   },
   // Start/enable a scheduler
-  start: async (name: string): Promise<{ success: boolean; message: string }> => {
-    const response = await api.post(`/admin/schedulers/${name}/start`);
-    return response.data;
+  start: async (name: string): Promise<void> => {
+    await api.post(`/admin/schedulers/${name}/start`);
   },
   // Stop/disable a scheduler
-  stop: async (name: string): Promise<{ success: boolean; message: string }> => {
-    const response = await api.post(`/admin/schedulers/${name}/stop`);
-    return response.data;
+  stop: async (name: string): Promise<void> => {
+    await api.post(`/admin/schedulers/${name}/stop`);
   },
 };
 

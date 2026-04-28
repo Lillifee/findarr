@@ -1,12 +1,13 @@
 import type {
   SearchQuery,
-  DiscoverQuery,
   DetailsQuery,
   GenresQuery,
   SearchResponse,
   Genre,
   DiscoverResponse,
   MediaDetails,
+  DiscoverQuery,
+  UserSettings,
 } from '@findarr/shared';
 import type { TMDBClient } from './client.js';
 import { buildDiscoverParams } from './helpers.js';
@@ -68,13 +69,17 @@ export function createTMDBService(tmdbClient: TMDBClient) {
    * Fetch discover results from TMDB
    * Fetches specified pages and transforms to application format
    */
-  async function fetchDiscover(params: DiscoverQuery, pages?: number[]): Promise<DiscoverResponse> {
+  async function fetchDiscover(
+    params: DiscoverQuery,
+    userSettings: UserSettings,
+    pages?: number[]
+  ): Promise<DiscoverResponse> {
     const { type = 'both', page = 1 } = params;
 
     const discoverTypes = type === 'both' ? (['movie', 'tv'] as const) : ([type] as const);
     const pagesToFetch = pages ?? [page];
 
-    const discoverParams = buildDiscoverParams(params);
+    const discoverParams = buildDiscoverParams(params, userSettings);
     const discoverPromises = discoverTypes.flatMap(discoverType =>
       pagesToFetch.map(pageNum =>
         tmdbClient.discover(discoverType, { ...discoverParams, page: pageNum })

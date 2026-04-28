@@ -1,5 +1,6 @@
 import { CreateInteractionSchema, InteractionsQuerySchema } from '@findarr/shared';
 import type { FastifyPluginAsync } from 'fastify';
+import { protectedRoute } from '../utils/routes.js';
 import { createInteraction, getUserInteractionsEnriched } from './service.js';
 
 const interactionRoutes: FastifyPluginAsync = async fastify => {
@@ -21,10 +22,13 @@ const interactionRoutes: FastifyPluginAsync = async fastify => {
 
   // Get user's own voted media (both likes and dislikes) - enriched with TMDB data
   // Supports pagination via query parameter
-  fastify.get('/', request => {
-    const { page } = InteractionsQuerySchema.parse(request.query);
-    return getUserInteractionsEnriched(fastify.tmdb, fastify.db, request.user?.id, page);
-  });
+  fastify.get(
+    '/',
+    protectedRoute(request => {
+      const { page } = InteractionsQuerySchema.parse(request.query);
+      return getUserInteractionsEnriched(fastify.tmdb, fastify.db, request.user.id, page);
+    })
+  );
 };
 
 export { interactionRoutes };

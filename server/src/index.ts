@@ -16,6 +16,7 @@ import jellyfinPlugin from './jellyfin/plugin.js';
 import { jellyfinRoutes } from './jellyfin/routes.js';
 import schedulerPlugin from './scheduler/plugin.js';
 import { adminSchedulerRoutes, schedulerRoutes } from './scheduler/routes.js';
+import { settingsRoutes } from './settings/routes.js';
 import tmdbPlugin from './tmdb/plugin.js';
 import { registerErrorHandler } from './utils/errors.js';
 
@@ -95,6 +96,7 @@ async function start() {
     await server.register(arrRoutes, { prefix: '/api' });
     await server.register(jellyfinRoutes, { prefix: '/api' });
     await server.register(interactionRoutes, { prefix: '/api/interactions' });
+    await server.register(settingsRoutes, { prefix: '/api/settings' });
     await server.register(catalogRoutes, { prefix: '/api' });
     await server.register(schedulerRoutes, { prefix: '/api' });
     await server.register(adminSchedulerRoutes, { prefix: '/api/admin' });

@@ -5,7 +5,8 @@ import { GenreChips } from '../components/GenreChips';
 import { MediaTypeChips } from '../components/MediaTypeChips';
 import { MediaView } from '../components/MediaView';
 import { RegionChips } from '../components/RegionChips';
-import { searchService } from '../services/api';
+import { useUserSettings } from '../hooks/useUserSettings';
+import { searchService, userSettingsService } from '../services/api';
 
 export function VotePage() {
   const navigate = useNavigate();
@@ -20,17 +21,45 @@ export function VotePage() {
   const [selectedRegions, setSelectedRegions] = useState<RegionGroupId[]>(['western']);
   const [selectedGenres, setSelectedGenres] = useState<GenreKey[]>([]);
   const [filtersExpanded, setFiltersExpanded] = useState(false);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+
+  useEffect(() => {
+    const loadUserSettings = async () => {
+      try {
+        const settings = await userSettingsService.get();
+        setLanguage(settings.language);
+        setSelectedRegions(settings.regionGroups);
+        setSelectedGenres(settings.withGenres);
+      } catch (error) {
+        console.error('Failed to load user settings:', error);
+      } finally {
+        setSettingsLoaded(true);
+      }
+    };
+
+    void loadUserSettings();
+  }, []);
+
+  const { settingsVersion } = useUserSettings(
+    {
+      language,
+      regionGroups: selectedRegions,
+      withGenres: selectedGenres,
+    },
+    { enabled: settingsLoaded }
+  );
 
   // Fetch next unvoted item
   const fetchNextItem = useCallback(async () => {
+    if (!settingsLoaded) {
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     try {
       const response = await searchService.getNextSwipe({
         type: currentSearchType,
-        language,
-        regionGroups: selectedRegions,
-        withGenres: selectedGenres,
       });
       if (response.media) {
         setCurrentMedia(response.media);
@@ -45,12 +74,12 @@ export function VotePage() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentSearchType, language, selectedRegions, selectedGenres]);
+  }, [currentSearchType, settingsLoaded]);
 
   // Load first item on mount
   useEffect(() => {
     void fetchNextItem();
-  }, [fetchNextItem]);
+  }, [fetchNextItem, settingsVersion]);
 
   // Reload when filters change (already handled by useCallback dependencies)
   // No need for separate effect since fetchNextItem will be recreated when dependencies change

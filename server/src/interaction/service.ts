@@ -1,4 +1,4 @@
-import type { CreateMediaInteraction, Media, MediaStatus, User, DbMedia } from '@findarr/shared';
+import type { CreateMediaInteraction, Media, User, DbMedia } from '@findarr/shared';
 import type { AnyArrService } from '../arr/service.js';
 import { getCatalogCacheBatch } from '../catalog/repository.js';
 import type { CatalogService } from '../catalog/service.js';
@@ -10,7 +10,6 @@ import {
   getMediaByTmdbId,
   updateMediaStatus,
   updateMediaSeasons,
-  getMediaByStatus,
 } from '../media/repository.js';
 import { updatePreferencesForInteraction } from '../preferences/service.js';
 import type { TMDBService } from '../tmdb/service.js';
@@ -20,7 +19,6 @@ import {
   removeAllInteractions,
   getVoteCounts,
   getMediaByUserInteractions,
-  getAllMediaWithInteractions,
 } from './repository.js';
 
 const LIKE_THRESHOLD = 3;
@@ -156,13 +154,9 @@ async function requestMediaToArr(
 export async function getUserInteractionsEnriched(
   tmdbService: TMDBService,
   db: DB,
-  userId?: number,
+  userId: number,
   page = 1
 ): Promise<{ results: Media[]; page: number; totalPages: number; totalResults: number }> {
-  if (!userId) {
-    return { results: [], page: 1, totalPages: 0, totalResults: 0 };
-  }
-
   const itemsPerPage = 20;
   const offset = (page - 1) * itemsPerPage;
 
@@ -189,47 +183,4 @@ export async function getUserInteractionsEnriched(
     totalPages,
     totalResults: totalCount,
   };
-}
-
-/**
- * Get all media with interactions enriched with TMDB metadata, all user interactions, and vote counts (admin view)
- */
-export async function getAllInteractionsEnriched(
-  tmdbService: TMDBService,
-  db: DB
-): Promise<Media[]> {
-  // Get all media that has at least one interaction (any status: pending, requested, available)
-  const dbRecords = await getAllMediaWithInteractions(db);
-
-  if (dbRecords.length === 0) return [];
-
-  // Fetch TMDB details for all media with interactions
-  const enrichedMedia = await fetchTMDBDetails(tmdbService, dbRecords);
-
-  // Add all interactions with user info and vote counts in optimized batch queries
-  return await enrichWithInteractions(db, enrichedMedia);
-}
-
-/**
- * Get requested media enriched with TMDB metadata
- * Optionally filter by specific statuses (requested, downloading, downloaded)
- */
-export async function getRequestedMedia(
-  tmdbService: TMDBService,
-  db: DB,
-  statuses?: MediaStatus[]
-): Promise<Media[]> {
-  // Default to all "in-progress" statuses if not specified
-  const statusFilter = statuses ?? ['requested', 'downloading', 'downloaded'];
-
-  // Get media records by status
-  const dbRecords = await getMediaByStatus(db, statusFilter);
-
-  if (dbRecords.length === 0) return [];
-
-  // Fetch TMDB details for all requested media
-  const enrichedMedia = await fetchTMDBDetails(tmdbService, dbRecords);
-
-  // Add interactions and vote counts in optimized batch queries
-  return await enrichWithInteractions(db, enrichedMedia);
 }

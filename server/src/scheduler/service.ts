@@ -1,6 +1,5 @@
-import { getErrorMessage } from '@findarr/shared';
+import { getErrorMessage, type SchedulerName, type SchedulerParams } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
-import type { SchedulerName } from './registry.js';
 import type { Scheduler, SchedulerState } from './types.js';
 
 const TICK_INTERVAL_MS = 10 * 1000; // 10 seconds
@@ -125,8 +124,8 @@ export function createSchedulerService(
     /**
      * Start a scheduler (enable + schedule next run)
      */
-    start(name: SchedulerName): void {
-      const scheduler = schedulers[name];
+    start(params: SchedulerParams): void {
+      const scheduler = schedulers[params.name];
 
       scheduler.state.enabled = true;
 
@@ -140,14 +139,14 @@ export function createSchedulerService(
         scheduler.state.nextRun = Date.now();
       }
 
-      fastify.log.info({ name }, `Scheduler '${name}' started`);
+      fastify.log.info({ name: params.name }, `Scheduler '${params.name}' started`);
     },
 
     /**
      * Stop a scheduler (disable + clear next run)
      */
-    stop(name: SchedulerName): void {
-      const scheduler = schedulers[name];
+    stop(params: SchedulerParams): void {
+      const scheduler = schedulers[params.name];
 
       scheduler.state.enabled = false;
 
@@ -155,29 +154,29 @@ export function createSchedulerService(
       scheduler.state.nextRun = null;
       scheduler.state.startedAt = null;
 
-      fastify.log.info({ name }, `Scheduler '${name}' stopped`);
+      fastify.log.info({ name: params.name }, `Scheduler '${params.name}' stopped`);
     },
 
     /**
      * Manually trigger a scheduler (immediate run)
      */
-    async trigger(name: SchedulerName): Promise<void> {
-      const scheduler = schedulers[name];
+    async trigger(params: SchedulerParams): Promise<void> {
+      const scheduler = schedulers[params.name];
 
       if (scheduler.state.isRunning) {
-        throw new Error(`Scheduler '${name}' is already running`);
+        throw new Error(`Scheduler '${params.name}' is already running`);
       }
 
-      fastify.log.info({ name }, `Manually triggering scheduler '${name}'`);
+      fastify.log.info({ name: params.name }, `Manually triggering scheduler '${params.name}'`);
       await executeScheduler(scheduler);
     },
 
     /**
      * Get state of one or all schedulers
      */
-    getState(name?: SchedulerName): SchedulerState | SchedulerState[] {
-      if (name) {
-        return { ...schedulers[name].state };
+    getState(params?: SchedulerParams): SchedulerState | SchedulerState[] {
+      if (params?.name) {
+        return { ...schedulers[params.name].state };
       }
 
       return Object.values(schedulers).map(s => ({ ...s.state }));

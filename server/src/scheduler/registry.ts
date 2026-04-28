@@ -32,39 +32,3 @@ export function createSchedulers(fastify: FastifyInstance) {
     catalogKeywordEnrichment: createCatalogKeywordEnrichmentScheduler(),
   } as const satisfies Record<string, Scheduler>;
 }
-
-/**
- * Union type of all valid scheduler names
- */
-export type SchedulerName =
-  | 'jellyfinLibrarySync'
-  | 'jellyfinQueueSync'
-  | 'radarrLibrarySync'
-  | 'radarrQueueMonitor'
-  | 'radarrQueueFastSync'
-  | 'sonarrLibrarySync'
-  | 'sonarrQueueMonitor'
-  | 'sonarrQueueFastSync'
-  | 'catalogCacheSync'
-  | 'catalogKeywordEnrichment';
-
-const VALID_SCHEDULER_NAMES: readonly SchedulerName[] = [
-  'jellyfinLibrarySync',
-  'jellyfinQueueSync',
-  'radarrLibrarySync',
-  'radarrQueueMonitor',
-  'radarrQueueFastSync',
-  'sonarrLibrarySync',
-  'sonarrQueueMonitor',
-  'sonarrQueueFastSync',
-  'catalogCacheSync',
-  'catalogKeywordEnrichment',
-] as const;
-
-/**
- * Type guard to check if a string is a valid scheduler name
- * Useful for validating API inputs
- */
-export function isValidSchedulerName(name: string): name is SchedulerName {
-  return VALID_SCHEDULER_NAMES.includes(name as SchedulerName);
-}
