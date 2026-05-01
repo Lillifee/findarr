@@ -5,6 +5,7 @@ import * as authService from '../auth/service.js';
 import { upsertCatalogCache } from '../catalog/repository.js';
 import { createCatalogService } from '../catalog/service.js';
 import { createDatabase, type DB } from '../db/setup.js';
+import { addInteraction } from '../interaction/repository.js';
 import { createMedia } from '../media/repository.js';
 import { updateGenrePreference, updateKeywordPreference } from '../preferences/repository.js';
 import { saveUserSettings } from '../settings/service.js';
@@ -270,5 +271,25 @@ describe('catalog service - integration tests', () => {
 
     // Should execute enrichment with userId code path (line 130)
     expect(result.results).toBeDefined();
+  });
+
+  it('should stop swipe voting after the first 100 popular items are exhausted', async () => {
+    vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
+    const user = await createTestUserInDb(db, { email: 'swipe-limit@test.com' });
+
+    const cachedItems = Array.from({ length: 101 }, (_, index) =>
+      createTestMedia({ tmdbId: index + 1, popularity: 1000 - index })
+    );
+    await upsertCatalogCache(db, cachedItems);
+
+    for (const item of cachedItems.slice(0, 100)) {
+      const mediaRecord = await createMedia(db, item.tmdbId, item.type);
+      await addInteraction(db, user.id, mediaRecord.id, 'liked');
+    }
+
+    const result = await catalogService.getNextUnvoted({ type: 'both' }, user.id);
+
+    expect(result.media).toBeNull();
+    expect(tmdbServiceMock.getDetails).not.toHaveBeenCalled();
   });
 });

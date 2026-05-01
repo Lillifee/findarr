@@ -57,18 +57,6 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
               <span className="font-medium">Popular</span>
             </NavLink>
 
-            <NavLink to="/discover" className={navLinkClass}>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              <span className="font-medium">Discover</span>
-            </NavLink>
-
             <NavLink to="/requests" className={navLinkClass}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -87,6 +75,24 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                 Account
               </div>
               <div className="space-y-1">
+                <NavLink to="/settings" className={navLinkClass}>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10.325 4.317a1 1 0 011.35-.936l1.93.786a1 1 0 00.79 0l1.93-.786a1 1 0 011.35.936l.228 2.067a1 1 0 00.548.784l1.74.98a1 1 0 01.365 1.414l-1.21 1.691a1 1 0 000 .99l1.21 1.69a1 1 0 01-.366 1.415l-1.739.98a1 1 0 00-.548.783l-.228 2.068a1 1 0 01-1.35.935l-1.93-.786a1 1 0 00-.79 0l-1.93.786a1 1 0 01-1.35-.935l-.228-2.068a1 1 0 00-.548-.784l-1.74-.979a1 1 0 01-.365-1.415l1.21-1.69a1 1 0 000-.99l-1.21-1.691a1 1 0 01.366-1.414l1.739-.98a1 1 0 00.548-.783l.228-2.067z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                  <span className="font-medium text-sm">Settings</span>
+                </NavLink>
+
                 {isAdmin && (
                   <>
                     <NavLink to="/admin/users" className={navLinkClass}>
@@ -196,18 +202,6 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
             <span className="text-xs font-medium">Popular</span>
           </NavLink>
 
-          <NavLink to="/discover" className={mobileNavLinkClass}>
-            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-            <span className="text-xs font-medium">Discover</span>
-          </NavLink>
-
           <NavLink to="/requests" className={mobileNavLinkClass}>
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -245,6 +239,28 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
               <div className="text-xs text-gray-400 mb-3 px-2">
                 Logged in as <span className="text-white font-medium">{user?.displayName}</span>
               </div>
+
+              <NavLink
+                to="/settings"
+                onClick={() => setMobileAdvancedOpen(false)}
+                className={navLinkClass}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10.325 4.317a1 1 0 011.35-.936l1.93.786a1 1 0 00.79 0l1.93-.786a1 1 0 011.35.936l.228 2.067a1 1 0 00.548.784l1.74.98a1 1 0 01.365 1.414l-1.21 1.691a1 1 0 000 .99l1.21 1.69a1 1 0 01-.366 1.415l-1.739.98a1 1 0 00-.548.783l-.228 2.068a1 1 0 01-1.35.935l-1.93-.786a1 1 0 00-.79 0l-1.93.786a1 1 0 01-1.35-.935l-.228-2.068a1 1 0 00-.548-.784l-1.74-.979a1 1 0 01-.365-1.415l1.21-1.69a1 1 0 000-.99l-1.21-1.691a1 1 0 01.366-1.414l1.739-.98a1 1 0 00.548-.783l.228-2.067z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+                <span className="font-medium">Settings</span>
+              </NavLink>
 
               {isAdmin && (
                 <>

@@ -1,8 +1,6 @@
 import type {
   SearchQuery,
   SearchResponse,
-  DiscoverQuery,
-  DiscoverResponse,
   UserInteractionsResponse,
   PopularQuery,
   PopularResponse,
@@ -46,11 +44,6 @@ export const searchService = {
 
   popular: async (params: PopularQuery): Promise<PopularResponse> => {
     const response = await api.get('/popular', { params });
-    return response.data;
-  },
-
-  discoverMedia: async (params: DiscoverQuery = {}): Promise<DiscoverResponse> => {
-    const response = await api.get('/discover', { params });
     return response.data;
   },
 

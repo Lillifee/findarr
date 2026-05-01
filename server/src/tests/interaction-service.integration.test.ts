@@ -79,7 +79,7 @@ const catalogService: CatalogService = {
     )
   ),
   getGenres: vi.fn().mockResolvedValue({ genres: [] }),
-  getNextUnvoted: vi.fn().mockResolvedValue({ media: null, remainingCount: 0 }),
+  getNextUnvoted: vi.fn().mockResolvedValue({ media: null, feedId: 'feed-1' }),
 };
 
 describe('interaction service - integration tests', () => {

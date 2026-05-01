@@ -5,10 +5,10 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ArrSettingsPage } from './pages/admin/ArrSettingsPage';
 import { SchedulersPage } from './pages/admin/SchedulersPage';
 import { UserManagementPage } from './pages/admin/UserManagementPage';
-import { DiscoverPage } from './pages/DiscoverPage';
 import { MediaDetailPage } from './pages/MediaDetailPage';
 import { MyRequestsPage } from './pages/MyRequestsPage';
 import { PopularPage } from './pages/PopularPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { VotePage } from './pages/VotePage';
 
 function MainApp() {
@@ -47,10 +47,10 @@ function MainApp() {
         <Routes>
           <Route path="/vote" element={<VotePage />} />
           <Route path="/popular" element={<PopularPage />} />
-          <Route path="/discover" element={<DiscoverPage />} />
           <Route path="/movie/:id" element={<MediaDetailPage />} />
           <Route path="/tv/:id" element={<MediaDetailPage />} />
           <Route path="/requests" element={<MyRequestsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           {isAdmin && (
             <>
               <Route path="/admin/users" element={<UserManagementPage />} />

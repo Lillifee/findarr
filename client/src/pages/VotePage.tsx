@@ -1,9 +1,8 @@
-import type { MediaDetails, RegionGroupId, GenreKey, SearchType } from '@findarr/shared';
-import { useEffect, useState, useCallback } from 'react';
+import type { MediaDetails, GenreKey, SearchType } from '@findarr/shared';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FiltersToolbar } from '../components/FiltersToolbar';
 import { MediaView } from '../components/MediaView';
-import { useUserSettings } from '../hooks/useUserSettings';
 import { searchService, userSettingsService } from '../services/api';
 import { buildCatalogSearchParams, readCatalogSearchParams } from '../utils/catalogSearchParams';
 
@@ -15,20 +14,18 @@ export function VotePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isComplete, setIsComplete] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [feedId, setFeedId] = useState<string | undefined>(undefined);
+  const feedIdRef = useRef<string | undefined>(undefined);
 
   // Filter state (same as PopularPage)
   const [currentSearchType, setCurrentSearchType] = useState<SearchType>(initialSearchParams.type);
-  const [language, setLanguage] = useState<string>('de-DE');
-  const [selectedRegions, setSelectedRegions] = useState<RegionGroupId[]>(['western']);
   const [selectedGenres, setSelectedGenres] = useState<GenreKey[]>(initialSearchParams.genres);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
 
   useEffect(() => {
     const loadUserSettings = async () => {
       try {
-        const settings = await userSettingsService.get();
-        setLanguage(settings.language);
-        setSelectedRegions(settings.regions);
+        await userSettingsService.get();
       } catch (error) {
         console.error('Failed to load user settings:', error);
       } finally {
@@ -38,14 +35,6 @@ export function VotePage() {
 
     void loadUserSettings();
   }, []);
-
-  const { settingsVersion } = useUserSettings(
-    {
-      language,
-      regions: selectedRegions,
-    },
-    { enabled: settingsLoaded }
-  );
 
   useEffect(() => {
     const nextSearchParams = readCatalogSearchParams(searchParams, { type: 'both' });
@@ -60,6 +49,10 @@ export function VotePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
+  useEffect(() => {
+    feedIdRef.current = feedId;
+  }, [feedId]);
+
   // Fetch next unvoted item
   const fetchNextItem = useCallback(async () => {
     if (!settingsLoaded) {
@@ -73,7 +66,12 @@ export function VotePage() {
         type: currentSearchType,
         genres: selectedGenres,
         interaction: 'unvoted',
+        feedId: feedIdRef.current,
       });
+
+      feedIdRef.current = response.feedId;
+      setFeedId(response.feedId);
+
       if (response.media) {
         setCurrentMedia(response.media);
         setIsComplete(false);
@@ -92,7 +90,7 @@ export function VotePage() {
   // Load first item on mount
   useEffect(() => {
     void fetchNextItem();
-  }, [fetchNextItem, settingsVersion]);
+  }, [fetchNextItem]);
 
   // Reload when filters change (already handled by useCallback dependencies)
   // No need for separate effect since fetchNextItem will be recreated when dependencies change
@@ -100,6 +98,9 @@ export function VotePage() {
   // Handle filter changes
   const handleTypeChange = (type: SearchType) => {
     setCurrentSearchType(type);
+    feedIdRef.current = undefined;
+    setFeedId(undefined);
+    setIsComplete(false);
     setSearchParams(
       buildCatalogSearchParams({
         type,
@@ -108,16 +109,11 @@ export function VotePage() {
     );
   };
 
-  const handleLanguageChange = (nextLanguage: string) => {
-    setLanguage(nextLanguage);
-  };
-
-  const handleRegionsChange = (regions: RegionGroupId[]) => {
-    setSelectedRegions(regions);
-  };
-
   const handleGenreChange = (genres: GenreKey[]) => {
     setSelectedGenres(genres);
+    feedIdRef.current = undefined;
+    setFeedId(undefined);
+    setIsComplete(false);
     setSearchParams(
       buildCatalogSearchParams({
         type: currentSearchType,
@@ -139,10 +135,6 @@ export function VotePage() {
         disabled={isLoading}
         selectedGenres={selectedGenres}
         onGenresChange={handleGenreChange}
-        language={language}
-        onLanguageChange={handleLanguageChange}
-        selectedRegions={selectedRegions}
-        onRegionsChange={handleRegionsChange}
       />
 
       {/* Loading state */}

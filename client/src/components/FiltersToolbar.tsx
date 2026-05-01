@@ -1,9 +1,7 @@
-import type { GenreKey, InteractionFilter, RegionGroupId, SearchType } from '@findarr/shared';
-import { useState } from 'react';
+import type { GenreKey, InteractionFilter, SearchType } from '@findarr/shared';
+import { useEffect, useState } from 'react';
 import { GenreChips } from './GenreChips';
 import { MediaTypeChips } from './MediaTypeChips';
-import { RegionChips } from './RegionChips';
-import { TimeRangeSlider } from './TimeRangeSlider';
 
 interface FiltersToolbarProps {
   selectedType: SearchType;
@@ -13,19 +11,11 @@ interface FiltersToolbarProps {
   selectedGenres: GenreKey[];
   onGenresChange: (genres: GenreKey[]) => void;
 
-  language: string;
-  onLanguageChange: (language: string) => void;
-
-  selectedRegions: RegionGroupId[];
-  onRegionsChange: (regions: RegionGroupId[]) => void;
-
-  showTimeRange?: boolean;
-  timeRangeDays?: number;
-  onTimeRangeChange?: (days: number) => void;
-
   showInteractionFilter?: boolean;
   interactionFilter?: InteractionFilter;
   onInteractionFilterChange?: (value: InteractionFilter) => void;
+
+  showFiltersButton?: boolean;
 }
 
 export function FiltersToolbar({
@@ -34,18 +24,18 @@ export function FiltersToolbar({
   disabled = false,
   selectedGenres,
   onGenresChange,
-  language,
-  onLanguageChange,
-  selectedRegions,
-  onRegionsChange,
-  showTimeRange = false,
-  timeRangeDays,
-  onTimeRangeChange,
   showInteractionFilter = false,
   interactionFilter,
   onInteractionFilterChange,
+  showFiltersButton = true,
 }: FiltersToolbarProps) {
   const [filtersExpanded, setFiltersExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!showFiltersButton && filtersExpanded) {
+      setFiltersExpanded(false);
+    }
+  }, [filtersExpanded, showFiltersButton]);
 
   return (
     <>
@@ -73,44 +63,43 @@ export function FiltersToolbar({
               </div>
             )}
 
-            <button
-              onClick={() => setFiltersExpanded(current => !current)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-800/60 backdrop-blur-sm border border-gray-700/50 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-700/80 transition-all cursor-pointer whitespace-nowrap shadow-md"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-                />
-              </svg>
-              <span>Filters</span>
-              {!filtersExpanded && (
-                <span className="hidden md:inline text-xs font-normal text-gray-400">
-                  (
-                  {selectedGenres.length > 0 &&
-                    `${selectedGenres.length} genre${selectedGenres.length === 1 ? '' : 's'}`}
-                  {selectedGenres.length > 0 && selectedRegions.length > 0 && ', '}
-                  {selectedRegions.length > 0 &&
-                    `${selectedRegions.length} region${selectedRegions.length === 1 ? '' : 's'}`}
-                  {selectedGenres.length === 0 && selectedRegions.length === 0 && 'None'})
-                </span>
-              )}
-              <span
-                className="text-sm transition-transform duration-200"
-                style={{
-                  transform: filtersExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                }}
+            {showFiltersButton && (
+              <button
+                onClick={() => setFiltersExpanded(current => !current)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-800/60 backdrop-blur-sm border border-gray-700/50 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-700/80 transition-all cursor-pointer whitespace-nowrap shadow-md"
               >
-                ▼
-              </span>
-            </button>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                  />
+                </svg>
+                <span>Filters</span>
+                {!filtersExpanded && (
+                  <span className="hidden md:inline text-xs font-normal text-gray-400">
+                    (
+                    {selectedGenres.length > 0 &&
+                      `${selectedGenres.length} genre${selectedGenres.length === 1 ? '' : 's'}`}
+                    {selectedGenres.length === 0 && 'None'})
+                  </span>
+                )}
+                <span
+                  className="text-sm transition-transform duration-200"
+                  style={{
+                    transform: filtersExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                  }}
+                >
+                  ▼
+                </span>
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      {filtersExpanded && (
+      {showFiltersButton && filtersExpanded && (
         <>
           <div
             className="fixed inset-0 bg-black/60 z-40 animate-in fade-in duration-200"
@@ -141,50 +130,6 @@ export function FiltersToolbar({
                   <GenreChips
                     selectedGenres={selectedGenres}
                     onGenreChange={onGenresChange}
-                    disabled={disabled}
-                  />
-
-                  {showTimeRange && typeof timeRangeDays === 'number' && onTimeRangeChange && (
-                    <TimeRangeSlider value={timeRangeDays} onChange={onTimeRangeChange} />
-                  )}
-
-                  <div className="flex flex-col gap-2 w-full">
-                    <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
-                        />
-                      </svg>
-                      <span>Language</span>
-                    </label>
-                    <select
-                      value={language}
-                      onChange={e => onLanguageChange(e.target.value)}
-                      disabled={disabled}
-                      className="w-full px-3 py-3 text-base border-2 border-gray-600 rounded-lg bg-gray-800/60 backdrop-blur-sm text-white hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      <option value="de-DE">German (Germany)</option>
-                      <option value="en-US">English (US)</option>
-                      <option value="en-GB">English (UK)</option>
-                      <option value="fr-FR">French (France)</option>
-                      <option value="es-ES">Spanish (Spain)</option>
-                      <option value="it-IT">Italian (Italy)</option>
-                      <option value="nl-NL">Dutch (Netherlands)</option>
-                      <option value="pt-BR">Portuguese (Brazil)</option>
-                    </select>
-                  </div>
-
-                  <RegionChips
-                    selectedRegions={selectedRegions}
-                    onRegionsChange={onRegionsChange}
                     disabled={disabled}
                   />
                 </div>

@@ -1,20 +1,46 @@
-import type { RegionGroupId, GenreKey, InteractionFilter } from '@findarr/shared';
-import { useState, useEffect, useCallback } from 'react';
+import type { GenreKey, InteractionFilter } from '@findarr/shared';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { SearchType, Media } from '../../../shared/dist/types';
 import { FiltersToolbar } from '../components/FiltersToolbar';
 import { ResultsGrid } from '../components/ResultsGrid';
+import { SearchBar } from '../components/SearchBar';
 import { useHistoryRestoreState } from '../hooks/useHistoryRestoreState';
-import { useUserSettings } from '../hooks/useUserSettings';
 import { searchService, userSettingsService } from '../services/api';
 import { buildCatalogSearchParams, readCatalogSearchParams } from '../utils/catalogSearchParams';
 
-interface PopularPageState {
+interface PopularFeedState {
   currentPage: number;
   feedId?: string;
   results: Media[];
-  scrollY: number;
   totalPages: number;
+}
+
+interface PopularPageState extends PopularFeedState {
+  genres: GenreKey[];
+  interaction: InteractionFilter;
+  query: string;
+  scrollY: number;
+  type: SearchType;
+}
+
+function areGenresEqual(left: GenreKey[], right: GenreKey[]) {
+  return left.length === right.length && left.every((genre, index) => genre === right[index]);
+}
+
+function mergeUniqueResults(existing: Media[], incoming: Media[]) {
+  const keyOf = (item: Media) => `${item.type}_${item.tmdbId}`;
+  const seen = new Set(existing.map(item => keyOf(item)));
+  const merged = [...existing];
+
+  for (const item of incoming) {
+    if (!seen.has(keyOf(item))) {
+      merged.push(item);
+      seen.add(keyOf(item));
+    }
+  }
+
+  return merged;
 }
 
 export function PopularPage() {
@@ -30,24 +56,27 @@ export function PopularPage() {
   const [feedId, setFeedId] = useState<string | undefined>(undefined);
   const [totalPages, setTotalPages] = useState(0);
   const [currentSearchType, setCurrentSearchType] = useState<SearchType>(initialSearchParams.type);
+  const [currentQuery, setCurrentQuery] = useState(initialSearchParams.q);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [language, setLanguage] = useState<string>('de-DE');
-  const [selectedRegions, setSelectedRegions] = useState<RegionGroupId[]>(['western']);
   const [selectedGenres, setSelectedGenres] = useState<GenreKey[]>(initialSearchParams.genres);
   const [interactionFilter, setInteractionFilter] = useState<InteractionFilter>(
     initialSearchParams.interaction ?? 'unvoted'
   );
   const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const popularSnapshotRef = useRef<PopularPageState | null>(null);
+  const hasConsumedRestoreRef = useRef(false);
+  const latestRequestIdRef = useRef(0);
+
+  const isSearchMode = currentQuery.trim().length > 0;
 
   // Load user settings on mount
   useEffect(() => {
     const loadUserSettings = async () => {
       try {
-        console.log('Loading user settings...');
         const settings = await userSettingsService.get();
         setLanguage(settings.language);
-        setSelectedRegions(settings.regions);
       } catch (error) {
         console.error('Failed to load user settings:', error);
         // Use defaults if load fails
@@ -59,15 +88,6 @@ export function PopularPage() {
     void loadUserSettings();
   }, []);
 
-  // Persist user settings with debounce
-  const { settingsVersion } = useUserSettings(
-    {
-      language,
-      regions: selectedRegions,
-    },
-    { enabled: settingsLoaded }
-  );
-
   // Sync state with URL params when they change (e.g., browser back/forward)
   useEffect(() => {
     const nextSearchParams = readCatalogSearchParams(searchParams, {
@@ -76,15 +96,19 @@ export function PopularPage() {
     const urlType = nextSearchParams.type;
     const urlGenres = nextSearchParams.genres;
     const urlInteraction = nextSearchParams.interaction ?? 'unvoted';
+    const urlQuery = nextSearchParams.q;
 
     if (urlType !== currentSearchType) {
       setCurrentSearchType(urlType);
     }
-    if (JSON.stringify(urlGenres) !== JSON.stringify(selectedGenres)) {
+    if (!areGenresEqual(urlGenres, selectedGenres)) {
       setSelectedGenres(urlGenres);
     }
     if (urlInteraction !== interactionFilter) {
       setInteractionFilter(urlInteraction);
+    }
+    if (urlQuery !== currentQuery) {
+      setCurrentQuery(urlQuery);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
@@ -101,6 +125,14 @@ export function PopularPage() {
     }) => {
       if (!settingsLoaded) return;
 
+      const requestId = latestRequestIdRef.current + 1;
+      latestRequestIdRef.current = requestId;
+      const query = currentQuery;
+      const type = currentSearchType;
+      const genres = selectedGenres;
+      const interaction = interactionFilter;
+      const searchMode = isSearchMode;
+
       if (append) {
         setLoadingMore(true);
       } else {
@@ -108,46 +140,123 @@ export function PopularPage() {
       }
 
       try {
+        if (searchMode) {
+          const nextPage = page ?? 1;
+          const response = await searchService.searchMedia({
+            query,
+            page: nextPage,
+            language,
+            type,
+          });
+
+          if (latestRequestIdRef.current !== requestId) {
+            return;
+          }
+
+          setCurrentPage(response.page);
+          setTotalPages(response.totalPages);
+          setFeedId(undefined);
+
+          if (!append) {
+            setResults(response.results);
+            return;
+          }
+
+          setResults(prev => mergeUniqueResults(prev, response.results));
+          return;
+        }
+
         const response = await searchService.popular({
-          type: currentSearchType,
-          genres: selectedGenres,
-          interaction: interactionFilter,
+          type,
+          genres,
+          interaction,
           page,
           feedId: currentFeedId,
         });
 
+        if (latestRequestIdRef.current !== requestId) {
+          return;
+        }
         setCurrentPage(response.page);
         setTotalPages(response.totalPages);
         setFeedId(response.feedId);
 
         if (!append) {
           setResults(response.results);
+          popularSnapshotRef.current = {
+            type,
+            genres,
+            interaction,
+            query: '',
+            results: response.results,
+            currentPage: response.page,
+            totalPages: response.totalPages,
+            feedId: response.feedId,
+            scrollY: 0,
+          };
           return;
         }
 
         setResults(prev => {
-          const keyOf = (item: Media) => `${item.type}_${item.tmdbId}`;
-          const seen = new Set(prev.map(item => keyOf(item)));
-          const merged = [...prev];
-          for (const item of response.results) {
-            if (!seen.has(keyOf(item))) {
-              merged.push(item);
-              seen.add(keyOf(item));
-            }
-          }
-          return merged;
+          const mergedResults = mergeUniqueResults(prev, response.results);
+          popularSnapshotRef.current = {
+            type,
+            genres,
+            interaction,
+            query: '',
+            results: mergedResults,
+            currentPage: response.page,
+            totalPages: response.totalPages,
+            feedId: response.feedId,
+            scrollY: 0,
+          };
+          return mergedResults;
         });
       } catch (error) {
-        console.error('Failed to load popular feed:', error);
+        console.error(`Failed to load ${searchMode ? 'search' : 'popular'} results:`, error);
       } finally {
-        if (append) {
-          setLoadingMore(false);
-        } else {
-          setLoading(false);
+        if (latestRequestIdRef.current === requestId) {
+          if (append) {
+            setLoadingMore(false);
+          } else {
+            setLoading(false);
+          }
         }
       }
     },
-    [currentSearchType, interactionFilter, selectedGenres, settingsLoaded]
+    [
+      currentQuery,
+      currentSearchType,
+      interactionFilter,
+      isSearchMode,
+      language,
+      selectedGenres,
+      settingsLoaded,
+    ]
+  );
+
+  const restoreVisibleFeed = useCallback((state: PopularFeedState) => {
+    setResults(state.results);
+    setCurrentPage(state.currentPage);
+    setTotalPages(state.totalPages);
+    setFeedId(state.feedId);
+  }, []);
+
+  const matchesVisibleFilters = useCallback(
+    (state: Pick<PopularPageState, 'type' | 'genres' | 'interaction' | 'query'>) =>
+      state.type === currentSearchType &&
+      areGenresEqual(state.genres, selectedGenres) &&
+      state.interaction === interactionFilter &&
+      state.query === currentQuery,
+    [currentQuery, currentSearchType, interactionFilter, selectedGenres]
+  );
+
+  const matchesPopularFilters = useCallback(
+    (state: Pick<PopularPageState, 'type' | 'genres' | 'interaction'>) =>
+      state.type === currentSearchType &&
+      areGenresEqual(state.genres, selectedGenres) &&
+      state.interaction === interactionFilter,
+    [currentSearchType, interactionFilter, selectedGenres]
   );
 
   const persistHistoryState = useCallback(() => {
@@ -156,13 +265,28 @@ export function PopularPage() {
     }
 
     persistState({
+      type: currentSearchType,
+      genres: selectedGenres,
+      interaction: interactionFilter,
+      query: currentQuery,
       results,
       currentPage,
       totalPages,
       ...(feedId ? { feedId } : {}),
       scrollY: window.scrollY,
     });
-  }, [currentPage, feedId, persistState, results, settingsLoaded, totalPages]);
+  }, [
+    currentPage,
+    currentQuery,
+    currentSearchType,
+    feedId,
+    interactionFilter,
+    persistState,
+    results,
+    selectedGenres,
+    settingsLoaded,
+    totalPages,
+  ]);
 
   // Load first feed slice on initial render or when filters/settings change
   useEffect(() => {
@@ -170,14 +294,20 @@ export function PopularPage() {
       return;
     }
 
-    if (restoredState) {
-      setResults(restoredState.results);
-      setCurrentPage(restoredState.currentPage);
-      setTotalPages(restoredState.totalPages);
-      setFeedId(restoredState.feedId);
+    if (!hasConsumedRestoreRef.current && restoredState && matchesVisibleFilters(restoredState)) {
+      hasConsumedRestoreRef.current = true;
+      restoreVisibleFeed(restoredState);
       requestAnimationFrame(() => {
         window.scrollTo({ top: restoredState.scrollY, behavior: 'auto' });
       });
+      return;
+    }
+
+    hasConsumedRestoreRef.current = true;
+
+    const popularSnapshot = popularSnapshotRef.current;
+    if (!isSearchMode && popularSnapshot && matchesPopularFilters(popularSnapshot)) {
+      restoreVisibleFeed(popularSnapshot);
       return;
     }
 
@@ -185,18 +315,15 @@ export function PopularPage() {
     setTotalPages(0);
     setFeedId(undefined);
     void loadFeed({ append: false });
-  }, [loadFeed, restoredState, settingsLoaded, settingsVersion]);
-
-  const handleRegionsChange = (regions: RegionGroupId[]) => {
-    setSelectedRegions(regions);
-    setSearchParams(
-      buildCatalogSearchParams({
-        type: currentSearchType,
-        genres: selectedGenres,
-        interaction: interactionFilter,
-      })
-    );
-  };
+  }, [
+    isSearchMode,
+    loadFeed,
+    matchesPopularFilters,
+    matchesVisibleFilters,
+    restoreVisibleFeed,
+    restoredState,
+    settingsLoaded,
+  ]);
 
   const handleTypeChange = (type: SearchType) => {
     setCurrentSearchType(type);
@@ -205,17 +332,7 @@ export function PopularPage() {
         type,
         genres: selectedGenres,
         interaction: interactionFilter,
-      })
-    );
-  };
-
-  const handleLanguageChange = (nextLanguage: string) => {
-    setLanguage(nextLanguage);
-    setSearchParams(
-      buildCatalogSearchParams({
-        type: currentSearchType,
-        genres: selectedGenres,
-        interaction: interactionFilter,
+        q: currentQuery || undefined,
       })
     );
   };
@@ -227,6 +344,7 @@ export function PopularPage() {
         type: currentSearchType,
         genres,
         interaction: interactionFilter,
+        q: currentQuery || undefined,
       })
     );
   };
@@ -238,6 +356,39 @@ export function PopularPage() {
         type: currentSearchType,
         genres: selectedGenres,
         interaction: value,
+        q: currentQuery || undefined,
+      })
+    );
+  };
+
+  const handleSearch = (query: string) => {
+    setCurrentQuery(query);
+    setSearchParams(
+      buildCatalogSearchParams({
+        type: currentSearchType,
+        genres: selectedGenres,
+        interaction: interactionFilter,
+        q: query,
+      })
+    );
+  };
+
+  const handleClearSearch = () => {
+    latestRequestIdRef.current += 1;
+    setLoading(false);
+    setLoadingMore(false);
+    setCurrentQuery('');
+
+    const popularSnapshot = popularSnapshotRef.current;
+    if (popularSnapshot && matchesPopularFilters(popularSnapshot)) {
+      restoreVisibleFeed(popularSnapshot);
+    }
+
+    setSearchParams(
+      buildCatalogSearchParams({
+        type: currentSearchType,
+        genres: selectedGenres,
+        interaction: interactionFilter,
       })
     );
   };
@@ -250,7 +401,7 @@ export function PopularPage() {
   const handleUpdateItem = (updatedItem: Media) => {
     const hasMore = currentPage < totalPages;
 
-    if (interactionFilter === 'unvoted') {
+    if (!isSearchMode && interactionFilter === 'unvoted') {
       setResults(prev =>
         prev.filter(item => !(item.tmdbId === updatedItem.tmdbId && item.type === updatedItem.type))
       );
@@ -275,19 +426,28 @@ export function PopularPage() {
   };
   return (
     <>
+      <div className="bg-gray-800/90 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 pt-4 md:pt-6 pb-3">
+          <SearchBar
+            onSearch={handleSearch}
+            onClear={handleClearSearch}
+            loading={loading}
+            hasSearched={isSearchMode}
+            initialQuery={currentQuery}
+          />
+        </div>
+      </div>
+
       <FiltersToolbar
         selectedType={currentSearchType}
         onTypeChange={handleTypeChange}
         disabled={loading}
         selectedGenres={selectedGenres}
         onGenresChange={handleGenreChange}
-        language={language}
-        onLanguageChange={handleLanguageChange}
-        selectedRegions={selectedRegions}
-        onRegionsChange={handleRegionsChange}
-        showInteractionFilter
+        showInteractionFilter={!isSearchMode}
         interactionFilter={interactionFilter}
         onInteractionFilterChange={handleInteractionFilterChange}
+        showFiltersButton={!isSearchMode}
       />
 
       {/* Main Content Area */}
@@ -295,7 +455,15 @@ export function PopularPage() {
         {results.length > 0 && (
           <div id="results-section">
             <div className="flex justify-between items-center gap-3 mb-6">
-              <h2 className="text-xl md:text-3xl font-bold text-white">Trending & Popular</h2>
+              <h2 className="text-xl md:text-3xl font-bold text-white">
+                {isSearchMode
+                  ? currentSearchType === 'movie'
+                    ? 'Movies'
+                    : currentSearchType === 'tv'
+                      ? 'TV Shows'
+                      : 'Movies & TV Shows'
+                  : 'Trending & Popular'}
+              </h2>
               <span className="text-gray-400 text-xs md:text-sm">
                 {results.length.toLocaleString()}
                 {currentPage < totalPages ? '+' : ''} results loaded
@@ -346,7 +514,9 @@ export function PopularPage() {
                   d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"
                 />
               </svg>
-              <p className="text-base md:text-lg">Loading content...</p>
+              <p className="text-base md:text-lg">
+                {isSearchMode ? 'No results found.' : 'Loading content...'}
+              </p>
             </div>
           </div>
         )}

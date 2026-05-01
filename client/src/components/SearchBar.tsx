@@ -18,6 +18,7 @@ export function SearchBar({
   initialQuery = '',
 }: SearchBarProps) {
   const [query, setQuery] = useState(initialQuery);
+  const canClear = Boolean(query || hasSearched);
 
   // Update local query when initialQuery changes
   useEffect(() => {
@@ -45,12 +46,17 @@ export function SearchBar({
     }
   };
 
-  const clearButton = (query || hasSearched) && (
+  const clearButton = (
     <button
       type="button"
       onClick={handleClear}
-      disabled={loading}
-      className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700/60 rounded-full transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+      onMouseDown={event => event.preventDefault()}
+      disabled={!canClear}
+      className={`p-1.5 rounded-full transition-all ${
+        canClear
+          ? 'text-gray-400 hover:text-white hover:bg-gray-700/60 cursor-pointer'
+          : 'text-transparent cursor-default pointer-events-none'
+      }`}
       aria-label="Clear search"
     >
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

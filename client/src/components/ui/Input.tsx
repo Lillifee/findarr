@@ -41,9 +41,7 @@ export function Input({
             className={`${baseStyles} ${variantStyles[variant]} ${errorStyles} ${prefixIcon ? 'pl-10' : ''} ${suffixIcon ? 'pr-10' : ''} ${className}`}
             {...props}
           />
-          {suffixIcon && (
-            <div className="absolute right-3 text-gray-400 pointer-events-none">{suffixIcon}</div>
-          )}
+          {suffixIcon && <div className="absolute right-3 text-gray-400">{suffixIcon}</div>}
         </div>
       </div>
     );

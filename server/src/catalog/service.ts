@@ -25,6 +25,8 @@ import type { TMDBService } from '../tmdb/service.js';
 import { createFeedSnapshotStore } from './helper.js';
 import { getAllCatalogCache } from './repository.js';
 
+const SWIPE_CANDIDATE_LIMIT = 100;
+
 /**
  * Catalog service - orchestrates multiple data sources and applies business logic
  */
@@ -80,23 +82,27 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
 
   /**
    * Get next unvoted media for swipe/vote feature
-   * Returns the first unvoted item from popular media with full details
-   * Fetches pages sequentially until an unvoted item is found
-   * Respects same filters as popular page (type, genres, regions)
    */
   async function getNextUnvoted(params: PopularQuery, userId: number): Promise<SwipeNextResponse> {
     const settings = await getUserSettings(db, userId);
 
-    const popularResponse = await popular(
-      {
-        type: params.type,
-        genres: params.genres,
-        interaction: 'unvoted',
-      },
-      userId
-    );
+    const [snapshot, interactionKeys] = await Promise.all([
+      getPopularSnapshot(
+        {
+          ...params,
+          type: params.type,
+          genres: params.genres,
+          interaction: 'all',
+        },
+        userId
+      ),
+      getUserInteractionMediaKeys(db, userId),
+    ]);
 
-    const unvotedItem = popularResponse.results[0] || null;
+    const swipeWindow = popularFeedSnapshotStore.getPage(snapshot.items, 1, SWIPE_CANDIDATE_LIMIT);
+
+    const unvotedItem =
+      swipeWindow.items.find(item => filterByInteraction(item, interactionKeys, 'unvoted')) || null;
 
     const media =
       unvotedItem &&
@@ -105,7 +111,7 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
         userId
       ));
 
-    return { media };
+    return { media, feedId: snapshot.id };
   }
 
   /**
@@ -115,7 +121,26 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
     const { page = 1, type = 'both', interaction, genres = [] } = params;
 
     // Get or create feed snapshot (cached for short time to allow consistent pagination)
-    const snapshot = await popularFeedSnapshotStore.getOrCreate(params.feedId, async () => {
+    const snapshot = await getPopularSnapshot({ ...params, type, interaction, genres }, userId);
+
+    // Get the requested page window from the stable snapshot
+    const window = popularFeedSnapshotStore.getPage(snapshot.items, page);
+
+    // Enrich the items in the current window with full state (scores, records, interactions)
+    const results = await enrichResults(window.items, userId, { scoring: false });
+
+    return {
+      results,
+      page: window.page,
+      totalPages: window.totalPages,
+      feedId: snapshot.id,
+    };
+  }
+
+  async function getPopularSnapshot(params: PopularQuery, userId: number) {
+    const { type = 'both', interaction, genres = [] } = params;
+
+    return popularFeedSnapshotStore.getOrCreate(params.feedId, async () => {
       const [settings, allResults, interactionKeys] = await Promise.all([
         getUserSettings(db, userId),
         getAllCatalogCache(db),
@@ -139,19 +164,6 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
 
       return filtered;
     });
-
-    // Get the requested page window from the stable snapshot
-    const window = popularFeedSnapshotStore.getPage(snapshot.items, page);
-
-    // Enrich the items in the current window with full state (scores, records, interactions)
-    const results = await enrichResults(window.items, userId, { scoring: false });
-
-    return {
-      results,
-      page: window.page,
-      totalPages: window.totalPages,
-      feedId: snapshot.id,
-    };
   }
 
   /**

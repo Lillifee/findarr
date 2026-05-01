@@ -203,6 +203,7 @@ export type UserInteractionsResponse = PaginatedMediaResponse;
  * Swipe/Vote response - returns next unvoted media item
  */
 export interface SwipeNextResponse {
+  feedId: string;
   media: MediaDetails | null;
 }
 
