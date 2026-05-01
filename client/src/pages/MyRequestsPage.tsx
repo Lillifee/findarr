@@ -1,74 +1,112 @@
-import type { DiscoverResponse, Media } from '@findarr/shared';
-import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import type { Media, UserInteractionsResponse } from '@findarr/shared';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ResultsGrid } from '../components/ResultsGrid';
+import { useHistoryRestoreState } from '../hooks/useHistoryRestoreState';
 import { interactionService } from '../services/api';
+
+interface RequestsPageState {
+  currentPage: number;
+  results: Media[];
+  scrollY: number;
+  totalPages: number;
+}
 
 export function MyRequestsPage() {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { restoredState, persistState } = useHistoryRestoreState<RequestsPageState>();
 
-  const [searchResults, setSearchResults] = useState<DiscoverResponse | null>(null);
+  const [searchResults, setSearchResults] = useState<Media[]>([]);
   const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(
-    Number.parseInt(searchParams.get('page') || '1', 10)
-  );
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [totalPages, setTotalPages] = useState(0);
 
-  // Sync state with URL params when they change (e.g., browser back/forward)
-  useEffect(() => {
-    const urlPage = Number.parseInt(searchParams.get('page') || '1', 10);
-    if (urlPage !== currentPage) {
-      setCurrentPage(urlPage);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
-
-  // Load user's voted media on initial render or when page changes
-  useEffect(() => {
-    const loadVotedMedia = async () => {
+  const loadVotes = useCallback(async ({ page, append }: { page: number; append: boolean }) => {
+    if (append) {
+      setLoadingMore(true);
+    } else {
       setLoading(true);
+    }
 
-      try {
-        const results = await interactionService.listLiked(currentPage);
-        setSearchResults(results);
-      } catch (error) {
-        console.error('Failed to load voted media:', error);
-      } finally {
+    try {
+      const response: UserInteractionsResponse = await interactionService.listLiked(page);
+      const responsePage = response.page;
+
+      setCurrentPage(responsePage);
+      setTotalPages(response.totalPages);
+      setHasMore(responsePage < response.totalPages);
+
+      if (!append) {
+        setSearchResults(response.results);
+        return;
+      }
+
+      setSearchResults(prev => {
+        const keyOf = (item: Media) => `${item.type}_${item.tmdbId}`;
+        const seen = new Set(prev.map(item => keyOf(item)));
+        const merged = [...prev];
+
+        for (const item of response.results) {
+          if (!seen.has(keyOf(item))) {
+            merged.push(item);
+            seen.add(keyOf(item));
+          }
+        }
+
+        return merged;
+      });
+    } catch (error) {
+      console.error('Failed to load voted media:', error);
+    } finally {
+      if (append) {
+        setLoadingMore(false);
+      } else {
         setLoading(false);
       }
-    };
+    }
+  }, []);
 
-    loadVotedMedia().catch(error => {
-      console.error('Error loading voted media:', error);
+  const persistHistoryState = useCallback(() => {
+    if (searchResults.length === 0) {
+      return;
+    }
+
+    persistState({
+      results: searchResults,
+      currentPage,
+      totalPages,
+      scrollY: window.scrollY,
     });
-  }, [currentPage]);
+  }, [currentPage, persistState, searchResults, totalPages]);
 
-  const handlePageChange = async (newPage: number) => {
-    setCurrentPage(newPage);
-    setSearchParams({ page: newPage.toString() });
+  useEffect(() => {
+    if (restoredState) {
+      setSearchResults(restoredState.results);
+      setCurrentPage(restoredState.currentPage);
+      setTotalPages(restoredState.totalPages);
+      setHasMore(restoredState.currentPage < restoredState.totalPages);
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: restoredState.scrollY, behavior: 'auto' });
+      });
+      return;
+    }
 
-    setTimeout(() => {
-      const resultsSection = document.querySelector('#results-section');
-      if (resultsSection) {
-        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 100);
-  };
+    void loadVotes({ page: 1, append: false });
+  }, [loadVotes, restoredState]);
 
   const handleSelectItem = (item: Media) => {
+    persistHistoryState();
     void navigate(`/${item.type}/${item.tmdbId}`);
   };
 
   const handleUpdateItem = (updatedItem: Media) => {
-    setSearchResults(prev => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        results: prev.results.map(item =>
-          item.tmdbId === updatedItem.tmdbId && item.type === updatedItem.type ? updatedItem : item
-        ),
-      };
-    });
+    setSearchResults(prev =>
+      prev.map(item =>
+        item.tmdbId === updatedItem.tmdbId && item.type === updatedItem.type ? updatedItem : item
+      )
+    );
   };
 
   return (
@@ -79,7 +117,7 @@ export function MyRequestsPage() {
       </div>
 
       {/* Loading State */}
-      {loading && !searchResults && (
+      {loading && searchResults.length === 0 && (
         <div className="flex justify-center items-center py-20">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
@@ -89,7 +127,7 @@ export function MyRequestsPage() {
       )}
 
       {/* Empty State */}
-      {!loading && searchResults && searchResults.results.length === 0 && (
+      {!loading && searchResults.length === 0 && (
         <div className="flex flex-col items-center justify-center py-20">
           <svg
             className="w-24 h-24 text-gray-600 mb-4"
@@ -113,107 +151,25 @@ export function MyRequestsPage() {
       )}
 
       {/* Results Grid */}
-      {!loading && searchResults && searchResults.results.length > 0 && (
+      {!loading && searchResults.length > 0 && (
         <div id="results-section">
           <ResultsGrid
-            results={searchResults.results}
+            results={searchResults}
             onSelectItem={handleSelectItem}
             onUpdateItem={handleUpdateItem}
           />
 
-          {/* Pagination Controls */}
-          {searchResults.totalPages && searchResults.totalPages > 1 && (
+          {hasMore && (
             <div className="text-center mt-6 md:mt-8 pt-4 md:pt-6 pb-20 md:pb-0 border-t border-gray-700">
               <div className="flex justify-center items-center gap-2 md:gap-3 flex-wrap">
-                {/* Previous button */}
                 <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage <= 1 || loading}
-                  className={`inline-flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all ${
-                    currentPage <= 1
-                      ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                      : 'bg-linear-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 cursor-pointer shadow-md'
-                  } disabled:cursor-not-allowed`}
+                  onClick={() => {
+                    void loadVotes({ page: currentPage + 1, append: true });
+                  }}
+                  disabled={loadingMore}
+                  className="inline-flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all bg-linear-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 cursor-pointer shadow-md disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 19l-7-7 7-7"
-                    />
-                  </svg>
-                  <span className="hidden sm:inline">Previous</span>
-                </button>
-
-                {/* Page numbers */}
-                <div className="flex gap-1 md:gap-2 items-center">
-                  {currentPage > 3 && (
-                    <>
-                      <button
-                        onClick={() => handlePageChange(1)}
-                        disabled={loading}
-                        className="px-2 md:px-3 py-2 bg-gray-800/60 backdrop-blur-sm text-amber-400 border border-gray-600/50 rounded-lg text-xs md:text-sm hover:bg-gray-700/80 transition-all disabled:cursor-not-allowed cursor-pointer"
-                      >
-                        1
-                      </button>
-                      {currentPage > 4 && <span className="text-gray-500 text-xs">...</span>}
-                    </>
-                  )}
-
-                  {Array.from({ length: Math.min(5, searchResults?.totalPages ?? 1) }, (_, i) => {
-                    const pageStart = Math.max(1, currentPage - 2);
-                    const pageEnd = Math.min(searchResults?.totalPages ?? 1, pageStart + 4);
-                    const adjustedStart = Math.max(1, pageEnd - 4);
-                    const pageNum = adjustedStart + i;
-
-                    if (pageNum > pageEnd) return null;
-
-                    const isMobileHidden = Math.abs(pageNum - currentPage) > 1 && currentPage > 1;
-
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => handlePageChange(pageNum)}
-                        disabled={loading}
-                        className={`${isMobileHidden ? 'hidden sm:block' : ''} px-2 md:px-3 py-2 rounded-lg text-xs md:text-sm transition-all cursor-pointer ${
-                          pageNum === currentPage
-                            ? 'bg-linear-to-r from-amber-600 to-orange-600 text-white font-semibold border-2 border-amber-500 shadow-md'
-                            : 'bg-gray-800/60 backdrop-blur-sm text-amber-400 border border-gray-600/50 hover:bg-gray-700/80'
-                        } disabled:cursor-not-allowed`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-
-                  {currentPage < (searchResults?.totalPages ?? 1) - 2 && (
-                    <>
-                      {currentPage < (searchResults?.totalPages ?? 1) - 3 && (
-                        <span className="text-gray-500 text-xs">...</span>
-                      )}
-                      <button
-                        onClick={() => handlePageChange(searchResults?.totalPages ?? 1)}
-                        disabled={loading}
-                        className="px-2 md:px-3 py-2 bg-gray-800/60 backdrop-blur-sm text-amber-400 border border-gray-600/50 rounded-lg text-xs md:text-sm hover:bg-gray-700/80 transition-all disabled:cursor-not-allowed cursor-pointer"
-                      >
-                        {searchResults?.totalPages}
-                      </button>
-                    </>
-                  )}
-                </div>
-
-                {/* Next button */}
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage >= (searchResults?.totalPages ?? 1) || loading}
-                  className={`inline-flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all ${
-                    currentPage >= (searchResults?.totalPages ?? 1)
-                      ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                      : 'bg-linear-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 cursor-pointer shadow-md'
-                  } disabled:cursor-not-allowed`}
-                >
-                  <span className="hidden sm:inline">Next</span>
+                  <span>{loadingMore ? 'Loading...' : 'Load more'}</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
@@ -226,11 +182,8 @@ export function MyRequestsPage() {
               </div>
 
               <div className="mt-3 text-xs md:text-sm text-gray-400">
-                Page {currentPage} of {searchResults?.totalPages}
-                <span className="hidden sm:inline">
-                  {' '}
-                  ({searchResults?.totalResults?.toLocaleString()} total votes)
-                </span>
+                {searchResults.length.toLocaleString()}
+                {currentPage < totalPages ? '+' : ''} votes loaded
               </div>
             </div>
           )}

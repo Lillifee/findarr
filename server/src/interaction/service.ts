@@ -1,4 +1,10 @@
-import type { CreateMediaInteraction, Media, User, DbMedia } from '@findarr/shared';
+import type {
+  CreateMediaInteraction,
+  Media,
+  User,
+  DbMedia,
+  UserInteractionsResponse,
+} from '@findarr/shared';
 import type { AnyArrService } from '../arr/service.js';
 import { getCatalogCacheBatch } from '../catalog/repository.js';
 import type { CatalogService } from '../catalog/service.js';
@@ -156,7 +162,7 @@ export async function getUserInteractionsEnriched(
   db: DB,
   userId: number,
   page = 1
-): Promise<{ results: Media[]; page: number; totalPages: number; totalResults: number }> {
+): Promise<UserInteractionsResponse> {
   const itemsPerPage = 20;
   const offset = (page - 1) * itemsPerPage;
 
@@ -181,6 +187,5 @@ export async function getUserInteractionsEnriched(
     results,
     page,
     totalPages,
-    totalResults: totalCount,
   };
 }

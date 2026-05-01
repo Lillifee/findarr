@@ -1,7 +1,8 @@
 import type { Media, InteractionType, MediaInteraction, DbMedia } from '@findarr/shared';
 import { isDefined, media, userMediaInteractions } from '@findarr/shared';
-import { and, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, desc, eq, getTableColumns, inArray, isNotNull, sql } from 'drizzle-orm';
 import type { DB } from '../db/setup.js';
+import { toMediaKey } from '../utils/helper.js';
 
 // ============================================================================
 // Basic CRUD Operations
@@ -159,19 +160,7 @@ export async function getMediaByUserInteractions(
 
   // Get paginated results
   let query = db
-    .selectDistinct({
-      id: media.id,
-      type: media.type,
-      tmdbId: media.tmdbId,
-      tvdbId: media.tvdbId,
-      jellyfinId: media.jellyfinId,
-      arrId: media.arrId,
-      arrUrl: media.arrUrl,
-      seasons: media.seasons,
-      status: media.status,
-      createdAt: media.createdAt,
-      updatedAt: media.updatedAt,
-    })
+    .selectDistinct(getTableColumns(media))
     .from(media)
     .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
     .where(eq(userMediaInteractions.userId, userId))
@@ -189,22 +178,17 @@ export async function getMediaByUserInteractions(
   return { results, totalCount };
 }
 
-/**
- * Get all media records where a user has a specific interaction
- * Returns the media DB rows ordered by interaction creation time (most recent first)
- */
-export async function getMediaByUserInteraction(
-  db: DB,
-  userId: number,
-  action: InteractionType
-): Promise<DbMedia[]> {
-  const results = await db.query.userMediaInteractions.findMany({
-    where: and(eq(userMediaInteractions.userId, userId), eq(userMediaInteractions.action, action)),
-    with: { media: true },
-    orderBy: (interactions, { desc }) => [desc(interactions.createdAt), desc(interactions.id)],
-  });
+export async function getUserInteractionMediaKeys(db: DB, userId: number) {
+  const rows = await db
+    .selectDistinct({
+      tmdbId: media.tmdbId,
+      type: media.type,
+    })
+    .from(media)
+    .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
+    .where(and(eq(userMediaInteractions.userId, userId), isNotNull(media.tmdbId)));
 
-  return results.map(r => r.media);
+  return new Set(rows.map(row => toMediaKey(row.tmdbId ?? -1, row.type)));
 }
 
 // ============================================================================

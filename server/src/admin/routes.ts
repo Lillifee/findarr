@@ -1,9 +1,9 @@
 import {
   CreateUserSchema,
   DeleteUserSchema,
-  RadarrSettingsBodySchema,
-  SonarrSettingsBodySchema,
-  JellyfinSettingsBodySchema,
+  RadarrSettingsQuerySchema,
+  SonarrSettingsQuerySchema,
+  JellyfinSettingsQuerySchema,
 } from '@findarr/shared';
 import type { FastifyPluginAsync } from 'fastify';
 import { createUser, deleteUser, listAllUsers } from '../auth/repository.js';
@@ -41,7 +41,7 @@ const adminRoutes: FastifyPluginAsync = async fastify => {
   fastify.get('/radarr/settings', () => getRadarrSettings(fastify.db));
 
   fastify.put('/radarr/settings', async r => {
-    const body = RadarrSettingsBodySchema.parse(r.body);
+    const body = RadarrSettingsQuerySchema.parse(r.body);
     await setRadarrSettings(fastify.db, body);
     return getRadarrSettings(fastify.db);
   });
@@ -67,7 +67,7 @@ const adminRoutes: FastifyPluginAsync = async fastify => {
   fastify.get('/sonarr/settings', () => getSonarrSettings(fastify.db));
 
   fastify.put('/sonarr/settings', async r => {
-    await setSonarrSettings(fastify.db, SonarrSettingsBodySchema.parse(r.body));
+    await setSonarrSettings(fastify.db, SonarrSettingsQuerySchema.parse(r.body));
     return getSonarrSettings(fastify.db);
   });
 
@@ -92,7 +92,7 @@ const adminRoutes: FastifyPluginAsync = async fastify => {
   fastify.get('/jellyfin/settings', () => getJellyfinSettings(fastify.db));
 
   fastify.put('/jellyfin/settings', async r => {
-    await setJellyfinSettings(fastify.db, JellyfinSettingsBodySchema.parse(r.body));
+    await setJellyfinSettings(fastify.db, JellyfinSettingsQuerySchema.parse(r.body));
     return getJellyfinSettings(fastify.db);
   });
 

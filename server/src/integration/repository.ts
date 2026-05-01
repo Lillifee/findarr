@@ -1,14 +1,14 @@
 import {
   appSettings,
-  RadarrSettingsBodySchema,
-  SonarrSettingsBodySchema,
-  JellyfinSettingsBodySchema,
+  RadarrSettingsQuerySchema,
+  SonarrSettingsQuerySchema,
+  JellyfinSettingsQuerySchema,
   type RadarrSettings,
   type SonarrSettings,
   type JellyfinSettings,
-  type RadarrSettingsBody,
-  type SonarrSettingsBody,
-  type JellyfinSettingsBody,
+  type RadarrSettingsQuery,
+  type SonarrSettingsQuery,
+  type JellyfinSettingsQuery,
   objectEntries,
   isDefined,
 } from '@findarr/shared';
@@ -16,15 +16,15 @@ export type { RadarrSettings, SonarrSettings, JellyfinSettings } from '@findarr/
 import { eq, inArray } from 'drizzle-orm';
 import type { DB } from '../db/setup.js';
 
-type RadarrSettingKeys = keyof typeof RadarrSettingsBodySchema.shape;
-type SonarrSettingKeys = keyof typeof SonarrSettingsBodySchema.shape;
-type JellyfinSettingKeys = keyof typeof JellyfinSettingsBodySchema.shape;
+type RadarrSettingKeys = keyof typeof RadarrSettingsQuerySchema.shape;
+type SonarrSettingKeys = keyof typeof SonarrSettingsQuerySchema.shape;
+type JellyfinSettingKeys = keyof typeof JellyfinSettingsQuerySchema.shape;
 
 export type SettingKey = RadarrSettingKeys | SonarrSettingKeys | JellyfinSettingKeys;
 
-const radarrKeys = Object.keys(RadarrSettingsBodySchema.shape) as RadarrSettingKeys[];
-const sonarrKeys = Object.keys(SonarrSettingsBodySchema.shape) as SonarrSettingKeys[];
-const jellyfinKeys = Object.keys(JellyfinSettingsBodySchema.shape) as JellyfinSettingKeys[];
+const radarrKeys = Object.keys(RadarrSettingsQuerySchema.shape) as RadarrSettingKeys[];
+const sonarrKeys = Object.keys(SonarrSettingsQuerySchema.shape) as SonarrSettingKeys[];
+const jellyfinKeys = Object.keys(JellyfinSettingsQuerySchema.shape) as JellyfinSettingKeys[];
 
 async function read<K extends SettingKey>(db: DB, keys: K[]): Promise<Record<K, string | null>> {
   const rows = await db.query.appSettings.findMany({ where: inArray(appSettings.key, keys) });
@@ -94,7 +94,7 @@ export async function getArrSettingsFull(
   };
 }
 
-export async function setRadarrSettings(db: DB, settings: RadarrSettingsBody): Promise<void> {
+export async function setRadarrSettings(db: DB, settings: RadarrSettingsQuery): Promise<void> {
   await write(db, {
     ...settings,
     radarrQualityProfileId: settings.radarrQualityProfileId?.toString(),
@@ -121,7 +121,7 @@ export async function getRadarrSettings(db: DB): Promise<RadarrSettings> {
   return settings;
 }
 
-export async function setSonarrSettings(db: DB, settings: SonarrSettingsBody): Promise<void> {
+export async function setSonarrSettings(db: DB, settings: SonarrSettingsQuery): Promise<void> {
   await write(db, {
     ...settings,
     sonarrQualityProfileId: settings.sonarrQualityProfileId?.toString(),
@@ -148,7 +148,7 @@ export async function getSonarrSettings(db: DB): Promise<SonarrSettings> {
   return settings;
 }
 
-export async function setJellyfinSettings(db: DB, settings: JellyfinSettingsBody): Promise<void> {
+export async function setJellyfinSettings(db: DB, settings: JellyfinSettingsQuery): Promise<void> {
   await write(db, settings);
 }
 

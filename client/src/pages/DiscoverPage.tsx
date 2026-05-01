@@ -1,43 +1,41 @@
 import type { RegionGroupId, GenreKey } from '@findarr/shared';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import type {
-  SearchResponse,
-  SearchType,
-  DiscoverResponse,
-  Media,
-} from '../../../shared/dist/types';
-import { GenreChips } from '../components/GenreChips';
-import { MediaTypeChips } from '../components/MediaTypeChips';
-import { RegionChips } from '../components/RegionChips';
+import type { SearchType, Media } from '../../../shared/dist/types';
+import { FiltersToolbar } from '../components/FiltersToolbar';
 import { ResultsGrid } from '../components/ResultsGrid';
 import { SearchBar } from '../components/SearchBar';
-import { TimeRangeSlider } from '../components/TimeRangeSlider';
+import { useHistoryRestoreState } from '../hooks/useHistoryRestoreState';
 import { useUserSettings } from '../hooks/useUserSettings';
 import { searchService, userSettingsService } from '../services/api';
+import { buildCatalogSearchParams, readCatalogSearchParams } from '../utils/catalogSearchParams';
+
+interface DiscoverPageState {
+  currentPage: number;
+  results: Media[];
+  scrollY: number;
+  totalPages: number;
+}
 
 export function DiscoverPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const initialSearchParams = readCatalogSearchParams(searchParams, { page: 1, recentDays: 365 });
+  const { restoredState, persistState } = useHistoryRestoreState<DiscoverPageState>();
 
-  const [searchResults, setSearchResults] = useState<SearchResponse | DiscoverResponse | null>(
-    null
-  );
-  const [currentSearchType, setCurrentSearchType] = useState<SearchType>(
-    (searchParams.get('type') as SearchType) || 'both'
-  );
+  const [results, setResults] = useState<Media[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(initialSearchParams.page);
+  const [hasMore, setHasMore] = useState(false);
+  const [totalPages, setTotalPages] = useState(0);
+  const [currentSearchType, setCurrentSearchType] = useState<SearchType>(initialSearchParams.type);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const [recentDays, setRecentDays] = useState<number>(365);
+  const [recentDays, setRecentDays] = useState<number>(initialSearchParams.recentDays ?? 365);
   const [language, setLanguage] = useState<string>('de-DE');
   const [selectedRegions, setSelectedRegions] = useState<RegionGroupId[]>(['western']);
-  const [filtersExpanded, setFiltersExpanded] = useState(false);
-  const [currentPage, setCurrentPage] = useState(
-    Number.parseInt(searchParams.get('page') || '1', 10)
-  );
   const [currentQuery, setCurrentQuery] = useState<string>('');
-  const [selectedGenres, setSelectedGenres] = useState<GenreKey[]>([]);
-  const [hideVoted, setHideVoted] = useState(false);
+  const [selectedGenres, setSelectedGenres] = useState<GenreKey[]>(initialSearchParams.genres);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
 
   // Load user settings on mount
@@ -46,8 +44,7 @@ export function DiscoverPage() {
       try {
         const settings = await userSettingsService.get();
         setLanguage(settings.language);
-        setSelectedRegions(settings.regionGroups);
-        setSelectedGenres(settings.withGenres);
+        setSelectedRegions(settings.regions);
       } catch (error) {
         console.error('Failed to load user settings:', error);
         // Use defaults if load fails
@@ -63,16 +60,19 @@ export function DiscoverPage() {
   const { settingsVersion } = useUserSettings(
     {
       language,
-      regionGroups: selectedRegions,
-      withGenres: selectedGenres,
+      regions: selectedRegions,
     },
     { enabled: settingsLoaded }
   );
 
   // Sync state with URL params when they change (e.g., browser back/forward)
   useEffect(() => {
-    const urlType = (searchParams.get('type') as SearchType) || 'both';
-    const urlPage = Number.parseInt(searchParams.get('page') || '1', 10);
+    const nextSearchParams = readCatalogSearchParams(searchParams, { recentDays: 365 });
+    const urlType = nextSearchParams.type;
+    const urlPage = nextSearchParams.page;
+    const urlRecentDays = nextSearchParams.recentDays ?? 365;
+    const urlGenres = nextSearchParams.genres;
+    const urlQuery = nextSearchParams.q;
 
     if (urlType !== currentSearchType) {
       setCurrentSearchType(urlType);
@@ -80,158 +80,222 @@ export function DiscoverPage() {
     if (urlPage !== currentPage) {
       setCurrentPage(urlPage);
     }
+    if (urlRecentDays !== recentDays) {
+      setRecentDays(urlRecentDays);
+    }
+    if (JSON.stringify(urlGenres) !== JSON.stringify(selectedGenres)) {
+      setSelectedGenres(urlGenres);
+    }
+    if (urlQuery !== currentQuery) {
+      setCurrentQuery(urlQuery);
+      setHasSearched(Boolean(urlQuery));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  // Load discovery content on initial render or when filters change
-  useEffect(() => {
-    const loadDiscoveryContent = async () => {
-      if (hasSearched || !settingsLoaded) return;
+  const loadFeed = useCallback(
+    async ({ page, append }: { page: number; append: boolean }) => {
+      if (!settingsLoaded) return;
 
-      setLoading(true);
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
 
       try {
-        const baseParams = {
-          type: currentSearchType,
-          page: currentPage,
-        };
+        const response =
+          hasSearched && currentQuery
+            ? await searchService.searchMedia({
+                query: currentQuery,
+                page,
+                language,
+                type: currentSearchType,
+              })
+            : await searchService.discoverMedia({
+                page,
+                type: currentSearchType,
+                recentDays,
+                genres: selectedGenres,
+              });
 
-        const discoveryResults = await searchService.discoverMedia({ ...baseParams, recentDays });
-        setSearchResults(discoveryResults);
+        setCurrentPage(response.page ?? page);
+        setTotalPages(response.totalPages);
+        setHasMore((response.page ?? page) < response.totalPages);
+
+        if (!append) {
+          setResults(response.results);
+          return;
+        }
+
+        setResults(prev => {
+          const keyOf = (item: Media) => `${item.type}_${item.tmdbId}`;
+          const seen = new Set(prev.map(item => keyOf(item)));
+          const merged = [...prev];
+          for (const item of response.results) {
+            if (!seen.has(keyOf(item))) {
+              merged.push(item);
+              seen.add(keyOf(item));
+            }
+          }
+          return merged;
+        });
       } catch (error) {
-        console.error('Failed to load discovery content:', error);
+        console.error('Failed to load discover results:', error);
       } finally {
-        setLoading(false);
+        if (append) {
+          setLoadingMore(false);
+        } else {
+          setLoading(false);
+        }
       }
-    };
+    },
+    [
+      currentQuery,
+      currentSearchType,
+      hasSearched,
+      language,
+      recentDays,
+      selectedGenres,
+      settingsLoaded,
+    ]
+  );
 
-    void loadDiscoveryContent();
-  }, [recentDays, hasSearched, currentSearchType, currentPage, settingsLoaded, settingsVersion]);
+  const persistHistoryState = useCallback(() => {
+    if (!settingsLoaded || results.length === 0) {
+      return;
+    }
 
+    persistState({
+      results,
+      currentPage,
+      totalPages,
+      scrollY: window.scrollY,
+    });
+  }, [currentPage, persistState, results, settingsLoaded, totalPages]);
+
+  useEffect(() => {
+    if (!settingsLoaded) {
+      return;
+    }
+
+    if (restoredState) {
+      setResults(restoredState.results);
+      setCurrentPage(restoredState.currentPage);
+      setTotalPages(restoredState.totalPages);
+      setHasMore(restoredState.currentPage < restoredState.totalPages);
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: restoredState.scrollY, behavior: 'auto' });
+      });
+      return;
+    }
+
+    void loadFeed({ page: 1, append: false });
+  }, [loadFeed, restoredState, settingsLoaded, settingsVersion]);
   const handleTimePeriodChange = async (newDays: number) => {
     setRecentDays(newDays);
-    setCurrentPage(1);
-    setSearchParams({ type: currentSearchType, page: '1' });
-    setSearchResults(null);
+    setSearchParams(
+      buildCatalogSearchParams({
+        type: currentSearchType,
+        page: 1,
+        recentDays: newDays,
+        genres: selectedGenres,
+        q: currentQuery || undefined,
+      })
+    );
   };
 
   const handleRegionsChange = (regions: RegionGroupId[]) => {
     setSelectedRegions(regions);
-    setCurrentPage(1);
-    setSearchParams({ type: currentSearchType, page: '1' });
-    setSearchResults(null);
+    setSearchParams(
+      buildCatalogSearchParams({
+        type: currentSearchType,
+        page: 1,
+        recentDays,
+        genres: selectedGenres,
+        q: currentQuery || undefined,
+      })
+    );
   };
 
-  const handleTypeChange = async (type: SearchType) => {
+  const handleTypeChange = (type: SearchType) => {
     setCurrentSearchType(type);
-    setCurrentPage(1);
-    setSearchResults(null);
-
-    // If we're in search mode, re-run the search with the new type
-    if (hasSearched && currentQuery) {
-      setSearchParams({ type, page: '1', q: currentQuery });
-      setLoading(true);
-      try {
-        const results = await searchService.searchMedia({
-          query: currentQuery,
-          page: 1,
-          language,
-          type,
-        });
-        setSearchResults(results);
-      } catch (error) {
-        console.error('Search failed:', error);
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      setSearchParams({ type, page: '1' });
-    }
+    setSearchParams(
+      buildCatalogSearchParams({
+        type,
+        page: 1,
+        recentDays,
+        genres: selectedGenres,
+        q: currentQuery || undefined,
+      })
+    );
   };
 
-  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setLanguage(e.target.value);
-    setCurrentPage(1);
-    setSearchParams({ type: currentSearchType, page: '1' });
-    setSearchResults(null);
+  const handleLanguageChange = (nextLanguage: string) => {
+    setLanguage(nextLanguage);
+    setSearchParams(
+      buildCatalogSearchParams({
+        type: currentSearchType,
+        page: 1,
+        recentDays,
+        genres: selectedGenres,
+        q: currentQuery || undefined,
+      })
+    );
   };
 
   const handleGenreChange = (genres: GenreKey[]) => {
     setSelectedGenres(genres);
-    setCurrentPage(1);
-    setSearchParams({ type: currentSearchType, page: '1' });
-    setSearchResults(null);
-  };
-
-  const handleHideVotedChange = (checked: boolean) => {
-    setHideVoted(checked);
-    setCurrentPage(1);
-    setSearchParams({ type: currentSearchType, page: '1' });
-    setSearchResults(null);
+    setSearchParams(
+      buildCatalogSearchParams({
+        type: currentSearchType,
+        page: 1,
+        recentDays,
+        genres,
+        q: currentQuery || undefined,
+      })
+    );
   };
 
   const handleBackToDiscovery = () => {
     setHasSearched(false);
-    setCurrentPage(1);
     setCurrentQuery('');
     setSelectedGenres([]);
-    setSearchParams({ type: currentSearchType, page: '1' });
-    setSearchResults(null);
+    setSearchParams(
+      buildCatalogSearchParams({
+        type: currentSearchType,
+        page: 1,
+        recentDays,
+        genres: [],
+      })
+    );
   };
 
-  const handleSearch = async (query: string, page: number = 1) => {
-    setLoading(true);
+  const handleSearch = (query: string) => {
     setHasSearched(true);
     setCurrentQuery(query);
-    setCurrentPage(page);
-    setSearchParams({ type: currentSearchType, page: page.toString(), q: query });
-
-    try {
-      const results = await searchService.searchMedia({
-        query,
-        page,
-        language,
+    setSearchParams(
+      buildCatalogSearchParams({
         type: currentSearchType,
-      });
-
-      setSearchResults(results);
-    } catch (error) {
-      console.error('Search failed:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePageChange = async (newPage: number) => {
-    if (hasSearched && currentQuery) {
-      await handleSearch(currentQuery, newPage);
-    } else {
-      setCurrentPage(newPage);
-      setSearchParams({ type: currentSearchType, page: newPage.toString() });
-    }
-
-    setTimeout(() => {
-      const resultsSection = document.querySelector('#results-section');
-      if (resultsSection) {
-        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 100);
+        page: 1,
+        q: query,
+        recentDays,
+        genres: selectedGenres,
+      })
+    );
   };
 
   const handleSelectItem = (item: Media) => {
+    persistHistoryState();
     void navigate(`/${item.type}/${item.tmdbId}`);
   };
 
   const handleUpdateItem = (updatedItem: Media) => {
-    setSearchResults(prev => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        results: prev.results.map(item =>
-          item.tmdbId === updatedItem.tmdbId && item.type === updatedItem.type ? updatedItem : item
-        ),
-      };
-    });
+    setResults(prev =>
+      prev.map(item =>
+        item.tmdbId === updatedItem.tmdbId && item.type === updatedItem.type ? updatedItem : item
+      )
+    );
   };
   return (
     <>
@@ -248,159 +312,24 @@ export function DiscoverPage() {
         </div>
       </div>
 
-      {/* Sticky Media Type & Filter Toggle Row - Full Width */}
-      <div className="sticky top-0 z-30 bg-gray-800/90 backdrop-blur-md border-b border-gray-700/50 shadow-2xl">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">
-          <div className="flex flex-row items-center justify-between gap-2 flex-wrap">
-            <MediaTypeChips
-              selectedType={currentSearchType}
-              onChange={handleTypeChange}
-              disabled={loading}
-            />
-
-            <button
-              onClick={() => setFiltersExpanded(!filtersExpanded)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-800/60 backdrop-blur-sm border border-gray-700/50 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-700/80 transition-all cursor-pointer whitespace-nowrap shadow-md"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-                />
-              </svg>
-              <span>Filters</span>
-              {!filtersExpanded && (
-                <span className="hidden md:inline text-xs font-normal text-gray-400">
-                  (
-                  {selectedGenres.length > 0 &&
-                    `${selectedGenres.length} genre${selectedGenres.length === 1 ? '' : 's'}`}
-                  {selectedGenres.length > 0 && selectedRegions.length > 0 && ', '}
-                  {selectedRegions.length > 0 &&
-                    `${selectedRegions.length} region${selectedRegions.length === 1 ? '' : 's'}`}
-                  {selectedGenres.length === 0 && selectedRegions.length === 0 && 'None'})
-                </span>
-              )}
-              <span
-                className="text-sm transition-transform duration-200"
-                style={{
-                  transform: filtersExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                }}
-              >
-                ▼
-              </span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Additional Filters - Overlay */}
-      {filtersExpanded && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/60 z-40 animate-in fade-in duration-200"
-            onClick={() => setFiltersExpanded(false)}
-          />
-
-          {/* Filter Panel */}
-          <div className="fixed top-16 left-0 right-0 md:left-64 md:right-0 z-50 mx-4 md:mx-8 max-w-7xl md:ml-auto md:mr-auto animate-in slide-in-from-top-4 duration-200">
-            <div className="bg-gray-800/95 backdrop-blur-md border border-gray-700/50 rounded-lg shadow-2xl overflow-hidden">
-              {/* Close Button */}
-              <div className="flex justify-end p-2 border-b border-gray-700/50">
-                <button
-                  onClick={() => setFiltersExpanded(false)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-300 hover:text-white hover:bg-gray-700/60 rounded-md transition-all cursor-pointer"
-                >
-                  <span>Close</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="p-3 md:p-4">
-                <div className="flex flex-col gap-4">
-                  {/* Genres */}
-                  <GenreChips
-                    selectedGenres={selectedGenres}
-                    onGenreChange={handleGenreChange}
-                    disabled={loading}
-                  />
-
-                  {/* Time Range */}
-                  <TimeRangeSlider value={recentDays} onChange={handleTimePeriodChange} />
-
-                  <div className="flex flex-col gap-2 w-full">
-                    <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
-                        />
-                      </svg>
-                      <span>Language</span>
-                    </label>
-                    <select
-                      value={language}
-                      onChange={handleLanguageChange}
-                      disabled={loading}
-                      className="w-full px-3 py-3 text-base border-2 border-gray-600 rounded-lg bg-gray-800/60 backdrop-blur-sm text-white hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      <option value="de-DE">German (Germany)</option>
-                      <option value="en-US">English (US)</option>
-                      <option value="en-GB">English (UK)</option>
-                      <option value="fr-FR">French (France)</option>
-                      <option value="es-ES">Spanish (Spain)</option>
-                      <option value="it-IT">Italian (Italy)</option>
-                      <option value="nl-NL">Dutch (Netherlands)</option>
-                      <option value="pt-BR">Portuguese (Brazil)</option>
-                    </select>
-                  </div>
-
-                  {/* Regions */}
-                  <RegionChips
-                    selectedRegions={selectedRegions}
-                    onRegionsChange={handleRegionsChange}
-                    disabled={loading}
-                  />
-
-                  {/* Hide Voted Toggle */}
-                  <div className="flex items-center gap-3 w-full pt-2">
-                    <label className="flex items-center gap-2 cursor-pointer flex-1">
-                      <input
-                        type="checkbox"
-                        checked={hideVoted}
-                        onChange={e => handleHideVotedChange(e.target.checked)}
-                        disabled={loading}
-                        className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-amber-500 focus:ring-amber-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                      />
-                      <span className="text-sm font-medium text-gray-300">Hide Already Voted</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+      <FiltersToolbar
+        selectedType={currentSearchType}
+        onTypeChange={handleTypeChange}
+        disabled={loading}
+        selectedGenres={selectedGenres}
+        onGenresChange={handleGenreChange}
+        language={language}
+        onLanguageChange={handleLanguageChange}
+        selectedRegions={selectedRegions}
+        onRegionsChange={handleRegionsChange}
+        showTimeRange
+        timeRangeDays={recentDays}
+        onTimeRangeChange={handleTimePeriodChange}
+      />
 
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-8">
-        {searchResults && (
+        {results.length > 0 && (
           <div id="results-section">
             <div className="flex justify-between items-center gap-3 mb-6">
               <h2 className="text-xl md:text-3xl font-bold text-white">
@@ -412,137 +341,35 @@ export function DiscoverPage() {
                       : 'Movies & TV Shows'
                   : 'Movies & TV Shows'}
               </h2>
-
-              {searchResults && searchResults.totalResults && (
-                <span className="text-gray-400 text-xs md:text-sm">
-                  {searchResults.totalResults.toLocaleString()} results
-                </span>
-              )}
+              <span className="text-gray-400 text-xs md:text-sm">
+                {results.length.toLocaleString()}
+                {currentPage < totalPages ? '+' : ''} results loaded
+              </span>
             </div>
 
             <ResultsGrid
-              results={searchResults.results}
+              results={results}
               onSelectItem={handleSelectItem}
               onUpdateItem={handleUpdateItem}
             />
 
-            {/* Pagination Controls */}
-            {searchResults.totalPages && searchResults.totalPages > 1 && (
+            {hasMore && (
               <div className="text-center mt-6 md:mt-8 pt-4 md:pt-6 pb-20 md:pb-0 border-t border-gray-700">
-                <div className="flex justify-center items-center gap-2 md:gap-3 flex-wrap">
-                  {/* Previous button */}
-                  <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage <= 1 || loading}
-                    className={`inline-flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all ${
-                      currentPage <= 1
-                        ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                        : 'bg-linear-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 cursor-pointer shadow-md'
-                    } disabled:cursor-not-allowed`}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 19l-7-7 7-7"
-                      />
-                    </svg>
-                    <span className="hidden sm:inline">Previous</span>
-                  </button>
-
-                  {/* Page numbers */}
-                  <div className="flex gap-1 md:gap-2 items-center">
-                    {currentPage > 3 && (
-                      <>
-                        <button
-                          onClick={() => handlePageChange(1)}
-                          disabled={loading}
-                          className="px-2 md:px-3 py-2 bg-gray-800/60 backdrop-blur-sm text-amber-400 border border-gray-600/50 rounded-lg text-xs md:text-sm hover:bg-gray-700/80 transition-all disabled:cursor-not-allowed cursor-pointer"
-                        >
-                          1
-                        </button>
-                        {currentPage > 4 && <span className="text-gray-500 text-xs">...</span>}
-                      </>
-                    )}
-
-                    {Array.from({ length: Math.min(5, searchResults.totalPages ?? 1) }, (_, i) => {
-                      const pageStart = Math.max(1, currentPage - 2);
-                      const pageEnd = Math.min(searchResults.totalPages ?? 1, pageStart + 4);
-                      const adjustedStart = Math.max(1, pageEnd - 4);
-                      const pageNum = adjustedStart + i;
-
-                      if (pageNum > pageEnd) return null;
-
-                      const isMobileHidden = Math.abs(pageNum - currentPage) > 1 && currentPage > 1;
-
-                      return (
-                        <button
-                          key={pageNum}
-                          onClick={() => handlePageChange(pageNum)}
-                          disabled={loading}
-                          className={`${isMobileHidden ? 'hidden sm:block' : ''} px-2 md:px-3 py-2 rounded-lg text-xs md:text-sm transition-all cursor-pointer ${
-                            pageNum === currentPage
-                              ? 'bg-linear-to-r from-amber-600 to-orange-600 text-white font-semibold border-2 border-amber-500 shadow-md'
-                              : 'bg-gray-800/60 backdrop-blur-sm text-amber-400 border border-gray-600/50 hover:bg-gray-700/80'
-                          } disabled:cursor-not-allowed`}
-                        >
-                          {pageNum}
-                        </button>
-                      );
-                    })}
-
-                    {currentPage < (searchResults.totalPages ?? 1) - 2 && (
-                      <>
-                        {currentPage < (searchResults.totalPages ?? 1) - 3 && (
-                          <span className="text-gray-500 text-xs">...</span>
-                        )}
-                        <button
-                          onClick={() => handlePageChange(searchResults.totalPages ?? 1)}
-                          disabled={loading}
-                          className="px-2 md:px-3 py-2 bg-gray-800/60 backdrop-blur-sm text-amber-400 border border-gray-600/50 rounded-lg text-xs md:text-sm hover:bg-gray-700/80 transition-all disabled:cursor-not-allowed cursor-pointer"
-                        >
-                          {searchResults.totalPages}
-                        </button>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Next button */}
-                  <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage >= (searchResults.totalPages ?? 1) || loading}
-                    className={`inline-flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all ${
-                      currentPage >= (searchResults.totalPages ?? 1)
-                        ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                        : 'bg-linear-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 cursor-pointer shadow-md'
-                    } disabled:cursor-not-allowed`}
-                  >
-                    <span className="hidden sm:inline">Next</span>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </button>
-                </div>
-
-                <div className="mt-3 text-xs md:text-sm text-gray-400">
-                  Page {currentPage} of {searchResults.totalPages}
-                  <span className="hidden sm:inline">
-                    {' '}
-                    ({searchResults.totalResults?.toLocaleString()} total results)
-                  </span>
-                </div>
+                <button
+                  onClick={() => {
+                    void loadFeed({ page: currentPage + 1, append: true });
+                  }}
+                  disabled={!hasMore || loadingMore || loading}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-linear-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loadingMore ? 'Loading...' : 'Load more'}
+                </button>
               </div>
             )}
           </div>
         )}
 
-        {!searchResults && !loading && (
+        {results.length === 0 && !loading && (
           <div className="text-center p-8 md:p-16 text-gray-500">
             <div className="flex flex-col items-center gap-4">
               <svg
@@ -558,7 +385,9 @@ export function DiscoverPage() {
                   d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"
                 />
               </svg>
-              <p className="text-base md:text-lg">Loading content...</p>
+              <p className="text-base md:text-lg">
+                {hasSearched ? 'No results found.' : 'Loading content...'}
+              </p>
             </div>
           </div>
         )}

@@ -187,30 +187,30 @@ export interface TVDetails extends TVShow, MediaDetailsBase {
 export type MediaDetails = MovieDetails | TVDetails;
 
 /**
- * Search response wrapper
+ * Shared paginated media response wrapper
  */
-export interface SearchResponse {
+export interface PaginatedMediaResponse {
   results: Media[];
   page: number;
   totalPages: number;
-  totalResults: number;
 }
 
-/**
- * Discover response wrapper
- */
-export interface DiscoverResponse {
-  results: Media[];
-  page?: number;
-  totalPages?: number;
-  totalResults?: number;
-}
+export type SearchResponse = PaginatedMediaResponse;
+export type DiscoverResponse = PaginatedMediaResponse;
+export type UserInteractionsResponse = PaginatedMediaResponse;
 
 /**
  * Swipe/Vote response - returns next unvoted media item
  */
 export interface SwipeNextResponse {
   media: MediaDetails | null;
+}
+
+export interface PopularResponse {
+  results: Media[];
+  page: number;
+  totalPages: number;
+  feedId: string;
 }
 
 // ============================================================================
@@ -227,6 +227,7 @@ export type ServerEnv = z.infer<typeof ServerEnvSchema>;
 // Core application types
 export type MediaType = 'movie' | 'tv';
 export type SearchType = 'movie' | 'tv' | 'both';
+export type InteractionFilter = 'all' | 'unvoted' | 'voted';
 
 // ============================================================================
 // Request Types (inferred from schemas)

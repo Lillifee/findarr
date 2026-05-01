@@ -49,9 +49,14 @@ const sonarrService: ArrService<typeof arrConfig.sonarr> = {
 
 const catalogService: CatalogService = {
   initialize: vi.fn().mockResolvedValue(undefined),
-  search: vi.fn().mockResolvedValue({ results: [], page: 1, totalPages: 0, totalResults: 0 }),
-  popular: vi.fn().mockResolvedValue({ results: [], page: 1, totalPages: 0, totalResults: 0 }),
-  discover: vi.fn().mockResolvedValue({ results: [], page: 1, totalPages: 0, totalResults: 0 }),
+  search: vi.fn().mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
+  popular: vi.fn().mockResolvedValue({
+    results: [],
+    page: 1,
+    totalPages: 0,
+    feedId: '00000000-0000-0000-0000-000000000000',
+  }),
+  discover: vi.fn().mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
   getDetails: vi.fn().mockImplementation(params =>
     Promise.resolve(
       createMediaTestHelper({
@@ -412,7 +417,7 @@ describe('interaction service - integration tests', () => {
 
       expect(result.results).toHaveLength(2);
       expect(result.page).toBe(1);
-      expect(result.totalResults).toBe(2);
+      expect(result.totalPages).toBe(1);
       // Verify both items are present (order may vary)
       const ids = result.results.map(r => r.tmdbId);
       expect(ids).toContain(123);
@@ -423,7 +428,7 @@ describe('interaction service - integration tests', () => {
     it('should return empty results for userId with no interactions', async () => {
       const tmdbServiceForTest = {} as TMDBService;
       const result = await getUserInteractionsEnriched(tmdbServiceForTest, db, 999);
-      expect(result).toEqual({ results: [], page: 1, totalPages: 0, totalResults: 0 });
+      expect(result).toEqual({ results: [], page: 1, totalPages: 0 });
     });
   });
 

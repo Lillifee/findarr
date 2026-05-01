@@ -1,4 +1,4 @@
-import type { UserSettings, UserSettingsBody } from '@findarr/shared';
+import type { UserSettings, UserSettingsQuery } from '@findarr/shared';
 import type { DB } from '../db/setup.js';
 import {
   getOrCreateUserSettings,
@@ -12,7 +12,7 @@ export async function getUserSettings(db: DB, userId: number) {
 export async function saveUserSettings(
   db: DB,
   userId: number,
-  updates: UserSettingsBody
+  updates: UserSettingsQuery
 ): Promise<UserSettings> {
   return updateUserSettingsInRepository(db, userId, updates);
 }

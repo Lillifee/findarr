@@ -1,12 +1,11 @@
-import type { UserSettingsBody, UserSettings } from '@findarr/shared';
+import type { UserSettings, UserSettingsQuery } from '@findarr/shared';
 import { userSettings } from '@findarr/shared';
 import { eq, sql } from 'drizzle-orm';
 import type { DB } from '../db/setup.js';
 
 const DEFAULT_USER_SETTINGS: UserSettings = {
   language: 'de-DE',
-  regionGroups: ['western'],
-  withGenres: [],
+  regions: ['western'],
 };
 
 export async function getOrCreateUserSettings(db: DB, userId: number): Promise<UserSettings> {
@@ -21,8 +20,7 @@ export async function getOrCreateUserSettings(db: DB, userId: number): Promise<U
   await db.insert(userSettings).values({
     userId,
     language: DEFAULT_USER_SETTINGS.language,
-    regionGroups: DEFAULT_USER_SETTINGS.regionGroups,
-    withGenres: DEFAULT_USER_SETTINGS.withGenres,
+    regions: DEFAULT_USER_SETTINGS.regions,
   });
 
   return DEFAULT_USER_SETTINGS;
@@ -31,22 +29,20 @@ export async function getOrCreateUserSettings(db: DB, userId: number): Promise<U
 export async function updateUserSettings(
   db: DB,
   userId: number,
-  updates: UserSettingsBody
+  updates: UserSettingsQuery
 ): Promise<UserSettings> {
   const current = await getOrCreateUserSettings(db, userId);
 
   const merged: UserSettings = {
     language: updates.language ?? current.language,
-    regionGroups: updates.regionGroups ?? current.regionGroups,
-    withGenres: updates.withGenres ?? current.withGenres,
+    regions: updates.regions ?? current.regions,
   };
 
   await db
     .update(userSettings)
     .set({
       language: merged.language,
-      regionGroups: merged.regionGroups,
-      withGenres: merged.withGenres,
+      regions: merged.regions,
       updatedAt: sql`(unixepoch() * 1000)`,
     })
     .where(eq(userSettings.userId, userId));

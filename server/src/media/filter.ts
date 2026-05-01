@@ -1,10 +1,12 @@
 import {
   type GenreKey,
+  type InteractionFilter,
   type Media,
   type RegionGroupId,
   regionGroups,
   unifiedGenres,
 } from '@findarr/shared';
+import { toMediaKey } from '../utils/helper.js';
 
 /**
  * Filter criteria for TMDB results
@@ -75,3 +77,23 @@ export const filterByCriteria = (item: Media, filters: FilterCriteria): boolean 
   typeMatches(item, filters.type) &&
   regionMatches(item, filters.regions) &&
   genreMatches(item, filters.genres);
+
+/**
+ * Check if a media item matches interaction filter state.
+ */
+export const filterByInteraction = (
+  item: Media,
+  interactionKeys: Set<string>,
+  interaction: InteractionFilter = 'unvoted'
+): boolean => {
+  const hasInteraction = interactionKeys.has(toMediaKey(item.tmdbId, item.type));
+
+  if (interaction === 'all') {
+    return true;
+  }
+  if (interaction === 'voted') {
+    return hasInteraction;
+  }
+
+  return !hasInteraction;
+};

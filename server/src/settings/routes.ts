@@ -1,4 +1,4 @@
-import { UserSettingsBodySchema } from '@findarr/shared';
+import { UserSettingsQuerySchema } from '@findarr/shared';
 import type { FastifyPluginAsync } from 'fastify';
 import { protectedRoute } from '../utils/routes.js';
 import { getUserSettings, saveUserSettings } from './service.js';
@@ -14,7 +14,7 @@ export const settingsRoutes: FastifyPluginAsync = async fastify => {
   fastify.put(
     '/',
     protectedRoute(request =>
-      saveUserSettings(fastify.db, request.user.id, UserSettingsBodySchema.parse(request.body))
+      saveUserSettings(fastify.db, request.user.id, UserSettingsQuerySchema.parse(request.body))
     )
   );
 };

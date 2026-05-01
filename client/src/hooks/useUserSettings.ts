@@ -1,11 +1,10 @@
-import type { GenreKey, RegionGroupId } from '@findarr/shared';
+import type { RegionGroupId } from '@findarr/shared';
 import { useEffect, useRef, useState } from 'react';
 import { userSettingsService } from '../services/api.js';
 
 interface UseUserSettingsOptions {
   language: string;
-  regionGroups: RegionGroupId[];
-  withGenres: GenreKey[];
+  regions: RegionGroupId[];
 }
 
 interface UseUserSettingsConfig {
@@ -44,8 +43,7 @@ export function useUserSettings(
       try {
         await userSettingsService.update({
           language: nextSettings.language,
-          regionGroups: nextSettings.regionGroups,
-          withGenres: nextSettings.withGenres,
+          regions: nextSettings.regions,
         });
         setSettingsVersion(currentVersion => currentVersion + 1);
       } catch (error) {

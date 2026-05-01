@@ -3,7 +3,9 @@ import type {
   SearchResponse,
   DiscoverQuery,
   DiscoverResponse,
+  UserInteractionsResponse,
   PopularQuery,
+  PopularResponse,
   DetailsQuery,
   GenresQuery,
   Genre,
@@ -24,7 +26,7 @@ import type {
   ArrLinkQuery,
   JellyfinLinkQuery,
   UserSettings,
-  UserSettingsBody,
+  UserSettingsQuery,
 } from '@findarr/shared';
 import axios from 'axios';
 
@@ -42,7 +44,7 @@ export const searchService = {
     return response.data;
   },
 
-  popularMedia: async (params: PopularQuery): Promise<DiscoverResponse> => {
+  popular: async (params: PopularQuery): Promise<PopularResponse> => {
     const response = await api.get('/popular', { params });
     return response.data;
   },
@@ -131,7 +133,7 @@ export const interactionService = {
 
   // Get user's voted media (both likes and dislikes)
   // Supports pagination with page parameter (20 items per page)
-  listLiked: async (page = 1): Promise<DiscoverResponse> => {
+  listLiked: async (page = 1): Promise<UserInteractionsResponse> => {
     const response = await api.get('/interactions', {
       params: { page },
     });
@@ -145,7 +147,7 @@ export const userSettingsService = {
     return response.data;
   },
 
-  update: async (updates: UserSettingsBody): Promise<UserSettings> => {
+  update: async (updates: UserSettingsQuery): Promise<UserSettings> => {
     const response = await api.put('/settings', updates);
     return response.data;
   },

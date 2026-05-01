@@ -1,5 +1,4 @@
 import {
-  type UserSettings,
   type RegionGroupId,
   regionGroups,
   type GenreKey,
@@ -7,6 +6,7 @@ import {
   regionGroupKeys,
   type DiscoverQuery,
   sleep,
+  type UserSettingsQuery,
 } from '@findarr/shared';
 import type { FastifyBaseLogger } from 'fastify';
 import { HttpError } from '../utils/errors.js';
@@ -73,15 +73,20 @@ export const buildDateParams = (recentDays: number | undefined, type: 'movie' | 
 };
 
 export const buildDiscoverParams = (
-  params: DiscoverQuery,
-  userSettings: UserSettings
+  params: DiscoverQuery & UserSettingsQuery
 ): TMDBDiscoverParams => {
-  const { type = 'both', recentDays, page = 1 } = params;
-  const { language = 'en-US', regionGroups = [], withGenres } = userSettings;
+  const {
+    type = 'both',
+    language = 'en-US',
+    recentDays,
+    page = 1,
+    genres = [],
+    regions = [],
+  } = params;
 
   const region = language.split('-')[1] || 'US';
-  const { languageFilter, countryFilter } = buildRegionFilters(regionGroups);
-  const genreFilter = buildGenreFilter(withGenres);
+  const { languageFilter, countryFilter } = buildRegionFilters(regions);
+  const genreFilter = buildGenreFilter(genres);
   const dateParams = buildDateParams(recentDays, type);
 
   return {

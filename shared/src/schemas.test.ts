@@ -164,10 +164,18 @@ describe('schemas', () => {
       expect(DiscoverQuerySchema.safeParse({ type: 'invalid' }).success).toBe(false);
     });
 
-    it('should ignore user settings fields that are now server-owned', () => {
-      expect(DiscoverQuerySchema.parse({ regionGroups: ['western'] })).toEqual({});
-      expect(DiscoverQuerySchema.parse({ withGenres: ['Action'] })).toEqual({});
-      expect(DiscoverQuerySchema.parse({ language: 'de-DE' })).toEqual({});
+    it('should ignore user settings fields that are server-owned', () => {
+      expect(DiscoverQuerySchema.parse({ regions: ['western'] })).toEqual({ genres: [] });
+      expect(DiscoverQuerySchema.parse({ language: 'de-DE' })).toEqual({ genres: [] });
+    });
+
+    it('should accept genre filters from query params', () => {
+      expect(DiscoverQuerySchema.parse({ genres: ['Action'] })).toEqual({
+        genres: ['Action'],
+      });
+      expect(DiscoverQuerySchema.parse({ genres: 'Action' })).toEqual({
+        genres: ['Action'],
+      });
     });
 
     it('should handle full valid input', () => {
@@ -175,6 +183,7 @@ describe('schemas', () => {
         page: 10,
         type: 'movie',
         recentDays: 30,
+        genres: ['Action'],
       };
       const result = DiscoverQuerySchema.parse(input);
       expect(result).toEqual(input);

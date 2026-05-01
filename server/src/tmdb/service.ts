@@ -7,7 +7,7 @@ import type {
   DiscoverResponse,
   MediaDetails,
   DiscoverQuery,
-  UserSettings,
+  UserSettingsQuery,
 } from '@findarr/shared';
 import type { TMDBClient } from './client.js';
 import { buildDiscoverParams } from './helpers.js';
@@ -55,13 +55,11 @@ export function createTMDBService(tmdbClient: TMDBClient) {
 
     const sortedResults = allResults.sort((a, b) => b.popularity - a.popularity);
     const totalPages = Math.max(...searchResponses.map(response => response.total_pages));
-    const totalResults = searchResponses.reduce((sum, response) => sum + response.total_results, 0);
 
     return {
       page,
       results: sortedResults,
       totalPages,
-      totalResults,
     };
   }
 
@@ -70,8 +68,7 @@ export function createTMDBService(tmdbClient: TMDBClient) {
    * Fetches specified pages and transforms to application format
    */
   async function fetchDiscover(
-    params: DiscoverQuery,
-    userSettings: UserSettings,
+    params: DiscoverQuery & UserSettingsQuery,
     pages?: number[]
   ): Promise<DiscoverResponse> {
     const { type = 'both', page = 1 } = params;
@@ -79,7 +76,7 @@ export function createTMDBService(tmdbClient: TMDBClient) {
     const discoverTypes = type === 'both' ? (['movie', 'tv'] as const) : ([type] as const);
     const pagesToFetch = pages ?? [page];
 
-    const discoverParams = buildDiscoverParams(params, userSettings);
+    const discoverParams = buildDiscoverParams(params);
     const discoverPromises = discoverTypes.flatMap(discoverType =>
       pagesToFetch.map(pageNum =>
         tmdbClient.discover(discoverType, { ...discoverParams, page: pageNum })
@@ -94,9 +91,8 @@ export function createTMDBService(tmdbClient: TMDBClient) {
 
     // Aggregate pagination metadata (max of both types)
     const totalPages = Math.max(...responses.map(r => r.total_pages));
-    const totalResults = responses.reduce((sum, r) => sum + r.total_results, 0);
 
-    return { results, page, totalPages, totalResults };
+    return { results, page, totalPages };
   }
 
   /**
@@ -128,9 +124,8 @@ export function createTMDBService(tmdbClient: TMDBClient) {
     );
 
     const totalPages = Math.max(...responses.map(r => r.total_pages));
-    const totalResults = responses.reduce((sum, r) => sum + r.total_results, 0);
 
-    return { results, page: 1, totalPages, totalResults };
+    return { results, page: 1, totalPages };
   }
 
   /**

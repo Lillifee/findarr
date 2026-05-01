@@ -1,6 +1,13 @@
 import { z } from 'zod';
 import { genreKeys, regionGroupKeys } from './constants.js';
 
+const arrayParam = <T extends z.ZodTypeAny>(schema: T) =>
+  z.preprocess(val => {
+    if (typeof val === 'string') return val ? [val] : [];
+    if (Array.isArray(val)) return val;
+    return [];
+  }, schema);
+
 // ============================================================================
 // Server environment ENV Schemas
 // ============================================================================
@@ -29,6 +36,11 @@ const BaseQuerySchema = z.object({
 const CatalogQuerySchema = z.object({
   page: z.coerce.number().int().min(1).max(1000).optional(),
   type: z.enum(['movie', 'tv', 'both']).optional(),
+
+  // Genre filtering
+  genres: arrayParam(z.array(z.enum(genreKeys)))
+    .default([])
+    .optional(),
 });
 
 export const SearchQuerySchema = BaseQuerySchema.extend({
@@ -43,8 +55,11 @@ export const DiscoverQuerySchema = CatalogQuerySchema.extend({
   recentDays: z.coerce.number().int().min(1).max(3650).optional(), // Max 10 years
 });
 
-// Popular query extends discover with required pagination
-export const PopularQuerySchema = CatalogQuerySchema.extend({});
+// Snapshot-backed popular query for infinite scrolling/load-more
+export const PopularQuerySchema = CatalogQuerySchema.extend({
+  feedId: z.uuid().optional(),
+  interaction: z.enum(['all', 'unvoted', 'voted']).optional(),
+});
 
 export const DetailsQuerySchema = BaseQuerySchema.extend({
   id: z.coerce.number().int().positive(),
@@ -106,18 +121,17 @@ export const InteractionsQuerySchema = z.object({
 
 export const UserSettingsSchema = z.object({
   language: z.string(),
-  regionGroups: z.array(z.enum(regionGroupKeys)),
-  withGenres: z.array(z.enum(genreKeys)),
+  regions: z.array(z.enum(regionGroupKeys)),
 });
 
-export const UserSettingsBodySchema = UserSettingsSchema.partial();
+export const UserSettingsQuerySchema = UserSettingsSchema.partial();
 
 // ============================================================================
 // Admin / Integration Schemas (Radarr, Sonarr, Jellyfin)
 // ============================================================================
 
 /** Request body for PUT /admin/radarr/settings */
-export const RadarrSettingsBodySchema = z.object({
+export const RadarrSettingsQuerySchema = z.object({
   radarrUrl: z.string().optional(),
   radarrApiKey: z.string().optional(),
   radarrQualityProfileId: z.coerce.number().int().positive().optional(),
@@ -125,7 +139,7 @@ export const RadarrSettingsBodySchema = z.object({
 });
 
 /** Request body for PUT /admin/sonarr/settings */
-export const SonarrSettingsBodySchema = z.object({
+export const SonarrSettingsQuerySchema = z.object({
   sonarrUrl: z.string().optional(),
   sonarrApiKey: z.string().optional(),
   sonarrQualityProfileId: z.coerce.number().int().positive().optional(),
@@ -133,7 +147,7 @@ export const SonarrSettingsBodySchema = z.object({
 });
 
 /** Request body for PUT /admin/jellyfin/settings */
-export const JellyfinSettingsBodySchema = z.object({
+export const JellyfinSettingsQuerySchema = z.object({
   jellyfinUrl: z.string().optional(),
   jellyfinApiKey: z.string().optional(),
 });
@@ -209,8 +223,8 @@ export const SchedulerParamsSchema = z.object({
   name: SchedulerNameSchema,
 });
 
-export type RadarrSettingsBody = z.infer<typeof RadarrSettingsBodySchema>;
-export type SonarrSettingsBody = z.infer<typeof SonarrSettingsBodySchema>;
+export type RadarrSettingsQuery = z.infer<typeof RadarrSettingsQuerySchema>;
+export type SonarrSettingsQuery = z.infer<typeof SonarrSettingsQuerySchema>;
 export type RadarrSettings = z.infer<typeof RadarrSettingsSchema>;
 export type SonarrSettings = z.infer<typeof SonarrSettingsSchema>;
 export type ArrQualityProfile = z.infer<typeof ArrQualityProfileSchema>;
@@ -218,12 +232,12 @@ export type ArrRootFolder = z.infer<typeof ArrRootFolderSchema>;
 export type ArrTestResult = z.infer<typeof ArrTestResultSchema>;
 export type ArrLinkQuery = z.infer<typeof ArrLinkQuerySchema>;
 
-export type JellyfinSettingsBody = z.infer<typeof JellyfinSettingsBodySchema>;
+export type JellyfinSettingsQuery = z.infer<typeof JellyfinSettingsQuerySchema>;
 export type JellyfinSettings = z.infer<typeof JellyfinSettingsSchema>;
 export type JellyfinTestResult = z.infer<typeof JellyfinTestResultSchema>;
 export type JellyfinLinkQuery = z.infer<typeof JellyfinLinkQuerySchema>;
 
-export type UserSettingsBody = z.infer<typeof UserSettingsBodySchema>;
+export type UserSettingsQuery = z.infer<typeof UserSettingsQuerySchema>;
 export type UserSettings = z.infer<typeof UserSettingsSchema>;
 
 export type SchedulerParams = z.infer<typeof SchedulerParamsSchema>;

@@ -28,11 +28,7 @@ export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> 
   fastify.log.info('Fetching trending and discover results from TMDB...');
   const [trendingResult, discoverResult] = await Promise.all([
     fastify.tmdb.fetchTrending({ language, time_window: 'week' }, arrayOfNumbers(5)),
-    fastify.tmdb.fetchDiscover(
-      { type: 'both', recentDays: 500 },
-      { language, regionGroups: [], withGenres: [] },
-      arrayOfNumbers(15)
-    ),
+    fastify.tmdb.fetchDiscover({ type: 'both', recentDays: 500 }, arrayOfNumbers(15)),
   ]);
 
   // Merge and deduplicate (prefer items with trendingRank)

@@ -1,9 +1,9 @@
 import {
   SearchQuerySchema,
-  PopularQuerySchema,
   DetailsQuerySchema,
   GenresQuerySchema,
   DiscoverQuerySchema,
+  PopularQuerySchema,
 } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
 import { protectedRoute } from '../utils/routes.js';
@@ -20,7 +20,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
     )
   );
 
-  // Popular endpoint: GET /popular?page=1&type=both (cached with custom scoring)
+  // Popular endpoint: GET /popular?type=both&page=2&feedId=...
   fastify.get(
     '/popular',
     protectedRoute(request =>
