@@ -2,6 +2,29 @@ import type { GenreKey, InteractionFilter, SearchType } from '@findarr/shared';
 import { useEffect, useState } from 'react';
 import { GenreChips } from './GenreChips';
 import { MediaTypeChips } from './MediaTypeChips';
+import { OptionButton } from './ui/OptionButton';
+
+const interactionOptions: Array<{
+  value: InteractionFilter;
+  label: string;
+  description: string;
+}> = [
+  {
+    value: 'all',
+    label: 'All media',
+    description: 'Mix together titles you have and have not voted on.',
+  },
+  {
+    value: 'unvoted',
+    label: 'Unvoted only',
+    description: 'Keep the feed focused on titles you still need to rate.',
+  },
+  {
+    value: 'voted',
+    label: 'Voted only',
+    description: 'Review titles you already liked or disliked.',
+  },
+];
 
 interface FiltersToolbarProps {
   selectedType: SearchType;
@@ -30,7 +53,6 @@ export function FiltersToolbar({
   showFiltersButton = true,
 }: FiltersToolbarProps) {
   const [filtersExpanded, setFiltersExpanded] = useState(false);
-
   useEffect(() => {
     if (!showFiltersButton && filtersExpanded) {
       setFiltersExpanded(false);
@@ -39,34 +61,19 @@ export function FiltersToolbar({
 
   return (
     <>
-      <div className="sticky top-0 z-30 bg-gray-800/90 backdrop-blur-md border-b border-gray-700/50 shadow-2xl">
+      <div className="sticky top-0 z-30 border-b border-gray-700/50 bg-gray-800/90 backdrop-blur-md shadow-2xl">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">
-          <div className="flex flex-row items-center justify-between gap-2 flex-wrap">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <MediaTypeChips
               selectedType={selectedType}
               onChange={onTypeChange}
               disabled={disabled}
             />
 
-            {showInteractionFilter && interactionFilter && onInteractionFilterChange && (
-              <div className="flex items-center gap-2 min-w-0">
-                <select
-                  value={interactionFilter}
-                  onChange={e => onInteractionFilterChange(e.target.value as InteractionFilter)}
-                  disabled={disabled}
-                  className="min-w-44 px-3 py-2 text-sm border border-gray-700/50 rounded-lg bg-gray-800/60 backdrop-blur-sm text-white hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  <option value="all">All Media</option>
-                  <option value="unvoted">Unvoted Only</option>
-                  <option value="voted">Voted Only</option>
-                </select>
-              </div>
-            )}
-
             {showFiltersButton && (
               <button
                 onClick={() => setFiltersExpanded(current => !current)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-800/60 backdrop-blur-sm border border-gray-700/50 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-700/80 transition-all cursor-pointer whitespace-nowrap shadow-md"
+                className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-gray-700/50 bg-gray-800/70 px-3.5 py-2 text-sm font-medium text-gray-200 backdrop-blur-sm transition-colors hover:border-gray-500 hover:bg-gray-700/80 hover:text-white cursor-pointer whitespace-nowrap"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -77,14 +84,6 @@ export function FiltersToolbar({
                   />
                 </svg>
                 <span>Filters</span>
-                {!filtersExpanded && (
-                  <span className="hidden md:inline text-xs font-normal text-gray-400">
-                    (
-                    {selectedGenres.length > 0 &&
-                      `${selectedGenres.length} genre${selectedGenres.length === 1 ? '' : 's'}`}
-                    {selectedGenres.length === 0 && 'None'})
-                  </span>
-                )}
                 <span
                   className="text-sm transition-transform duration-200"
                   style={{
@@ -102,36 +101,83 @@ export function FiltersToolbar({
       {showFiltersButton && filtersExpanded && (
         <>
           <div
-            className="fixed inset-0 bg-black/60 z-40 animate-in fade-in duration-200"
+            className="fixed inset-0 z-40 cursor-pointer bg-black/60 animate-in fade-in duration-200"
             onClick={() => setFiltersExpanded(false)}
           />
 
           <div className="fixed top-16 left-0 right-0 md:left-64 md:right-0 z-50 mx-4 md:mx-8 max-w-7xl md:ml-auto md:mr-auto animate-in slide-in-from-top-4 duration-200">
-            <div className="bg-gray-800/95 backdrop-blur-md border border-gray-700/50 rounded-lg shadow-2xl overflow-hidden">
-              <div className="flex justify-end p-2 border-b border-gray-700/50">
-                <button
-                  onClick={() => setFiltersExpanded(false)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-300 hover:text-white hover:bg-gray-700/60 rounded-md transition-all cursor-pointer"
-                >
-                  <span>Close</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
+            <div className="overflow-hidden rounded-xl border border-gray-700/50 bg-gray-800/92 shadow-2xl backdrop-blur-md">
+              <div className="border-b border-gray-700/50 px-4 py-4 md:px-5">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Filters</h3>
+                    <p className="mt-1 text-sm text-gray-500">Adjust genres and voting status.</p>
+                  </div>
+                  <button
+                    onClick={() => setFiltersExpanded(false)}
+                    className="flex items-center gap-1.5 self-start rounded-lg border border-gray-700/50 bg-gray-800/70 px-3 py-1.5 text-xs font-medium text-gray-400 hover:border-gray-500 hover:bg-gray-700/80 hover:text-white transition-colors cursor-pointer"
+                  >
+                    <span>Close</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
               </div>
 
-              <div className="p-3 md:p-4">
+              <div className="p-4 md:p-5">
                 <div className="flex flex-col gap-4">
-                  <GenreChips
-                    selectedGenres={selectedGenres}
-                    onGenreChange={onGenresChange}
-                    disabled={disabled}
-                  />
+                  {showInteractionFilter && interactionFilter && onInteractionFilterChange && (
+                    <div className="rounded-xl border border-gray-700/50 bg-gray-800/70 p-4">
+                      <div className="mb-2.5">
+                        <h4 className="text-sm font-semibold text-white">Voting status</h4>
+                      </div>
+
+                      <div className="grid gap-2.5 md:grid-cols-3">
+                        {interactionOptions.map(option => {
+                          const isSelected = interactionFilter === option.value;
+
+                          return (
+                            <OptionButton
+                              key={option.value}
+                              disabled={disabled}
+                              onClick={() => onInteractionFilterChange(option.value)}
+                              selected={isSelected}
+                              title={option.label}
+                              description={option.description}
+                              icon={
+                                <span
+                                  className={`flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${
+                                    isSelected
+                                      ? 'border-gray-500 bg-gray-200/90 text-gray-900'
+                                      : 'border-gray-600/70 bg-transparent text-transparent'
+                                  }`}
+                                >
+                                  ✓
+                                </span>
+                              }
+                              className={
+                                disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+                              }
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="rounded-xl border border-gray-700/50 bg-gray-800/70 p-4">
+                    <GenreChips
+                      selectedGenres={selectedGenres}
+                      onGenreChange={onGenresChange}
+                      disabled={disabled}
+                    />
+                  </div>
                 </div>
               </div>
             </div>

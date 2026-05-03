@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FiltersToolbar } from '../components/FiltersToolbar';
 import { MediaView } from '../components/MediaView';
+import { Button } from '../components/ui/Button';
 import { searchService, userSettingsService } from '../services/api';
 import { buildCatalogSearchParams, readCatalogSearchParams } from '../utils/catalogSearchParams';
 
@@ -165,12 +166,9 @@ export function VotePage() {
               />
             </svg>
             <p className="text-red-400 text-lg font-medium">{error}</p>
-            <button
-              onClick={() => void fetchNextItem()}
-              className="mt-4 px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
-            >
+            <Button onClick={() => void fetchNextItem()} className="mt-4">
               Try Again
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -184,12 +182,7 @@ export function VotePage() {
             <p className="text-gray-400 text-lg mb-6">
               You've voted on the top 100 items. Check back later for more!
             </p>
-            <button
-              onClick={() => void navigate('/popular')}
-              className="px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
-            >
-              Browse Popular
-            </button>
+            <Button onClick={() => void navigate('/popular')}>Browse Popular</Button>
           </div>
         </div>
       )}

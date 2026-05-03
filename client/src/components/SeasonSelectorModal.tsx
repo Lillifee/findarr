@@ -1,6 +1,9 @@
 import type { Season } from '@findarr/shared';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { Button } from './ui/Button';
+import { Card } from './ui/Card';
+import { StatusBadge, type StatusType } from './ui/StatusBadge';
 
 interface SeasonSelectorModalProps {
   isOpen: boolean;
@@ -58,24 +61,40 @@ export default function SeasonSelectorModal({
     s => !alreadyRequestedSeasons.includes(s)
   ).length;
 
+  const badgeStatusMap: Partial<Record<string, StatusType>> = {
+    available: 'available',
+    downloaded: 'downloaded',
+    monitored: 'monitored',
+    requested: 'requested',
+  };
+
   if (!isOpen) return null;
 
   const modalContent = (
     <div className="fixed inset-0 z-10000 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div
+        className="absolute inset-0 cursor-pointer bg-black/70 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
       {/* Modal - More compact for grid view */}
-      <div className="relative bg-gray-800 rounded-lg shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col border border-gray-700">
+      <Card
+        variant="solid"
+        padding="none"
+        className="relative flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden"
+      >
         {/* Header - More compact */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
+        <div className="flex items-center justify-between border-b border-gray-700/50 p-4">
           <div className="flex-1 min-w-0 pr-2">
             <h2 className="text-lg font-bold text-white">Select Seasons</h2>
             <p className="text-xs text-gray-400 mt-0.5 truncate">{showName}</p>
           </div>
-          <button
+          <Button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors shrink-0"
+            variant="icon"
+            size="sm"
+            className="shrink-0"
             aria-label="Close"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,7 +105,7 @@ export default function SeasonSelectorModal({
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
-          </button>
+          </Button>
         </div>
 
         {/* Content - More compact */}
@@ -97,13 +116,15 @@ export default function SeasonSelectorModal({
                 ? `${alreadyRequestedSeasons.length} requested`
                 : 'Choose seasons'}
             </p>
-            <button
-              type="button"
+            <Button
               onClick={handleSelectAll}
-              className="text-xs text-blue-400 hover:text-blue-300 underline"
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="px-0"
             >
               Select All
-            </button>
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 gap-2">
@@ -137,25 +158,8 @@ export default function SeasonSelectorModal({
                     <div className="flex items-center gap-2 flex-wrap">
                       <div className="font-medium text-sm text-white truncate">{season.name}</div>
                       {/* Show status badge based on season.status field */}
-                      {status === 'available' && (
-                        <span className="text-xs bg-purple-600/30 text-purple-300 px-1.5 py-0.5 rounded border border-purple-600/50 shrink-0">
-                          Available
-                        </span>
-                      )}
-                      {status === 'downloaded' && (
-                        <span className="text-xs bg-emerald-600/30 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-600/50 shrink-0">
-                          Downloaded
-                        </span>
-                      )}
-                      {status === 'monitored' && (
-                        <span className="text-xs bg-blue-600/30 text-blue-300 px-1.5 py-0.5 rounded border border-blue-600/50 shrink-0">
-                          Monitored
-                        </span>
-                      )}
-                      {status === 'requested' && (
-                        <span className="text-xs bg-green-600/30 text-green-300 px-1.5 py-0.5 rounded border border-green-600/50 shrink-0">
-                          Requested
-                        </span>
+                      {badgeStatusMap[status] && (
+                        <StatusBadge status={badgeStatusMap[status]!} size="sm" />
                       )}
                     </div>
                     <div className="text-xs text-gray-400">
@@ -169,7 +173,7 @@ export default function SeasonSelectorModal({
         </div>
 
         {/* Footer - More compact */}
-        <div className="p-4 border-t border-gray-700">
+        <div className="border-t border-gray-700/50 p-4">
           {newlySelectedCount > 0 && (
             <p className="text-xs text-gray-300 mb-3">
               {newlySelectedCount} new season{newlySelectedCount === 1 ? '' : 's'} to request
@@ -177,16 +181,10 @@ export default function SeasonSelectorModal({
           )}
 
           <div className="flex gap-2 justify-end">
-            <button
-              onClick={onClose}
-              className="px-3 py-1.5 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
-            >
+            <Button onClick={onClose} variant="secondary" size="sm">
               Cancel
-            </button>
-            <button
-              onClick={handleConfirm}
-              className="px-3 py-1.5 text-sm bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors"
-            >
+            </Button>
+            <Button onClick={handleConfirm} variant="primary" size="sm">
               {selectedSeasons.size === 0
                 ? 'Remove All Seasons'
                 : newlySelectedCount > 0 && alreadyRequestedSeasons.length > 0
@@ -194,10 +192,10 @@ export default function SeasonSelectorModal({
                   : newlySelectedCount > 0
                     ? 'Request Seasons'
                     : 'Keep Selection'}
-            </button>
+            </Button>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 

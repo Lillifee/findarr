@@ -1,6 +1,9 @@
 import { objectEntries, unifiedGenres } from '@findarr/shared';
 import { useState } from 'react';
 import type { GenreKey } from '../../../shared/src/constants';
+import { Button } from './ui/Button';
+import { Card } from './ui/Card';
+import { OptionButton } from './ui/OptionButton';
 
 interface Props {
   selectedGenres: GenreKey[];
@@ -28,10 +31,10 @@ export default function GenreSelector({ selectedGenres, onGenreChange }: Props) 
         Genres {selectedGenres.length > 0 && `(${selectedGenres.length} selected)`}
       </label>
       <div className="relative min-w-45">
-        <button
-          type="button"
+        <Button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full px-3 py-3 text-base border-2 border-gray-600 rounded-lg bg-gray-700 text-left cursor-pointer flex justify-between items-center hover:border-gray-500 transition-colors"
+          variant="secondary"
+          className="w-full justify-between px-3.5 py-2 text-left text-sm"
         >
           <span className={selectedGenres.length === 0 ? 'text-gray-400' : 'text-white'}>
             {selectedGenres.length === 0
@@ -43,41 +46,39 @@ export default function GenreSelector({ selectedGenres, onGenreChange }: Props) 
           >
             ▼
           </span>
-        </button>
+        </Button>
 
         {isOpen && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border-2 border-gray-600 rounded-lg shadow-xl z-1000 max-h-60 overflow-y-auto">
-            <div className="px-3 py-2 border-b border-gray-700 bg-gray-750">
-              <button
+          <Card
+            variant="solid"
+            padding="none"
+            className="absolute top-full left-0 right-0 z-1000 mt-1 max-h-72 overflow-y-auto"
+          >
+            <div className="border-b border-gray-700/50 px-3 py-2">
+              <Button
                 type="button"
                 onClick={clearAllGenres}
-                className="text-sm text-blue-400 hover:text-blue-300 bg-transparent border-none cursor-pointer p-0 transition-colors"
+                variant="ghost"
+                size="sm"
+                className="px-0"
               >
                 Clear all
-              </button>
+              </Button>
             </div>
             {objectEntries(unifiedGenres).map(([key, genre]) => {
               const isSelected = selectedGenres.includes(key);
               return (
-                <div
+                <OptionButton
                   key={key}
                   onClick={() => handleGenreToggle(key)}
-                  className={`px-3 py-2 cursor-pointer flex items-center justify-between border-b border-gray-700 transition-colors ${
-                    isSelected
-                      ? 'bg-blue-600/30 hover:bg-blue-600/40'
-                      : 'bg-gray-800 hover:bg-gray-700'
-                  }`}
-                >
-                  <span
-                    className={`text-sm ${isSelected ? 'font-medium text-blue-200' : 'font-normal text-gray-300'}`}
-                  >
-                    {genre.name}
-                  </span>
-                  {isSelected && <span className="text-blue-400 text-base">✓</span>}
-                </div>
+                  selected={isSelected}
+                  title={genre.name}
+                  icon={isSelected ? <span className="text-base text-gray-900">✓</span> : undefined}
+                  className="rounded-none border-x-0 border-t-0 border-b border-gray-700/50 first:border-t-0"
+                />
               );
             })}
-          </div>
+          </Card>
         )}
       </div>
     </div>

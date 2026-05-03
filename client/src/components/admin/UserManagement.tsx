@@ -1,6 +1,11 @@
 import type { User } from '@findarr/shared';
 import { useState, useEffect } from 'react';
 import { adminUserService } from '../../services/api';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
+import { Input } from '../ui/Input';
+import { PageHeader } from '../ui/PageHeader';
+import { SelectInput } from '../ui/SelectInput';
 
 export function UserManagement() {
   const [users, setUsers] = useState<User[]>([]);
@@ -58,142 +63,156 @@ export function UserManagement() {
   }
 
   return (
-    <div className="p-4 md:p-5">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 md:mb-5">
-        <h2 className="m-0 text-white text-xl md:text-2xl">User Management</h2>
-        <button
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors cursor-pointer text-sm md:text-base"
-        >
-          {showCreateForm ? 'Cancel' : 'Create User'}
-        </button>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        title="Users"
+        description="Manage access, roles, and invitations for people using Findarr."
+        action={
+          <Button
+            type="button"
+            variant={showCreateForm ? 'secondary' : 'success'}
+            size="sm"
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            className="w-full sm:w-auto"
+          >
+            {showCreateForm ? 'Cancel' : 'Create user'}
+          </Button>
+        }
+      />
 
       {showCreateForm && (
-        <div className="bg-gray-800 p-4 md:p-5 rounded mb-4 md:mb-5 border border-gray-700">
-          <h3 className="m-0 mb-4 text-white text-xl">Create New User</h3>
-          <form onSubmit={handleCreateUser}>
-            <div className="mb-3">
-              <label className="block mb-1 text-gray-300">Email</label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={e => setFormData({ ...formData, email: e.target.value })}
-                required
-                className="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+        <Card variant="solid" padding="md" className="space-y-4">
+          <h3 className="text-lg font-semibold text-white">Create New User</h3>
+          <form onSubmit={handleCreateUser} className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-sm text-gray-300">Email</label>
+                <Input
+                  type="email"
+                  value={formData.email}
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm text-gray-300">Display Name</label>
+                <Input
+                  type="text"
+                  value={formData.displayName}
+                  onChange={e => setFormData({ ...formData, displayName: e.target.value })}
+                  required
+                />
+              </div>
             </div>
-            <div className="mb-3">
-              <label className="block mb-1 text-gray-300">Password</label>
-              <input
-                type="password"
-                value={formData.password}
-                onChange={e => setFormData({ ...formData, password: e.target.value })}
-                required
-                minLength={8}
-                className="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-sm text-gray-300">Password</label>
+                <Input
+                  type="password"
+                  value={formData.password}
+                  onChange={e => setFormData({ ...formData, password: e.target.value })}
+                  required
+                  minLength={8}
+                />
+              </div>
+              <div>
+                <SelectInput
+                  label="Role"
+                  value={formData.role}
+                  onChange={e =>
+                    setFormData({ ...formData, role: e.target.value as 'user' | 'admin' })
+                  }
+                >
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </SelectInput>
+              </div>
             </div>
-            <div className="mb-3">
-              <label className="block mb-1 text-gray-300">Display Name</label>
-              <input
-                type="text"
-                value={formData.displayName}
-                onChange={e => setFormData({ ...formData, displayName: e.target.value })}
-                required
-                className="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block mb-1 text-gray-300">Role</label>
-              <select
-                value={formData.role}
-                onChange={e =>
-                  setFormData({ ...formData, role: e.target.value as 'user' | 'admin' })
-                }
-                className="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
+
             {error && (
-              <div className="p-3 mb-3 bg-red-900/50 text-red-200 rounded border border-red-700">
+              <div className="rounded-lg border border-red-800 bg-red-950/40 p-3 text-sm text-red-200">
                 {error}
               </div>
             )}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isLoading ? 'Creating...' : 'Create User'}
-            </button>
+
+            <div className="flex flex-wrap gap-2">
+              <Button type="submit" disabled={isLoading} size="sm">
+                {isLoading ? 'Creating...' : 'Create User'}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowCreateForm(false)}
+              >
+                Close
+              </Button>
+            </div>
           </form>
-        </div>
+        </Card>
       )}
 
-      {/* Desktop Table View */}
-      <div className="hidden md:block overflow-x-auto">
+      <Card variant="solid" padding="none" className="hidden overflow-x-auto md:block">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-gray-800">
-              <th className="p-3 text-left border-b-2 border-gray-700 text-gray-300">Email</th>
-              <th className="p-3 text-left border-b-2 border-gray-700 text-gray-300">
-                Display Name
-              </th>
-              <th className="p-3 text-left border-b-2 border-gray-700 text-gray-300">Role</th>
-              <th className="p-3 text-left border-b-2 border-gray-700 text-gray-300">Created</th>
-              <th className="p-3 text-left border-b-2 border-gray-700 text-gray-300">Actions</th>
+            <tr className="border-b border-gray-800 text-left text-sm text-gray-400">
+              <th className="px-5 py-3">Email</th>
+              <th className="px-5 py-3">Display Name</th>
+              <th className="px-5 py-3">Role</th>
+              <th className="px-5 py-3">Created</th>
+              <th className="px-5 py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
             {users.map(user => (
-              <tr key={user.id} className="border-b border-gray-700">
-                <td className="p-3 text-gray-300">{user.email}</td>
-                <td className="p-3 text-gray-300">{user.displayName}</td>
-                <td className="p-3">
+              <tr key={user.id} className="border-b border-gray-800 last:border-b-0">
+                <td className="px-5 py-4 text-sm text-gray-300">{user.email}</td>
+                <td className="px-5 py-4 text-sm text-white">{user.displayName}</td>
+                <td className="px-5 py-4">
                   <span
-                    className={`px-2 py-1 rounded text-xs ${
-                      user.role === 'admin' ? 'bg-yellow-600' : 'bg-green-600'
-                    } text-white`}
+                    className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${
+                      user.role === 'admin'
+                        ? 'border-gray-300 bg-gray-200 text-gray-950'
+                        : 'border-gray-700 bg-gray-800 text-gray-300'
+                    }`}
                   >
                     {user.role}
                   </span>
                 </td>
-                <td className="p-3 text-gray-300">
+                <td className="px-5 py-4 text-sm text-gray-400">
                   {new Date(user.createdAt * 1000).toLocaleDateString()}
                 </td>
-                <td className="p-3">
-                  <button
+                <td className="px-5 py-4">
+                  <Button
+                    type="button"
+                    variant="danger"
+                    size="sm"
                     onClick={() => handleDeleteUser(user.id)}
-                    className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors cursor-pointer text-xs"
                   >
                     Delete
-                  </button>
+                  </Button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
+      </Card>
 
-      {/* Mobile Card View */}
-      <div className="md:hidden space-y-4">
+      <div className="space-y-3 md:hidden">
         {users.map(user => (
-          <div
-            key={user.id}
-            className="bg-gray-800 border border-gray-700 rounded-lg p-4 space-y-3"
-          >
-            <div className="flex justify-between items-start">
-              <div className="flex-1 min-w-0">
-                <h3 className="text-white font-semibold text-sm mb-1">{user.displayName}</h3>
-                <div className="text-xs text-gray-400 truncate">{user.email}</div>
+          <Card key={user.id} variant="solid" padding="md" className="space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <h3 className="mb-1 text-sm font-semibold text-white">{user.displayName}</h3>
+                <div className="truncate text-xs text-gray-400">{user.email}</div>
               </div>
               <span
-                className={`px-2 py-1 rounded text-xs ${
-                  user.role === 'admin' ? 'bg-yellow-600' : 'bg-green-600'
-                } text-white font-medium shrink-0`}
+                className={`inline-flex shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium ${
+                  user.role === 'admin'
+                    ? 'border-gray-300 bg-gray-200 text-gray-950'
+                    : 'border-gray-700 bg-gray-800 text-gray-300'
+                }`}
               >
                 {user.role}
               </span>
@@ -203,13 +222,16 @@ export function UserManagement() {
               Created {new Date(user.createdAt * 1000).toLocaleDateString()}
             </div>
 
-            <button
+            <Button
+              type="button"
+              variant="danger"
+              size="sm"
+              className="w-full"
               onClick={() => handleDeleteUser(user.id)}
-              className="w-full px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors cursor-pointer text-xs font-medium"
             >
               Delete User
-            </button>
-          </div>
+            </Button>
+          </Card>
         ))}
       </div>
     </div>

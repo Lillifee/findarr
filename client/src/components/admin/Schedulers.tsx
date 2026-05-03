@@ -1,5 +1,8 @@
 import type { SchedulerState } from '@findarr/shared';
 import { useState, useEffect } from 'react';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
+import { PageHeader } from '../ui/PageHeader';
 import { schedulerService, adminSchedulerService } from '../../services/api';
 
 export function Schedulers() {
@@ -89,6 +92,30 @@ export function Schedulers() {
     return date.toLocaleDateString();
   }
 
+  function renderStatus(scheduler: SchedulerState) {
+    if (scheduler.isRunning) {
+      return (
+        <span className="inline-flex rounded-full border border-blue-800 bg-blue-950/40 px-2.5 py-1 text-xs text-blue-200">
+          Running
+        </span>
+      );
+    }
+
+    if (scheduler.enabled) {
+      return (
+        <span className="inline-flex rounded-full border border-emerald-800 bg-emerald-950/40 px-2.5 py-1 text-xs text-emerald-200">
+          Enabled
+        </span>
+      );
+    }
+
+    return (
+      <span className="inline-flex rounded-full border border-gray-700 bg-gray-800 px-2.5 py-1 text-xs text-gray-300">
+        Disabled
+      </span>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center p-8">
@@ -106,125 +133,96 @@ export function Schedulers() {
   }
 
   return (
-    <div className="p-4 md:p-5">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 md:mb-5">
-        <h2 className="m-0 text-white text-xl md:text-2xl">Scheduler Management</h2>
-        <div className="text-sm text-gray-400">Auto-refreshes every 5 seconds</div>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        title="Schedulers"
+        description="Monitor recurring jobs and trigger them manually when needed."
+        action={<div className="text-sm text-gray-400">Auto-refreshes every 5 seconds</div>}
+      />
 
       {/* Desktop Table View */}
-      <div className="hidden lg:block overflow-x-auto">
+      <Card variant="solid" padding="none" className="hidden overflow-x-auto lg:block">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-gray-800">
-              <th className="p-3 text-left border-b-2 border-gray-700 text-gray-300">Name</th>
-              <th className="p-3 text-left border-b-2 border-gray-700 text-gray-300">
-                Description
-              </th>
-              <th className="p-3 text-center border-b-2 border-gray-700 text-gray-300">Status</th>
-              <th className="p-3 text-center border-b-2 border-gray-700 text-gray-300">Interval</th>
-              <th className="p-3 text-left border-b-2 border-gray-700 text-gray-300">Last Run</th>
-              <th className="p-3 text-left border-b-2 border-gray-700 text-gray-300">Next Run</th>
-              <th className="p-3 text-center border-b-2 border-gray-700 text-gray-300">Duration</th>
-              <th className="p-3 text-center border-b-2 border-gray-700 text-gray-300">Actions</th>
+            <tr className="border-b border-gray-800 text-left text-sm text-gray-400">
+              <th className="px-5 py-3">Name</th>
+              <th className="px-5 py-3">Description</th>
+              <th className="px-5 py-3 text-center">Status</th>
+              <th className="px-5 py-3 text-center">Interval</th>
+              <th className="px-5 py-3">Last Run</th>
+              <th className="px-5 py-3">Next Run</th>
+              <th className="px-5 py-3 text-center">Duration</th>
+              <th className="px-5 py-3 text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
             {schedulers.map(scheduler => (
-              <tr key={scheduler.name} className="border-b border-gray-700 hover:bg-gray-800/50">
-                <td className="p-3">
+              <tr key={scheduler.name} className="border-b border-gray-800 last:border-b-0">
+                <td className="px-5 py-4">
                   <div className="font-mono text-sm text-white">{scheduler.name}</div>
                 </td>
-                <td className="p-3">
+                <td className="px-5 py-4">
                   <div className="text-sm text-gray-300">{scheduler.description}</div>
                 </td>
-                <td className="p-3 text-center">
+                <td className="px-5 py-4 text-center">
                   <div className="flex items-center justify-center gap-2">
-                    {scheduler.isRunning ? (
-                      <span className="px-2 py-1 bg-blue-900/50 text-blue-300 rounded text-xs border border-blue-700">
-                        Running
-                      </span>
-                    ) : scheduler.enabled ? (
-                      <span className="px-2 py-1 bg-green-900/50 text-green-300 rounded text-xs border border-green-700">
-                        Enabled
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 bg-gray-700 text-gray-400 rounded text-xs border border-gray-600">
-                        Disabled
-                      </span>
-                    )}
+                    {renderStatus(scheduler)}
                   </div>
                 </td>
-                <td className="p-3 text-center">
+                <td className="px-5 py-4 text-center">
                   <span className="text-sm text-gray-300 font-mono">
                     {formatInterval(scheduler.interval)}
                   </span>
                 </td>
-                <td className="p-3">
+                <td className="px-5 py-4">
                   <div className="text-sm text-gray-400">{formatTimestamp(scheduler.lastRun)}</div>
                 </td>
-                <td className="p-3">
+                <td className="px-5 py-4">
                   <div className="text-sm text-gray-400">{formatNextRun(scheduler.nextRun)}</div>
                 </td>
-                <td className="p-3 text-center">
+                <td className="px-5 py-4 text-center">
                   <span className="text-sm text-gray-400 font-mono">
                     {formatDuration(scheduler.lastDuration)}
                   </span>
                 </td>
-                <td className="p-3">
+                <td className="px-5 py-4">
                   <div className="flex items-center justify-center gap-2">
-                    <button
+                    <Button
                       onClick={() => handleTrigger(scheduler.name)}
                       disabled={actionLoading === scheduler.name || scheduler.isRunning}
-                      className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:cursor-not-allowed disabled:opacity-50 text-xs"
+                      variant="secondary"
+                      size="sm"
                       title="Run now"
                     >
                       {actionLoading === scheduler.name ? '...' : 'Trigger'}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={() => handleToggle(scheduler.name, scheduler.enabled)}
                       disabled={actionLoading === scheduler.name}
-                      className={`px-3 py-1 rounded transition-colors disabled:cursor-not-allowed disabled:opacity-50 text-xs ${
-                        scheduler.enabled
-                          ? 'bg-red-600 hover:bg-red-700 text-white'
-                          : 'bg-green-600 hover:bg-green-700 text-white'
-                      }`}
+                      variant={scheduler.enabled ? 'danger' : 'success'}
+                      size="sm"
                       title={scheduler.enabled ? 'Disable' : 'Enable'}
                     >
                       {scheduler.enabled ? 'Stop' : 'Start'}
-                    </button>
+                    </Button>
                   </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
+      </Card>
 
       {/* Mobile Card View */}
       <div className="lg:hidden space-y-4">
         {schedulers.map(scheduler => (
-          <div key={scheduler.name} className="bg-gray-800 p-4 rounded border border-gray-700">
+          <Card key={scheduler.name} variant="solid" padding="md">
             <div className="flex justify-between items-start mb-3">
               <div>
                 <div className="font-mono text-sm text-white mb-1">{scheduler.name}</div>
                 <div className="text-xs text-gray-400">{scheduler.description}</div>
               </div>
-              <div>
-                {scheduler.isRunning ? (
-                  <span className="px-2 py-1 bg-blue-900/50 text-blue-300 rounded text-xs border border-blue-700">
-                    Running
-                  </span>
-                ) : scheduler.enabled ? (
-                  <span className="px-2 py-1 bg-green-900/50 text-green-300 rounded text-xs border border-green-700">
-                    Enabled
-                  </span>
-                ) : (
-                  <span className="px-2 py-1 bg-gray-700 text-gray-400 rounded text-xs border border-gray-600">
-                    Disabled
-                  </span>
-                )}
-              </div>
+              <div>{renderStatus(scheduler)}</div>
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-xs mb-3">
@@ -257,26 +255,26 @@ export function Schedulers() {
             )}
 
             <div className="flex gap-2">
-              <button
+              <Button
                 onClick={() => handleTrigger(scheduler.name)}
                 disabled={actionLoading === scheduler.name || scheduler.isRunning}
-                className="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:cursor-not-allowed disabled:opacity-50 text-sm"
+                variant="secondary"
+                size="sm"
+                className="flex-1"
               >
                 {actionLoading === scheduler.name ? 'Loading...' : 'Trigger Now'}
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => handleToggle(scheduler.name, scheduler.enabled)}
                 disabled={actionLoading === scheduler.name}
-                className={`flex-1 px-3 py-2 rounded transition-colors disabled:cursor-not-allowed disabled:opacity-50 text-sm ${
-                  scheduler.enabled
-                    ? 'bg-red-600 hover:bg-red-700 text-white'
-                    : 'bg-green-600 hover:bg-green-700 text-white'
-                }`}
+                variant={scheduler.enabled ? 'danger' : 'success'}
+                size="sm"
+                className="flex-1"
               >
                 {scheduler.enabled ? 'Stop' : 'Start'}
-              </button>
+              </Button>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
     </div>

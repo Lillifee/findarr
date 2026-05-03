@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { buttonSizes, type Size } from './sizes';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'icon';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'icon' | 'danger' | 'success';
   size?: Size;
   loading?: boolean;
   children: ReactNode;
@@ -10,11 +10,15 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variants = {
   primary:
-    'bg-gradient-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 shadow-md disabled:from-gray-600 disabled:to-gray-600',
+    'border border-amber-400/70 bg-amber-500 text-gray-950 hover:border-amber-300 hover:bg-amber-400 shadow-none',
   secondary:
-    'bg-gray-800/60 backdrop-blur-sm text-amber-400 border border-gray-600/50 hover:bg-gray-700/80',
-  ghost: 'text-gray-300 hover:bg-gray-700/50',
-  icon: 'text-gray-300 hover:bg-gray-700/50 rounded-lg',
+    'border border-gray-700/60 bg-gray-800/70 backdrop-blur-sm text-gray-200 hover:border-gray-500 hover:bg-gray-700/80 shadow-none',
+  ghost: 'text-gray-400 hover:bg-gray-700/60 hover:text-white',
+  icon: 'text-gray-400 hover:bg-gray-700/60 hover:text-white rounded-lg',
+  danger:
+    'border border-red-700/70 bg-red-900/30 text-red-200 hover:border-red-500 hover:bg-red-800/50 hover:text-white shadow-none',
+  success:
+    'border border-emerald-700/70 bg-emerald-900/30 text-emerald-200 hover:border-emerald-500 hover:bg-emerald-800/50 hover:text-white shadow-none',
 };
 
 export function Button({
@@ -27,7 +31,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const baseStyles =
-    'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50';
+    'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50';
 
   const variantStyles = variants[variant];
   const sizeStyles = buttonSizes[size];

@@ -8,7 +8,6 @@ export function ScoreBreakdown({ score }: ScoreBreakdownProps) {
   // Helper to format percentage
   const toPercent = (value: number) => Math.round(value * 100);
 
-  console.log('Score breakdown:', score);
   // Helper to get color based on score value
   const getColor = (value: number): string => {
     if (value >= 0.7) return 'bg-green-500';
@@ -38,7 +37,7 @@ export function ScoreBreakdown({ score }: ScoreBreakdownProps) {
       </h3>
 
       {/* Overall score display */}
-      <div className="mb-4 p-4 bg-linear-to-r from-amber-600/20 to-amber-500/10 border border-amber-500/40 rounded-lg">
+      <div className="mb-4 rounded-lg border border-gray-700/50 bg-gray-800/70 p-4">
         <div className="flex items-center justify-between">
           <span className="text-white font-semibold">Overall Score</span>
           <div className="flex items-center gap-3">
@@ -73,7 +72,7 @@ export function ScoreBreakdown({ score }: ScoreBreakdownProps) {
       </div>
 
       {/* Individual scores */}
-      <div className="space-y-3 bg-gray-800/30 border border-gray-700/50 rounded-lg p-4">
+      <div className="space-y-3 rounded-lg border border-gray-700/50 bg-gray-800/60 p-4">
         {scores.map(({ label, value, icon }) => (
           <div key={label} className="space-y-1">
             <div className="flex items-center justify-between text-sm">
@@ -96,11 +95,11 @@ export function ScoreBreakdown({ score }: ScoreBreakdownProps) {
       {/* Base vs User score comparison (if user scores present) */}
       {score.userScore > 0 && (
         <div className="mt-4 grid grid-cols-2 gap-3 text-center text-sm">
-          <div className="p-3 bg-blue-600/20 border border-blue-500/40 rounded-lg">
+          <div className="rounded-lg border border-gray-700/50 bg-gray-800/60 p-3">
             <div className="text-blue-200 mb-1">Base Score</div>
             <div className="text-xl font-bold text-blue-400">{toPercent(score.baseScore)}%</div>
           </div>
-          <div className="p-3 bg-purple-600/20 border border-purple-500/40 rounded-lg">
+          <div className="rounded-lg border border-gray-700/50 bg-gray-800/60 p-3">
             <div className="text-purple-200 mb-1">User Match</div>
             <div className="text-xl font-bold text-purple-400">{toPercent(score.userScore)}%</div>
           </div>

@@ -110,7 +110,7 @@ export function LikeDislikeButton({
 
   const buttonClass = compact
     ? 'p-1.5 rounded-full transition-all duration-200'
-    : 'px-3 py-2 rounded-lg transition-all duration-200 flex items-center gap-2';
+    : 'min-w-[8.5rem] justify-center px-4 py-2.5 rounded-lg transition-all duration-200 flex items-center gap-2 sm:min-w-[9.5rem]';
 
   const iconClass = compact ? 'w-5 h-5' : 'w-5 h-5';
 
@@ -133,8 +133,8 @@ export function LikeDislikeButton({
           disabled={isLoading}
           className={`${buttonClass} ${
             currentAction === 'liked'
-              ? 'bg-green-600 text-white shadow-lg shadow-green-500/50'
-              : 'bg-gray-700/50 text-gray-300 hover:bg-green-600/30 hover:text-green-400'
+              ? 'border border-emerald-500 bg-emerald-900/40 text-emerald-100'
+              : 'border border-gray-700/50 bg-gray-800/70 text-gray-300 hover:border-emerald-500/60 hover:bg-gray-700/80 hover:text-emerald-200'
           } disabled:opacity-50 disabled:cursor-not-allowed`}
           title="Like"
         >
@@ -153,8 +153,8 @@ export function LikeDislikeButton({
           disabled={isLoading}
           className={`${buttonClass} ${
             currentAction === 'disliked'
-              ? 'bg-red-600 text-white shadow-lg shadow-red-500/50'
-              : 'bg-gray-700/50 text-gray-300 hover:bg-red-600/30 hover:text-red-400'
+              ? 'border border-red-500 bg-red-900/40 text-red-100'
+              : 'border border-gray-700/50 bg-gray-800/70 text-gray-300 hover:border-red-500/60 hover:bg-gray-700/80 hover:text-red-200'
           } disabled:opacity-50 disabled:cursor-not-allowed`}
           title="Dislike"
         >

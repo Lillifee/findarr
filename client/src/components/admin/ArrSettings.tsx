@@ -8,11 +8,14 @@ import type {
 } from '@findarr/shared';
 import { useState, useEffect, useCallback } from 'react';
 import { adminArrService, adminJellyfinService } from '../../services/api';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
+import { Input } from '../ui/Input';
+import { PageHeader } from '../ui/PageHeader';
+import { SelectInput } from '../ui/SelectInput';
 
-const inputClass =
-  'w-full p-2 border border-gray-600 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm';
 const readonlyClass =
-  'w-full p-2 border border-gray-700 rounded bg-gray-700/50 text-gray-500 text-sm';
+  'w-full min-h-10 rounded-lg border border-gray-700/50 bg-gray-800/60 px-3.5 py-2 text-sm text-gray-500';
 
 function formatBytes(bytes: number): string {
   const gb = bytes / 1024 ** 3;
@@ -23,10 +26,9 @@ interface ArrSectionProps {
   service: 'radarr' | 'sonarr';
   title: string;
   description: string;
-  accentColor: 'orange' | 'blue';
 }
 
-function ArrSection({ service, title, description, accentColor }: ArrSectionProps) {
+function ArrSection({ service, title, description }: ArrSectionProps) {
   const svc = adminArrService[service];
 
   // Normalize prefixed settings fields to local names for the form
@@ -141,8 +143,6 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
     }
   }
 
-  const accentText = accentColor === 'orange' ? 'text-orange-400' : 'text-blue-400';
-  const accentBorder = accentColor === 'orange' ? 'border-orange-500/30' : 'border-blue-500/30';
   const badgeBase = 'px-2 py-0.5 rounded text-xs font-medium';
 
   let statusBadge: React.ReactNode;
@@ -171,10 +171,10 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
   }
 
   return (
-    <div className={`bg-gray-800 rounded-lg border ${accentBorder} p-5`}>
+    <Card variant="solid" padding="md">
       {/* Header */}
       <div className="flex items-center gap-2 mb-5">
-        <h3 className={`text-lg font-semibold ${accentText}`}>{title}</h3>
+        <h3 className="text-lg font-semibold text-white">{title}</h3>
         {statusBadge}
       </div>
       <p className="text-sm text-gray-400 -mt-3 mb-5">{description}</p>
@@ -189,12 +189,11 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
         {/* Server URL */}
         <div>
           <label className="block mb-1.5 text-sm text-gray-300">Server URL</label>
-          <input
+          <Input
             type="url"
             value={urlInput}
             onChange={e => setUrlInput(e.target.value)}
             placeholder="http://localhost:7878"
-            className={inputClass}
           />
         </div>
 
@@ -208,13 +207,12 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
               </span>
             )}
           </label>
-          <input
+          <Input
             type="password"
             value={apiKeyInput}
             onChange={e => setApiKeyInput(e.target.value)}
             placeholder={norm(settings).apiKeySet ? '••••••••••••••••' : 'Enter API key'}
             autoComplete="new-password"
-            className={inputClass}
           />
         </div>
 
@@ -222,10 +220,9 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
         <div>
           <label className="block mb-1.5 text-sm text-gray-300">Quality Profile</label>
           {!connectionDirty && testResult?.connected && profiles.length > 0 ? (
-            <select
+            <SelectInput
               value={selectedProfileId}
               onChange={e => setSelectedProfileId(e.target.value)}
-              className={inputClass}
             >
               <option value="">— Select quality profile —</option>
               {profiles.map(p => (
@@ -233,7 +230,7 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
                   {p.name}
                 </option>
               ))}
-            </select>
+            </SelectInput>
           ) : (
             <div className={readonlyClass}>
               {norm(settings).qualityProfileId
@@ -247,10 +244,9 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
         <div>
           <label className="block mb-1.5 text-sm text-gray-300">Root Folder</label>
           {!connectionDirty && testResult?.connected && rootFolders.length > 0 ? (
-            <select
+            <SelectInput
               value={selectedRootFolder}
               onChange={e => setSelectedRootFolder(e.target.value)}
-              className={inputClass}
             >
               <option value="">— Select root folder —</option>
               {rootFolders.map(f => (
@@ -259,7 +255,7 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
                   {f.freeSpace == null ? '' : ` (${formatBytes(f.freeSpace)})`}
                 </option>
               ))}
-            </select>
+            </SelectInput>
           ) : (
             <div className={readonlyClass}>
               {norm(settings).rootFolderPath ?? '— No folder selected —'}
@@ -279,24 +275,21 @@ function ArrSection({ service, title, description, accentColor }: ArrSectionProp
         )}
 
         <div className="flex gap-2">
-          <button
-            type="submit"
-            disabled={isSaving || !isDirty}
-            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium cursor-pointer"
-          >
+          <Button type="submit" disabled={isSaving || !isDirty} size="sm">
             {isSaving ? 'Saving…' : 'Save Settings'}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={handleTest}
             disabled={isTesting || connectionDirty}
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            variant="secondary"
+            size="sm"
           >
             {isTesting ? 'Testing…' : 'Test Connection'}
-          </button>
+          </Button>
         </div>
       </form>
-    </div>
+    </Card>
   );
 }
 
@@ -392,9 +385,9 @@ function JellyfinSection() {
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg border border-purple-500/30 p-5">
+    <Card variant="solid" padding="md">
       <div className="flex items-center gap-2 mb-5">
-        <h3 className="text-lg font-semibold text-purple-400">Jellyfin</h3>
+        <h3 className="text-lg font-semibold text-white">Jellyfin</h3>
         {statusBadge}
       </div>
       <p className="text-sm text-gray-400 -mt-3 mb-5">
@@ -410,12 +403,11 @@ function JellyfinSection() {
       <form onSubmit={handleSave} className="space-y-4">
         <div>
           <label className="block mb-1.5 text-sm text-gray-300">Server URL</label>
-          <input
+          <Input
             type="url"
             value={urlInput}
             onChange={e => setUrlInput(e.target.value)}
             placeholder="http://localhost:8096"
-            className={inputClass}
           />
         </div>
         <div>
@@ -427,13 +419,12 @@ function JellyfinSection() {
               </span>
             )}
           </label>
-          <input
+          <Input
             type="password"
             value={apiKeyInput}
             onChange={e => setApiKeyInput(e.target.value)}
             placeholder={testResult?.apiKeySet ? '••••••••••••••••' : 'Enter API key'}
             autoComplete="new-password"
-            className={inputClass}
           />
         </div>
 
@@ -449,49 +440,42 @@ function JellyfinSection() {
         )}
 
         <div className="flex gap-2">
-          <button
-            type="submit"
-            disabled={isSaving || !isDirty}
-            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium cursor-pointer"
-          >
+          <Button type="submit" disabled={isSaving || !isDirty} size="sm">
             {isSaving ? 'Saving…' : 'Save Settings'}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={handleTest}
             disabled={isTesting || isDirty}
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            variant="secondary"
+            size="sm"
           >
             {isTesting ? 'Testing…' : 'Test Connection'}
-          </button>
+          </Button>
         </div>
       </form>
-    </div>
+    </Card>
   );
 }
 
 export function ArrSettings() {
   return (
-    <div className="p-4 md:p-5">
-      <div className="mb-5">
-        <h2 className="m-0 text-white text-xl md:text-2xl mb-1">Integrations</h2>
-        <p className="text-gray-400 text-sm">
-          Configure Jellyfin, Radarr, and Sonarr for automatic media management
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Integrations"
+        description="Configure Jellyfin, Radarr, and Sonarr for automatic media management."
+      />
       <div className="space-y-6">
         <JellyfinSection />
         <ArrSection
           service="radarr"
           title="Radarr"
           description="Movies — quality profile and root folder for new movie requests"
-          accentColor="orange"
         />
         <ArrSection
           service="sonarr"
           title="Sonarr"
           description="TV Shows — quality profile and root folder for new series requests"
-          accentColor="blue"
         />
       </div>
     </div>

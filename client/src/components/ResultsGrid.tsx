@@ -19,8 +19,11 @@ function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
   const hasInteraction = isLiked || isDisliked;
 
   return (
-    <div onClick={onSelect} className="group cursor-pointer transition-all duration-300">
-      <div className="relative overflow-hidden shadow-lg bg-gray-900/40 backdrop-blur-sm border border-gray-700/50 group-hover:border-amber-500 transition-all duration-300 group-hover:shadow-xl rounded-lg">
+    <div
+      onClick={onSelect}
+      className="group cursor-pointer transition-transform duration-300 hover:-translate-y-1"
+    >
+      <div className="relative overflow-hidden rounded-xl border border-gray-700/60 bg-gray-800/75 shadow-lg backdrop-blur-sm transition-all duration-300 group-hover:border-gray-500/90 group-hover:shadow-2xl">
         {/* Status Badges */}
         {item.state?.record?.status && (
           <StatusBadge status={item.state.record.status} position="top-left" />
@@ -35,46 +38,33 @@ function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
             <img
               src={`${TMDB_IMAGE_BASE}${item.posterPath}`}
               alt={title}
-              className={`w-full aspect-2/3 object-cover transition-all duration-300 group-hover:scale-105 ${hasInteraction ? 'opacity-30' : ''}`}
+              className={`w-full aspect-2/3 object-cover transition-all duration-500 group-hover:scale-[1.03] ${hasInteraction ? 'brightness-[0.72] saturate-[0.72] contrast-[0.92]' : ''}`}
             />
-            {/* Interaction Overlays */}
-            {isLiked && (
-              <div className="absolute inset-0 bg-green-500/10 border-2 border-green-400 pointer-events-none" />
-            )}
-            {isDisliked && (
-              <div className="absolute inset-0 bg-red-500/10 border-2 border-red-400 pointer-events-none" />
-            )}
+            <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-white/6 via-transparent to-transparent opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
           </>
         ) : (
-          <div className="w-full aspect-2/3 bg-gray-700 flex items-center justify-center text-gray-500">
-            <span className="text-sm">No Poster</span>
+          <div className="flex aspect-2/3 w-full items-center justify-center bg-linear-to-br from-gray-800 via-gray-700 to-gray-800 text-gray-500">
+            <span className="text-sm font-medium tracking-wide">No Poster</span>
           </div>
         )}
 
         {/* Bottom Overlay with Info */}
-        <div className="absolute bottom-0 left-0 right-0 p-2 md:p-4 z-10 bg-linear-to-t from-black/20 via-black/20 to-transparent backdrop-blur-md">
-          <h3 className="text-white font-bold text-sm md:text-base leading-tight mb-1 md:mb-2 line-clamp-2 group-hover:text-amber-400 transition-colors drop-shadow-lg">
+        <div className="absolute bottom-0 left-0 right-0 z-10 bg-linear-to-t from-black/88 via-black/55 to-transparent px-3 pb-3 pt-8 md:px-4 md:pb-4 md:pt-10">
+          <h3 className="mb-1.5 line-clamp-2 text-sm font-semibold leading-tight text-white transition-colors group-hover:text-gray-100 md:text-base">
             {title}
           </h3>
 
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-gray-200 text-xs md:text-sm font-medium drop-shadow">{year}</span>
+          <div className="mb-2.5 flex items-center justify-between gap-2">
+            <span className="text-xs font-medium uppercase tracking-[0.18em] text-gray-300 md:text-[11px]">
+              {year}
+            </span>
 
-            <div className="flex items-center gap-1 md:gap-1.5 bg-black/60 backdrop-blur-sm px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-md">
-              <span className="text-yellow-400 text-xs md:text-sm">★</span>
-              <span className="text-white text-xs md:text-sm font-semibold">
+            <div className="flex items-center gap-1.5 rounded-full border border-gray-600/70 bg-gray-900/70 px-2 py-1 text-xs backdrop-blur-sm md:px-2.5">
+              <span className="text-amber-300 text-xs">★</span>
+              <span className="text-white text-xs font-semibold">
                 {item.voteAverage.toFixed(1)}
               </span>
             </div>
-            {/* 
-            {item.state?.score?.finalScore !== undefined && (
-              <div className="flex items-center gap-1 md:gap-1.5 bg-black/60 backdrop-blur-sm px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-md">
-                <span className="text-amber-400 text-xs md:text-sm">★</span>
-                <span className="text-white text-xs md:text-sm font-semibold">
-                  {item.state.score.finalScore.toFixed(1)}
-                </span>
-              </div>
-            )} */}
           </div>
 
           {/* Like/Dislike Buttons */}

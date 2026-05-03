@@ -2,6 +2,7 @@ import type { MediaDetails } from '@findarr/shared';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { MediaView } from '../components/MediaView';
+import { Button } from '../components/ui/Button';
 import { searchService } from '../services/api';
 
 export function MediaDetailPage() {
@@ -56,10 +57,7 @@ export function MediaDetailPage() {
       {/* Back button - Mobile: top-left, Desktop: aligned with content (accounting for sidebar) */}
       <div className="fixed top-4 md:top-8 left-0 right-0 md:left-64 z-100 pointer-events-none">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <button
-            onClick={handleBack}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-900/95 backdrop-blur-md border border-gray-600 text-white rounded-lg hover:bg-amber-600 hover:border-amber-600 transition-all cursor-pointer text-sm md:text-base shadow-2xl pointer-events-auto"
-          >
+          <Button onClick={handleBack} variant="secondary" className="pointer-events-auto">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -69,7 +67,7 @@ export function MediaDetailPage() {
               />
             </svg>
             <span>Back</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -99,12 +97,9 @@ export function MediaDetailPage() {
               />
             </svg>
             <p className="text-red-400">{error}</p>
-            <button
-              onClick={() => navigate(-1)}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors cursor-pointer"
-            >
+            <Button onClick={() => navigate(-1)} variant="secondary">
               Go Back
-            </button>
+            </Button>
           </div>
         </div>
       )}

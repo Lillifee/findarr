@@ -5,6 +5,7 @@ export type StatusType =
   | 'available'
   | 'downloaded'
   | 'downloading'
+  | 'monitored'
   | 'requested'
   | 'pending'
   | 'warning';
@@ -19,7 +20,8 @@ export interface StatusBadgeProps {
 const statusConfig = {
   pending: undefined,
   available: {
-    bg: 'bg-green-600',
+    bg: 'bg-emerald-500/88',
+    border: 'border-emerald-300/35',
     text: 'text-white',
     label: 'Available',
     icon: (
@@ -33,7 +35,8 @@ const statusConfig = {
     ),
   },
   downloaded: {
-    bg: 'bg-cyan-600',
+    bg: 'bg-cyan-500/88',
+    border: 'border-cyan-300/35',
     text: 'text-white',
     label: 'Downloaded',
     icon: (
@@ -47,15 +50,32 @@ const statusConfig = {
     ),
   },
   downloading: {
-    bg: 'bg-blue-600',
+    bg: 'bg-blue-500/88',
+    border: 'border-blue-300/35',
     text: 'text-white',
     label: 'Downloading',
     icon: (
       <div className="animate-spin rounded-full h-3 w-3 md:h-4 md:w-4 border-b-2 border-white"></div>
     ),
   },
+  monitored: {
+    bg: 'bg-indigo-500/88',
+    border: 'border-indigo-300/35',
+    text: 'text-white',
+    label: 'Monitored',
+    icon: (
+      <svg className="w-3 h-3 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 20 20">
+        <path
+          fillRule="evenodd"
+          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.707a1 1 0 00-1.414-1.414L9 10.172 7.707 8.879a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+          clipRule="evenodd"
+        />
+      </svg>
+    ),
+  },
   requested: {
-    bg: 'bg-yellow-600',
+    bg: 'bg-amber-500/90',
+    border: 'border-amber-300/35',
     text: 'text-white',
     label: 'Requested',
     icon: (
@@ -65,7 +85,8 @@ const statusConfig = {
     ),
   },
   warning: {
-    bg: 'bg-orange-600',
+    bg: 'bg-orange-500/90',
+    border: 'border-orange-300/35',
     text: 'text-white',
     label: 'Warning',
     icon: (
@@ -92,11 +113,12 @@ export function StatusBadge({ status, position = 'inline', size = 'md', icon }: 
   const config = statusConfig[status];
   if (!config) return null;
 
-  const baseStyles = 'rounded-md font-bold shadow-lg flex items-center gap-1 z-10 backdrop-blur-sm';
+  const baseStyles =
+    'z-10 flex items-center gap-1 rounded-full border font-semibold shadow-sm backdrop-blur-sm';
 
   return (
     <div
-      className={`${baseStyles} ${config.bg} ${config.text} ${statusBadgeSizes[size]} ${positionStyles[position]}`}
+      className={`${baseStyles} ${config.bg} ${config.border} ${config.text} ${statusBadgeSizes[size]} ${positionStyles[position]}`}
     >
       {icon || config.icon}
       <span>{config.label}</span>

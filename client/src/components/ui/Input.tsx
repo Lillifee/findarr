@@ -18,14 +18,16 @@ export function Input({
   ...props
 }: InputProps) {
   const baseStyles =
-    'w-full bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all';
+    'w-full rounded-lg border text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-colors';
 
   const variantStyles = {
-    default: 'px-4 py-3',
-    search: 'px-4 py-2.5 md:py-3',
+    default:
+      'min-h-10 border-gray-700/60 bg-gray-800/70 px-3.5 py-2.5 text-sm hover:border-gray-500',
+    search:
+      'min-h-10 border-gray-700/60 bg-gray-800/70 px-3.5 py-2 text-sm hover:border-gray-500 focus:bg-gray-800/85',
   };
 
-  const errorStyles = error ? 'border-red-500 focus:ring-red-500' : 'border-gray-600';
+  const errorStyles = error ? 'border-red-500 focus:ring-red-500' : variant === 'search' ? '' : '';
 
   const containerStyles = 'relative flex items-center';
 

@@ -115,7 +115,7 @@ export function RegionChips({
             disabled={disabled}
             variant="ghost"
             size="sm"
-            className="text-xs text-amber-400 hover:text-amber-300"
+            className="text-xs"
           >
             Clear all
           </Button>
@@ -130,11 +130,15 @@ export function RegionChips({
           return (
             <Badge
               key={regionId}
-              variant="primary"
+              variant="secondary"
               selected={isSelected}
               interactive
               onClick={() => !disabled && handleRegionToggle(regionId)}
-              className={disabled ? 'opacity-50 cursor-not-allowed' : ''}
+              className={`px-3 py-1.5 text-xs shadow-none backdrop-blur-none ${
+                isSelected
+                  ? 'border-gray-300 bg-gray-200 text-gray-950 hover:border-white hover:bg-gray-100 hover:text-gray-950'
+                  : 'border-gray-700 bg-gray-800/70 text-gray-300 hover:border-gray-500 hover:bg-gray-700/80 hover:text-white'
+              } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {getRegionIcon(regionId)}
               <span>{region.name}</span>

@@ -49,7 +49,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
 
   const availabilityStatus = media.state?.record?.status as StatusType | undefined;
   const infoTileClass =
-    'rounded-lg bg-gray-800/45 border border-gray-700/60 px-3 py-2 backdrop-blur-sm';
+    'rounded-xl border border-gray-700/50 bg-gray-800/68 px-3 py-2.5 backdrop-blur-md';
   const infoLabelClass = 'text-[10px] uppercase tracking-[0.14em] text-gray-400 font-semibold';
 
   // Build Radarr/Sonarr link
@@ -130,17 +130,17 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
             </div>
 
             {actionLinks.length > 0 && (
-              <div className=" border-gray-700/50">
-                <div className="flex flex-wrap gap-0 bg-white/5 rounded-md overflow-hidden items-center">
-                  <div className="flex gap-0">
+              <div>
+                <div className="flex w-full flex-wrap items-center overflow-hidden rounded-xl border border-gray-700/50 bg-gray-800/70 backdrop-blur-md">
+                  <div className="flex min-w-0 flex-wrap gap-0">
                     {actionLinks.map((link, index) => (
                       <div key={link.key} className="contents">
-                        {index > 0 && <div className="w-px bg-white/10" />}
+                        {index > 0 && <div className="w-px bg-gray-700/60" />}
                         <a
                           href={link.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-white px-4 py-2 hover:bg-white/10 transition-colors duration-200 no-underline font-medium"
+                          className="flex items-center gap-2 px-4 py-2 text-gray-100 transition-colors duration-200 no-underline font-medium hover:bg-gray-700/70 hover:text-white"
                         >
                           {link.key === 'trailer' ? (
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -182,8 +182,8 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                   </div>
                   {availabilityStatus && (
                     <>
-                      <div className="w-px bg-white/10 ml-auto" />
-                      <div className="flex items-center px-4 py-2">
+                      <div className="ml-auto w-px bg-gray-700/60" />
+                      <div className="flex shrink-0 items-center px-4 py-2">
                         <StatusBadge status={availabilityStatus} size="sm" />
                       </div>
                     </>
@@ -195,26 +195,36 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
             {/* Quick info panel */}
             <div className="mb-6 mt-2 pt-2">
               <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2">
-                <div
-                  className={`${infoTileClass} ${
-                    media.type === 'movie'
-                      ? 'bg-rose-600/20 border-rose-400/40'
-                      : 'bg-sky-600/20 border-sky-400/40'
-                  }`}
-                >
+                <div className={infoTileClass}>
                   <p className={infoLabelClass}>Media Type</p>
                   <div className="mt-1.5 flex items-center gap-2 text-sm font-semibold text-white">
                     {media.type === 'movie' ? (
                       <svg
-                        className="w-4 h-4 text-rose-200"
-                        fill="currentColor"
+                        className="w-4 h-4 text-gray-300"
+                        fill="none"
+                        stroke="currentColor"
                         viewBox="0 0 20 20"
                       >
-                        <path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM4 9h12v-2H4v2z" />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.8}
+                          d="M7 4v12M13 4v12M3 7h4m6 0h4M3 10h14m-14 3h4m6 0h4M4 16h12a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1z"
+                        />
                       </svg>
                     ) : (
-                      <svg className="w-4 h-4 text-sky-200" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" />
+                      <svg
+                        className="w-4 h-4 text-gray-300"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.8}
+                          d="M7.5 14.5 7 16l-.7.7h7.4l-.7-.7-.5-1.5M3 11h14M4.5 14.5h11a1.5 1.5 0 001.5-1.5V4.5A1.5 1.5 0 0015.5 3h-11A1.5 1.5 0 003 4.5V13a1.5 1.5 0 001.5 1.5z"
+                        />
                       </svg>
                     )}
                     <span>{media.type === 'movie' ? 'Movie' : 'TV Series'}</span>
@@ -299,7 +309,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                     {media.genres.map(genre => (
                       <span
                         key={genre.id}
-                        className="inline-flex items-center rounded-md bg-gray-800/65 text-gray-200 px-2.5 py-1 text-xs border border-gray-700/70"
+                        className="inline-flex items-center rounded-full border border-gray-700/60 bg-gray-800/72 px-3 py-1 text-xs text-gray-200 backdrop-blur-sm"
                       >
                         {genre.name}
                       </span>
@@ -330,10 +340,10 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                         <img
                           src={`https://image.tmdb.org/t/p/w185${actor.profilePath}`}
                           alt={actor.name}
-                          className="w-20 h-20 rounded-full object-cover shadow-lg border-2 border-gray-700/50 mb-2"
+                          className="w-20 h-20 rounded-full object-cover shadow-lg border border-gray-700/50 mb-2"
                         />
                       ) : (
-                        <div className="w-20 h-20 rounded-full bg-gray-700/50 flex items-center justify-center shadow-lg border-2 border-gray-700/50 mb-2">
+                        <div className="w-20 h-20 rounded-full bg-gray-800/70 flex items-center justify-center shadow-lg border border-gray-700/50 mb-2">
                           <svg
                             className="w-10 h-10 text-gray-500"
                             fill="currentColor"
@@ -372,7 +382,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                   {media.keywords.map(keyword => (
                     <span
                       key={keyword.id}
-                      className="bg-blue-600/20 backdrop-blur-sm text-blue-200 px-3 py-1 rounded-full text-sm border border-blue-500/40 shadow-md"
+                      className="rounded-full border border-gray-700/50 bg-gray-800/70 px-3 py-1 text-sm text-gray-200 backdrop-blur-sm"
                     >
                       {keyword.name}
                     </span>
@@ -385,26 +395,24 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
       </div>
 
       {/* Sticky Like/Dislike buttons at bottom - Always centered, above mobile nav but behind desktop sidebar */}
-      <div className="fixed bottom-0 md:bottom-0 left-0 md:left-64 right-0 z-60 md:z-30 bg-gray-900/95 backdrop-blur-md border-t border-gray-800 shadow-2xl mb-16 md:mb-0">
-        <div className="w-full px-4 py-4">
-          <div className="flex justify-center">
-            <LikeDislikeButton
-              tmdbId={localMedia.tmdbId}
-              mediaType={localMedia.type}
-              initialAction={
-                localMedia.state?.interactions?.find(i => i.action === 'liked')
-                  ? 'liked'
-                  : localMedia.state?.interactions?.find(i => i.action === 'disliked')
-                    ? 'disliked'
-                    : null
-              }
-              existingMedia={localMedia}
-              onUpdate={(updatedMedia: Media) => {
-                setLocalMedia(updatedMedia as MovieDetails | TVDetails);
-                onVoteComplete?.();
-              }}
-            />
-          </div>
+      <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-40 border-t border-gray-700/50 bg-gray-800/90 shadow-2xl backdrop-blur-md md:bottom-0 md:left-64 md:z-30">
+        <div className="mx-auto flex w-full max-w-7xl justify-center px-4 py-3 md:px-8 md:py-4">
+          <LikeDislikeButton
+            tmdbId={localMedia.tmdbId}
+            mediaType={localMedia.type}
+            initialAction={
+              localMedia.state?.interactions?.find(i => i.action === 'liked')
+                ? 'liked'
+                : localMedia.state?.interactions?.find(i => i.action === 'disliked')
+                  ? 'disliked'
+                  : null
+            }
+            existingMedia={localMedia}
+            onUpdate={(updatedMedia: Media) => {
+              setLocalMedia(updatedMedia as MovieDetails | TVDetails);
+              onVoteComplete?.();
+            }}
+          />
         </div>
       </div>
     </div>

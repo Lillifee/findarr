@@ -1,7 +1,6 @@
 import { objectEntries, unifiedGenres } from '@findarr/shared';
 import type { GenreKey } from '@findarr/shared';
 import { Badge } from './ui/Badge';
-import { Button } from './ui/Button';
 
 interface GenreChipsProps {
   selectedGenres: GenreKey[];
@@ -28,35 +27,44 @@ export function GenreChips({ selectedGenres, onGenreChange, disabled = false }: 
         <label className="text-sm font-medium text-gray-300">
           Genres {selectedGenres.length > 0 && `(${selectedGenres.length})`}
         </label>
-        {selectedGenres.length > 0 && (
-          <Button
-            type="button"
-            onClick={clearAllGenres}
-            disabled={disabled}
-            variant="ghost"
-            size="sm"
-            className="text-xs text-amber-400 hover:text-amber-300"
-          >
-            Clear all
-          </Button>
-        )}
+        <button
+          type="button"
+          onClick={clearAllGenres}
+          disabled={disabled || selectedGenres.length === 0}
+          aria-hidden={selectedGenres.length === 0}
+          tabIndex={selectedGenres.length === 0 ? -1 : 0}
+          className={`inline-flex min-h-8 items-center justify-center rounded-full border border-gray-600/70 bg-gray-800/80 px-3 py-1.5 text-xs font-medium text-gray-300 transition-colors hover:border-gray-400 hover:bg-gray-700/80 hover:text-white disabled:cursor-not-allowed ${
+            selectedGenres.length === 0 ? 'pointer-events-none invisible opacity-0' : 'opacity-100'
+          } ${disabled ? 'opacity-50' : ''}`}
+        >
+          Clear all
+        </button>
       </div>
 
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex flex-wrap gap-1.5">
         {objectEntries(unifiedGenres).map(([key, genre]) => {
           const isSelected = selectedGenres.includes(key);
           return (
             <Badge
               key={key}
-              variant="primary"
+              variant="secondary"
               selected={isSelected}
               interactive
               onClick={() => !disabled && handleGenreToggle(key)}
-              className={disabled ? 'opacity-50 cursor-not-allowed' : ''}
+              className={`px-3 py-1.5 text-xs shadow-none backdrop-blur-none ${
+                isSelected
+                  ? 'border-gray-400 bg-gray-300/90 text-gray-950 hover:border-gray-200 hover:bg-gray-200 hover:text-gray-950'
+                  : 'border-gray-600/70 bg-gray-800/80 text-gray-200 hover:border-gray-400 hover:bg-gray-700/80 hover:text-white'
+              } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <span>{genre.name}</span>
-              {isSelected && (
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span className="flex h-3 w-3 items-center justify-center">
+                <svg
+                  className={`h-3 w-3 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0'}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -64,7 +72,7 @@ export function GenreChips({ selectedGenres, onGenreChange, disabled = false }: 
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
-              )}
+              </span>
             </Badge>
           );
         })}

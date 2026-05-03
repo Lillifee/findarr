@@ -17,6 +17,24 @@ body {
   background-color: #111827; /* bg-gray-900 */
 }
 
+button:not(:disabled),
+[role='button']:not([aria-disabled='true']),
+a[href],
+summary,
+select:not(:disabled),
+input[type='button']:not(:disabled),
+input[type='submit']:not(:disabled),
+input[type='reset']:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled,
+select:disabled,
+input:disabled,
+[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
 /* Custom scrollbar styling */
 /* For Webkit browsers (Chrome, Safari, Edge) */
 ::-webkit-scrollbar {
@@ -29,19 +47,19 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #d97706 0%, #ea580c 100%); /* amber-600 to orange-600 */
+  background: linear-gradient(180deg, #4b5563 0%, #374151 100%); /* gray-600 to gray-700 */
   border-radius: 6px;
   border: 2px solid #1f2937; /* bg-gray-800 */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #b45309 0%, #c2410c 100%); /* amber-700 to orange-700 */
+  background: linear-gradient(180deg, #6b7280 0%, #4b5563 100%); /* gray-500 to gray-600 */
 }
 
 /* For Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #d97706 #1f2937; /* thumb: amber-600, track: bg-gray-800 */
+  scrollbar-color: #4b5563 #1f2937; /* thumb: gray-600, track: bg-gray-800 */
 }
 
 /* Safe area inset for mobile devices with notches */

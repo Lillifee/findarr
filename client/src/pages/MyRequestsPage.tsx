@@ -2,6 +2,8 @@ import type { Media, UserInteractionsResponse } from '@findarr/shared';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ResultsGrid } from '../components/ResultsGrid';
+import { Button } from '../components/ui/Button';
+import { PageHeader } from '../components/ui/PageHeader';
 import { useHistoryRestoreState } from '../hooks/useHistoryRestoreState';
 import { interactionService } from '../services/api';
 
@@ -112,8 +114,7 @@ export function MyRequestsPage() {
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-8">
       <div className="mb-6 md:mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-amber-400 mb-2">My Votes</h1>
-        <p className="text-sm md:text-base text-gray-400">Movies and TV shows you've voted on</p>
+        <PageHeader title="My Votes" description="Movies and TV shows you've voted on." />
       </div>
 
       {/* Loading State */}
@@ -153,6 +154,13 @@ export function MyRequestsPage() {
       {/* Results Grid */}
       {!loading && searchResults.length > 0 && (
         <div id="results-section">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div className="text-sm text-gray-400">
+              {searchResults.length.toLocaleString()}
+              {currentPage < totalPages ? '+' : ''} votes loaded
+            </div>
+          </div>
+
           <ResultsGrid
             results={searchResults}
             onSelectItem={handleSelectItem}
@@ -160,14 +168,15 @@ export function MyRequestsPage() {
           />
 
           {hasMore && (
-            <div className="text-center mt-6 md:mt-8 pt-4 md:pt-6 pb-20 md:pb-0 border-t border-gray-700">
-              <div className="flex justify-center items-center gap-2 md:gap-3 flex-wrap">
-                <button
+            <div className="border-t border-gray-700/50 pb-20 pt-6 text-center md:pb-0 md:pt-8">
+              <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
+                <Button
                   onClick={() => {
                     void loadVotes({ page: currentPage + 1, append: true });
                   }}
                   disabled={loadingMore}
-                  className="inline-flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all bg-linear-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 cursor-pointer shadow-md disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed"
+                  size="sm"
+                  className="text-xs md:text-sm"
                 >
                   <span>{loadingMore ? 'Loading...' : 'Load more'}</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -178,12 +187,7 @@ export function MyRequestsPage() {
                       d="M9 5l7 7-7 7"
                     />
                   </svg>
-                </button>
-              </div>
-
-              <div className="mt-3 text-xs md:text-sm text-gray-400">
-                {searchResults.length.toLocaleString()}
-                {currentPage < totalPages ? '+' : ''} votes loaded
+                </Button>
               </div>
             </div>
           )}

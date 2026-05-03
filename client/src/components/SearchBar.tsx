@@ -104,7 +104,7 @@ export function SearchBar({
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="flex gap-2 items-center">
+      <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Input
             type="text"
@@ -114,14 +114,16 @@ export function SearchBar({
             disabled={loading}
             variant="search"
             suffixIcon={clearButton}
+            className="text-sm"
           />
         </div>
 
         <Button
           type="submit"
           disabled={loading || (!query.trim() && !hasSearched)}
-          variant="primary"
+          variant="secondary"
           aria-label="Search"
+          className="min-h-10 shrink-0 rounded-lg px-3.5"
         >
           {searchIcon}
         </Button>

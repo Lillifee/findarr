@@ -1,5 +1,6 @@
 import { type RegionGroupId } from '@findarr/shared';
 import React from 'react';
+import { OptionButton } from './ui/OptionButton';
 
 // Region metadata for UI display (TMDB mapping handled server-side)
 const REGION_INFO: Record<RegionGroupId, { name: string; description: string }> = {
@@ -71,18 +72,26 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
 
         <div className="flex gap-2">
           <button
-            type="button"
             onClick={handleShowAll}
+            type="button"
             disabled={disabled || isShowingAll}
-            className="px-2 py-1 text-xs bg-green-600 hover:bg-green-700 text-white border-none rounded disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
+            className={`inline-flex min-h-8 items-center justify-center rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+              isShowingAll
+                ? 'border-gray-400 bg-gray-300/90 text-gray-950'
+                : 'border-gray-600/70 bg-gray-800/80 text-gray-300 hover:border-gray-400 hover:bg-gray-700/80 hover:text-white'
+            }`}
           >
             All
           </button>
           <button
-            type="button"
             onClick={handleHideAll}
+            type="button"
             disabled={disabled || isShowingNone}
-            className="px-2 py-1 text-xs bg-red-600 hover:bg-red-700 text-white border-none rounded disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
+            className={`inline-flex min-h-8 items-center justify-center rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+              isShowingNone
+                ? 'border-gray-400 bg-gray-300/90 text-gray-950'
+                : 'border-gray-600/70 bg-gray-800/80 text-gray-300 hover:border-gray-400 hover:bg-gray-700/80 hover:text-white'
+            }`}
           >
             None
           </button>
@@ -95,33 +104,22 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
           const isSelected = selectedRegions.includes(regionId);
 
           return (
-            <button
+            <OptionButton
               key={regionId}
-              type="button"
               onClick={() => handleRegionToggle(regionId)}
               disabled={disabled}
-              className={`p-3 border-2 rounded-lg text-left disabled:cursor-not-allowed disabled:opacity-60 transition-all duration-200 ${
-                isSelected
-                  ? 'border-green-500 bg-green-600/20 hover:bg-green-600/30'
-                  : 'border-gray-600 bg-gray-800 hover:bg-gray-700 hover:border-gray-500'
-              }`}
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <div
-                  className={`w-3 h-3 rounded-full shrink-0 ${isSelected ? 'bg-green-500' : 'bg-gray-600'}`}
-                />
-                <span
-                  className={`font-semibold text-sm ${isSelected ? 'text-green-200' : 'text-gray-200'}`}
-                >
-                  {region.name}
+              selected={isSelected}
+              title={
+                <span className="flex items-center gap-2">
+                  <span
+                    className={`h-2.5 w-2.5 rounded-full ${isSelected ? 'bg-gray-900' : 'bg-gray-500'}`}
+                  />
+                  <span>{region.name}</span>
                 </span>
-              </div>
-              <div
-                className={`text-xs leading-tight ml-5 ${isSelected ? 'text-green-300' : 'text-gray-400'}`}
-              >
-                {region.description}
-              </div>
-            </button>
+              }
+              description={region.description}
+              className={disabled ? 'cursor-not-allowed opacity-60' : ''}
+            />
           );
         })}
       </div>

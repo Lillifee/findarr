@@ -14,16 +14,19 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
   const isAdminRoute = location.pathname.startsWith('/admin');
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `w-full px-4 py-3 rounded-lg flex items-center gap-3 text-left transition-all ${
+    `w-full rounded-lg border px-4 py-2.5 flex items-center gap-3 text-left transition-colors ${
       isActive
-        ? 'bg-linear-to-r from-amber-600 to-orange-600 text-white shadow-md'
-        : 'text-gray-300 hover:bg-gray-700'
+        ? 'border-gray-200 bg-gray-200 text-gray-950'
+        : 'border-transparent text-gray-300 hover:border-gray-700 hover:bg-gray-800 hover:text-white'
     }`;
 
   const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
     `flex flex-col items-center justify-center flex-1 h-full transition-colors ${
-      isActive ? 'text-amber-400' : 'text-gray-400'
+      isActive ? 'text-white' : 'text-gray-500'
     }`;
+
+  const logoutButtonClass =
+    'w-full rounded-lg border border-gray-700/50 bg-gray-800/70 px-4 py-2.5 flex items-center gap-3 text-left text-sm font-medium text-gray-300 transition-colors hover:border-red-500/40 hover:bg-gray-700/80 hover:text-red-200 cursor-pointer';
 
   return (
     <>
@@ -148,10 +151,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                   </>
                 )}
 
-                <button
-                  onClick={onLogout}
-                  className="w-full px-4 py-2.5 bg-red-600/10 hover:bg-red-600 text-red-400 hover:text-white rounded-lg flex items-center gap-3 transition-all font-medium text-sm border border-red-600/30 cursor-pointer"
-                >
+                <button onClick={onLogout} className={logoutButtonClass}>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
@@ -168,8 +168,8 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
         </div>
 
         {/* Bottom Section - User Info */}
-        <div className="p-4 border-t border-gray-700">
-          <div className="p-3 bg-gray-700/50 rounded-lg">
+        <div className="border-t border-gray-700/50 p-4">
+          <div className="rounded-lg border border-gray-700/50 bg-gray-800/70 p-3">
             <div className="text-xs text-gray-400 mb-1">Logged in as</div>
             <div className="text-sm font-medium text-white truncate">{user?.displayName}</div>
           </div>
@@ -217,7 +217,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
           <button
             onClick={() => setMobileAdvancedOpen(!mobileAdvancedOpen)}
             className={`flex flex-col items-center justify-center flex-1 h-full transition-colors cursor-pointer ${
-              mobileAdvancedOpen || isAdminRoute ? 'text-amber-400' : 'text-gray-400'
+              mobileAdvancedOpen || isAdminRoute ? 'text-white' : 'text-gray-500'
             }`}
           >
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -234,7 +234,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
 
         {/* Mobile Advanced Menu Dropdown */}
         {mobileAdvancedOpen && (
-          <div className="absolute bottom-full left-0 right-0 bg-gray-800/95 backdrop-blur-lg border-t border-gray-700/50 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <div className="absolute bottom-full left-0 right-0 bg-gray-800/95 backdrop-blur-md border-t border-gray-700/50 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-200">
             <div className="p-4 space-y-2">
               <div className="text-xs text-gray-400 mb-3 px-2">
                 Logged in as <span className="text-white font-medium">{user?.displayName}</span>
@@ -295,6 +295,22 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                     </svg>
                     <span className="font-medium">Integrations</span>
                   </NavLink>
+
+                  <NavLink
+                    to="/admin/schedulers"
+                    onClick={() => setMobileAdvancedOpen(false)}
+                    className={navLinkClass}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <span className="font-medium">Schedulers</span>
+                  </NavLink>
                 </>
               )}
 
@@ -303,7 +319,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                   setMobileAdvancedOpen(false);
                   onLogout();
                 }}
-                className="w-full px-4 py-3 bg-red-600/10 hover:bg-red-600 text-red-400 hover:text-white rounded-lg flex items-center gap-3 transition-all font-medium border border-red-600/30 cursor-pointer"
+                className={logoutButtonClass}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path

@@ -7,8 +7,8 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const variants = {
-  glass: 'bg-gray-800/60 backdrop-blur-sm border border-gray-700/50 shadow-xl',
-  solid: 'bg-gray-800 border border-gray-700 shadow-xl',
+  glass: 'border border-gray-700/50 bg-gray-800/60 backdrop-blur-md shadow-xl',
+  solid: 'border border-gray-700/50 bg-gray-800/85 backdrop-blur-sm shadow-xl',
   transparent: 'bg-transparent',
 };
 
@@ -26,7 +26,7 @@ export function Card({
   children,
   ...props
 }: CardProps) {
-  const baseStyles = 'rounded-lg';
+  const baseStyles = 'rounded-xl';
 
   return (
     <div

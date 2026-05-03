@@ -5,6 +5,7 @@ import type { SearchType, Media } from '../../../shared/dist/types';
 import { FiltersToolbar } from '../components/FiltersToolbar';
 import { ResultsGrid } from '../components/ResultsGrid';
 import { SearchBar } from '../components/SearchBar';
+import { Button } from '../components/ui/Button';
 import { useHistoryRestoreState } from '../hooks/useHistoryRestoreState';
 import { searchService, userSettingsService } from '../services/api';
 import { buildCatalogSearchParams, readCatalogSearchParams } from '../utils/catalogSearchParams';
@@ -478,7 +479,7 @@ export function PopularPage() {
 
             {currentPage < totalPages && (
               <div className="text-center mt-6 md:mt-8 pt-4 md:pt-6 pb-20 md:pb-0 border-t border-gray-700">
-                <button
+                <Button
                   onClick={() => {
                     if (currentPage < totalPages) {
                       void loadFeed({
@@ -489,10 +490,9 @@ export function PopularPage() {
                     }
                   }}
                   disabled={currentPage >= totalPages || loadingMore || loading}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-linear-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loadingMore ? 'Loading...' : 'Load more'}
-                </button>
+                </Button>
               </div>
             )}
           </div>

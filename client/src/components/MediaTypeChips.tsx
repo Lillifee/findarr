@@ -52,7 +52,7 @@ function getIcon(type: SearchType) {
 
 export function MediaTypeChips({ selectedType, onChange, disabled = false }: MediaTypeChipsProps) {
   return (
-    <div className="inline-flex border border-gray-700/50 rounded-lg overflow-hidden shadow-md bg-gray-800/60 backdrop-blur-sm">
+    <div className="inline-flex overflow-hidden rounded-lg border border-gray-700/50 bg-gray-800/70 backdrop-blur-sm">
       {types.map((type, index) => (
         <Badge
           key={type.value}
@@ -60,7 +60,11 @@ export function MediaTypeChips({ selectedType, onChange, disabled = false }: Med
           selected={selectedType === type.value}
           interactive={!disabled}
           onClick={() => !disabled && onChange(type.value)}
-          className={`rounded-none ${index > 0 ? 'border-l border-gray-700/50' : ''} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`min-h-8 rounded-none px-3 py-1.5 text-sm ${
+            selectedType === type.value
+              ? 'bg-gray-200 text-gray-950 border-gray-200 shadow-none hover:bg-gray-100 hover:text-gray-950'
+              : 'bg-transparent text-gray-300 border-transparent hover:border-gray-600 hover:bg-gray-700/80 hover:text-white'
+          } ${index === 0 ? 'rounded-l-lg' : ''} ${index === types.length - 1 ? 'rounded-r-lg' : ''} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
         >
           {getIcon(type.value)}
           <span>{type.label}</span>
