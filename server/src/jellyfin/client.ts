@@ -41,7 +41,7 @@ export function createJellyfinClient(baseUrl: string, apiKey: string): JellyfinC
           StartIndex: startIndex,
           Limit: limit,
           Recursive: recursive,
-          Fields: 'ProviderIds,Overview,ProductionYear',
+          Fields: 'ProviderIds,Overview,ProductionYear,DateCreated',
           SortBy: 'DateCreated',
           SortOrder: 'Descending',
         },

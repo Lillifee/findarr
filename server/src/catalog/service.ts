@@ -1,4 +1,6 @@
 import type {
+  AvailableMediaQuery,
+  AvailableMediaResponse,
   SearchQuery,
   DiscoverQuery,
   PopularQuery,
@@ -18,8 +20,10 @@ import {
   enrichWithRecords,
   enrichWithInteractions,
   enrichWithScoring,
+  fetchTMDBDetails,
 } from '../media/enrichment.js';
 import { filterByCriteria, filterByInteraction } from '../media/filter.js';
+import { getMediaByStatusPaginated } from '../media/repository.js';
 import { getUserSettings } from '../settings/service.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { createFeedSnapshotStore } from './helper.js';
@@ -78,6 +82,30 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
    */
   async function getGenres(params: GenresQuery): Promise<{ genres: Genre[] }> {
     return await tmdbService.getGenres(params);
+  }
+
+  /**
+   * Get a small global overview of recently available media.
+   */
+  async function getAvailableMedia(
+    params: AvailableMediaQuery,
+    userId: number
+  ): Promise<AvailableMediaResponse> {
+    const { type = 'both', page = 1 } = params;
+    const itemsPerPage = 20;
+    const offset = (page - 1) * itemsPerPage;
+
+    const { results: dbRecords, totalCount } = await getMediaByStatusPaginated(db, ['available'], {
+      type,
+      offset,
+      limit: itemsPerPage,
+    });
+
+    const availableMedia = await fetchTMDBDetails(tmdbService, dbRecords);
+    const results = await enrichWithInteractions(db, availableMedia, userId);
+    const totalPages = Math.ceil(totalCount / itemsPerPage);
+
+    return { results, page, totalPages };
   }
 
   /**
@@ -203,6 +231,7 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
     discover,
     getDetails,
     getGenres,
+    getAvailableMedia,
     getNextUnvoted,
   };
 }

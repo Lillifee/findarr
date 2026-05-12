@@ -1,4 +1,7 @@
 import type {
+  AvailableMediaQuery,
+  AvailableMediaResponse,
+  InteractionsQuery,
   SearchQuery,
   SearchResponse,
   UserInteractionsResponse,
@@ -25,6 +28,7 @@ import type {
   JellyfinLinkQuery,
   UserSettings,
   UserSettingsQuery,
+  MediaType,
 } from '@findarr/shared';
 import axios from 'axios';
 
@@ -59,6 +63,11 @@ export const searchService = {
 
   getNextSwipe: async (params: PopularQuery = {}): Promise<SwipeNextResponse> => {
     const response = await api.get('/next', { params });
+    return response.data;
+  },
+
+  getAvailableMedia: async (params: AvailableMediaQuery = {}): Promise<AvailableMediaResponse> => {
+    const response = await api.get('/available', { params });
     return response.data;
   },
 };
@@ -111,7 +120,7 @@ export const interactionService = {
   // Returns enriched media with updated state
   toggleInteraction: async (
     tmdbId: number,
-    mediaType: 'movie' | 'tv',
+    mediaType: MediaType,
     action: 'liked' | 'disliked',
     seasons?: number[]
   ): Promise<Media | undefined> => {
@@ -124,12 +133,17 @@ export const interactionService = {
     return response.data;
   },
 
-  // Get user's voted media (both likes and dislikes)
-  // Supports pagination with page parameter (20 items per page)
-  listLiked: async (page = 1): Promise<UserInteractionsResponse> => {
-    const response = await api.get('/interactions', {
-      params: { page },
-    });
+  listActivity: async (
+    params: Partial<InteractionsQuery> = {}
+  ): Promise<UserInteractionsResponse> => {
+    const response = await api.get('/interactions', { params });
+    return response.data;
+  },
+
+  listAttention: async (
+    params: Partial<InteractionsQuery> = {}
+  ): Promise<UserInteractionsResponse> => {
+    const response = await api.get('/interactions/attention', { params });
     return response.data;
   },
 };

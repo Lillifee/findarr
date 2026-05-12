@@ -1,3 +1,4 @@
+import type { MediaType } from '@findarr/shared';
 import { z } from 'zod';
 export {
   ArrQualityProfileSchema,
@@ -130,7 +131,7 @@ export type ArrQueueResponse = z.infer<typeof ArrQueueResponseSchema>;
  */
 export interface ArrLibraryItem {
   id: number; // Radarr movie ID or Sonarr series ID
-  type: 'movie' | 'tv'; // Discriminator for type-safe unions
+  type: MediaType; // Discriminator for type-safe unions
   title: string;
   tmdbId?: number; // TMDB ID (always present for movies, added via enrichment for TV)
   tvdbId?: number; // TVDB ID (only for TV shows)

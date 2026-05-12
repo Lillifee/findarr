@@ -1,6 +1,7 @@
 import type {
   Media,
   MediaScore,
+  MediaType,
   UserGenrePreference,
   UserKeywordPreference,
 } from '@findarr/shared';
@@ -25,7 +26,7 @@ const clamp = (v: number) => Math.max(0, Math.min(1, v));
  * Max values only increase, min values only decrease over time (growth strategy)
  */
 export type MediaStats = {
-  mediaType: 'movie' | 'tv';
+  mediaType: MediaType;
   maxPopularity: number;
   maxVoteCount: number;
   avgRating: number;

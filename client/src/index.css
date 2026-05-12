@@ -62,6 +62,15 @@ input:disabled,
   scrollbar-color: #4b5563 #1f2937; /* thumb: gray-600, track: bg-gray-800 */
 }
 
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
 /* Safe area inset for mobile devices with notches */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .safe-area-inset-bottom {

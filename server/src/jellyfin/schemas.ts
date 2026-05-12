@@ -13,6 +13,7 @@ export const JellyfinItemSchema = z.object({
   Name: z.string(),
   Type: z.enum(['Movie', 'Series', 'Season']),
   ProviderIds: JellyfinProviderIdsSchema.optional(),
+  DateCreated: z.string().optional(),
   ProductionYear: z.number().optional(),
   Overview: z.string().optional(),
   IndexNumber: z.number().optional(), // Season number for Season type

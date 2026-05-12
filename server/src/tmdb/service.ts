@@ -8,6 +8,7 @@ import type {
   MediaDetails,
   DiscoverQuery,
   UserSettingsQuery,
+  MediaType,
 } from '@findarr/shared';
 import type { TMDBClient } from './client.js';
 import { buildDiscoverParams } from './helpers.js';
@@ -106,7 +107,7 @@ export function createTMDBService(tmdbClient: TMDBClient) {
     const { language = 'en-US', time_window = 'week' } = params;
 
     const pagesToFetch = pages ?? [1];
-    const ranks: Record<'movie' | 'tv', number> = { movie: 0, tv: 0 };
+    const ranks: Record<MediaType, number> = { movie: 0, tv: 0 };
 
     const responses = await Promise.all(
       (['movie', 'tv'] as const).flatMap(type =>
@@ -116,7 +117,7 @@ export function createTMDBService(tmdbClient: TMDBClient) {
 
     const results = responses.flatMap(({ results }) =>
       results.map(item => {
-        const type = item.type as 'movie' | 'tv';
+        const type = item.type as MediaType;
         const trendingRank = ++ranks[type];
 
         return transformMedia(item, genreMap, { trendingRank });
@@ -152,7 +153,7 @@ export function createTMDBService(tmdbClient: TMDBClient) {
    */
   async function findByExternalId(params: {
     tvdbId: number;
-    type: 'movie' | 'tv';
+    type: MediaType;
   }): Promise<number | undefined> {
     const result = await tmdbClient.findByExternalId(params.tvdbId, 'tvdb_id');
     return params.type === 'movie' ? result.movie_results?.[0]?.id : result.tv_results?.[0]?.id;

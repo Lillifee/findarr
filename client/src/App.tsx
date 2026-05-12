@@ -2,12 +2,13 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginForm } from './components/LoginForm';
 import { Navigation } from './components/Navigation';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ActivityPage } from './pages/ActivityPage';
 import { ArrSettingsPage } from './pages/admin/ArrSettingsPage';
 import { SchedulersPage } from './pages/admin/SchedulersPage';
 import { UserManagementPage } from './pages/admin/UserManagementPage';
+import { DashboardPage } from './pages/DashboardPage';
+import { ExplorePage } from './pages/ExplorePage';
 import { MediaDetailPage } from './pages/MediaDetailPage';
-import { MyRequestsPage } from './pages/MyRequestsPage';
-import { PopularPage } from './pages/PopularPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { VotePage } from './pages/VotePage';
 
@@ -45,11 +46,12 @@ function MainApp() {
       {/* Main Content - Adjust padding for sidebar on desktop, bottom bar on mobile */}
       <main className="md:ml-64 mb-16 md:mb-0">
         <Routes>
+          <Route path="/" element={<DashboardPage />} />
           <Route path="/vote" element={<VotePage />} />
-          <Route path="/popular" element={<PopularPage />} />
+          <Route path="/explore" element={<ExplorePage />} />
           <Route path="/movie/:id" element={<MediaDetailPage />} />
           <Route path="/tv/:id" element={<MediaDetailPage />} />
-          <Route path="/requests" element={<MyRequestsPage />} />
+          <Route path="/activity" element={<ActivityPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           {isAdmin && (
             <>
@@ -58,7 +60,7 @@ function MainApp() {
               <Route path="/admin/schedulers" element={<SchedulersPage />} />
             </>
           )}
-          <Route path="*" element={<Navigate to="/vote" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
     </div>

@@ -1,6 +1,7 @@
 import type { User } from '@findarr/shared';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { interactionService } from '../services/api';
 
 interface NavigationProps {
   onLogout: () => void;
@@ -10,8 +11,37 @@ interface NavigationProps {
 
 export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin }) => {
   const [mobileAdvancedOpen, setMobileAdvancedOpen] = useState(false);
+  const [hasAttention, setHasAttention] = useState(false);
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadAttention = async () => {
+      try {
+        const response = await interactionService.listAttention();
+
+        if (!cancelled) {
+          setHasAttention(response.results.length > 0);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Failed to load activity attention state:', error);
+        }
+      }
+    };
+
+    void loadAttention();
+    const timer = globalThis.setInterval(() => {
+      void loadAttention();
+    }, 60_000);
+
+    return () => {
+      cancelled = true;
+      globalThis.clearInterval(timer);
+    };
+  }, []);
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     `w-full rounded-lg border px-4 py-2.5 flex items-center gap-3 text-left transition-colors ${
@@ -28,6 +58,10 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
   const logoutButtonClass =
     'w-full rounded-lg border border-gray-700/50 bg-gray-800/70 px-4 py-2.5 flex items-center gap-3 text-left text-sm font-medium text-gray-300 transition-colors hover:border-red-500/40 hover:bg-gray-700/80 hover:text-red-200 cursor-pointer';
 
+  const attentionIndicator = hasAttention ? (
+    <span className="inline-flex h-2.5 w-2.5 rounded-full bg-amber-400 outline-none ring-1 ring-amber-800 shadow-[0_0_12px_rgba(251,191,36,0.8)]" />
+  ) : null;
+
   return (
     <>
       {/* Desktop Sidebar - Hidden on mobile */}
@@ -36,6 +70,18 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
         <div>
           {/* Navigation Items */}
           <nav className="p-4 space-y-2 mt-4">
+            <NavLink to="/" end className={navLinkClass}>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 10.25L12 3l9 7.25M5.25 9.5V20a.75.75 0 00.75.75h4.5v-6h3v6H18a.75.75 0 00.75-.75V9.5"
+                />
+              </svg>
+              <span className="font-medium">Home</span>
+            </NavLink>
+
             <NavLink to="/vote" className={navLinkClass}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -48,7 +94,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
               <span className="font-medium">Vote</span>
             </NavLink>
 
-            <NavLink to="/popular" className={navLinkClass}>
+            <NavLink to="/explore" className={navLinkClass}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -57,19 +103,20 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                   d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
                 />
               </svg>
-              <span className="font-medium">Popular</span>
+              <span className="font-medium">Explore</span>
             </NavLink>
 
-            <NavLink to="/requests" className={navLinkClass}>
+            <NavLink to="/activity" className={navLinkClass}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
+                  d="M9 6h11M9 12h11M9 18h11M5 6l1.5 1.5L8 5.5M5 12l1.5 1.5L8 11.5M5 18l1.5 1.5L8 17.5"
                 />
               </svg>
-              <span className="font-medium">My Votes</span>
+              <span className="font-medium">Activity</span>
+              <span className="ml-auto">{attentionIndicator}</span>
             </NavLink>
 
             {/* Account Section - Always Visible on Desktop */}
@@ -179,6 +226,18 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
       {/* Mobile Bottom Navigation - Hidden on desktop */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-800/90 backdrop-blur-md border-t border-gray-700/50 z-50 safe-area-inset-bottom shadow-2xl">
         <div className="flex justify-around items-center h-16">
+          <NavLink to="/" end className={mobileNavLinkClass}>
+            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 10.25L12 3l9 7.25M5.25 9.5V20a.75.75 0 00.75.75h4.5v-6h3v6H18a.75.75 0 00.75-.75V9.5"
+              />
+            </svg>
+            <span className="text-xs font-medium">Home</span>
+          </NavLink>
+
           <NavLink to="/vote" className={mobileNavLinkClass}>
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -190,7 +249,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
             </svg>
             <span className="text-xs font-medium">Vote</span>
           </NavLink>
-          <NavLink to="/popular" className={mobileNavLinkClass}>
+          <NavLink to="/explore" className={mobileNavLinkClass}>
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -199,19 +258,24 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                 d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
               />
             </svg>
-            <span className="text-xs font-medium">Popular</span>
+            <span className="text-xs font-medium">Explore</span>
           </NavLink>
 
-          <NavLink to="/requests" className={mobileNavLinkClass}>
-            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
-              />
-            </svg>
-            <span className="text-xs font-medium">Votes</span>
+          <NavLink to="/activity" className={mobileNavLinkClass}>
+            <span className="relative">
+              <svg className="mb-1 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 6h11M9 12h11M9 18h11M5 6l1.5 1.5L8 5.5M5 12l1.5 1.5L8 11.5M5 18l1.5 1.5L8 17.5"
+                />
+              </svg>
+              {hasAttention && (
+                <span className="absolute -right-1 top-0 inline-flex h-2.5 w-2.5 rounded-full bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.8)]" />
+              )}
+            </span>
+            <span className="text-xs font-medium">Activity</span>
           </NavLink>
 
           <button

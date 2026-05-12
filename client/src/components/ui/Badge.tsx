@@ -1,7 +1,7 @@
-import type { ReactNode, HTMLAttributes } from 'react';
+import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { badgeSizes, type Size } from './sizes';
 
-export interface BadgeProps extends HTMLAttributes<HTMLDivElement> {
+export interface BadgeProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info';
   size?: Size;
   selected?: boolean;
@@ -39,6 +39,7 @@ export function Badge({
   interactive = false,
   className = '',
   children,
+  type = 'button',
   ...props
 }: BadgeProps) {
   const baseStyles =
@@ -48,11 +49,13 @@ export function Badge({
   const interactiveStyles = interactive ? 'cursor-pointer transition-all duration-200' : '';
 
   return (
-    <div
+    <button
+      type={type}
+      aria-pressed={interactive ? selected : undefined}
       className={`${baseStyles} ${variantStyles} ${sizeStyles} ${interactiveStyles} ${className}`}
       {...props}
     >
       {children}
-    </div>
+    </button>
   );
 }

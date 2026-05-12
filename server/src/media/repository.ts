@@ -1,4 +1,11 @@
-import type { MediaStatus, Media, DbMedia, MediaRecord } from '@findarr/shared';
+import type {
+  MediaStatus,
+  Media,
+  DbMedia,
+  MediaRecord,
+  SearchType,
+  MediaType,
+} from '@findarr/shared';
 import { media, mediaStats } from '@findarr/shared';
 import { and, eq, or, sql } from 'drizzle-orm';
 import type { DB } from '../db/setup.js';
@@ -23,7 +30,7 @@ export const getMediaById = async (db: DB, mediaId: number): Promise<DbMedia | u
 export const getMediaByTmdbId = async (
   db: DB,
   tmdbId: number,
-  type: 'movie' | 'tv'
+  type: MediaType
 ): Promise<DbMedia | undefined> =>
   (await db.query.media.findFirst({
     where: and(eq(media.tmdbId, tmdbId), eq(media.type, type)),
@@ -36,7 +43,7 @@ export const getMediaByTmdbId = async (
 export const createMedia = async (
   db: DB,
   tmdbId: number,
-  type: 'movie' | 'tv',
+  type: MediaType,
   status: MediaStatus = 'pending',
   seasonNumbers?: number[] // For initial request: convert to SeasonRecord[]
 ) => {
@@ -141,6 +148,7 @@ export async function getMediaRecordsBatch(
       arrUrl: true,
       status: true,
       jellyfinId: true,
+      jellyfinAddedAt: true,
       seasons: true,
       createdAt: true,
       updatedAt: true,
@@ -156,6 +164,7 @@ export async function getMediaRecordsBatch(
       arrUrl: row.arrUrl,
       tvdbId: row.tvdbId,
       jellyfinId: row.jellyfinId,
+      jellyfinAddedAt: row.jellyfinAddedAt,
       seasons: row.seasons,
       status: row.status,
       createdAt: row.createdAt,
@@ -166,15 +175,31 @@ export async function getMediaRecordsBatch(
   return mediaRecords;
 }
 
-/**
- * Get all media by status (optionally multiple statuses)
- */
-export async function getMediaByStatus(db: DB, statuses: MediaStatus[]): Promise<Array<DbMedia>> {
-  if (statuses.length === 0) return [];
+export async function getMediaByStatusPaginated(
+  db: DB,
+  statuses: MediaStatus[],
+  options: {
+    limit: number;
+    offset: number;
+    type?: SearchType;
+  }
+): Promise<{ results: DbMedia[]; totalCount: number }> {
+  if (statuses.length === 0) {
+    return { results: [], totalCount: 0 };
+  }
 
   const statusConditions = statuses.map(status => eq(media.status, status));
+  const whereClause =
+    options.type && options.type !== 'both'
+      ? and(or(...statusConditions), eq(media.type, options.type))
+      : or(...statusConditions);
 
-  return db.query.media.findMany({
+  const countResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(media)
+    .where(whereClause);
+
+  const results = await db.query.media.findMany({
     columns: {
       id: true,
       type: true,
@@ -184,13 +209,21 @@ export async function getMediaByStatus(db: DB, statuses: MediaStatus[]): Promise
       arrUrl: true,
       status: true,
       jellyfinId: true,
+      jellyfinAddedAt: true,
       seasons: true,
       createdAt: true,
       updatedAt: true,
     },
-    where: or(...statusConditions),
-    orderBy: (media, { desc }) => [desc(media.updatedAt)],
+    where: whereClause,
+    orderBy: (media, { desc }) => [desc(media.jellyfinAddedAt)],
+    limit: options.limit,
+    offset: options.offset,
   });
+
+  return {
+    results,
+    totalCount: Number(countResult[0]?.count ?? 0),
+  };
 }
 
 // ============================================================================
@@ -229,10 +262,10 @@ export const seedMediaStats = async (db: DB): Promise<void> => {
  * Get media stats for both movie and TV
  * Returns Map for O(1) lookup by media type
  */
-export const getMediaStats = async (db: DB): Promise<Map<'movie' | 'tv', MediaStats>> => {
+export const getMediaStats = async (db: DB): Promise<Map<MediaType, MediaStats>> => {
   const rows = await db.select().from(mediaStats);
 
-  const statsMap = new Map<'movie' | 'tv', MediaStats>();
+  const statsMap = new Map<MediaType, MediaStats>();
   for (const row of rows) {
     statsMap.set(row.mediaType, row as MediaStats);
   }
@@ -247,7 +280,7 @@ export const getMediaStats = async (db: DB): Promise<Map<'movie' | 'tv', MediaSt
  */
 export const upsertMediaStats = async (
   db: DB,
-  mediaType: 'movie' | 'tv',
+  mediaType: MediaType,
   stats: Omit<MediaStats, 'mediaType' | 'updatedAt'>
 ): Promise<void> => {
   const now = Date.now();

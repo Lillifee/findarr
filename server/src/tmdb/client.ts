@@ -1,3 +1,4 @@
+import type { MediaType } from '@findarr/shared';
 import axios from 'axios';
 import {
   type TMDBSearchParams,
@@ -34,7 +35,7 @@ export function createTMDBClient(
     /**
      * Search for movies or tv shows
      */
-    async search(type: 'movie' | 'tv', params: TMDBSearchParams | TMDBTVSearchParams) {
+    async search(type: MediaType, params: TMDBSearchParams | TMDBTVSearchParams) {
       const response = await client.get(`/search/${type}`, { params });
       return TMDBSearchResponseSchema.parse(response.data);
     },
@@ -43,7 +44,7 @@ export function createTMDBClient(
      * Discover movies or tv shows with filters
      * All TMDB discover parameters are supported - see TMDBDiscoverParams interface for full list
      */
-    async discover(type: 'movie' | 'tv', params: Partial<TMDBDiscoverParams>) {
+    async discover(type: MediaType, params: Partial<TMDBDiscoverParams>) {
       const response = await client.get(`/discover/${type}`, { params });
       return TMDBSearchResponseSchema.parse(response.data);
     },
@@ -51,7 +52,7 @@ export function createTMDBClient(
     /**
      * Get trending movies or shows
      */
-    async getTrending(type: 'movie' | 'tv', params: TMDBTrendingParams = {}) {
+    async getTrending(type: MediaType, params: TMDBTrendingParams = {}) {
       const { time_window = 'week', page = 1, language } = params;
       const response = await client.get(`/trending/${type}/${time_window}`, {
         params: { page, language },
@@ -64,7 +65,7 @@ export function createTMDBClient(
      * Use append_to_response to fetch related data in a single call (e.g., 'credits,videos,images')
      * By default, fetches credits, keywords, external_ids, videos for rich media details
      */
-    async getDetails(type: 'movie' | 'tv', params: TMDBDetailsParams) {
+    async getDetails(type: MediaType, params: TMDBDetailsParams) {
       const {
         id,
         append_to_response = 'credits,keywords,external_ids,videos',
@@ -81,7 +82,7 @@ export function createTMDBClient(
     /**
      * Get movie or tv genres
      */
-    async getGenres(type: 'movie' | 'tv', params?: TMDBGenresParams) {
+    async getGenres(type: MediaType, params?: TMDBGenresParams) {
       const response = await client.get(`/genre/${type}/list`, { params });
       return TMDBGenresResponseSchema.parse(response.data);
     },

@@ -1,4 +1,4 @@
-import type { Media, Genre, Keyword, DbCatalogCache } from '@findarr/shared';
+import type { Media, Genre, Keyword, DbCatalogCache, MediaType } from '@findarr/shared';
 import { catalogCache } from '@findarr/shared';
 import { eq, and, isNull, sql } from 'drizzle-orm';
 import type { DB } from '../db/setup.js';
@@ -85,7 +85,7 @@ export const upsertCatalogCache = async (db: DB, items: Media[]): Promise<void> 
  */
 export const getCatalogCacheBatch = async (
   db: DB,
-  ids: Array<{ tmdbId: number; type: 'movie' | 'tv' }>
+  ids: Array<{ tmdbId: number; type: MediaType }>
 ): Promise<Media[]> => {
   if (ids.length === 0) return [];
 
@@ -116,7 +116,7 @@ export const getAllCatalogCache = async (db: DB): Promise<Media[]> => {
  */
 export const cleanupCatalogCache = async (
   db: DB,
-  currentIds: Array<{ tmdbId: number; type: 'movie' | 'tv' }>
+  currentIds: Array<{ tmdbId: number; type: MediaType }>
 ): Promise<number> => {
   if (currentIds.length === 0) {
     // Delete all if no current IDs provided
@@ -151,7 +151,7 @@ export const cleanupCatalogCache = async (
  */
 export const getCatalogItemsWithoutKeywords = async (
   db: DB
-): Promise<Array<{ tmdbId: number; type: 'movie' | 'tv' }>> => {
+): Promise<Array<{ tmdbId: number; type: MediaType }>> => {
   const results = await db.query.catalogCache.findMany({
     columns: {
       tmdbId: true,
@@ -162,7 +162,7 @@ export const getCatalogItemsWithoutKeywords = async (
 
   return results.map(row => ({
     tmdbId: row.tmdbId,
-    type: row.type as 'movie' | 'tv',
+    type: row.type as MediaType,
   }));
 };
 
@@ -173,7 +173,7 @@ export const getCatalogItemsWithoutKeywords = async (
 export const updateCatalogKeywords = async (
   db: DB,
   tmdbId: number,
-  type: 'movie' | 'tv',
+  type: MediaType,
   keywords: Keyword[]
 ): Promise<void> => {
   await db
@@ -188,7 +188,7 @@ export const updateCatalogKeywords = async (
  */
 export const computeMediaStats = async (
   db: DB,
-  mediaType: 'movie' | 'tv'
+  mediaType: MediaType
 ): Promise<Omit<MediaStats, 'mediaType' | 'updatedAt'>> => {
   const result = await db
     .select({

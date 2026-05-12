@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
-interface OptionButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface OptionButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'title'> {
   selected?: boolean;
   title: ReactNode;
   description?: ReactNode;

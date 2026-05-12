@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import type { Media, TVDetails } from '../../../shared/dist/types';
+import type { Media, MediaType, TVDetails } from '../../../shared/dist/types';
 import { interactionService, searchService } from '../services/api';
 import SeasonSelectorModal from './SeasonSelectorModal';
 
 interface LikeDislikeButtonProps {
   tmdbId: number;
-  mediaType: 'movie' | 'tv';
+  mediaType: MediaType;
   initialAction?: 'liked' | 'disliked' | null;
   onUpdate?: (updatedMedia: Media) => void;
   compact?: boolean;

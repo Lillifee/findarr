@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { getMediaByStatus } from '../media/repository.js';
+import { getMediaByStatusPaginated } from '../media/repository.js';
 import { createScheduler, type Scheduler } from '../scheduler/types.js';
 import { syncJellyfinLibrary } from './sync.js';
 
@@ -42,9 +42,12 @@ export function createJellyfinQueueSyncScheduler(): Scheduler {
       await syncJellyfinLibrary(fastify);
 
       // Check if should continue
-      const downloadedItems = await getMediaByStatus(fastify.db, ['downloaded']);
+      const items = await getMediaByStatusPaginated(fastify.db, ['downloaded'], {
+        offset: 0,
+        limit: 1,
+      });
 
-      if (downloadedItems.length === 0) {
+      if (items.totalCount === 0) {
         fastify.log.info('All downloaded items are now available - stopping Jellyfin queue sync');
         return false; // Self-terminate
       }

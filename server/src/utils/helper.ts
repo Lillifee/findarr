@@ -1,1 +1,3 @@
-export const toMediaKey = (tmdbId: number, type: 'movie' | 'tv') => `${tmdbId}_${type}`;
+import type { MediaType } from '@findarr/shared';
+
+export const toMediaKey = (tmdbId: number, type: MediaType) => `${tmdbId}_${type}`;

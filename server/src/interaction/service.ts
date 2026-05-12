@@ -3,7 +3,9 @@ import type {
   Media,
   User,
   DbMedia,
+  InteractionsQuery,
   UserInteractionsResponse,
+  MediaStatus,
 } from '@findarr/shared';
 import type { AnyArrService } from '../arr/service.js';
 import { getCatalogCacheBatch } from '../catalog/repository.js';
@@ -12,7 +14,7 @@ import type { DB } from '../db/setup.js';
 import { fetchTMDBDetails, enrichWithInteractions } from '../media/enrichment.js';
 import {
   createMedia,
-  getMediaById,
+  getMediaByStatusPaginated,
   getMediaByTmdbId,
   updateMediaStatus,
   updateMediaSeasons,
@@ -24,10 +26,11 @@ import {
   hasInteraction,
   removeAllInteractions,
   getVoteCounts,
+  getMediaByUserAttention,
   getMediaByUserInteractions,
 } from './repository.js';
 
-const LIKE_THRESHOLD = 3;
+const LIKE_THRESHOLD = 1;
 
 /**
  * Create or toggle a media interaction (like/dislike)
@@ -77,17 +80,15 @@ export const createInteraction = async (
   const { likes } = await getVoteCounts(db, media.id);
   const isAdmin = user.role === 'admin';
 
-  // Auto-request if: admin liked it OR net votes >= 3
-  if ((likes >= LIKE_THRESHOLD || isAdmin) && data.action === 'liked') {
-    const currentMedia = await getMediaById(db, media.id);
-    if (currentMedia && currentMedia.status === 'pending') {
-      // Update to requested status (trigger download workflow)
-      await updateMediaStatus(db, media.id, 'requested');
-    }
-    // Forward to Radarr/Sonarr (handles both create and update based on arrId)
-    if (currentMedia) {
-      await requestMediaToArr(tmdbService, radarrService, sonarrService, currentMedia, data);
-    }
+  // Request media
+  if (
+    (likes >= LIKE_THRESHOLD || isAdmin) &&
+    data.action === 'liked' &&
+    media &&
+    media.status === 'pending'
+  ) {
+    await requestMediaToArr(tmdbService, radarrService, sonarrService, media, data);
+    await updateMediaStatus(db, media.id, 'requested');
   }
 
   // Update user genre preferences (fire-and-forget - don't block response)
@@ -161,31 +162,58 @@ export async function getUserInteractionsEnriched(
   tmdbService: TMDBService,
   db: DB,
   userId: number,
-  page = 1
+  params?: InteractionsQuery
 ): Promise<UserInteractionsResponse> {
-  const itemsPerPage = 20;
-  const offset = (page - 1) * itemsPerPage;
+  const { action = 'all', page = 1, type = 'both' } = params ?? {};
+  const limit = 20;
+  const offset = (page - 1) * limit;
 
-  // Get paginated media where user has any interaction (liked or disliked)
-  const { results: dbRecords, totalCount } = await getMediaByUserInteractions(
-    db,
-    userId,
-    itemsPerPage,
-    offset
-  );
+  const items = await getMediaByUserInteractions(db, userId, {
+    type,
+    action,
+    limit,
+    offset,
+  });
 
+  return enrichInteractionPage(tmdbService, db, userId, items, page, limit);
+}
+
+export async function getUserActivityAttentionEnriched(
+  tmdbService: TMDBService,
+  db: DB,
+  user: User,
+  params?: InteractionsQuery
+): Promise<UserInteractionsResponse> {
+  const { page = 1, type = 'both' } = params ?? {};
+  const limit = 20;
+  const offset = (page - 1) * limit;
+
+  const statuses: MediaStatus[] = ['downloading', 'warning'];
+
+  const items =
+    user.role === 'admin'
+      ? await getMediaByStatusPaginated(db, statuses, { limit, offset, type })
+      : await getMediaByUserAttention(db, user.id, { type, statuses, limit, offset });
+
+  return enrichInteractionPage(tmdbService, db, user.id, items, page, limit);
+}
+
+async function enrichInteractionPage(
+  tmdbService: TMDBService,
+  db: DB,
+  userId: number,
+  items: { results: DbMedia[]; totalCount: number },
+  page: number,
+  limit: number
+): Promise<UserInteractionsResponse> {
   // Calculate pagination metadata
-  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const totalPages = Math.ceil(items.totalCount / limit);
 
   // Fetch TMDB details for all interacted media
-  const enrichedMedia = await fetchTMDBDetails(tmdbService, dbRecords);
+  const enrichedMedia = await fetchTMDBDetails(tmdbService, items.results);
 
   // Add user interactions and vote counts in optimized batch query
   const results = await enrichWithInteractions(db, enrichedMedia, userId);
 
-  return {
-    results,
-    page,
-    totalPages,
-  };
+  return { results, page, totalPages };
 }

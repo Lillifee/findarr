@@ -1,10 +1,21 @@
+import type { MediaType } from '@findarr/shared';
 import type { JellyfinItem } from './schemas.js';
 
 export interface JellyfinMedia {
   jellyfinId: string;
+  jellyfinAddedAt?: number;
   tmdbId: number;
-  type: 'movie' | 'tv';
+  type: MediaType;
   availableSeasons?: number[]; // For TV shows - which seasons are available in Jellyfin
+}
+
+function toTimestamp(value: string | undefined): number | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const timestamp = Date.parse(value);
+  return Number.isNaN(timestamp) ? undefined : timestamp;
 }
 
 /**
@@ -28,11 +39,13 @@ export function jellyfinItemToMedia(
 
   // Map Jellyfin type to our media type
   const type = item.Type === 'Movie' ? 'movie' : 'tv';
+  const jellyfinAddedAt = toTimestamp(item.DateCreated);
 
   return {
     type,
     jellyfinId: item.Id,
     tmdbId: tmdbIdNum,
+    ...(jellyfinAddedAt ? { jellyfinAddedAt } : {}),
     ...(type === 'tv' && availableSeasons ? { availableSeasons } : {}),
   };
 }

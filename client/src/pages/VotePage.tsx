@@ -182,7 +182,7 @@ export function VotePage() {
             <p className="text-gray-400 text-lg mb-6">
               You've voted on the top 100 items. Check back later for more!
             </p>
-            <Button onClick={() => void navigate('/popular')}>Browse Popular</Button>
+            <Button onClick={() => void navigate('/explore')}>Explore</Button>
           </div>
         </div>
       )}

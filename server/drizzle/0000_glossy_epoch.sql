@@ -30,6 +30,7 @@ CREATE TABLE `media` (
 	`arrId` integer,
 	`arrUrl` text,
 	`jellyfinId` text,
+	`jellyfinAddedAt` integer,
 	`seasons` text,
 	`status` text DEFAULT 'pending' NOT NULL,
 	`createdAt` integer DEFAULT (unixepoch() * 1000) NOT NULL,

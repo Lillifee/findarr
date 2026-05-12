@@ -1,4 +1,4 @@
-import { media } from '@findarr/shared';
+import { media, type MediaType } from '@findarr/shared';
 import { eq, isNotNull, sql } from 'drizzle-orm';
 import type { DB } from '../db/setup.js';
 import type { JellyfinMedia } from './transformers.js';
@@ -53,6 +53,7 @@ export async function upsertMediaFromJellyfin(db: DB, items: JellyfinMedia[]): P
         tmdbId: item.tmdbId,
         type: item.type,
         jellyfinId: item.jellyfinId,
+        jellyfinAddedAt: item.jellyfinAddedAt,
         status: 'available',
         seasons: updatedSeasons ?? undefined,
       })
@@ -60,6 +61,7 @@ export async function upsertMediaFromJellyfin(db: DB, items: JellyfinMedia[]): P
         target: [media.tmdbId, media.type],
         set: {
           jellyfinId: item.jellyfinId,
+          jellyfinAddedAt: sql`coalesce(${media.jellyfinAddedAt}, excluded.jellyfinAddedAt)`,
           status: 'available',
           seasons: updatedSeasons ?? undefined,
           updatedAt: sql`(unixepoch() * 1000)`,
@@ -82,7 +84,7 @@ export async function upsertMediaFromJellyfin(db: DB, items: JellyfinMedia[]): P
 export async function getMediaWithJellyfinIds(db: DB): Promise<
   Array<{
     id: number;
-    type: 'movie' | 'tv';
+    type: MediaType;
     jellyfinId: string;
     status: string;
   }>
@@ -125,6 +127,7 @@ export async function clearRemovedJellyfinItems(db: DB, jellyfinIds: string[]): 
       .update(media)
       .set({
         jellyfinId: null,
+        jellyfinAddedAt: null,
         status: 'pending',
         updatedAt: Date.now(),
       })

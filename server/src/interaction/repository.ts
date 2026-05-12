@@ -1,4 +1,11 @@
-import type { Media, InteractionType, MediaInteraction, DbMedia } from '@findarr/shared';
+import type {
+  Media,
+  InteractionType,
+  MediaInteraction,
+  DbMedia,
+  InteractionsQuery,
+  MediaStatus,
+} from '@findarr/shared';
 import { isDefined, media, userMediaInteractions } from '@findarr/shared';
 import { and, desc, eq, getTableColumns, inArray, isNotNull, sql } from 'drizzle-orm';
 import type { DB } from '../db/setup.js';
@@ -146,31 +153,96 @@ export async function getVoteCountsBatch(
 export async function getMediaByUserInteractions(
   db: DB,
   userId: number,
-  limit?: number,
-  offset?: number
+  options: {
+    type?: InteractionsQuery['type'];
+    action?: InteractionsQuery['action'];
+    limit?: number;
+    offset?: number;
+  } = {}
 ): Promise<{ results: DbMedia[]; totalCount: number }> {
-  // Get total count for pagination
+  const conditions = [eq(userMediaInteractions.userId, userId)];
+
+  if (options.type && options.type !== 'both') {
+    conditions.push(eq(media.type, options.type));
+  }
+
+  if (options.action && options.action !== 'all') {
+    conditions.push(eq(userMediaInteractions.action, options.action));
+  }
+
+  const whereClause = and(...conditions);
+
   const countResult = await db
     .select({ count: sql<number>`count(distinct ${media.id})` })
     .from(media)
     .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
-    .where(eq(userMediaInteractions.userId, userId));
+    .where(whereClause);
 
   const totalCount = Number(countResult[0]?.count ?? 0);
 
-  // Get paginated results
   let query = db
     .selectDistinct(getTableColumns(media))
     .from(media)
     .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
-    .where(eq(userMediaInteractions.userId, userId))
-    .orderBy(desc(userMediaInteractions.createdAt));
+    .where(whereClause)
+    .orderBy(desc(userMediaInteractions.createdAt), desc(media.updatedAt));
 
-  if (limit !== undefined) {
-    query = query.limit(limit) as typeof query;
+  if (options.limit !== undefined) {
+    query = query.limit(options.limit) as typeof query;
   }
-  if (offset !== undefined) {
-    query = query.offset(offset) as typeof query;
+  if (options.offset !== undefined) {
+    query = query.offset(options.offset) as typeof query;
+  }
+
+  const results = await query;
+
+  return { results, totalCount };
+}
+
+export async function getMediaByUserAttention(
+  db: DB,
+  userId: number,
+  options: {
+    type?: InteractionsQuery['type'];
+    statuses: MediaStatus[];
+    limit?: number;
+    offset?: number;
+  }
+): Promise<{ results: DbMedia[]; totalCount: number }> {
+  const conditions = [eq(userMediaInteractions.userId, userId)];
+
+  if (options.type && options.type !== 'both') {
+    conditions.push(eq(media.type, options.type));
+  }
+
+  if (options.statuses.length === 0) {
+    return { results: [], totalCount: 0 };
+  }
+
+  conditions.push(inArray(media.status, options.statuses));
+
+  const whereClause = and(...conditions);
+
+  const countResult = await db
+    .select({ count: sql<number>`count(distinct ${media.id})` })
+    .from(media)
+    .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
+    .where(whereClause);
+
+  const totalCount = Number(countResult[0]?.count ?? 0);
+
+  let query = db
+    .selectDistinct(getTableColumns(media))
+    .from(media)
+    .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
+    .where(whereClause)
+    .orderBy(desc(userMediaInteractions.createdAt), desc(media.updatedAt));
+
+  if (options.limit !== undefined) {
+    query = query.limit(options.limit) as typeof query;
+  }
+  if (options.offset !== undefined) {
+    query = query.offset(options.offset) as typeof query;
   }
 
   const results = await query;

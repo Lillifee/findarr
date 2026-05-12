@@ -1,4 +1,4 @@
-import type { MovieDetails, TVDetails, Media } from '@findarr/shared';
+import { type MovieDetails, type TVDetails, type Media, isDefined } from '@findarr/shared';
 import { useState } from 'react';
 import { linkService } from '../services/api.js';
 import { LikeDislikeButton } from './LikeDislikeButton';
@@ -16,6 +16,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
   // Common data extraction
   const title = media.name;
   const releaseDate = media.date;
+  const releaseYear = (releaseDate && new Date(releaseDate).getFullYear()) || '';
   const posterUrl = media.posterPath
     ? `https://image.tmdb.org/t/p/w500${media.posterPath}`
     : undefined;
@@ -28,6 +29,9 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
     video => video.site === 'YouTube' && video.type === 'Trailer' && video.official
   );
   const trailerUrl = trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : undefined;
+  const altTrailerUrl = trailer
+    ? undefined
+    : `https://www.youtube.com/results?search_query=${encodeURIComponent(`${title} ${releaseYear} trailer`)}`;
 
   // Get cast members - show more based on available data
   // Mobile: 6, Tablet: 8, Desktop: 10
@@ -73,6 +77,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
 
   const actionLinks = [
     trailerUrl ? { key: 'trailer', url: trailerUrl, label: 'Trailer' } : null,
+    altTrailerUrl ? { key: 'altTrailer', url: altTrailerUrl, label: 'Search Trailer' } : null,
     media.homepage ? { key: 'website', url: media.homepage, label: 'Website' } : null,
     arrLink ? { key: arrLink.label.toLowerCase(), url: arrLink.url, label: arrLink.label } : null,
     jellyfinLink ? { key: 'jellyfin', url: jellyfinLink.url, label: jellyfinLink.label } : null,

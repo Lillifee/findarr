@@ -52,6 +52,7 @@ export const media = sqliteTable(
     arrId: integer('arrId'), // Radarr movie ID or Sonarr series ID (determined by type)
     arrUrl: text('arrUrl'), // Radarr/Sonarr UI path (e.g. /movie/:tmdbId, /series/:titleSlug)
     jellyfinId: text('jellyfinId'),
+    jellyfinAddedAt: integer('jellyfinAddedAt').$type<number | null>(),
     seasons: text('seasons', { mode: 'json' }).$type<Array<{
       seasonNumber: number;
       status: 'none' | 'requested' | 'monitored' | 'downloaded' | 'available';

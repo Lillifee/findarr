@@ -1,4 +1,5 @@
 import type { GenreKey, InteractionFilter, SearchType } from '@findarr/shared';
+import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { GenreChips } from './GenreChips';
 import { MediaTypeChips } from './MediaTypeChips';
@@ -39,6 +40,9 @@ interface FiltersToolbarProps {
   onInteractionFilterChange?: (value: InteractionFilter) => void;
 
   showFiltersButton?: boolean;
+  showGenreFilter?: boolean;
+  filterDescription?: string;
+  extraFiltersContent?: ReactNode;
 }
 
 export function FiltersToolbar({
@@ -51,6 +55,9 @@ export function FiltersToolbar({
   interactionFilter,
   onInteractionFilterChange,
   showFiltersButton = true,
+  showGenreFilter = true,
+  filterDescription = 'Adjust genres and voting status.',
+  extraFiltersContent,
 }: FiltersToolbarProps) {
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   useEffect(() => {
@@ -111,7 +118,7 @@ export function FiltersToolbar({
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <h3 className="text-lg font-semibold text-white">Filters</h3>
-                    <p className="mt-1 text-sm text-gray-500">Adjust genres and voting status.</p>
+                    <p className="mt-1 text-sm text-gray-500">{filterDescription}</p>
                   </div>
                   <button
                     onClick={() => setFiltersExpanded(false)}
@@ -171,13 +178,17 @@ export function FiltersToolbar({
                     </div>
                   )}
 
-                  <div className="rounded-xl border border-gray-700/50 bg-gray-800/70 p-4">
-                    <GenreChips
-                      selectedGenres={selectedGenres}
-                      onGenreChange={onGenresChange}
-                      disabled={disabled}
-                    />
-                  </div>
+                  {extraFiltersContent}
+
+                  {showGenreFilter && (
+                    <div className="rounded-xl border border-gray-700/50 bg-gray-800/70 p-4">
+                      <GenreChips
+                        selectedGenres={selectedGenres}
+                        onGenreChange={onGenresChange}
+                        disabled={disabled}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

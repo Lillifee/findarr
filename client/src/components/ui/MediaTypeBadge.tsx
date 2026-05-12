@@ -1,5 +1,7 @@
+import type { MediaType } from '@findarr/shared';
+
 interface MediaTypeBadgeProps {
-  type: 'movie' | 'tv';
+  type: MediaType;
 }
 
 const typeConfig = {

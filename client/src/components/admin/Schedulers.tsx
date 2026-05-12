@@ -1,9 +1,9 @@
 import type { SchedulerState } from '@findarr/shared';
 import { useState, useEffect } from 'react';
+import { schedulerService, adminSchedulerService } from '../../services/api';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { PageHeader } from '../ui/PageHeader';
-import { schedulerService, adminSchedulerService } from '../../services/api';
 
 export function Schedulers() {
   const [schedulers, setSchedulers] = useState<SchedulerState[]>([]);

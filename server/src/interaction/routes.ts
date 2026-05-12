@@ -1,7 +1,11 @@
 import { CreateInteractionSchema, InteractionsQuerySchema } from '@findarr/shared';
 import type { FastifyPluginAsync } from 'fastify';
 import { protectedRoute } from '../utils/routes.js';
-import { createInteraction, getUserInteractionsEnriched } from './service.js';
+import {
+  createInteraction,
+  getUserActivityAttentionEnriched,
+  getUserInteractionsEnriched,
+} from './service.js';
 
 const interactionRoutes: FastifyPluginAsync = async fastify => {
   // All interaction routes require authentication
@@ -24,10 +28,26 @@ const interactionRoutes: FastifyPluginAsync = async fastify => {
   // Supports pagination via query parameter
   fastify.get(
     '/',
-    protectedRoute(request => {
-      const { page } = InteractionsQuerySchema.parse(request.query);
-      return getUserInteractionsEnriched(fastify.tmdb, fastify.db, request.user.id, page);
-    })
+    protectedRoute(request =>
+      getUserInteractionsEnriched(
+        fastify.tmdb,
+        fastify.db,
+        request.user.id,
+        InteractionsQuerySchema.parse(request.query)
+      )
+    )
+  );
+
+  fastify.get(
+    '/attention',
+    protectedRoute(request =>
+      getUserActivityAttentionEnriched(
+        fastify.tmdb,
+        fastify.db,
+        request.user,
+        InteractionsQuerySchema.parse(request.query)
+      )
+    )
   );
 };
 

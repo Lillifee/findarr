@@ -7,6 +7,7 @@ import {
   type DiscoverQuery,
   sleep,
   type UserSettingsQuery,
+  type MediaType,
 } from '@findarr/shared';
 import type { FastifyBaseLogger } from 'fastify';
 import { HttpError } from '../utils/errors.js';
@@ -50,7 +51,7 @@ export const getDateRangeFromDays = (days: number) => {
 /**
  * Build date parameters for discover queries
  */
-export const buildDateParams = (recentDays: number | undefined, type: 'movie' | 'tv' | 'both') => {
+export const buildDateParams = (recentDays: number | undefined, type: MediaType | 'both') => {
   if (!recentDays) return {};
 
   const { pastDate, futureDate } = getDateRangeFromDays(recentDays);

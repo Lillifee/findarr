@@ -1,6 +1,6 @@
-import type { DbMedia, MediaStatus } from '@findarr/shared';
+import type { DbMedia, MediaStatus, MediaType } from '@findarr/shared';
 import { isDefined, media } from '@findarr/shared';
-import { and, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm';
+import { and, eq, isNotNull, isNull, sql } from 'drizzle-orm';
 import type { DB } from '../db/setup.js';
 
 /**
@@ -135,9 +135,13 @@ export async function upsertMediaFromArr(
 export async function updateMediaStatusByArrId(
   db: DB,
   arrId: number,
+  type: MediaType,
   status: MediaStatus
 ): Promise<void> {
-  await db.update(media).set({ status, updatedAt: Date.now() }).where(eq(media.arrId, arrId));
+  await db
+    .update(media)
+    .set({ status, updatedAt: Date.now() })
+    .where(and(eq(media.arrId, arrId), eq(media.type, type)));
 }
 
 /**
@@ -147,11 +151,12 @@ export async function batchUpdateMediaStatus(
   db: DB,
   updates: Array<{
     arrId: number;
+    type: MediaType;
     status: MediaStatus;
   }>
 ): Promise<void> {
-  for (const { arrId, status } of updates) {
-    await updateMediaStatusByArrId(db, arrId, status);
+  for (const { arrId, type, status } of updates) {
+    await updateMediaStatusByArrId(db, arrId, type, status);
   }
 }
 
@@ -159,7 +164,8 @@ export async function batchUpdateMediaStatus(
  * Get all media with arr IDs for sync matching
  */
 export async function getMediaWithArrIds(
-  db: DB
+  db: DB,
+  type: MediaType
 ): Promise<Array<Omit<DbMedia, 'createdAt' | 'updatedAt'>>> {
   return db
     .select({
@@ -170,11 +176,12 @@ export async function getMediaWithArrIds(
       arrId: media.arrId,
       arrUrl: media.arrUrl,
       jellyfinId: media.jellyfinId,
+      jellyfinAddedAt: media.jellyfinAddedAt,
       seasons: media.seasons,
       status: media.status,
     })
     .from(media)
-    .where(inArray(media.type, ['movie', 'tv']));
+    .where(eq(media.type, type));
 }
 
 /**
@@ -183,7 +190,7 @@ export async function getMediaWithArrIds(
 export async function clearRemovedArrItems(
   db: DB,
   ids: number[],
-  type: 'movie' | 'tv'
+  type: MediaType
 ): Promise<number> {
   if (ids.length === 0) return 0;
 

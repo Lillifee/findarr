@@ -5,6 +5,8 @@ import type {
   DiscoverQuerySchema,
   PopularQuerySchema,
   DetailsQuerySchema,
+  AvailableMediaQuerySchema,
+  InteractionsQuerySchema,
   ServerEnvSchema,
   GenresQuerySchema,
   LoginSchema,
@@ -43,10 +45,10 @@ export interface CastMember {
 
 export interface Video {
   id: string;
-  key: string; // YouTube video key
+  key: string;
+  type: string;
   name: string;
-  site: string; // e.g., "YouTube"
-  type: string; // e.g., "Trailer", "Teaser"
+  site: string;
   official: boolean;
   publishedAt: string | undefined;
 }
@@ -117,7 +119,7 @@ export interface MediaState {
  */
 export interface Media {
   tmdbId: number;
-  type: 'movie' | 'tv';
+  type: MediaType;
   name: string;
   date: string | undefined;
   posterPath: string | undefined;
@@ -198,6 +200,7 @@ export interface PaginatedMediaResponse {
 export type SearchResponse = PaginatedMediaResponse;
 export type DiscoverResponse = PaginatedMediaResponse;
 export type UserInteractionsResponse = PaginatedMediaResponse;
+export type AvailableMediaResponse = PaginatedMediaResponse;
 
 /**
  * Swipe/Vote response - returns next unvoted media item
@@ -240,13 +243,14 @@ export type DiscoverQuery = z.infer<typeof DiscoverQuerySchema>;
 export type PopularQuery = z.infer<typeof PopularQuerySchema>;
 export type DetailsQuery = z.infer<typeof DetailsQuerySchema>;
 export type GenresQuery = z.infer<typeof GenresQuerySchema>;
+export type InteractionsQuery = z.infer<typeof InteractionsQuerySchema>;
+export type AvailableMediaQuery = z.infer<typeof AvailableMediaQuerySchema>;
 
 // ============================================================================
 // Authentication & User Types
 // ============================================================================
 
 export type Login = z.infer<typeof LoginSchema>;
-// export type User = z.infer<typeof UserSchema>;
 
 export type CreateUser = z.infer<typeof CreateUserSchema>;
 export type DeleteUser = z.infer<typeof DeleteUserSchema>;
@@ -266,9 +270,9 @@ export interface SchedulerState {
   description: string;
   enabled: boolean;
   isRunning: boolean;
-  lastRun: number | null; // Timestamp
-  nextRun: number | null; // Timestamp (null = stopped/manual trigger only)
-  lastDuration: number | null; // ms
+  lastRun: number | null;
+  nextRun: number | null;
+  lastDuration: number | null;
   lastError: string | null;
-  interval: number; // Default interval in milliseconds
+  interval: number;
 }

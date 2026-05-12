@@ -1,4 +1,5 @@
 import {
+  AvailableMediaQuerySchema,
   SearchQuerySchema,
   DetailsQuerySchema,
   GenresQuerySchema,
@@ -48,6 +49,17 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   // Genres endpoint: GET /genres?type=movie
   fastify.get('/genres', request =>
     fastify.catalog.getGenres(GenresQuerySchema.parse(request.query))
+  );
+
+  // Available overview endpoint: GET /available?type=both&limit=12
+  fastify.get(
+    '/available',
+    protectedRoute(request =>
+      fastify.catalog.getAvailableMedia(
+        AvailableMediaQuerySchema.parse(request.query),
+        request.user.id
+      )
+    )
   );
 
   // Next unvoted endpoint: GET /next

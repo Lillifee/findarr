@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "d82b00b4-e1e7-4f5d-97ef-91bdd243f9f5",
+  "id": "fce0d0af-9080-4831-866c-28de3df25f89",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "settings": {
@@ -196,6 +196,13 @@
         "jellyfinId": {
           "name": "jellyfinId",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "jellyfinAddedAt": {
+          "name": "jellyfinAddedAt",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false

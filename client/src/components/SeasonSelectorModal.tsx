@@ -159,7 +159,7 @@ export default function SeasonSelectorModal({
                       <div className="font-medium text-sm text-white truncate">{season.name}</div>
                       {/* Show status badge based on season.status field */}
                       {badgeStatusMap[status] && (
-                        <StatusBadge status={badgeStatusMap[status]!} size="sm" />
+                        <StatusBadge status={badgeStatusMap[status]} size="sm" />
                       )}
                     </div>
                     <div className="text-xs text-gray-400">

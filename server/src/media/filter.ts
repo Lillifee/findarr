@@ -2,6 +2,7 @@ import {
   type GenreKey,
   type InteractionFilter,
   type Media,
+  type MediaType,
   type RegionGroupId,
   regionGroups,
   unifiedGenres,
@@ -12,7 +13,7 @@ import { toMediaKey } from '../utils/helper.js';
  * Filter criteria for TMDB results
  */
 export interface FilterCriteria {
-  type: 'movie' | 'tv' | 'both';
+  type: MediaType | 'both';
   regions: RegionGroupId[];
   genres: GenreKey[];
 }

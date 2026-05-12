@@ -44,7 +44,7 @@ function mergeUniqueResults(existing: Media[], incoming: Media[]) {
   return merged;
 }
 
-export function PopularPage() {
+export function ExplorePage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialSearchParams = readCatalogSearchParams(searchParams, {

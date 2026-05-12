@@ -1,4 +1,4 @@
-import { isDefined, type MediaStatus } from '@findarr/shared';
+import { isDefined, type MediaStatus, type MediaType } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
 import { processWithWorkerPool } from '../tmdb/helpers.js';
 import {
@@ -12,33 +12,44 @@ import type { ArrLibraryItem } from './schemas.js';
 import type { AnyArrService } from './service.js';
 
 /**
- * Enrich TV shows with TMDB IDs using worker pool pattern
- * Provides smooth, continuous processing with exponential backoff retry logic
+ * Generic complete sync for Radarr or Sonarr
+ * Library sync with inline enrichment for TV shows
  */
-export async function enrichTvShows(
+export async function syncComplete(
   fastify: FastifyInstance,
-  queue: ArrLibraryItem[]
-): Promise<number> {
+  arrService: AnyArrService
+): Promise<void> {
+  fastify.log.info(`Starting ${arrService.config.service} library sync...`);
+  const startTime = Date.now();
   const { log } = fastify;
 
-  log.info(`Enriching ${queue.length} new TV shows with TMDB IDs...`);
+  // Check if service is configured
+  const isConfigured = await arrService.isConfigured();
 
-  const { successCount } = await processWithWorkerPool({
-    items: queue,
-    processFn: async item => {
-      if (!item?.tvdbId) return null;
+  if (!isConfigured) {
+    log.debug(`${arrService.config.service} not configured - skipping sync`);
+    return;
+  }
 
-      const tmdbId = await fastify.tmdb.findByExternalId({ tvdbId: item.tvdbId, type: 'tv' });
+  // Test connection
+  const isConnected = await arrService.testConnection();
 
-      if (tmdbId) item.tmdbId = tmdbId;
-      return tmdbId || null;
-    },
-    log,
-  });
+  if (!isConnected) {
+    throw new Error(`${arrService.config.service} connection test failed`);
+  }
 
-  log.info(`Enrichment complete: ${successCount}/${queue.length}`);
+  log.debug(`${arrService.config.service} connection successful`);
 
-  return successCount;
+  // Library sync with inline enrichment for TV shows
+  await syncLibrary(fastify, arrService);
+
+  const durationMs = Date.now() - startTime;
+  const durationSec = Math.round(durationMs / 1000);
+
+  fastify.log.info(
+    { durationSec },
+    `${arrService.config.service} library sync finished successfully`
+  );
 }
 
 /**
@@ -101,7 +112,7 @@ export async function syncLibrary(
   await upsertMediaFromArr(db, itemsToUpsert);
 
   // Cleanup: Find items in DB that are no longer in Radarr/Sonarr
-  const existingMedia = await getMediaWithArrIds(db);
+  const existingMedia = await getMediaWithArrIds(db, mediaType);
   const currentArrIds = new Set(libraryItems.map(item => item.id));
   const removedArrIds = existingMedia
     .map(m => m.arrId)
@@ -114,6 +125,36 @@ export async function syncLibrary(
   }
 
   log.info(`${service} library synced ${libraryItems.length} items`);
+}
+
+/**
+ * Enrich TV shows with TMDB IDs using worker pool pattern
+ * Provides smooth, continuous processing with exponential backoff retry logic
+ */
+export async function enrichTvShows(
+  fastify: FastifyInstance,
+  queue: ArrLibraryItem[]
+): Promise<number> {
+  const { log } = fastify;
+
+  log.info(`Enriching ${queue.length} new TV shows with TMDB IDs...`);
+
+  const { successCount } = await processWithWorkerPool({
+    items: queue,
+    processFn: async item => {
+      if (!item?.tvdbId) return null;
+
+      const tmdbId = await fastify.tmdb.findByExternalId({ tvdbId: item.tvdbId, type: 'tv' });
+
+      if (tmdbId) item.tmdbId = tmdbId;
+      return tmdbId || null;
+    },
+    log,
+  });
+
+  log.info(`Enrichment complete: ${successCount}/${queue.length}`);
+
+  return successCount;
 }
 
 /**
@@ -130,8 +171,9 @@ export async function syncQueue(
   completedIds: number[];
   hasActiveDownloads: boolean;
 }> {
-  const statusUpdates: Array<{ arrId: number; status: MediaStatus }> = [];
+  const statusUpdates: Array<{ arrId: number; type: MediaType; status: MediaStatus }> = [];
   const currentDownloadingIds = new Set<number>();
+  const mediaType = arrService.config.mediaType;
 
   // Get queue from service
   const queue = await arrService.getQueue();
@@ -141,7 +183,7 @@ export async function syncQueue(
     if (item.arrId) {
       if (item.trackedDownloadStatus === 'warning') {
         // Mark as warning - don't count as active download
-        statusUpdates.push({ arrId: item.arrId, status: 'warning' });
+        statusUpdates.push({ arrId: item.arrId, type: mediaType, status: 'warning' });
         fastify.log.warn(
           { arrId: item.arrId, status: item.trackedDownloadStatus },
           'Download requires manual intervention'
@@ -149,7 +191,7 @@ export async function syncQueue(
       } else {
         // Normal downloading state
         currentDownloadingIds.add(item.arrId);
-        statusUpdates.push({ arrId: item.arrId, status: 'downloading' });
+        statusUpdates.push({ arrId: item.arrId, type: mediaType, status: 'downloading' });
       }
     }
   }
@@ -167,45 +209,4 @@ export async function syncQueue(
     completedIds,
     hasActiveDownloads: currentDownloadingIds.size > 0,
   };
-}
-
-/**
- * Generic complete sync for Radarr or Sonarr
- * Library sync with inline enrichment for TV shows
- */
-export async function syncComplete(
-  fastify: FastifyInstance,
-  arrService: AnyArrService
-): Promise<void> {
-  fastify.log.info(`Starting ${arrService.config.service} library sync...`);
-  const startTime = Date.now();
-  const { log } = fastify;
-
-  // Check if service is configured
-  const isConfigured = await arrService.isConfigured();
-
-  if (!isConfigured) {
-    log.debug(`${arrService.config.service} not configured - skipping sync`);
-    return;
-  }
-
-  // Test connection
-  const isConnected = await arrService.testConnection();
-
-  if (!isConnected) {
-    throw new Error(`${arrService.config.service} connection test failed`);
-  }
-
-  log.debug(`${arrService.config.service} connection successful`);
-
-  // Library sync with inline enrichment for TV shows
-  await syncLibrary(fastify, arrService);
-
-  const durationMs = Date.now() - startTime;
-  const durationSec = Math.round(durationMs / 1000);
-
-  fastify.log.info(
-    { durationSec },
-    `${arrService.config.service} library sync finished successfully`
-  );
 }

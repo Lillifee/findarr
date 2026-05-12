@@ -1,4 +1,4 @@
-import type { User } from '@findarr/shared';
+import { isDefined, type User } from '@findarr/shared';
 import axios from 'axios';
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { authService } from '../services/api';
@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value: AuthContextType = {
     user,
-    isAuthenticated: !!user,
+    isAuthenticated: isDefined(user),
     isAdmin: user?.role === 'admin',
     isLoading,
     login,

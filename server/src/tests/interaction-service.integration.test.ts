@@ -6,8 +6,12 @@ import type { ArrService } from '../arr/service.js';
 import type { CatalogService } from '../catalog/service.js';
 import { createDatabase, type DB } from '../db/setup.js';
 import { hasInteraction, getVoteCounts } from '../interaction/repository.js';
-import { createInteraction, getUserInteractionsEnriched } from '../interaction/service.js';
-import { getMediaByTmdbId } from '../media/repository.js';
+import {
+  createInteraction,
+  getUserActivityAttentionEnriched,
+  getUserInteractionsEnriched,
+} from '../interaction/service.js';
+import { createMedia, getMediaByTmdbId, updateMediaStatus } from '../media/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
 import {
   assertDefined as expectDefined,
@@ -67,6 +71,7 @@ const catalogService: CatalogService = {
             id: 1,
             status: 'pending',
             jellyfinId: null,
+            jellyfinAddedAt: null,
             tvdbId: null,
             arrId: null,
             arrUrl: null,
@@ -79,6 +84,7 @@ const catalogService: CatalogService = {
     )
   ),
   getGenres: vi.fn().mockResolvedValue({ genres: [] }),
+  getAvailableMedia: vi.fn().mockResolvedValue({ results: [] }),
   getNextUnvoted: vi.fn().mockResolvedValue({ media: null, feedId: 'feed-1' }),
 };
 
@@ -137,7 +143,7 @@ describe('interaction service - integration tests', () => {
       expectDefined(media);
       expect(media.tmdbId).toBe(123);
       expect(media.type).toBe('movie');
-      expect(media.status).toBe('pending');
+      expect(media.status).toBe('requested');
 
       // Verify interaction was created
       expect(await hasInteraction(db, user.id, media.id, 'liked')).toBe(true);
@@ -238,67 +244,6 @@ describe('interaction service - integration tests', () => {
       // Verify only like exists now
       expect(await hasInteraction(db, user.id, media.id, 'liked')).toBe(true);
       expect(await hasInteraction(db, user.id, media.id, 'disliked')).toBe(false);
-    });
-
-    it('should auto-request when 3 users like it', async () => {
-      // Create 3 users
-      const user1 = await createTestUserInDb(db, {
-        email: 'user1@test.com',
-        displayName: 'User 1',
-      });
-      const user2 = await createTestUserInDb(db, {
-        email: 'user2@test.com',
-        displayName: 'User 2',
-      });
-      const user3 = await createTestUserInDb(db, {
-        email: 'user3@test.com',
-        displayName: 'User 3',
-      });
-      expectDefined(user1);
-      expectDefined(user2);
-      expectDefined(user3);
-
-      // First two users like
-      await createInteraction(
-        tmdb,
-        radarrService,
-        sonarrService,
-        catalogService,
-        db,
-        interaction,
-        user1
-      );
-      await createInteraction(
-        tmdb,
-        radarrService,
-        sonarrService,
-        catalogService,
-        db,
-        interaction,
-        user2
-      );
-
-      let media = await getMediaByTmdbId(db, 123, 'movie');
-      expectDefined(media);
-      expect(media.status).toBe('pending');
-
-      const votes = await getVoteCounts(db, media.id);
-      expect(votes.likes).toBe(2);
-
-      // Third user likes - should trigger auto-request
-      await createInteraction(
-        tmdb,
-        radarrService,
-        sonarrService,
-        catalogService,
-        db,
-        interaction,
-        user3
-      );
-
-      media = await getMediaByTmdbId(db, 123, 'movie');
-      expectDefined(media);
-      expect(media.status).toBe('requested');
     });
 
     it('should auto-request immediately when admin likes', async () => {
@@ -426,9 +371,154 @@ describe('interaction service - integration tests', () => {
     });
 
     it('should return empty results for userId with no interactions', async () => {
+      const user = await createTestUserInDb(db, { email: 'no-interactions@test.com' });
+      expectDefined(user);
+
       const tmdbServiceForTest = {} as TMDBService;
-      const result = await getUserInteractionsEnriched(tmdbServiceForTest, db, 999);
+      const result = await getUserInteractionsEnriched(tmdbServiceForTest, db, user.id);
       expect(result).toEqual({ results: [], page: 1, totalPages: 0 });
+    });
+
+    it('should keep the main activity list ordered by newest interaction instead of status priority', async () => {
+      const user = await createTestUserInDb(db, { email: 'activity-order@test.com' });
+      expectDefined(user);
+
+      await createInteraction(
+        tmdb,
+        radarrService,
+        sonarrService,
+        catalogService,
+        db,
+        interaction,
+        user
+      );
+
+      const olderMedia = await getMediaByTmdbId(db, 123, 'movie');
+      expectDefined(olderMedia);
+      await updateMediaStatus(db, olderMedia.id, 'downloading');
+
+      vi.mocked(tmdb.getDetails).mockResolvedValueOnce(
+        createTestTVDetail({
+          tmdbId: 456,
+          name: 'Newest Show',
+          genres: [{ id: 18, name: 'Drama' }],
+        })
+      );
+
+      await createInteraction(
+        tmdb,
+        radarrService,
+        sonarrService,
+        catalogService,
+        db,
+        { mediaType: 'tv', tmdbId: 456, action: 'liked' },
+        user
+      );
+
+      const tmdbServiceForTest = {
+        getDetails: vi
+          .fn()
+          .mockResolvedValueOnce(
+            createMediaTestHelper({ tmdbId: 456, type: 'tv', name: 'Newest Show' })
+          )
+          .mockResolvedValueOnce(
+            createMediaTestHelper({ tmdbId: 123, type: 'movie', name: 'Older Download' })
+          ),
+      } as unknown as TMDBService;
+
+      const result = await getUserInteractionsEnriched(tmdbServiceForTest, db, user.id);
+
+      expect(result.results.map(item => item.tmdbId)).toEqual([456, 123]);
+    });
+  });
+
+  describe('getUserActivityAttentionEnriched', () => {
+    it('should return only interacted media that need attention or are in progress', async () => {
+      const user = await createTestUserInDb(db, { email: 'attention@test.com' });
+      expectDefined(user);
+
+      await createInteraction(
+        tmdb,
+        radarrService,
+        sonarrService,
+        catalogService,
+        db,
+        interaction,
+        user
+      );
+
+      vi.mocked(tmdb.getDetails).mockResolvedValueOnce(
+        createTestTVDetail({
+          tmdbId: 456,
+          name: 'Warning Show',
+          genres: [{ id: 80, name: 'Crime' }],
+        })
+      );
+
+      await createInteraction(
+        tmdb,
+        radarrService,
+        sonarrService,
+        catalogService,
+        db,
+        { mediaType: 'tv', tmdbId: 456, action: 'liked' },
+        user
+      );
+
+      const movieMedia = await getMediaByTmdbId(db, 123, 'movie');
+      const showMedia = await getMediaByTmdbId(db, 456, 'tv');
+      expectDefined(movieMedia);
+      expectDefined(showMedia);
+
+      await updateMediaStatus(db, movieMedia.id, 'downloading');
+      await updateMediaStatus(db, showMedia.id, 'warning');
+
+      const tmdbServiceForTest = {
+        getDetails: vi
+          .fn()
+          .mockResolvedValueOnce(
+            createMediaTestHelper({ tmdbId: 456, type: 'tv', name: 'Warning Show' })
+          )
+          .mockResolvedValueOnce(
+            createMediaTestHelper({ tmdbId: 123, type: 'movie', name: 'Downloading Movie' })
+          ),
+      } as unknown as TMDBService;
+
+      const result = await getUserActivityAttentionEnriched(tmdbServiceForTest, db, user);
+
+      expect(result.page).toBe(1);
+      expect(result.totalPages).toBe(1);
+      expect(result.results).toHaveLength(2);
+      expect(result.results.map(item => item.tmdbId)).toEqual(expect.arrayContaining([123, 456]));
+      expect(result.results.map(item => item.state?.record?.status)).toEqual(
+        expect.arrayContaining(['warning', 'downloading'])
+      );
+    });
+
+    it('should include warning media without interactions for admins', async () => {
+      const admin = await createTestUserInDb(db, {
+        email: 'admin-attention@test.com',
+        role: 'admin',
+      });
+      expectDefined(admin);
+
+      await createMedia(db, 777, 'movie', 'warning');
+
+      const tmdbServiceForTest = {
+        getDetails: vi
+          .fn()
+          .mockResolvedValue(
+            createMediaTestHelper({ tmdbId: 777, type: 'movie', name: 'Needs Attention' })
+          ),
+      } as unknown as TMDBService;
+
+      const result = await getUserActivityAttentionEnriched(tmdbServiceForTest, db, admin);
+
+      expect(result.page).toBe(1);
+      expect(result.totalPages).toBe(1);
+      expect(result.results).toHaveLength(1);
+      expect(result.results[0]?.tmdbId).toBe(777);
+      expect(result.results[0]?.state?.record?.status).toBe('warning');
     });
   });
 
@@ -632,8 +722,7 @@ describe('interaction service - integration tests', () => {
         user2
       );
 
-      // 2 likes — not yet at threshold
-      expect(radarrService.request).not.toHaveBeenCalled();
+      expect(radarrService.request).toHaveBeenCalledOnce();
     });
   });
 });

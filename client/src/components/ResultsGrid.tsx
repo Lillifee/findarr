@@ -16,7 +16,6 @@ function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
   const year = item.date ? new Date(item.date).getFullYear() : 'N/A';
   const isLiked = item.state?.interactions?.find(i => i.action === 'liked');
   const isDisliked = item.state?.interactions?.find(i => i.action === 'disliked');
-  const hasInteraction = isLiked || isDisliked;
 
   return (
     <div
@@ -38,7 +37,7 @@ function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
             <img
               src={`${TMDB_IMAGE_BASE}${item.posterPath}`}
               alt={title}
-              className={`w-full aspect-2/3 object-cover transition-all duration-500 group-hover:scale-[1.03] ${hasInteraction ? 'brightness-[0.72] saturate-[0.72] contrast-[0.92]' : ''}`}
+              className={`w-full aspect-2/3 object-cover transition-all duration-500 group-hover:scale-[1.03]`}
             />
             <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-white/6 via-transparent to-transparent opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
           </>
