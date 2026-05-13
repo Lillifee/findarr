@@ -28,7 +28,7 @@ export const arrConfig = {
     mediaIdField: 'tvdbId',
     libraryItemSchema: SonarrSeriesSchema,
     extraFields: {
-      addOptions: { searchForMissingEpisodes: true },
+      addOptions: { searchForMissingEpisodes: false, monitor: 'skip' },
     },
   },
 } as const;

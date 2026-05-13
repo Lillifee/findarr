@@ -81,14 +81,14 @@ export const createInteraction = async (
   const isAdmin = user.role === 'admin';
 
   // Request media
-  if (
-    (likes >= LIKE_THRESHOLD || isAdmin) &&
-    data.action === 'liked' &&
-    media &&
-    media.status === 'pending'
-  ) {
+  if ((likes >= LIKE_THRESHOLD || isAdmin) && data.action === 'liked') {
+    if (media.status === 'pending') {
+      // Update to requested status (trigger download workflow)
+      await updateMediaStatus(db, media.id, 'requested');
+    }
+
+    // Forward to Radarr/Sonarr (handles both create and update based on arrId)
     await requestMediaToArr(tmdbService, radarrService, sonarrService, media, data);
-    await updateMediaStatus(db, media.id, 'requested');
   }
 
   // Update user genre preferences (fire-and-forget - don't block response)
