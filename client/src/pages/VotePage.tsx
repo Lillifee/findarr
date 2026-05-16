@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FiltersToolbar } from '../components/FiltersToolbar';
 import { MediaView } from '../components/MediaView';
+import { SearchBar } from '../components/SearchBar';
 import { Button } from '../components/ui/Button';
 import { searchService, userSettingsService } from '../services/api';
 import { buildCatalogSearchParams, readCatalogSearchParams } from '../utils/catalogSearchParams';
@@ -130,13 +131,28 @@ export function VotePage() {
 
   return (
     <div className="pb-20 md:pb-8">
-      <FiltersToolbar
-        selectedType={currentSearchType}
-        onTypeChange={handleTypeChange}
-        disabled={isLoading}
-        selectedGenres={selectedGenres}
-        onGenresChange={handleGenreChange}
-      />
+      <div className="sticky top-0 z-30 border-b border-gray-700/50 bg-gray-800/90 backdrop-blur-md shadow-2xl">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="w-full md:flex-1 md:w-auto">
+              <SearchBar
+                onSearch={query =>
+                  void navigate(`/explore?${buildCatalogSearchParams({ q: query }).toString()}`)
+                }
+                loading={false}
+              />
+            </div>
+            <FiltersToolbar
+              disableWrapper
+              selectedType={currentSearchType}
+              onTypeChange={handleTypeChange}
+              disabled={isLoading}
+              selectedGenres={selectedGenres}
+              onGenresChange={handleGenreChange}
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Loading state */}
       {isLoading && (

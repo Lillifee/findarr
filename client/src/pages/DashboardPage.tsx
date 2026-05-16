@@ -2,11 +2,13 @@ import type { Media } from '@findarr/shared';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AvailableMediaStrip } from '../components/AvailableMediaStrip';
+import { SearchBar } from '../components/SearchBar';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { PageHeader } from '../components/ui/PageHeader';
 import { useAuth } from '../contexts/AuthContext';
 import { searchService } from '../services/api';
+import { buildCatalogSearchParams } from '../utils/catalogSearchParams';
 
 function getHeroCopy(nextMedia: Media | null, heroError: string | null) {
   if (nextMedia) {
@@ -129,94 +131,106 @@ export function DashboardPage() {
   const heroCopy = getHeroCopy(nextMedia, heroError);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 md:px-8 md:py-8">
-      <div className="space-y-8 md:space-y-10">
-        <PageHeader
-          title={`Welcome back${user?.displayName ? `, ${user.displayName}` : ''}`}
-          description="Check out what's popular, vote on requests, and discover what's rising."
-        />
-
-        <Card
-          variant="solid"
-          padding="lg"
-          className="relative overflow-hidden border-amber-400/20 bg-cover bg-center"
-          style={{ backgroundImage: heroBackground }}
-        >
-          <div className="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-end">
-            <div className="max-w-3xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-200/80">
-                {heroCopy.eyebrow}
-              </p>
-
-              {loadingHero ? (
-                <div className="mt-4 space-y-3">
-                  <div className="h-10 max-w-md animate-pulse rounded-lg bg-white/10" />
-                  <div className="h-4 max-w-2xl animate-pulse rounded bg-white/10" />
-                  <div className="h-4 max-w-xl animate-pulse rounded bg-white/10" />
-                </div>
-              ) : (
-                <>
-                  <h2 className="mt-4 text-3xl font-semibold text-white md:text-5xl">
-                    {heroCopy.title}
-                  </h2>
-                  <p className="mt-4 max-w-2xl text-sm leading-6 text-gray-200 md:text-base">
-                    {heroCopy.description}
-                  </p>
-                </>
-              )}
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Button onClick={() => void navigate(heroCopy.primaryAction.onClick)}>
-                  {heroCopy.primaryAction.label}
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => void navigate(heroCopy.secondaryAction.onClick)}
-                >
-                  {heroCopy.secondaryAction.label}
-                </Button>
-              </div>
-            </div>
-
-            <div className="hidden lg:flex lg:justify-end">
-              <div className="w-52 overflow-hidden rounded-2xl border border-white/10 bg-black/20 shadow-2xl backdrop-blur-sm">
-                {nextMedia?.posterPath ? (
-                  <img
-                    src={`https://image.tmdb.org/t/p/w500${nextMedia.posterPath}`}
-                    alt={nextMedia.name}
-                    className="aspect-2/3 w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex aspect-2/3 items-center justify-center bg-white/5 text-sm font-medium text-gray-300">
-                    {heroCopy.posterLabel}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        <section>
-          <div className="mb-4 flex items-end justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-semibold text-white md:text-2xl">Newly available</h2>
-            </div>
-          </div>
-
-          {availableError && !loadingAvailable && (
-            <Card className="mb-4 border border-red-500/30 text-sm text-red-200">
-              {availableError}
-            </Card>
-          )}
-
-          <AvailableMediaStrip
-            hasMore={availableHasMore}
-            loading={loadingAvailable}
-            onSelectItem={handleSelectItem}
-            results={availableResults}
+    <>
+      <div className="sticky top-0 z-30 border-b border-gray-700/50 bg-gray-800/90 backdrop-blur-md shadow-2xl">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">
+          <SearchBar
+            onSearch={query =>
+              void navigate(`/explore?${buildCatalogSearchParams({ q: query }).toString()}`)
+            }
+            loading={false}
           />
-        </section>
+        </div>
       </div>
-    </div>
+      <div className="mx-auto max-w-7xl px-4 py-6 md:px-8 md:py-8">
+        <div className="space-y-8 md:space-y-10">
+          <PageHeader
+            title={`Welcome back${user?.displayName ? `, ${user.displayName}` : ''}`}
+            description="Check out what's popular, vote on requests, and discover what's rising."
+          />
+
+          <Card
+            variant="solid"
+            padding="lg"
+            className="relative overflow-hidden border-amber-400/20 bg-cover bg-center"
+            style={{ backgroundImage: heroBackground }}
+          >
+            <div className="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-end">
+              <div className="max-w-3xl">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-200/80">
+                  {heroCopy.eyebrow}
+                </p>
+
+                {loadingHero ? (
+                  <div className="mt-4 space-y-3">
+                    <div className="h-10 max-w-md animate-pulse rounded-lg bg-white/10" />
+                    <div className="h-4 max-w-2xl animate-pulse rounded bg-white/10" />
+                    <div className="h-4 max-w-xl animate-pulse rounded bg-white/10" />
+                  </div>
+                ) : (
+                  <>
+                    <h2 className="mt-4 text-3xl font-semibold text-white md:text-5xl">
+                      {heroCopy.title}
+                    </h2>
+                    <p className="mt-4 max-w-2xl text-sm leading-6 text-gray-200 md:text-base">
+                      {heroCopy.description}
+                    </p>
+                  </>
+                )}
+
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <Button onClick={() => void navigate(heroCopy.primaryAction.onClick)}>
+                    {heroCopy.primaryAction.label}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => void navigate(heroCopy.secondaryAction.onClick)}
+                  >
+                    {heroCopy.secondaryAction.label}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="hidden lg:flex lg:justify-end">
+                <div className="w-52 overflow-hidden rounded-2xl border border-white/10 bg-black/20 shadow-2xl backdrop-blur-sm">
+                  {nextMedia?.posterPath ? (
+                    <img
+                      src={`https://image.tmdb.org/t/p/w500${nextMedia.posterPath}`}
+                      alt={nextMedia.name}
+                      className="aspect-2/3 w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex aspect-2/3 items-center justify-center bg-white/5 text-sm font-medium text-gray-300">
+                      {heroCopy.posterLabel}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <section>
+            <div className="mb-4 flex items-end justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-semibold text-white md:text-2xl">Newly available</h2>
+              </div>
+            </div>
+
+            {availableError && !loadingAvailable && (
+              <Card className="mb-4 border border-red-500/30 text-sm text-red-200">
+                {availableError}
+              </Card>
+            )}
+
+            <AvailableMediaStrip
+              hasMore={availableHasMore}
+              loading={loadingAvailable}
+              onSelectItem={handleSelectItem}
+              results={availableResults}
+            />
+          </section>
+        </div>
+      </div>
+    </>
   );
 }

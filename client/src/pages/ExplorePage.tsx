@@ -400,18 +400,29 @@ export function ExplorePage() {
   };
 
   const handleUpdateItem = (updatedItem: Media) => {
-    const hasMore = currentPage < totalPages;
-
     if (!isSearchMode && interactionFilter === 'unvoted') {
-      setResults(prev =>
-        prev.filter(item => !(item.tmdbId === updatedItem.tmdbId && item.type === updatedItem.type))
+      const filtered = results.filter(
+        item => !(item.tmdbId === updatedItem.tmdbId && item.type === updatedItem.type)
       );
+      setResults(filtered);
 
-      if (hasMore) {
-        void loadFeed({
-          page: currentPage + 1,
-          append: true,
-          ...(feedId ? { currentFeedId: feedId } : {}),
+      // Keep in-memory snapshot in sync so navigating away/back doesn't restore the voted item.
+      if (popularSnapshotRef.current) {
+        popularSnapshotRef.current = { ...popularSnapshotRef.current, results: filtered };
+      }
+
+      // Persist to history state so F5 doesn't restore the voted item.
+      if (filtered.length > 0) {
+        persistState({
+          type: currentSearchType,
+          genres: selectedGenres,
+          interaction: interactionFilter,
+          query: currentQuery,
+          results: filtered,
+          currentPage,
+          totalPages,
+          ...(feedId ? { feedId } : {}),
+          scrollY: window.scrollY,
         });
       }
 
@@ -427,29 +438,33 @@ export function ExplorePage() {
   };
   return (
     <>
-      <div className="bg-gray-800/90 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 pt-4 md:pt-6 pb-3">
-          <SearchBar
-            onSearch={handleSearch}
-            onClear={handleClearSearch}
-            loading={loading}
-            hasSearched={isSearchMode}
-            initialQuery={currentQuery}
-          />
+      <div className="sticky top-0 z-30 border-b border-gray-700/50 bg-gray-800/90 backdrop-blur-md shadow-2xl">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="w-full md:flex-1 md:w-auto">
+              <SearchBar
+                onSearch={handleSearch}
+                onClear={handleClearSearch}
+                loading={loading}
+                hasSearched={isSearchMode}
+                initialQuery={currentQuery}
+              />
+            </div>
+            <FiltersToolbar
+              disableWrapper
+              selectedType={currentSearchType}
+              onTypeChange={handleTypeChange}
+              disabled={loading}
+              selectedGenres={selectedGenres}
+              onGenresChange={handleGenreChange}
+              showInteractionFilter={!isSearchMode}
+              interactionFilter={interactionFilter}
+              onInteractionFilterChange={handleInteractionFilterChange}
+              showFiltersButton={!isSearchMode}
+            />
+          </div>
         </div>
       </div>
-
-      <FiltersToolbar
-        selectedType={currentSearchType}
-        onTypeChange={handleTypeChange}
-        disabled={loading}
-        selectedGenres={selectedGenres}
-        onGenresChange={handleGenreChange}
-        showInteractionFilter={!isSearchMode}
-        interactionFilter={interactionFilter}
-        onInteractionFilterChange={handleInteractionFilterChange}
-        showFiltersButton={!isSearchMode}
-      />
 
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-8">
