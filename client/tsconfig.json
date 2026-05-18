@@ -1,12 +1,16 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": "../shared/tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "jsx": "react-jsx",
     "noEmit": true,
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "paths": {
+      "@findarr/shared": ["../shared/src/index.ts"],
+      "@findarr/shared/*": ["../shared/src/*"]
+    }
   },
   "include": ["src"]
 }

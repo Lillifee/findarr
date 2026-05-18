@@ -48,7 +48,10 @@ export function createJellyfinQueueSyncScheduler(): Scheduler {
       });
 
       if (items.totalCount === 0) {
-        fastify.log.info('All downloaded items are now available - stopping Jellyfin queue sync');
+        fastify.log.info(
+          { name: 'jellyfin', schedulerName: 'jellyfinQueueSync' },
+          'All downloaded items are now available - stopping queue sync'
+        );
         return false; // Self-terminate
       }
 

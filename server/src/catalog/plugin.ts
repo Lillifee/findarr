@@ -13,12 +13,9 @@ const catalogPlugin: FastifyPluginAsync = async fastify => {
   // Create catalog service using existing db and tmdb services
   const catalogService = createCatalogService(fastify.db, fastify.tmdb);
 
-  // Initialize all data sources
-  await catalogService.initialize();
-
   // Decorate fastify instance with catalog service
   fastify.decorate('catalog', catalogService);
-  fastify.log.info('Catalog plugin registered');
+  fastify.log.info({ name: 'catalog' }, 'Catalog plugin registered');
 };
 
 export default fp(catalogPlugin, {

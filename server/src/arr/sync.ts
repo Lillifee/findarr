@@ -19,7 +19,10 @@ export async function syncComplete(
   fastify: FastifyInstance,
   arrService: AnyArrService
 ): Promise<void> {
-  fastify.log.info(`Starting ${arrService.config.service} library sync...`);
+  fastify.log.info(
+    { name: arrService.config.service, service: arrService.config.service },
+    'Starting library sync'
+  );
   const startTime = Date.now();
   const { log } = fastify;
 
@@ -27,7 +30,10 @@ export async function syncComplete(
   const isConfigured = await arrService.isConfigured();
 
   if (!isConfigured) {
-    log.debug(`${arrService.config.service} not configured - skipping sync`);
+    log.debug(
+      { name: arrService.config.service, service: arrService.config.service },
+      'Not configured - skipping sync'
+    );
     return;
   }
 
@@ -38,7 +44,10 @@ export async function syncComplete(
     throw new Error(`${arrService.config.service} connection test failed`);
   }
 
-  log.debug(`${arrService.config.service} connection successful`);
+  log.debug(
+    { name: arrService.config.service, service: arrService.config.service },
+    'Connection successful'
+  );
 
   // Library sync with inline enrichment for TV shows
   await syncLibrary(fastify, arrService);
@@ -47,8 +56,8 @@ export async function syncComplete(
   const durationSec = Math.round(durationMs / 1000);
 
   fastify.log.info(
-    { durationSec },
-    `${arrService.config.service} library sync finished successfully`
+    { name: arrService.config.service, service: arrService.config.service, durationSec },
+    'Library sync finished successfully'
   );
 }
 
@@ -68,11 +77,11 @@ export async function syncLibrary(
   const libraryItems = await arrService.getLibrary();
 
   if (libraryItems.length === 0) {
-    log.info(`No ${service} items found`);
+    log.info({ name: service, service }, 'No items found');
     return;
   }
 
-  log.info(`Fetched ${libraryItems.length} items from ${service}`);
+  log.info({ name: service, service, totalItems: libraryItems.length }, 'Fetched items');
 
   // For TV shows: Enrich with tmdbId during sync to avoid duplicate records
   // This prevents conflicts when Jellyfin already has the same show with tmdbId
@@ -105,8 +114,8 @@ export async function syncLibrary(
   const skippedCount = itemsToUpsert.length - itemsWithRequiredIds.length;
   if (skippedCount > 0) {
     log.warn(
-      { skippedCount, mediaType },
-      `Skipping ${skippedCount} ${service} items missing required external ID`
+      { name: service, service, skippedCount, mediaType },
+      'Skipping items missing required external ID'
     );
   }
   await upsertMediaFromArr(db, itemsToUpsert);
@@ -121,10 +130,13 @@ export async function syncLibrary(
 
   if (removedArrIds.length > 0) {
     const clearedCount = await clearRemovedArrItems(db, removedArrIds, mediaType);
-    log.info(`Cleaned up ${clearedCount} removed from ${service} (reset to pending)`);
+    log.info(
+      { name: service, service, clearedCount },
+      'Cleaned up removed items (reset to pending)'
+    );
   }
 
-  log.info(`${service} library synced ${libraryItems.length} items`);
+  log.info({ name: service, service, totalItems: libraryItems.length }, 'Library synced');
 }
 
 /**
@@ -137,7 +149,10 @@ export async function enrichTvShows(
 ): Promise<number> {
   const { log } = fastify;
 
-  log.info(`Enriching ${queue.length} new TV shows with TMDB IDs...`);
+  log.info(
+    { name: 'sonarr', service: 'sonarr', totalItems: queue.length },
+    'Enriching new TV shows with TMDB IDs'
+  );
 
   const { successCount } = await processWithWorkerPool({
     items: queue,
@@ -152,7 +167,10 @@ export async function enrichTvShows(
     log,
   });
 
-  log.info(`Enrichment complete: ${successCount}/${queue.length}`);
+  log.info(
+    { name: 'sonarr', service: 'sonarr', successCount, totalItems: queue.length },
+    'Enrichment complete'
+  );
 
   return successCount;
 }
@@ -185,7 +203,12 @@ export async function syncQueue(
         // Mark as warning - don't count as active download
         statusUpdates.push({ arrId: item.arrId, type: mediaType, status: 'warning' });
         fastify.log.warn(
-          { arrId: item.arrId, status: item.trackedDownloadStatus },
+          {
+            name: arrService.config.service,
+            service: arrService.config.service,
+            arrId: item.arrId,
+            status: item.trackedDownloadStatus,
+          },
           'Download requires manual intervention'
         );
       } else {

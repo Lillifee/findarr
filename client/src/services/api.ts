@@ -22,6 +22,9 @@ import type {
   ArrTestResult,
   JellyfinSettings,
   JellyfinTestResult,
+  AppBootstrapStatus,
+  TmdbSettings,
+  TmdbTestResult,
   SchedulerState,
   SwipeNextResponse,
   ArrLinkQuery,
@@ -92,6 +95,11 @@ export const authService = {
 
   me: async (): Promise<User> => {
     const response = await api.get('/auth/me');
+    return response.data;
+  },
+
+  bootstrap: async (): Promise<AppBootstrapStatus> => {
+    const response = await api.get('/auth/bootstrap');
     return response.data;
   },
 };
@@ -225,6 +233,21 @@ export const adminJellyfinService = {
   },
   test: async (): Promise<JellyfinTestResult> => {
     const response = await api.post('/admin/jellyfin/test');
+    return response.data;
+  },
+};
+
+export const adminTmdbService = {
+  getSettings: async (): Promise<TmdbSettings> => {
+    const response = await api.get('/admin/tmdb/settings');
+    return response.data;
+  },
+  saveSettings: async (settings: { tmdbAccessToken?: string }): Promise<TmdbSettings> => {
+    const response = await api.put('/admin/tmdb/settings', settings);
+    return response.data;
+  },
+  test: async (): Promise<TmdbTestResult> => {
+    const response = await api.post('/admin/tmdb/test');
     return response.data;
   },
 };

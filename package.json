@@ -32,7 +32,9 @@
     "ci": "npm run type-check && npm run lint && npm run format:check && npm run build",
     "update": "npx npm-check-updates -u --workspaces && npm install",
     "db:generate": "npm run db:generate --workspace=@findarr/server",
-    "db:studio": "npm run db:studio --workspace=@findarr/server"
+    "db:studio": "npm run db:studio --workspace=@findarr/server",
+    "docker:build": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build",
+    "docker:run": "docker compose up"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",

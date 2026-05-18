@@ -46,8 +46,12 @@ export function createArrQueueMonitorScheduler(arrService: AnyArrService): Sched
 
       if (activeCount > 0) {
         fastify.log.info(
-          { activeDownloads: activeCount },
-          `Active ${arrService.config.service} downloads detected - starting fast sync`
+          {
+            name: arrService.config.service,
+            service: arrService.config.service,
+            activeDownloads: activeCount,
+          },
+          'Active downloads detected - starting fast sync'
         );
         fastify.scheduler.start({ name: fastSyncName });
       }
@@ -87,8 +91,12 @@ export function createArrQueueFastSyncScheduler(arrService: AnyArrService): Sche
       // Handle completions
       if (completedIds.length > 0) {
         fastify.log.info(
-          { [`completed${arrService.config.service}`]: completedIds.length },
-          `${arrService.config.service} downloads completed - triggering library sync`
+          {
+            name: arrService.config.service,
+            service: arrService.config.service,
+            completedDownloads: completedIds.length,
+          },
+          'Downloads completed - triggering library sync'
         );
 
         // Trigger library sync to upgrade completed items to 'downloaded' status

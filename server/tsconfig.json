@@ -1,10 +1,14 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": "../shared/tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2022"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "noEmit": true,
+    "paths": {
+      "@findarr/shared": ["../shared/src/index.ts"],
+      "@findarr/shared/*": ["../shared/src/*"]
+    },
     "types": ["node", "vitest/globals"]
   },
   "include": ["src", "**/*.test.ts"]

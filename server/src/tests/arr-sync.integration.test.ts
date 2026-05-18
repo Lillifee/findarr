@@ -1,9 +1,10 @@
 import SqlDatabase from 'better-sqlite3';
+import type { FastifyInstance } from 'fastify';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { arrConfig } from '../arr/config.js';
 import { batchUpdateMediaStatus, getMediaWithArrIds, updateMediaIds } from '../arr/repository.js';
-import { syncQueue } from '../arr/sync.js';
 import type { AnyArrService } from '../arr/service.js';
+import { syncQueue } from '../arr/sync.js';
 import { createDatabase, type DB } from '../db/setup.js';
 import { createMedia, getMediaByTmdbId } from '../media/repository.js';
 
@@ -63,7 +64,7 @@ describe('arr sync collision handling - integration tests', () => {
       log: {
         warn: vi.fn(),
       },
-    } as any;
+    } as unknown as FastifyInstance;
 
     const radarrService = {
       config: arrConfig.radarr,

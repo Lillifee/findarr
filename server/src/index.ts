@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import path from 'node:path';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import { ServerEnvSchema } from '@findarr/shared';
@@ -19,39 +20,37 @@ import { adminSchedulerRoutes, schedulerRoutes } from './scheduler/routes.js';
 import { settingsRoutes } from './settings/routes.js';
 import tmdbPlugin from './tmdb/plugin.js';
 import { registerErrorHandler } from './utils/errors.js';
+import { registerStatic } from './web/static.js';
 
 // Validate environment variables
 const env = ServerEnvSchema.parse(process.env);
+const dataPath = env.DATA_PATH;
 
 const server = Fastify({
-  logger:
-    env.NODE_ENV === 'development'
-      ? {
-          level: 'info',
-          transport: {
-            target: 'pino-pretty',
-            options: {
-              colorize: true,
-              translateTime: 'HH:MM:ss',
-              ignore: 'pid,hostname',
-            },
-          },
-          serializers: {
-            err: (
-              err: Error & { code?: string; status?: number; response?: { data?: unknown } }
-            ) => ({
-              type: err.name,
-              message: err.message,
-              code: err.code,
-              status: err.status,
-              data: err.response?.data,
-              stack: err.stack ?? 'no stack trace',
-            }),
-          },
-        }
-      : {
-          level: 'warn',
-        },
+  disableRequestLogging: true,
+  logger: {
+    level: 'info',
+    transport: {
+      target: 'pino-pretty',
+      options: {
+        colorize: true,
+        translateTime: 'HH:MM:ss',
+        ignore: 'pid,hostname,req,res',
+        singleLine: true,
+        messageFormat: '{msg}',
+      },
+    },
+    serializers: {
+      err: (err: Error & { code?: string; status?: number; response?: { data?: unknown } }) => ({
+        type: err.name,
+        message: err.message,
+        code: err.code,
+        status: err.status,
+        data: err.response?.data,
+        stack: err.stack ?? 'no stack trace',
+      }),
+    },
+  },
 });
 
 async function start() {
@@ -72,12 +71,9 @@ async function start() {
     });
 
     // Register plugins
-    await server.register(databasePlugin, { dbPath: env.DB_PATH });
-    await server.register(authPlugin, { sessionSecret: env.SESSION_SECRET });
-    await server.register(tmdbPlugin, {
-      tmdbBaseUrl: env.TMDB_BASE_URL,
-      tmdbAccessToken: env.TMDB_ACCESS_TOKEN,
-    });
+    await server.register(databasePlugin, { dbPath: path.join(dataPath, 'findarr.db') });
+    await server.register(authPlugin, { secretPath: path.join(dataPath, 'session.secret') });
+    await server.register(tmdbPlugin);
 
     await server.register(jellyfinPlugin);
     await server.register(arrPlugin);
@@ -85,10 +81,7 @@ async function start() {
     await server.register(schedulerPlugin);
 
     // Health check endpoint
-    server.get('/health', async () => ({
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-    }));
+    server.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
 
     // Register API routes
     await server.register(authRoutes, { prefix: '/api/auth' });
@@ -104,15 +97,18 @@ async function start() {
     // Start scheduler orchestration
     await server.scheduler.startOrchestration();
 
+    // Serve static files in production
+    if (env.NODE_ENV === 'production') {
+      await registerStatic(server);
+    }
+
     // Start server
-    const address = await server.listen({
+    await server.listen({
       port: env.PORT,
       host: env.HOST,
     });
-
-    server.log.info(`Server listening at ${address}`);
   } catch (error) {
-    server.log.error(error);
+    server.log.error({ name: 'server', err: error }, 'Failed to start');
     process.exit(1);
   }
 }

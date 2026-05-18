@@ -16,8 +16,10 @@ import {
  * Keywords are enriched separately by enrichCatalogKeywords()
  */
 export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> {
+  if (!fastify.tmdb.isConfigured()) return;
+
   const startTime = Date.now();
-  fastify.log.info('Starting catalog cache sync (phase 1: basic media)...');
+  fastify.log.info({ name: 'catalog', phase: 'cache-sync' }, 'Starting cache sync');
 
   // TODO - use language setting from config
   const language = 'en-US';
@@ -25,7 +27,10 @@ export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> 
   const arrayOfNumbers = (length: number) => Array.from({ length }).map((_, i) => i + 1);
 
   // Fetch both trending and recent releases (already includes basic metadata)
-  fastify.log.info('Fetching trending and discover results from TMDB...');
+  fastify.log.info(
+    { name: 'catalog', phase: 'cache-sync' },
+    'Fetching trending and discover results from TMDB'
+  );
   const [trendingResult, discoverResult] = await Promise.all([
     fastify.tmdb.fetchTrending({ language, time_window: 'week' }, arrayOfNumbers(5)),
     fastify.tmdb.fetchDiscover({ type: 'both', recentDays: 500 }, arrayOfNumbers(15)),
@@ -35,7 +40,10 @@ export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> 
   const merged = [...trendingResult.results, ...discoverResult.results];
   const deduped = deduplicateMedia(merged);
 
-  fastify.log.info(`Fetched ${deduped.length} unique items, storing to database...`);
+  fastify.log.info(
+    { name: 'catalog', phase: 'cache-sync', totalItems: deduped.length },
+    'Fetched unique items, storing to database'
+  );
 
   // Store basic media immediately (keywords will be empty arrays)
   await upsertCatalogCache(fastify.db, deduped);
@@ -51,7 +59,10 @@ export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> 
   // Seed with defaults if first run, then update with growth strategy
   await seedMediaStats(fastify.db);
 
-  fastify.log.info('Computing catalog stats from current cache...');
+  fastify.log.info(
+    { name: 'catalog', phase: 'cache-sync' },
+    'Computing catalog stats from current cache'
+  );
   const [movieStats, tvStats] = await Promise.all([
     computeMediaStats(fastify.db, 'movie'),
     computeMediaStats(fastify.db, 'tv'),
@@ -64,6 +75,8 @@ export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> 
 
   fastify.log.info(
     {
+      name: 'catalog',
+      phase: 'cache-sync',
       movieStats: {
         maxPopularity: movieStats.maxPopularity,
         maxVoteCount: movieStats.maxVoteCount,
@@ -83,12 +96,14 @@ export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> 
 
   fastify.log.info(
     {
+      name: 'catalog',
+      phase: 'cache-sync',
       totalItems: deduped.length,
       deletedCount,
       durationSec,
       language,
     },
-    'Catalog cache sync completed (phase 1)'
+    'Catalog cache sync completed'
   );
 }
 
@@ -99,18 +114,28 @@ export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> 
  */
 export async function enrichCatalogKeywords(fastify: FastifyInstance): Promise<void> {
   const startTime = Date.now();
-  fastify.log.info('Starting keyword enrichment (phase 2)...');
+  fastify.log.info({ name: 'catalog', phase: 'keyword-enrichment' }, 'Starting keyword enrichment');
 
   try {
     // Get items that need keyword enrichment
     const itemsWithoutKeywords = await getCatalogItemsWithoutKeywords(fastify.db);
 
     if (itemsWithoutKeywords.length === 0) {
-      fastify.log.info('No items need keyword enrichment');
+      fastify.log.info(
+        { name: 'catalog', phase: 'keyword-enrichment' },
+        'No items need keyword enrichment'
+      );
       return;
     }
 
-    fastify.log.info(`Enriching ${itemsWithoutKeywords.length} items with keywords...`);
+    fastify.log.info(
+      {
+        name: 'catalog',
+        phase: 'keyword-enrichment',
+        totalItems: itemsWithoutKeywords.length,
+      },
+      'Enriching items with keywords'
+    );
 
     const { successCount } = await processWithWorkerPool({
       items: itemsWithoutKeywords,
@@ -128,15 +153,20 @@ export async function enrichCatalogKeywords(fastify: FastifyInstance): Promise<v
 
     fastify.log.info(
       {
+        name: 'catalog',
+        phase: 'keyword-enrichment',
         successCount,
         failCount,
         totalItems: itemsWithoutKeywords.length,
         durationSec,
       },
-      'Keyword enrichment completed (phase 2)'
+      'Keyword enrichment completed'
     );
   } catch (error) {
-    fastify.log.error({ error }, 'Keyword enrichment failed');
+    fastify.log.error(
+      { name: 'catalog', phase: 'keyword-enrichment', err: error },
+      'Keyword enrichment failed'
+    );
     throw error;
   }
 }

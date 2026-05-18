@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginForm } from './components/LoginForm';
 import { Navigation } from './components/Navigation';
+import { TmdbSetupScreen } from './components/TmdbSetupScreen';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ActivityPage } from './pages/ActivityPage';
 import { ArrSettingsPage } from './pages/admin/ArrSettingsPage';
@@ -12,8 +13,19 @@ import { MediaDetailPage } from './pages/MediaDetailPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { VotePage } from './pages/VotePage';
 
+function SetupRequiredScreen() {
+  return <TmdbSetupScreen />;
+}
+
 function MainApp() {
-  const { isAuthenticated, isAdmin, isLoading: authLoading, logout, user } = useAuth();
+  const {
+    isAuthenticated,
+    isAdmin,
+    isLoading: authLoading,
+    logout,
+    user,
+    tmdbConfigured,
+  } = useAuth();
 
   // Show loading state while checking authentication
   if (authLoading) {
@@ -30,6 +42,10 @@ function MainApp() {
   // Show login form if not authenticated
   if (!isAuthenticated) {
     return <LoginForm />;
+  }
+
+  if (!tmdbConfigured) {
+    return <SetupRequiredScreen />;
   }
 
   // Render main layout with navigation and routes

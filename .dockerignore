@@ -1,0 +1,22 @@
+# Dependencies
+**/node_modules
+
+# Build outputs
+**/dist
+**/coverage
+**/*.tsbuildinfo
+
+# VCS
+.git
+
+# Environment
+.env*
+
+# Data / runtime files (never ship into image build context)
+**/data
+
+# Logs
+npm-debug.log*
+
+# Misc
+TODO.txt

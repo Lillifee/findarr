@@ -52,7 +52,6 @@ const sonarrService: ArrService<typeof arrConfig.sonarr> = {
 };
 
 const catalogService: CatalogService = {
-  initialize: vi.fn().mockResolvedValue(undefined),
   search: vi.fn().mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
   popular: vi.fn().mockResolvedValue({
     results: [],
@@ -101,7 +100,9 @@ describe('interaction service - integration tests', () => {
 
     // Mock TMDB service that returns movie/TV details with genres
     tmdb = {
-      loadGenres: vi.fn().mockResolvedValue(undefined),
+      configure: vi.fn().mockResolvedValue(undefined),
+      isConfigured: vi.fn().mockReturnValue(true),
+      testConnection: vi.fn().mockResolvedValue(undefined),
       search: vi.fn(),
       fetchDiscover: vi.fn(),
       fetchTrending: vi.fn(),
@@ -524,7 +525,9 @@ describe('interaction service - integration tests', () => {
 
   describe('requestMediaToArr', () => {
     const tmdbWithTvdb: TMDBService = {
-      loadGenres: vi.fn().mockResolvedValue(undefined),
+      configure: vi.fn().mockResolvedValue(undefined),
+      isConfigured: vi.fn().mockReturnValue(true),
+      testConnection: vi.fn().mockResolvedValue(undefined),
       search: vi.fn(),
       fetchDiscover: vi.fn(),
       fetchTrending: vi.fn(),
@@ -695,34 +698,6 @@ describe('interaction service - integration tests', () => {
       expect(media.status).toBe('requested');
       // request was attempted but returned empty object (not configured)
       await vi.waitFor(() => expect(radarrService.request).toHaveBeenCalled());
-    });
-
-    it('should not forward below the request threshold', async () => {
-      const user1 = await createTestUserInDb(db, { email: 'u1@test.com', displayName: 'U1' });
-      const user2 = await createTestUserInDb(db, { email: 'u2@test.com', displayName: 'U2' });
-      expectDefined(user1);
-      expectDefined(user2);
-
-      await createInteraction(
-        tmdbWithTvdb,
-        radarrService,
-        sonarrService,
-        catalogService,
-        db,
-        interaction,
-        user1
-      );
-      await createInteraction(
-        tmdbWithTvdb,
-        radarrService,
-        sonarrService,
-        catalogService,
-        db,
-        interaction,
-        user2
-      );
-
-      expect(radarrService.request).toHaveBeenCalledOnce();
     });
   });
 });

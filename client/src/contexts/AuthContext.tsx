@@ -8,9 +8,11 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   isLoading: boolean;
+  tmdbConfigured: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  refreshBootstrapStatus: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,6 +20,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [tmdbConfigured, setTmdbConfigured] = useState(false);
 
   // Fetch current user on mount
   useEffect(() => {
@@ -41,24 +44,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   async function refreshUser() {
+    setIsLoading(true);
     try {
       const user = await authService.me();
       setUser(user);
+      const bootstrap = await authService.bootstrap();
+      setTmdbConfigured(bootstrap.tmdbConfigured);
     } catch {
       setUser(null);
+      setTmdbConfigured(false);
     } finally {
       setIsLoading(false);
     }
   }
 
+  async function refreshBootstrapStatus() {
+    if (!user) {
+      setTmdbConfigured(false);
+      return;
+    }
+
+    const bootstrap = await authService.bootstrap();
+    setTmdbConfigured(bootstrap.tmdbConfigured);
+  }
+
   async function login(email: string, password: string) {
     const user = await authService.login({ email, password });
     setUser(user);
+    const bootstrap = await authService.bootstrap();
+    setTmdbConfigured(bootstrap.tmdbConfigured);
   }
 
   async function logout() {
     await authService.logout();
     setUser(null);
+    setTmdbConfigured(false);
   }
 
   const value: AuthContextType = {
@@ -66,9 +86,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAuthenticated: isDefined(user),
     isAdmin: user?.role === 'admin',
     isLoading,
+    tmdbConfigured,
     login,
     logout,
     refreshUser,
+    refreshBootstrapStatus,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

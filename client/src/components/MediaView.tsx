@@ -1,4 +1,4 @@
-import { type MovieDetails, type TVDetails, type Media, isDefined } from '@findarr/shared';
+import { type MovieDetails, type TVDetails, type Media } from '@findarr/shared';
 import { useState } from 'react';
 import { linkService } from '../services/api.js';
 import { LikeDislikeButton } from './LikeDislikeButton';

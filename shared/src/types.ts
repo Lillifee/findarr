@@ -72,6 +72,10 @@ export interface Season {
   status?: 'none' | 'requested' | 'monitored' | 'downloaded' | 'available';
 }
 
+export interface AppBootstrapStatus {
+  tmdbConfigured: boolean;
+}
+
 export type MediaStatus =
   | 'pending'
   | 'requested'

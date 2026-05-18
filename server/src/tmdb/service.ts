@@ -10,6 +10,7 @@ import type {
   UserSettingsQuery,
   MediaType,
 } from '@findarr/shared';
+import { HttpError } from '../utils/errors.js';
 import type { TMDBClient } from './client.js';
 import { buildDiscoverParams } from './helpers.js';
 import type { TMDBTrendingParams } from './schemas.js';
@@ -22,18 +23,44 @@ import { transformMedia, transformDetails } from './transformers.js';
 export function createTMDBService(tmdbClient: TMDBClient) {
   const genreMap = new Map<number, Genre>();
 
-  /**
-   * Load genres once at startup
-   */
-  async function loadGenres(): Promise<void> {
+  function getClient(): TMDBClient {
+    if (!tmdbClient.isConfigured()) {
+      throw new HttpError(503, 'TMDB integration is not configured');
+    }
+
+    return tmdbClient;
+  }
+
+  async function configure(accessToken: string | null): Promise<void> {
+    await tmdbClient.configure(accessToken);
+
+    if (!tmdbClient.isConfigured()) {
+      genreMap.clear();
+      return;
+    }
+
+    await loadGenres(tmdbClient);
+  }
+
+  async function loadGenres(client: TMDBClient): Promise<void> {
     const [movieGenres, tvGenres] = await Promise.all([
-      tmdbClient.getGenres('movie', { language: 'en-US' }),
-      tmdbClient.getGenres('tv', { language: 'en-US' }),
+      client.getGenres('movie', { language: 'en-US' }),
+      client.getGenres('tv', { language: 'en-US' }),
     ]);
+
+    genreMap.clear();
 
     for (const genre of [...movieGenres.genres, ...tvGenres.genres]) {
       genreMap.set(genre.id, genre);
     }
+  }
+
+  async function testConnection(): Promise<void> {
+    await getClient().testConnection();
+  }
+
+  function isConfigured(): boolean {
+    return tmdbClient.isConfigured();
   }
 
   /**
@@ -45,7 +72,7 @@ export function createTMDBService(tmdbClient: TMDBClient) {
 
     const searchTypes = type === 'both' ? (['movie', 'tv'] as const) : ([type] as const);
     const promises = searchTypes.map(searchType =>
-      tmdbClient.search(searchType, { query, page, language, region })
+      getClient().search(searchType, { query, page, language, region })
     );
 
     const searchResponses = await Promise.all(promises);
@@ -80,7 +107,7 @@ export function createTMDBService(tmdbClient: TMDBClient) {
     const discoverParams = buildDiscoverParams(params);
     const discoverPromises = discoverTypes.flatMap(discoverType =>
       pagesToFetch.map(pageNum =>
-        tmdbClient.discover(discoverType, { ...discoverParams, page: pageNum })
+        getClient().discover(discoverType, { ...discoverParams, page: pageNum })
       )
     );
 
@@ -105,13 +132,14 @@ export function createTMDBService(tmdbClient: TMDBClient) {
     pages?: number[]
   ): Promise<DiscoverResponse> {
     const { language = 'en-US', time_window = 'week' } = params;
+    const client = getClient();
 
     const pagesToFetch = pages ?? [1];
     const ranks: Record<MediaType, number> = { movie: 0, tv: 0 };
 
     const responses = await Promise.all(
       (['movie', 'tv'] as const).flatMap(type =>
-        pagesToFetch.map(page => tmdbClient.getTrending(type, { language, time_window, page }))
+        pagesToFetch.map(page => client.getTrending(type, { language, time_window, page }))
       )
     );
 
@@ -135,7 +163,7 @@ export function createTMDBService(tmdbClient: TMDBClient) {
   async function getDetails(params: DetailsQuery): Promise<MediaDetails> {
     const { id, type, language = 'en-US' } = params;
 
-    const tmdbMovie = await tmdbClient.getDetails(type, { id, language });
+    const tmdbMovie = await getClient().getDetails(type, { id, language });
     return transformDetails(tmdbMovie);
   }
 
@@ -155,12 +183,14 @@ export function createTMDBService(tmdbClient: TMDBClient) {
     tvdbId: number;
     type: MediaType;
   }): Promise<number | undefined> {
-    const result = await tmdbClient.findByExternalId(params.tvdbId, 'tvdb_id');
+    const result = await getClient().findByExternalId(params.tvdbId, 'tvdb_id');
     return params.type === 'movie' ? result.movie_results?.[0]?.id : result.tv_results?.[0]?.id;
   }
 
   return {
-    loadGenres,
+    configure,
+    isConfigured,
+    testConnection,
     search,
     fetchDiscover,
     fetchTrending,

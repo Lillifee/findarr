@@ -38,13 +38,6 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
   const popularFeedSnapshotStore = createFeedSnapshotStore<Media>();
 
   /**
-   * Initialize all data sources
-   */
-  async function initialize() {
-    await tmdbService.loadGenres();
-  }
-
-  /**
    * Search for media across all sources
    * Currently delegates to TMDB
    */
@@ -225,7 +218,6 @@ export function createCatalogService(db: DB, tmdbService: TMDBService) {
   }
 
   return {
-    initialize,
     search,
     popular,
     discover,

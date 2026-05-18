@@ -17,12 +17,12 @@ const schedulerPlugin: FastifyPluginAsync = async fastify => {
   // Decorate Fastify instance
   fastify.decorate('scheduler', schedulerService);
 
-  fastify.log.info('Scheduler plugin registered');
+  fastify.log.info({ name: 'scheduler' }, 'Scheduler plugin registered');
 
   // Cleanup on server close
   fastify.addHook('onClose', async () => {
     schedulerService.stopOrchestration();
-    fastify.log.info('Scheduler service stopped');
+    fastify.log.info({ name: 'scheduler' }, 'Scheduler service stopped');
   });
 };
 

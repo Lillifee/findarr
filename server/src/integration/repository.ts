@@ -3,28 +3,42 @@ import {
   RadarrSettingsQuerySchema,
   SonarrSettingsQuerySchema,
   JellyfinSettingsQuerySchema,
+  TmdbSettingsQuerySchema,
   type RadarrSettings,
   type SonarrSettings,
   type JellyfinSettings,
+  type TmdbSettings,
   type RadarrSettingsQuery,
   type SonarrSettingsQuery,
   type JellyfinSettingsQuery,
+  type TmdbSettingsQuery,
   objectEntries,
   isDefined,
 } from '@findarr/shared';
-export type { RadarrSettings, SonarrSettings, JellyfinSettings } from '@findarr/shared';
+export type {
+  RadarrSettings,
+  SonarrSettings,
+  JellyfinSettings,
+  TmdbSettings,
+} from '@findarr/shared';
 import { eq, inArray } from 'drizzle-orm';
 import type { DB } from '../db/setup.js';
 
-type RadarrSettingKeys = keyof typeof RadarrSettingsQuerySchema.shape;
-type SonarrSettingKeys = keyof typeof SonarrSettingsQuerySchema.shape;
-type JellyfinSettingKeys = keyof typeof JellyfinSettingsQuerySchema.shape;
+type RadarrSettingKeys = Extract<keyof typeof RadarrSettingsQuerySchema.shape, string>;
+type SonarrSettingKeys = Extract<keyof typeof SonarrSettingsQuerySchema.shape, string>;
+type JellyfinSettingKeys = Extract<keyof typeof JellyfinSettingsQuerySchema.shape, string>;
+type TmdbSettingKeys = Extract<keyof typeof TmdbSettingsQuerySchema.shape, string>;
 
-export type SettingKey = RadarrSettingKeys | SonarrSettingKeys | JellyfinSettingKeys;
+export type SettingKey =
+  | RadarrSettingKeys
+  | SonarrSettingKeys
+  | JellyfinSettingKeys
+  | TmdbSettingKeys;
 
 const radarrKeys = Object.keys(RadarrSettingsQuerySchema.shape) as RadarrSettingKeys[];
 const sonarrKeys = Object.keys(SonarrSettingsQuerySchema.shape) as SonarrSettingKeys[];
 const jellyfinKeys = Object.keys(JellyfinSettingsQuerySchema.shape) as JellyfinSettingKeys[];
+const tmdbKeys = Object.keys(TmdbSettingsQuerySchema.shape) as TmdbSettingKeys[];
 
 async function read<K extends SettingKey>(db: DB, keys: K[]): Promise<Record<K, string | null>> {
   const rows = await db.query.appSettings.findMany({ where: inArray(appSettings.key, keys) });
@@ -36,7 +50,9 @@ export async function write(
   db: DB,
   values: Partial<Record<SettingKey, string | undefined>>
 ): Promise<void> {
-  const entries = objectEntries(values).filter(e => isDefined(e[1]));
+  const entries = objectEntries(values).filter((entry): entry is [SettingKey, string] =>
+    isDefined(entry[1])
+  );
   if (entries.length === 0) return;
   await Promise.all(
     entries.map(([key, value]) =>
@@ -165,5 +181,24 @@ export async function getJellyfinSettingsFull(
 
 export async function getJellyfinSettings(db: DB): Promise<JellyfinSettings> {
   const { jellyfinApiKey: _jellyfinApiKey, ...settings } = await getJellyfinSettingsFull(db);
+  return settings;
+}
+
+export async function setTmdbSettings(db: DB, settings: TmdbSettingsQuery): Promise<void> {
+  await write(db, settings as Partial<Record<SettingKey, string | undefined>>);
+}
+
+export async function getTmdbSettingsFull(
+  db: DB
+): Promise<TmdbSettings & { tmdbAccessToken: string | null }> {
+  const s = await read(db, tmdbKeys);
+  return {
+    tmdbAccessTokenSet: !!s.tmdbAccessToken,
+    tmdbAccessToken: s.tmdbAccessToken,
+  };
+}
+
+export async function getTmdbSettings(db: DB): Promise<TmdbSettings> {
+  const { tmdbAccessToken: _tmdbAccessToken, ...settings } = await getTmdbSettingsFull(db);
   return settings;
 }

@@ -30,7 +30,9 @@ describe('catalog service - integration tests', () => {
 
     // Mock TMDB service
     tmdbServiceMock = {
-      loadGenres: vi.fn().mockResolvedValue(undefined),
+      configure: vi.fn().mockResolvedValue(undefined),
+      isConfigured: vi.fn().mockReturnValue(true),
+      testConnection: vi.fn().mockResolvedValue(undefined),
       search: vi.fn(),
       fetchDiscover: vi.fn(),
       fetchTrending: vi.fn(),
@@ -44,12 +46,6 @@ describe('catalog service - integration tests', () => {
 
   afterEach(() => {
     sqliteDb.close();
-  });
-
-  it('should call TMDB loadGenres on initialize', async () => {
-    await catalogService.initialize();
-
-    expect(tmdbServiceMock.loadGenres).toHaveBeenCalled();
   });
 
   it('should delegate discover, getDetails, getGenres', async () => {

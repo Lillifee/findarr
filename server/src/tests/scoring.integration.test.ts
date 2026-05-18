@@ -59,7 +59,9 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
 
     // Mock TMDB service with fixture data (already transformed)
     const tmdbServiceMock: TMDBService = {
-      loadGenres: vi.fn().mockResolvedValue(undefined),
+      configure: vi.fn().mockResolvedValue(undefined),
+      isConfigured: vi.fn().mockReturnValue(true),
+      testConnection: vi.fn().mockResolvedValue(undefined),
       search: vi.fn(),
       fetchDiscover: vi.fn().mockResolvedValue({
         results: [...movieItems, ...tvItems],
@@ -93,7 +95,6 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
 
     // Create catalog service for testing
     catalogService = createCatalogService(db, tmdbServiceMock);
-    await catalogService.initialize();
   });
 
   afterEach(() => {

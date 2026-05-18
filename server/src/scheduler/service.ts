@@ -23,7 +23,10 @@ export function createSchedulerService(
     scheduler.state.lastError = null;
 
     try {
-      fastify.log.debug({ name: scheduler.config.name }, `Executing scheduler`);
+      fastify.log.debug(
+        { name: 'scheduler', schedulerName: scheduler.config.name },
+        'Executing scheduler'
+      );
 
       // Run scheduler and get result
       const shouldContinue = await scheduler.run(fastify);
@@ -38,11 +41,12 @@ export function createSchedulerService(
         scheduler.state.nextRun = Date.now() + scheduler.config.interval;
         fastify.log.debug(
           {
-            name: scheduler.config.name,
+            name: 'scheduler',
+            schedulerName: scheduler.config.name,
             duration,
             nextRunIn: Math.round(scheduler.config.interval / 1000),
           },
-          `Scheduler completed`
+          'Scheduler completed'
         );
       } else {
         // Scheduler wants to self-terminate - check minimum runtime
@@ -52,13 +56,14 @@ export function createSchedulerService(
           scheduler.state.nextRun = Date.now() + scheduler.config.interval;
           fastify.log.debug(
             {
-              name: scheduler.config.name,
+              name: 'scheduler',
+              schedulerName: scheduler.config.name,
               duration,
               totalRuntime,
               minRuntime: scheduler.config.minRuntime,
               nextRunIn: Math.round(scheduler.config.interval / 1000),
             },
-            `Scheduler requested termination but within minimum runtime - rescheduling`
+            'Scheduler requested termination but within minimum runtime - rescheduling'
           );
         } else {
           // Allow self-termination
@@ -66,8 +71,13 @@ export function createSchedulerService(
           scheduler.state.enabled = false;
           scheduler.state.startedAt = null; // Reset for next start
           fastify.log.info(
-            { name: scheduler.config.name, duration, totalRuntime },
-            `Scheduler self-terminated`
+            {
+              name: 'scheduler',
+              schedulerName: scheduler.config.name,
+              duration,
+              totalRuntime,
+            },
+            'Scheduler self-terminated'
           );
         }
       }
@@ -81,8 +91,14 @@ export function createSchedulerService(
       scheduler.state.nextRun = Date.now() + scheduler.config.interval;
 
       fastify.log.error(
-        { name: scheduler.config.name, duration },
-        `Scheduler failed, ${scheduler.state.lastError} retrying in ${scheduler.config.interval / 1000}s`
+        {
+          name: 'scheduler',
+          schedulerName: scheduler.config.name,
+          duration,
+          error: scheduler.state.lastError,
+          retryInSec: scheduler.config.interval / 1000,
+        },
+        'Scheduler failed, retrying'
       );
     } finally {
       scheduler.state.isRunning = false;
@@ -109,8 +125,8 @@ export function createSchedulerService(
       // Execute scheduler (async, don't await to prevent blocking other schedulers)
       executeScheduler(scheduler).catch(error => {
         fastify.log.error(
-          { error, name: scheduler.config.name },
-          `Unexpected error in scheduler execution`
+          { name: 'scheduler', schedulerName: scheduler.config.name, err: error },
+          'Unexpected error in scheduler execution'
         );
       });
     }
@@ -139,7 +155,7 @@ export function createSchedulerService(
         scheduler.state.nextRun = Date.now();
       }
 
-      fastify.log.info({ name: params.name }, `Scheduler '${params.name}' started`);
+      fastify.log.info({ name: 'scheduler', schedulerName: params.name }, 'Scheduler started');
     },
 
     /**
@@ -154,7 +170,7 @@ export function createSchedulerService(
       scheduler.state.nextRun = null;
       scheduler.state.startedAt = null;
 
-      fastify.log.info({ name: params.name }, `Scheduler '${params.name}' stopped`);
+      fastify.log.info({ name: 'scheduler', schedulerName: params.name }, 'Scheduler stopped');
     },
 
     /**
@@ -167,7 +183,10 @@ export function createSchedulerService(
         throw new Error(`Scheduler '${params.name}' is already running`);
       }
 
-      fastify.log.info({ name: params.name }, `Manually triggering scheduler '${params.name}'`);
+      fastify.log.info(
+        { name: 'scheduler', schedulerName: params.name },
+        'Manually triggering scheduler'
+      );
       await executeScheduler(scheduler);
     },
 
@@ -187,7 +206,7 @@ export function createSchedulerService(
      */
     async startOrchestration() {
       fastify.log.info(
-        { tickIntervalSec: TICK_INTERVAL_MS / 1000 },
+        { name: 'scheduler', tickIntervalSec: TICK_INTERVAL_MS / 1000 },
         'Starting scheduler orchestration'
       );
 
@@ -213,7 +232,7 @@ export function createSchedulerService(
         clearTimeout(timer);
         timer = null;
       }
-      fastify.log.info('Stopped scheduler orchestration');
+      fastify.log.info({ name: 'scheduler' }, 'Stopped scheduler orchestration');
     },
   };
 }

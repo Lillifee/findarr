@@ -1,3 +1,5 @@
+import crypto from 'node:crypto';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import cookie from '@fastify/cookie';
 import secureSession from '@fastify/secure-session';
 import type { User } from '@findarr/shared';
@@ -29,7 +31,17 @@ declare module 'fastify' {
 }
 
 interface AuthPluginOptions extends FastifyPluginOptions {
-  sessionSecret: string;
+  secretPath: string;
+}
+
+function loadOrCreateSecret(secretPath: string) {
+  if (existsSync(secretPath)) {
+    return readFileSync(secretPath, 'utf8');
+  }
+
+  const secret = crypto.randomBytes(32).toString('hex');
+  writeFileSync(secretPath, secret, { mode: 0o600 });
+  return secret;
 }
 
 const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, options) => {
@@ -38,7 +50,7 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, option
 
   // Register secure session
   await fastify.register(secureSession, {
-    secret: options.sessionSecret,
+    secret: loadOrCreateSecret(options.secretPath),
     salt: 'findarr-salt-016', // Exactly 16 characters
     cookie: {
       path: '/',
@@ -79,7 +91,7 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, option
     }
   });
 
-  fastify.log.info('Authentication plugin initialized');
+  fastify.log.info({ name: 'auth' }, 'Authentication plugin initialized');
 };
 
 export default fp(authPlugin, {

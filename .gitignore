@@ -15,15 +15,16 @@ coverage/
 *.log
 npm-debug.log*
 
-# Editor and IDE
-.vscode/settings.json
+# IDE / editor
+.vscode/
+.idea/
 .github/copilot-instructions.md
 
 # Temporary files
 *.tmp
 
-# Database 
+# Database / local runtime data
 data/
 
-# Temporary files
+# Misc
 TODO.txt

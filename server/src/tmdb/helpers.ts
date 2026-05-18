@@ -180,13 +180,19 @@ export async function processWithWorkerPool<TItem, TResult>(options: {
         }
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Unknown error';
-        log.warn({ error: message }, 'Worker processing failed');
+        log.warn({ name: 'tmdb', error: message }, 'Worker processing failed');
       }
 
       // Progress logging
       if ((index + 1) % 50 === 0 || index + 1 === items.length) {
         log.info(
-          `Worker progress: ${index + 1}/${items.length} items (${results.length} successful)`
+          {
+            name: 'tmdb',
+            processedItems: index + 1,
+            totalItems: items.length,
+            successCount: results.length,
+          },
+          'Worker progress'
         );
       }
     }

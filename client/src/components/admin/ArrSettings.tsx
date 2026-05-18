@@ -3,11 +3,13 @@ import type {
   ArrRootFolder,
   ArrTestResult,
   JellyfinTestResult,
+  TmdbTestResult,
   RadarrSettings,
   SonarrSettings,
 } from '@findarr/shared';
 import { useState, useEffect, useCallback } from 'react';
-import { adminArrService, adminJellyfinService } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
+import { adminArrService, adminJellyfinService, adminTmdbService } from '../../services/api';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Input } from '../ui/Input';
@@ -601,14 +603,215 @@ function JellyfinSection() {
   );
 }
 
+export function TmdbSection() {
+  const { refreshBootstrapStatus } = useAuth();
+  const [testResult, setTestResult] = useState<TmdbTestResult | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isTesting, setIsTesting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const [savedTokenSet, setSavedTokenSet] = useState(false);
+  const [tokenInput, setTokenInput] = useState('');
+
+  function clearFeedback() {
+    setError('');
+    setSuccess('');
+  }
+
+  function handleTokenChange(value: string) {
+    clearFeedback();
+    setTokenInput(value);
+  }
+
+  const isDirty = tokenInput !== '';
+  const hasSavedSettings = savedTokenSet;
+  const canTestConnection = hasSavedSettings && !isDirty;
+  const feedback = error
+    ? { tone: 'error' as const, message: error }
+    : success
+      ? { tone: 'success' as const, message: success }
+      : null;
+
+  const init = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const settings = await adminTmdbService.getSettings();
+
+      setSavedTokenSet(settings.tmdbAccessTokenSet);
+      setTokenInput('');
+      setTestResult(null);
+    } catch {
+      // ignore
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void init();
+  }, [init]);
+
+  async function runTest() {
+    setError('');
+    setSuccess('');
+    try {
+      const result = await adminTmdbService.test();
+      setTestResult(result);
+      if (result.connected) {
+        setSuccess('Connection successful. TMDB is ready.');
+        await refreshBootstrapStatus();
+      } else {
+        setError('Could not reach TMDB. Save a valid access token, then test again.');
+      }
+    } catch {
+      setError('Failed to test connection');
+    }
+  }
+
+  async function handleTest() {
+    setIsTesting(true);
+    try {
+      await runTest();
+    } finally {
+      setIsTesting(false);
+    }
+  }
+
+  async function saveSettings() {
+    setError('');
+    setSuccess('');
+    try {
+      const savedSettings = await adminTmdbService.saveSettings({
+        ...(tokenInput ? { tmdbAccessToken: tokenInput } : {}),
+      });
+
+      setSavedTokenSet(savedSettings.tmdbAccessTokenSet);
+      setTokenInput('');
+      setTestResult(null);
+    } catch {
+      setError('Failed to save settings');
+      throw new Error('save failed');
+    }
+  }
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      await saveSettings();
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  const badgeBase = 'px-2 py-0.5 rounded text-xs font-medium';
+  let statusBadge: React.ReactNode;
+  if (isLoading) {
+    statusBadge = <span className={`${badgeBase} bg-gray-700 text-gray-400`}>Loading…</span>;
+  } else if (isDirty) {
+    statusBadge = (
+      <span className={`${badgeBase} bg-yellow-900/50 text-yellow-400 border border-yellow-700`}>
+        Unsaved changes
+      </span>
+    );
+  } else if (!hasSavedSettings) {
+    statusBadge = <span className={`${badgeBase} bg-gray-700 text-gray-400`}>Not configured</span>;
+  } else if (!testResult) {
+    statusBadge = (
+      <span className={`${badgeBase} bg-blue-900/40 text-blue-300 border border-blue-700/70`}>
+        Ready to test
+      </span>
+    );
+  } else if (testResult.connected) {
+    statusBadge = (
+      <span className={`${badgeBase} bg-green-900/50 text-green-400 border border-green-700`}>
+        Connected
+      </span>
+    );
+  } else {
+    statusBadge = (
+      <span className={`${badgeBase} bg-red-900/50 text-red-400 border border-red-700`}>
+        Disconnected
+      </span>
+    );
+  }
+
+  return (
+    <Card variant="solid" padding="md">
+      <div className="flex items-center gap-2 mb-5">
+        <h3 className="text-lg font-semibold text-white">TMDB</h3>
+        {statusBadge}
+      </div>
+      <p className="text-sm text-gray-400 -mt-3 mb-5">
+        Metadata provider for search, discovery, and media details.
+      </p>
+
+      <form onSubmit={handleSave} className="space-y-4">
+        <StepPanel
+          title="Step 1"
+          message="Save the TMDB access token before testing the connection."
+        >
+          <div>
+            <label className="block mb-1.5 text-sm text-gray-300">
+              Access Token
+              {savedTokenSet && !tokenInput && (
+                <span className="ml-2 text-xs text-gray-500 font-normal">
+                  (already set — leave blank to keep)
+                </span>
+              )}
+            </label>
+            <Input
+              type="password"
+              value={tokenInput}
+              onChange={e => handleTokenChange(e.target.value)}
+              placeholder={savedTokenSet ? '••••••••••••••••' : 'Enter TMDB access token'}
+              autoComplete="new-password"
+            />
+          </div>
+        </StepPanel>
+
+        <div className="flex flex-col gap-3 border-t border-gray-800/80 pt-4 sm:flex-row sm:items-start sm:gap-4">
+          <div className="flex flex-wrap gap-2">
+            <Button type="submit" disabled={isSaving || !isDirty} size="sm">
+              {isSaving ? 'Saving…' : 'Save Settings'}
+            </Button>
+            {canTestConnection && (
+              <Button
+                type="button"
+                onClick={handleTest}
+                disabled={isTesting}
+                variant="secondary"
+                size="sm"
+              >
+                {isTesting
+                  ? 'Testing…'
+                  : testResult?.connected
+                    ? 'Retest Connection'
+                    : 'Test Connection'}
+              </Button>
+            )}
+          </div>
+
+          <div className="sm:min-h-10 sm:flex-1">
+            {feedback && <InlineFeedback tone={feedback.tone} message={feedback.message} />}
+          </div>
+        </div>
+      </form>
+    </Card>
+  );
+}
+
 export function ArrSettings() {
   return (
     <div className="space-y-6">
       <PageHeader
         title="Integrations"
-        description="Configure Jellyfin, Radarr, and Sonarr for automatic media management."
+        description="Configure TMDB, Jellyfin, Radarr, and Sonarr for discovery and automatic media management."
       />
       <div className="space-y-6">
+        <TmdbSection />
         <JellyfinSection />
         <ArrSection
           service="radarr"

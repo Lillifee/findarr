@@ -1,5 +1,5 @@
+import type { Media, MediaType, TVDetails } from '@findarr/shared';
 import { useState } from 'react';
-import type { Media, MediaType, TVDetails } from '../../../shared/dist/types';
 import { interactionService, searchService } from '../services/api';
 import SeasonSelectorModal from './SeasonSelectorModal';
 

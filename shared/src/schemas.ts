@@ -13,16 +13,10 @@ const arrayParam = <T extends z.ZodTypeAny>(schema: T) =>
 // ============================================================================
 
 export const ServerEnvSchema = z.object({
-  TMDB_ACCESS_TOKEN: z.string(),
-  SESSION_SECRET: z.string().min(32),
-  TMDB_BASE_URL: z.url().default('https://api.themoviedb.org/3'),
   PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
   HOST: z.string().default('0.0.0.0'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('production'),
-  DB_PATH: z.string().default('./data/findarr.db'),
-  ADMIN_EMAIL: z.email().default('admin@findarr.local'),
-  ADMIN_PASSWORD: z.string().default('changeme'),
-  JELLYFIN_SYNC_INTERVAL_MIN: z.coerce.number().int().min(1).default(30),
+  DATA_PATH: z.string().default('./data'),
 });
 
 // ============================================================================
@@ -134,8 +128,13 @@ export const UserSettingsSchema = z.object({
 export const UserSettingsQuerySchema = UserSettingsSchema.partial();
 
 // ============================================================================
-// Admin / Integration Schemas (Radarr, Sonarr, Jellyfin)
+// Admin / Integration Schemas (TMDB, Radarr, Sonarr, Jellyfin)
 // ============================================================================
+
+/** Request body for PUT /admin/tmdb/settings */
+export const TmdbSettingsQuerySchema = z.object({
+  tmdbAccessToken: z.string().min(1).optional(),
+});
 
 /** Request body for PUT /admin/radarr/settings */
 export const RadarrSettingsQuerySchema = z.object({
@@ -157,6 +156,11 @@ export const SonarrSettingsQuerySchema = z.object({
 export const JellyfinSettingsQuerySchema = z.object({
   jellyfinUrl: z.string().optional(),
   jellyfinApiKey: z.string().optional(),
+});
+
+/** Response shape for GET /admin/tmdb/settings */
+export const TmdbSettingsSchema = z.object({
+  tmdbAccessTokenSet: z.boolean(),
 });
 
 /** Response shape for GET /admin/radarr/settings */
@@ -194,6 +198,12 @@ export const ArrRootFolderSchema = z.object({
   freeSpace: z.number().optional(),
 });
 
+/** Response shape for POST /admin/tmdb/test */
+export const TmdbTestResultSchema = z.object({
+  configured: z.boolean(),
+  connected: z.boolean(),
+});
+
 /** Response shape for POST /admin/radarr/test and POST /admin/sonarr/test */
 export const ArrTestResultSchema = z.object({
   configured: z.boolean(),
@@ -229,6 +239,10 @@ export type SchedulerName = z.infer<typeof SchedulerNameSchema>;
 export const SchedulerParamsSchema = z.object({
   name: SchedulerNameSchema,
 });
+
+export type TmdbSettingsQuery = z.infer<typeof TmdbSettingsQuerySchema>;
+export type TmdbSettings = z.infer<typeof TmdbSettingsSchema>;
+export type TmdbTestResult = z.infer<typeof TmdbTestResultSchema>;
 
 export type RadarrSettingsQuery = z.infer<typeof RadarrSettingsQuerySchema>;
 export type SonarrSettingsQuery = z.infer<typeof SonarrSettingsQuerySchema>;

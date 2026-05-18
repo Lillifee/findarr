@@ -31,7 +31,7 @@ export function registerErrorHandler(app: FastifyInstance) {
   app.setErrorHandler((error, request, reply) => {
     // Handle Zod validation errors
     if (error instanceof ZodError) {
-      request.log.warn({ err: error }, 'Validation error');
+      request.log.warn({ name: 'request', err: error }, 'Validation error');
       return reply.status(400).send({
         error: 'Invalid request data',
         details: error.issues,
@@ -46,9 +46,9 @@ export function registerErrorHandler(app: FastifyInstance) {
 
     // Log error (500s are unexpected, so log with higher severity)
     if (statusCode >= 500) {
-      request.log.error({ err: error }, message);
+      request.log.error({ name: 'request', err: error }, message);
     } else {
-      request.log.warn({ err: error }, message);
+      request.log.warn({ name: 'request', err: error }, message);
     }
 
     // Send response

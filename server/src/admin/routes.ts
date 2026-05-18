@@ -4,6 +4,7 @@ import {
   RadarrSettingsQuerySchema,
   SonarrSettingsQuerySchema,
   JellyfinSettingsQuerySchema,
+  TmdbSettingsQuerySchema,
 } from '@findarr/shared';
 import type { FastifyPluginAsync } from 'fastify';
 import { createUser, deleteUser, listAllUsers } from '../auth/repository.js';
@@ -14,6 +15,8 @@ import {
   setSonarrSettings,
   getJellyfinSettings,
   setJellyfinSettings,
+  getTmdbSettings,
+  setTmdbSettings,
 } from '../integration/repository.js';
 import { protectedRoute } from '../utils/routes.js';
 
@@ -97,6 +100,45 @@ const adminRoutes: FastifyPluginAsync = async fastify => {
   });
 
   fastify.post('/jellyfin/test', () => fastify.jellyfin.getConnectionInfo());
+
+  // ============================================================================
+  // TMDB settings & status
+  // ============================================================================
+
+  fastify.get('/tmdb/settings', () => getTmdbSettings(fastify.db));
+
+  fastify.put('/tmdb/settings', async r => {
+    const body = TmdbSettingsQuerySchema.parse(r.body);
+
+    await setTmdbSettings(fastify.db, body);
+
+    try {
+      await fastify.tmdb.configure(body.tmdbAccessToken ?? null);
+    } catch (error) {
+      fastify.log.warn({ name: 'tmdb', err: error }, 'Saved TMDB token failed to initialize');
+      await fastify.tmdb.configure(null);
+    }
+
+    return getTmdbSettings(fastify.db);
+  });
+
+  fastify.post('/tmdb/test', async () => {
+    const settings = await getTmdbSettings(fastify.db);
+
+    if (!settings.tmdbAccessTokenSet || !fastify.tmdb.isConfigured()) {
+      return {
+        configured: settings.tmdbAccessTokenSet,
+        connected: false,
+      };
+    }
+
+    try {
+      await fastify.tmdb.testConnection();
+      return { configured: true, connected: true };
+    } catch {
+      return { configured: true, connected: false };
+    }
+  });
 };
 
 export { adminRoutes };

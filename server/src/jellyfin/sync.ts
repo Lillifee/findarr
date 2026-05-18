@@ -14,13 +14,13 @@ import {
  */
 export async function syncJellyfinLibrary(fastify: FastifyInstance): Promise<void> {
   const startTime = Date.now();
-  fastify.log.info(`Starting jellyfin library sync...`);
+  fastify.log.info({ name: 'jellyfin' }, 'Starting library sync');
 
   // Check if Jellyfin is configured
   const isConfigured = await fastify.jellyfin.isConfigured();
 
   if (!isConfigured) {
-    fastify.log.debug('Jellyfin not configured - skipping sync');
+    fastify.log.debug({ name: 'jellyfin' }, 'Not configured - skipping sync');
     return;
   }
 
@@ -31,13 +31,13 @@ export async function syncJellyfinLibrary(fastify: FastifyInstance): Promise<voi
     throw new Error('Jellyfin connection test failed');
   }
 
-  fastify.log.debug('Jellyfin connection successful');
+  fastify.log.debug({ name: 'jellyfin' }, 'Connection successful');
 
   // Fetch items from Jellyfin (includes season data embedded for TV shows)
   const jellyfinItems = await fastify.jellyfin.getAllMedia();
 
   if (jellyfinItems.length === 0) {
-    fastify.log.warn('No items found in Jellyfin with TMDB IDs');
+    fastify.log.warn({ name: 'jellyfin' }, 'No items found with TMDB IDs');
     return;
   }
 
@@ -54,17 +54,18 @@ export async function syncJellyfinLibrary(fastify: FastifyInstance): Promise<voi
 
   if (removedJellyfinIds.length > 0) {
     const clearedCount = await clearRemovedJellyfinItems(fastify.db, removedJellyfinIds);
-    fastify.log.info(`Cleaned up ${clearedCount} items removed from Jellyfin`);
+    fastify.log.info({ name: 'jellyfin', clearedCount }, 'Cleaned up removed items');
   }
 
   const durationMs = Date.now() - startTime;
 
   fastify.log.info(
     {
+      name: 'jellyfin',
       totalFetched: jellyfinItems.length,
       affectedRows,
       durationMs,
     },
-    `Jellyfin library sync completed`
+    'Library sync completed'
   );
 }
