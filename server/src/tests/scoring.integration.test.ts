@@ -19,12 +19,17 @@ import { createTestUserInDb } from './helpers/testHelper.js';
 const toFixed2 = (value: number | undefined) =>
   isDefined(value) ? Number(value.toFixed(2)) : undefined;
 
+const FIXED_NOW = new Date('2025-01-01T00:00:00.000Z');
+
 describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
   let db: DB;
   let sqliteDb: SqlDatabase.Database;
   let catalogService: ReturnType<typeof createCatalogService>;
 
   beforeEach(async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(FIXED_NOW);
+
     // Create fresh in-memory database
     const result = createDatabase(':memory:');
     db = result.db;
@@ -99,6 +104,7 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
 
   afterEach(() => {
     sqliteDb.close();
+    vi.useRealTimers();
   });
 
   async function createCatalogUser(email: string) {

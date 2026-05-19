@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  validate:
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,5 +23,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Validate repository
+      - name: Validate and test repository
         run: npm run ci
