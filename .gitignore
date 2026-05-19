@@ -18,7 +18,6 @@ npm-debug.log*
 # IDE / editor
 .vscode/
 .idea/
-.github/copilot-instructions.md
 
 # Temporary files
 *.tmp
