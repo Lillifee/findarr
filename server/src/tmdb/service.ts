@@ -31,14 +31,8 @@ export function createTMDBService(tmdbClient: TMDBClient) {
     return tmdbClient;
   }
 
-  async function configure(accessToken: string | null): Promise<void> {
+  async function configure(accessToken: string | undefined): Promise<void> {
     await tmdbClient.configure(accessToken);
-
-    if (!tmdbClient.isConfigured()) {
-      genreMap.clear();
-      return;
-    }
-
     await loadGenres(tmdbClient);
   }
 

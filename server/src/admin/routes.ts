@@ -109,16 +109,8 @@ const adminRoutes: FastifyPluginAsync = async fastify => {
 
   fastify.put('/tmdb/settings', async r => {
     const body = TmdbSettingsQuerySchema.parse(r.body);
-
+    await fastify.tmdb.configure(body.tmdbAccessToken);
     await setTmdbSettings(fastify.db, body);
-
-    try {
-      await fastify.tmdb.configure(body.tmdbAccessToken ?? null);
-    } catch (error) {
-      fastify.log.warn({ name: 'tmdb', err: error }, 'Saved TMDB token failed to initialize');
-      await fastify.tmdb.configure(null);
-    }
-
     return getTmdbSettings(fastify.db);
   });
 

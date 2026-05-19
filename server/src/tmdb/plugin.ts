@@ -20,7 +20,7 @@ const tmdbPlugin: FastifyPluginAsync<TMDBPluginOptions> = async fastify => {
   const tmdbClient = createTMDBClient();
   const tmdbService = createTMDBService(tmdbClient);
 
-  await tmdbService.configure(tmdbSettings.tmdbAccessToken).catch(error => {
+  await tmdbService.configure(tmdbSettings.tmdbAccessToken ?? undefined).catch(error => {
     fastify.log.warn(
       { name: 'tmdb', err: error },
       'Failed to initialize TMDB client with saved token'

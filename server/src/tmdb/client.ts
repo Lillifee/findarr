@@ -30,7 +30,7 @@ export function createTMDBClient() {
   }
 
   return {
-    async configure(nextAccessToken: string | null) {
+    async configure(nextAccessToken: string | undefined) {
       if (!isDefined(nextAccessToken)) {
         client = undefined;
         return;
