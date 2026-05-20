@@ -50,7 +50,7 @@ docker compose up -d
 Once running, open:
 
 ```txt
-http://localhost:3000
+http://localhost:8585
 ```
 
 ---
