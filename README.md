@@ -1,129 +1,100 @@
-# Findarr
+# 🎬 Findarr
 
-A full-stack TypeScript application for discovering movies and shows using the TMDB API, with future integration for media management systems like Jellyseer, Radarr, and Sonarr.
+> Discover movies and TV shows, vote with friends, and manage requests for your media stack — all in one place.
 
-## Tech Stack
+---
 
-- **Backend**: Node.js + TypeScript + Fastify + Zod
-- **Frontend**: React + TypeScript + Vite
-- **APIs**: TMDB API (for movie/show data)
-- **Validation**: Zod for runtime type safety
+## ✨ Features
 
-## Features
+### 🔎 Smart Discovery
 
-- 🎬 Search for movies and TV shows via TMDB API
-- 🔍 Detailed movie/show information and metadata
-- 🎯 Type-safe API requests with Zod validation
-- 🚀 High-performance backend with Fastify
-- ⚛️ Modern React frontend with TypeScript
-- 🔄 Future integration with media management tools
+- Search movies and TV series with rich metadata
+- Browse cast, ratings, release dates, and overviews
+- Personalized recommendations powered by genre + keyword scoring
 
-## Getting Started
+### 👍 Personalized Recommendations
 
-### Prerequisites
+- Like or dislike titles to train your recommendation feed
+- Findarr learns what you enjoy over time
+- Titles you've already rated are automatically hidden, so discovery stays fresh
 
-- Node.js 18+ and npm
-- TMDB API key (get one at [themoviedb.org](https://www.themoviedb.org/settings/api))
+### 📥 Media Requests
 
-### Installation
+- Request movies and shows directly from the app
+- Track request progress through your media pipeline
+- Get notified when content becomes available in your library
 
-1. **Clone and install**:
+### 🧩 Works With
 
-   ```bash
-   git clone <your-repo-url>
-   cd findarr
-   npm install
-   ```
+- [TMDB API](https://www.themoviedb.org/)
+- [Radarr](https://radarr.video/) / [Sonarr](https://sonarr.tv/)
+- [Jellyfin](https://jellyfin.org/)
+- [Docker](https://www.docker.com/)
 
-2. **Setup environment**:
+---
 
-   ```bash
-   cp server/.env.example server/.env
-   # Edit server/.env and add your API keys
-   ```
+## 🚀 Quick Start (Docker)
 
-3. **Start developing**:
-   ```bash
-   npm run dev
-   ```
+### Requirements
 
-This will start:
+- Docker with Compose support
+- Download or copy the [`docker-compose.yml`](/docker-compose.yml)
 
-- Backend server on http://localhost:3000
-- Frontend development server on http://localhost:5173
-
-## Docker Deployment
-
-The project can be deployed as a single container that serves both the Fastify API and the built React app.
-
-### Prerequisites
-
-- Docker Engine with Docker Compose support
-- A Findarr admin account for the initial TMDB setup
-
-### Run With Docker Compose
-
-1. Copy [.env.example](.env.example) to `.env`.
-2. Optionally change `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env` before first start.
-3. Pull and start the published image:
-
-   ```bash
-   docker compose pull
-   docker compose up -d
-   ```
-
-4. Open http://localhost:3000, sign in as an admin, then go to Integrations and save your TMDB access token.
-
-The production deployment stores the SQLite database and the generated session secret in a named volume mounted at `/app/server/data`, so both survive container restarts without extra secret management.
-
-Compose now keeps stable runtime defaults inside the image and application code, while `.env` is limited to optional instance-specific bootstrap overrides such as the initial admin account.
-
-### Local Development Override
-
-If you want local development convenience instead of the production deployment shape, use [docker-compose.dev.yml](docker-compose.dev.yml) as an override. It builds from the local Dockerfile and bind-mounts `./data` so the SQLite database is directly visible on the host.
+### Start Findarr
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+docker compose pull
+docker compose up -d
 ```
 
-This override is intended for local development and troubleshooting, not the default production deployment.
+Once running, open:
 
-### Build And Publish With GitHub Actions
-
-This repository now includes GitHub Actions workflows for both CI validation and Docker image publishing.
-
-- `.github/workflows/ci.yml` runs type-check, lint, format check, and build on pushes and pull requests.
-- `.github/workflows/docker-publish.yml` builds the production image and publishes it to GitHub Container Registry on pushes to `main`, version tags, or manual runs.
-
-The published image is configured directly in [docker-compose.yml](docker-compose.yml) as `ghcr.io/lillifee/findarr:latest`, while [docker-compose.dev.yml](docker-compose.dev.yml) is the local build override.
-
-### Runtime Notes
-
-- The health check endpoint remains available at `GET /health`.
-- API routes remain under `/api`.
-- Client-side routes such as `/explore` and `/admin/users` are served by the same container through a production SPA fallback.
-- Reverse proxy and HTTPS are not included in this first-pass deployment.
-
-## Project Structure
-
-```
-findarr/
-├── client/          # React frontend
-├── server/          # Fastify backend
-├── shared/          # Shared types and utilities
-└── package.json     # Root package with workspace config
+```txt
+http://localhost:3000
 ```
 
-## API Endpoints
+---
 
-- `GET /api/search/movie` - Search for movies
-- `GET /api/search/tv` - Search for TV shows
-- `GET /api/movie/:id` - Get movie details
-- `GET /api/tv/:id` - Get TV show details
+## 🔐 First-Time Setup
 
-## Future Features
+1. Sign in with the default admin account:
 
-- Integration with Jellyseer for media requests
-- Direct integration with Radarr/Sonarr APIs
-- User authentication and request management
-- Download status tracking
+```txt
+Email:    admin@findarr.com
+Password: changeme
+```
+
+2. Add your TMDB access token
+3. Save your settings
+4. Start discovering content 🎉
+
+---
+
+## 🧠 How Recommendations Work
+
+Findarr builds recommendations using:
+
+- Trending and recent movies and shows
+- Your liked and disliked titles
+- Genre and keyword preferences
+
+The more you interact, the smarter your recommendations become.
+
+---
+
+## 📺 Everyday Workflow
+
+```txt
+Discover → Vote → Request → Watch
+```
+
+1. Search for a movie or TV show
+2. Dislike and Like to request it
+3. Track request and availability updates
+4. Enjoy it once it lands in your library
+
+---
+
+## ❤️ Built For Self-Hosted Media Stacks
+
+Findarr is designed to fit naturally into modern self-hosted media ecosystems and make group discovery painless.
