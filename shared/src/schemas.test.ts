@@ -14,7 +14,7 @@ describe('schemas', () => {
   describe('ServerEnvSchema', () => {
     const validEnv = {
       HOST: '0.0.0.0',
-      PORT: '3000',
+      PORT: '8585',
     };
 
     it('should allow startup without TMDB or session env configuration', () => {
@@ -25,7 +25,7 @@ describe('schemas', () => {
     it('should apply correct default values', () => {
       const result = ServerEnvSchema.parse(validEnv);
 
-      expect(result.PORT).toBe(3000);
+      expect(result.PORT).toBe(8585);
       expect(result.HOST).toBe('0.0.0.0');
       expect(result.NODE_ENV).toBe('production');
       expect(result.DATA_PATH).toBe('./data');
