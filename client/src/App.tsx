@@ -4,7 +4,7 @@ import { Navigation } from './components/Navigation';
 import { TmdbSetupScreen } from './components/TmdbSetupScreen';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ActivityPage } from './pages/ActivityPage';
-import { ArrSettingsPage } from './pages/admin/ArrSettingsPage';
+import { IntegrationsSettingsPage } from './pages/admin/ArrSettingsPage';
 import { SchedulersPage } from './pages/admin/SchedulersPage';
 import { UserManagementPage } from './pages/admin/UserManagementPage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -72,7 +72,7 @@ function MainApp() {
           {isAdmin && (
             <>
               <Route path="/admin/users" element={<UserManagementPage />} />
-              <Route path="/admin/arr" element={<ArrSettingsPage />} />
+              <Route path="/admin/integrations" element={<IntegrationsSettingsPage />} />
               <Route path="/admin/schedulers" element={<SchedulersPage />} />
             </>
           )}

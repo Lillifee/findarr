@@ -8,8 +8,8 @@ import { createDatabase, type DB } from '../db/setup.js';
 import { addInteraction } from '../interaction/repository.js';
 import { createMedia } from '../media/repository.js';
 import { updateGenrePreference, updateKeywordPreference } from '../preferences/repository.js';
-import { saveUserSettings } from '../settings/service.js';
 import type { TMDBService } from '../tmdb/service.js';
+import { saveUserSettings } from '../user/service.js';
 import {
   createTestMedia,
   createTestMovieDetail,
@@ -31,13 +31,16 @@ describe('catalog service - integration tests', () => {
     // Mock TMDB service
     tmdbServiceMock = {
       configure: vi.fn().mockResolvedValue(undefined),
-      isConfigured: vi.fn().mockReturnValue(true),
-      testConnection: vi.fn().mockResolvedValue(undefined),
+      isConfigured: vi.fn().mockResolvedValue(true),
+      testConnection: vi.fn().mockResolvedValue(true),
+      connectionInfo: vi.fn().mockResolvedValue({ connected: true }),
+      getSettings: vi.fn().mockResolvedValue({ tmdbAccessTokenSet: true }),
+      setSettings: vi.fn().mockResolvedValue({ tmdbAccessTokenSet: true }),
       search: vi.fn(),
-      fetchDiscover: vi.fn(),
-      fetchTrending: vi.fn(),
-      getDetails: vi.fn(),
-      getGenres: vi.fn(),
+      discover: vi.fn(),
+      trending: vi.fn(),
+      details: vi.fn(),
+      genres: vi.fn(),
       findByExternalId: vi.fn(),
     } as Mocked<TMDBService>;
 
@@ -48,7 +51,7 @@ describe('catalog service - integration tests', () => {
     sqliteDb.close();
   });
 
-  it('should delegate discover, getDetails, getGenres', async () => {
+  it('should delegate discover, details, and genres', async () => {
     vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
     const user = await createTestUserInDb(db, { email: 'delegate@test.com' });
 
@@ -62,9 +65,9 @@ describe('catalog service - integration tests', () => {
     const genresResult = { genres: [] };
 
     tmdbServiceMock.search.mockResolvedValue(searchResult);
-    tmdbServiceMock.fetchDiscover.mockResolvedValue(fetchResult);
-    tmdbServiceMock.getDetails.mockResolvedValue(detailsResult);
-    tmdbServiceMock.getGenres.mockResolvedValue(genresResult);
+    tmdbServiceMock.discover.mockResolvedValue(fetchResult);
+    tmdbServiceMock.details.mockResolvedValue(detailsResult);
+    tmdbServiceMock.genres.mockResolvedValue(genresResult);
 
     const search = await catalogService.search({ query: 'test', type: 'movie', page: 0 }, user.id);
     expect(search.results).toEqual(searchResult.results);
@@ -72,10 +75,10 @@ describe('catalog service - integration tests', () => {
     const discover = await catalogService.discover({ type: 'movie', page: 1 }, user.id);
     expect(discover.results).toEqual(fetchResult.results);
 
-    const details = await catalogService.getDetails({ id: 1, type: 'movie' }, user.id);
+    const details = await catalogService.details({ id: 1, type: 'movie' }, user.id);
     expect(details).toBe(detailsResult);
 
-    const genres = await catalogService.getGenres({});
+    const genres = await catalogService.genres({});
     expect(genres).toBe(genresResult);
   });
 
@@ -132,7 +135,7 @@ describe('catalog service - integration tests', () => {
     const user = await createTestUserInDb(db, { email: 'discover-enrich@test.com' });
 
     const items = [createTestMedia({ tmdbId: 1 })];
-    tmdbServiceMock.fetchDiscover.mockResolvedValue({
+    tmdbServiceMock.discover.mockResolvedValue({
       results: items,
       totalPages: 1,
       page: 1,
@@ -151,7 +154,7 @@ describe('catalog service - integration tests', () => {
       regions: ['asian'],
     });
 
-    tmdbServiceMock.fetchDiscover.mockResolvedValue({
+    tmdbServiceMock.discover.mockResolvedValue({
       results: [],
       totalPages: 1,
       page: 1,
@@ -162,7 +165,7 @@ describe('catalog service - integration tests', () => {
       user.id
     );
 
-    expect(tmdbServiceMock.fetchDiscover).toHaveBeenCalledWith(
+    expect(tmdbServiceMock.discover).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'movie',
         page: 2,
@@ -235,7 +238,7 @@ describe('catalog service - integration tests', () => {
     const discoveredItems = [
       createTestMedia({ tmdbId: 3, keywords: [{ id: 123, name: 'superhero' }] }),
     ];
-    tmdbServiceMock.fetchDiscover.mockResolvedValue({
+    tmdbServiceMock.discover.mockResolvedValue({
       results: discoveredItems,
       totalPages: 1,
       page: 1,
@@ -283,9 +286,9 @@ describe('catalog service - integration tests', () => {
       await addInteraction(db, user.id, mediaRecord.id, 'liked');
     }
 
-    const result = await catalogService.getNextUnvoted({ type: 'both' }, user.id);
+    const result = await catalogService.nextUnvoted({ type: 'both' }, user.id);
 
     expect(result.media).toBeNull();
-    expect(tmdbServiceMock.getDetails).not.toHaveBeenCalled();
+    expect(tmdbServiceMock.details).not.toHaveBeenCalled();
   });
 });

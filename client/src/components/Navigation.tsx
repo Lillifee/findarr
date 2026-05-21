@@ -162,7 +162,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                       <span className="font-medium text-sm">Users</span>
                     </NavLink>
 
-                    <NavLink to="/admin/arr" className={navLinkClass}>
+                    <NavLink to="/admin/integrations" className={navLinkClass}>
                       <svg
                         className="w-4 h-4"
                         fill="none"
@@ -345,7 +345,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                   </NavLink>
 
                   <NavLink
-                    to="/admin/arr"
+                    to="/admin/integrations"
                     onClick={() => setMobileAdvancedOpen(false)}
                     className={navLinkClass}
                   >

@@ -9,37 +9,92 @@ import type {
   DiscoverQuery,
   UserSettingsQuery,
   MediaType,
+  TmdbSettings,
+  TmdbSettingsQuery,
 } from '@findarr/shared';
-import { HttpError } from '../utils/errors.js';
-import type { TMDBClient } from './client.js';
+import type { DB } from '../db/setup.js';
+import { createTMDBClient, type TMDBClient } from './client.js';
 import { buildDiscoverParams } from './helpers.js';
+import { getTmdbSettingsFull, setTmdbSettings, type TmdbSettingsFull } from './repository.js';
 import type { TMDBTrendingParams } from './schemas.js';
 import { transformMedia, transformDetails } from './transformers.js';
+
+const MEDIA_TYPES = ['movie', 'tv'] as const;
+
+type RuntimeState = {
+  settings?: TmdbSettingsFull;
+  client?: TMDBClient | undefined;
+};
 
 /**
  * TMDB Service - handles data fetching from TMDB API
  * Pure data operations without business logic or caching
  */
-export function createTMDBService(tmdbClient: TMDBClient) {
+export async function createTMDBService(db: DB) {
+  let state: RuntimeState = {};
+  let reloadPromise: Promise<void> | undefined;
   const genreMap = new Map<number, Genre>();
 
-  function getClient(): TMDBClient {
-    if (!tmdbClient.isConfigured()) {
-      throw new HttpError(503, 'TMDB integration is not configured');
-    }
+  await reload();
 
-    return tmdbClient;
+  async function reload(): Promise<void> {
+    await reloadClient();
+    await ensureGenresLoaded();
   }
 
-  async function configure(accessToken: string | undefined): Promise<void> {
-    await tmdbClient.configure(accessToken);
-    await loadGenres(tmdbClient);
+  async function reloadClient(): Promise<void> {
+    if (reloadPromise) return reloadPromise;
+
+    reloadPromise = (async () => {
+      const settings = await getTmdbSettingsFull(db);
+      const client = settings.tmdbAccessToken
+        ? createTMDBClient(settings.tmdbAccessToken)
+        : undefined;
+
+      state = { settings, client };
+    })();
+
+    try {
+      await reloadPromise;
+    } finally {
+      reloadPromise = undefined;
+    }
+  }
+
+  function requireClient(): TMDBClient {
+    if (!state.client) throw new Error('TMDB client is not configured');
+    return state.client;
+  }
+
+  function requireSettings(): TmdbSettingsFull {
+    if (!state.settings) throw new Error('TMDB settings are unavailable');
+    return state.settings;
+  }
+
+  function getSettings(): TmdbSettings {
+    const { tmdbAccessToken: _tmdbAccessToken, ...settings } = requireSettings();
+    return settings;
+  }
+
+  async function setSettings(settings: TmdbSettingsQuery): Promise<TmdbSettings> {
+    await setTmdbSettings(db, settings);
+
+    await reload();
+    return getSettings();
+  }
+
+  async function testConnection(): Promise<boolean> {
+    return state.client ? await state.client.testConnection() : false;
+  }
+
+  async function isConfigured(): Promise<boolean> {
+    return !!state.client;
   }
 
   async function loadGenres(client: TMDBClient): Promise<void> {
     const [movieGenres, tvGenres] = await Promise.all([
-      client.getGenres('movie', { language: 'en-US' }),
-      client.getGenres('tv', { language: 'en-US' }),
+      client.genres('movie', { language: 'en-US' }),
+      client.genres('tv', { language: 'en-US' }),
     ]);
 
     genreMap.clear();
@@ -49,12 +104,9 @@ export function createTMDBService(tmdbClient: TMDBClient) {
     }
   }
 
-  async function testConnection(): Promise<void> {
-    await getClient().testConnection();
-  }
-
-  function isConfigured(): boolean {
-    return tmdbClient.isConfigured();
+  async function ensureGenresLoaded(client?: TMDBClient): Promise<void> {
+    if (genreMap.size > 0) return;
+    await loadGenres(client ?? requireClient());
   }
 
   /**
@@ -63,10 +115,11 @@ export function createTMDBService(tmdbClient: TMDBClient) {
   async function search(params: SearchQuery): Promise<SearchResponse> {
     const { query, type = 'both', page = 1, language = 'en-US' } = params;
     const region = language.split('-')[1] || 'US';
+    const client = requireClient();
 
-    const searchTypes = type === 'both' ? (['movie', 'tv'] as const) : ([type] as const);
+    const searchTypes = type === 'both' ? MEDIA_TYPES : [type];
     const promises = searchTypes.map(searchType =>
-      getClient().search(searchType, { query, page, language, region })
+      client.search(searchType, { query, page, language, region })
     );
 
     const searchResponses = await Promise.all(promises);
@@ -89,19 +142,20 @@ export function createTMDBService(tmdbClient: TMDBClient) {
    * Fetch discover results from TMDB
    * Fetches specified pages and transforms to application format
    */
-  async function fetchDiscover(
+  async function discover(
     params: DiscoverQuery & UserSettingsQuery,
     pages?: number[]
   ): Promise<DiscoverResponse> {
     const { type = 'both', page = 1 } = params;
+    const client = requireClient();
 
-    const discoverTypes = type === 'both' ? (['movie', 'tv'] as const) : ([type] as const);
+    const discoverTypes = type === 'both' ? MEDIA_TYPES : [type];
     const pagesToFetch = pages ?? [page];
 
     const discoverParams = buildDiscoverParams(params);
     const discoverPromises = discoverTypes.flatMap(discoverType =>
       pagesToFetch.map(pageNum =>
-        getClient().discover(discoverType, { ...discoverParams, page: pageNum })
+        client.discover(discoverType, { ...discoverParams, page: pageNum })
       )
     );
 
@@ -121,19 +175,19 @@ export function createTMDBService(tmdbClient: TMDBClient) {
    * Fetch trending results from TMDB
    * Fetches specified pages and transforms to application format
    */
-  async function fetchTrending(
+  async function trending(
     params: TMDBTrendingParams = {},
     pages?: number[]
   ): Promise<DiscoverResponse> {
     const { language = 'en-US', time_window = 'week' } = params;
-    const client = getClient();
+    const client = requireClient();
 
     const pagesToFetch = pages ?? [1];
     const ranks: Record<MediaType, number> = { movie: 0, tv: 0 };
 
     const responses = await Promise.all(
-      (['movie', 'tv'] as const).flatMap(type =>
-        pagesToFetch.map(page => client.getTrending(type, { language, time_window, page }))
+      MEDIA_TYPES.flatMap(type =>
+        pagesToFetch.map(page => client.trending(type, { language, time_window, page }))
       )
     );
 
@@ -154,17 +208,19 @@ export function createTMDBService(tmdbClient: TMDBClient) {
   /**
    * Get movie or TV show details
    */
-  async function getDetails(params: DetailsQuery): Promise<MediaDetails> {
+  async function details(params: DetailsQuery): Promise<MediaDetails> {
     const { id, type, language = 'en-US' } = params;
 
-    const tmdbMovie = await getClient().getDetails(type, { id, language });
+    const tmdbMovie = await requireClient().details(type, { id, language });
     return transformDetails(tmdbMovie);
   }
 
   /**
-   * Get all genres
+   * Get all genres.
+   * Returns from the in-memory map populated during configure — params are not used.
    */
-  async function getGenres(_params: GenresQuery): Promise<{ genres: Genre[] }> {
+  async function genres(_params: GenresQuery): Promise<{ genres: Genre[] }> {
+    await ensureGenresLoaded();
     const allGenres = [...genreMap.values()];
     return { genres: allGenres };
   }
@@ -173,25 +229,23 @@ export function createTMDBService(tmdbClient: TMDBClient) {
    * Find content by external tvdbId
    * Returns TMDB ID for content matching the external ID
    */
-  async function findByExternalId(params: {
-    tvdbId: number;
-    type: MediaType;
-  }): Promise<number | undefined> {
-    const result = await getClient().findByExternalId(params.tvdbId, 'tvdb_id');
-    return params.type === 'movie' ? result.movie_results?.[0]?.id : result.tv_results?.[0]?.id;
+  async function findByExternalId(type: MediaType, tvdbId: number): Promise<number | undefined> {
+    const result = await requireClient().findByExternalId(tvdbId, 'tvdb_id');
+    return type === 'movie' ? result.movie_results?.[0]?.id : result.tv_results?.[0]?.id;
   }
 
   return {
-    configure,
+    getSettings,
+    setSettings,
     isConfigured,
     testConnection,
     search,
-    fetchDiscover,
-    fetchTrending,
-    getDetails,
-    getGenres,
+    discover,
+    trending,
+    details,
+    genres,
     findByExternalId,
   };
 }
 
-export type TMDBService = ReturnType<typeof createTMDBService>;
+export type TMDBService = Awaited<ReturnType<typeof createTMDBService>>;

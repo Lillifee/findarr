@@ -16,7 +16,7 @@ import {
  * Keywords are enriched separately by enrichCatalogKeywords()
  */
 export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> {
-  if (!fastify.tmdb.isConfigured()) return;
+  if (!(await fastify.tmdb.isConfigured())) return;
 
   const startTime = Date.now();
   fastify.log.info({ name: 'catalog', phase: 'cache-sync' }, 'Starting cache sync');
@@ -32,8 +32,8 @@ export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> 
     'Fetching trending and discover results from TMDB'
   );
   const [trendingResult, discoverResult] = await Promise.all([
-    fastify.tmdb.fetchTrending({ language, time_window: 'week' }, arrayOfNumbers(5)),
-    fastify.tmdb.fetchDiscover({ type: 'both', recentDays: 500 }, arrayOfNumbers(15)),
+    fastify.tmdb.trending({ language, time_window: 'week' }, arrayOfNumbers(5)),
+    fastify.tmdb.discover({ type: 'both', recentDays: 500 }, arrayOfNumbers(15)),
   ]);
 
   // Merge and deduplicate (prefer items with trendingRank)
@@ -140,7 +140,7 @@ export async function enrichCatalogKeywords(fastify: FastifyInstance): Promise<v
     const { successCount } = await processWithWorkerPool({
       items: itemsWithoutKeywords,
       processFn: async item => {
-        const details = await fastify.tmdb.getDetails({ id: item.tmdbId, type: item.type });
+        const details = await fastify.tmdb.details({ id: item.tmdbId, type: item.type });
         await updateCatalogKeywords(fastify.db, item.tmdbId, item.type, details.keywords ?? []);
         return item.tmdbId;
       },

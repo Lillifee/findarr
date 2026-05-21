@@ -19,23 +19,23 @@ export async function syncComplete(
   fastify: FastifyInstance,
   arrService: AnyArrService
 ): Promise<void> {
+  // Check if service is configured
+  const isConfigured = await arrService.isConfigured();
+
+  if (!isConfigured) {
+    fastify.log.debug(
+      { name: arrService.config.service, service: arrService.config.service },
+      'Not configured - skipping sync'
+    );
+    return;
+  }
+
   fastify.log.info(
     { name: arrService.config.service, service: arrService.config.service },
     'Starting library sync'
   );
   const startTime = Date.now();
   const { log } = fastify;
-
-  // Check if service is configured
-  const isConfigured = await arrService.isConfigured();
-
-  if (!isConfigured) {
-    log.debug(
-      { name: arrService.config.service, service: arrService.config.service },
-      'Not configured - skipping sync'
-    );
-    return;
-  }
 
   // Test connection
   const isConnected = await arrService.testConnection();
@@ -74,7 +74,7 @@ export async function syncLibrary(
   const { mediaType, service } = config;
 
   // Fetch library items (already transformed to ArrLibraryItem)
-  const libraryItems = await arrService.getLibrary();
+  const libraryItems = await arrService.library();
 
   if (libraryItems.length === 0) {
     log.info({ name: service, service }, 'No items found');
@@ -159,7 +159,7 @@ export async function enrichTvShows(
     processFn: async item => {
       if (!item?.tvdbId) return null;
 
-      const tmdbId = await fastify.tmdb.findByExternalId({ tvdbId: item.tvdbId, type: 'tv' });
+      const tmdbId = await fastify.tmdb.findByExternalId('tv', item.tvdbId);
 
       if (tmdbId) item.tmdbId = tmdbId;
       return tmdbId || null;
@@ -194,7 +194,7 @@ export async function syncQueue(
   const mediaType = arrService.config.mediaType;
 
   // Get queue from service
-  const queue = await arrService.getQueue();
+  const queue = await arrService.queue();
 
   // Process queue items
   for (const item of queue.records) {

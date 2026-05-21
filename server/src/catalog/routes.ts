@@ -42,23 +42,18 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/details',
     protectedRoute(request =>
-      fastify.catalog.getDetails(DetailsQuerySchema.parse(request.query), request.user.id)
+      fastify.catalog.details(DetailsQuerySchema.parse(request.query), request.user.id)
     )
   );
 
   // Genres endpoint: GET /genres?type=movie
-  fastify.get('/genres', request =>
-    fastify.catalog.getGenres(GenresQuerySchema.parse(request.query))
-  );
+  fastify.get('/genres', request => fastify.catalog.genres(GenresQuerySchema.parse(request.query)));
 
   // Available overview endpoint: GET /available?type=both&limit=12
   fastify.get(
     '/available',
     protectedRoute(request =>
-      fastify.catalog.getAvailableMedia(
-        AvailableMediaQuerySchema.parse(request.query),
-        request.user.id
-      )
+      fastify.catalog.available(AvailableMediaQuerySchema.parse(request.query), request.user.id)
     )
   );
 
@@ -68,7 +63,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/next',
     protectedRoute(request =>
-      fastify.catalog.getNextUnvoted(PopularQuerySchema.parse(request.query), request.user.id)
+      fastify.catalog.nextUnvoted(PopularQuerySchema.parse(request.query), request.user.id)
     )
   );
 }

@@ -17,8 +17,8 @@ import jellyfinPlugin from './jellyfin/plugin.js';
 import { jellyfinRoutes } from './jellyfin/routes.js';
 import schedulerPlugin from './scheduler/plugin.js';
 import { adminSchedulerRoutes, schedulerRoutes } from './scheduler/routes.js';
-import { settingsRoutes } from './settings/routes.js';
 import tmdbPlugin from './tmdb/plugin.js';
+import { settingsRoutes } from './user/routes.js';
 import { registerErrorHandler } from './utils/errors.js';
 import { registerStatic } from './web/static.js';
 

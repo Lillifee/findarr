@@ -67,7 +67,7 @@ export function TmdbSetupScreen() {
   async function runTest() {
     const result = await adminTmdbService.test();
 
-    if (result.connected) {
+    if (result) {
       setSuccess('Connection successful. Findarr is ready to continue.');
       await refreshBootstrapStatus();
       return;

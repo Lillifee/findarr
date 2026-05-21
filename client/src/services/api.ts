@@ -15,16 +15,12 @@ import type {
   Media,
   Login,
   CreateUser,
-  RadarrSettings,
-  SonarrSettings,
+  ArrSettings,
   ArrQualityProfile,
   ArrRootFolder,
-  ArrTestResult,
   JellyfinSettings,
-  JellyfinTestResult,
   AppBootstrapStatus,
   TmdbSettings,
-  TmdbTestResult,
   SchedulerState,
   SwipeNextResponse,
   ArrLinkQuery,
@@ -170,13 +166,13 @@ export const userSettingsService = {
 
 export const adminArrService = {
   radarr: {
-    getSettings: async (): Promise<RadarrSettings> => {
+    getSettings: async (): Promise<ArrSettings> => {
       const response = await api.get('/admin/radarr/settings');
       return response.data;
     },
     saveSettings: async (
-      settings: Partial<RadarrSettings & { radarrApiKey?: string }>
-    ): Promise<RadarrSettings> => {
+      settings: Partial<ArrSettings & { apiKey?: string }>
+    ): Promise<ArrSettings> => {
       const response = await api.put('/admin/radarr/settings', settings);
       return response.data;
     },
@@ -188,19 +184,19 @@ export const adminArrService = {
       const response = await api.get('/admin/radarr/root-folders');
       return response.data;
     },
-    test: async (): Promise<ArrTestResult> => {
+    test: async (): Promise<boolean> => {
       const response = await api.post('/admin/radarr/test');
       return response.data;
     },
   },
   sonarr: {
-    getSettings: async (): Promise<SonarrSettings> => {
+    getSettings: async (): Promise<ArrSettings> => {
       const response = await api.get('/admin/sonarr/settings');
       return response.data;
     },
     saveSettings: async (
-      settings: Partial<SonarrSettings & { sonarrApiKey?: string }>
-    ): Promise<SonarrSettings> => {
+      settings: Partial<ArrSettings & { apiKey?: string }>
+    ): Promise<ArrSettings> => {
       const response = await api.put('/admin/sonarr/settings', settings);
       return response.data;
     },
@@ -212,7 +208,7 @@ export const adminArrService = {
       const response = await api.get('/admin/sonarr/root-folders');
       return response.data;
     },
-    test: async (): Promise<ArrTestResult> => {
+    test: async (): Promise<boolean> => {
       const response = await api.post('/admin/sonarr/test');
       return response.data;
     },
@@ -231,7 +227,7 @@ export const adminJellyfinService = {
     const response = await api.put('/admin/jellyfin/settings', settings);
     return response.data;
   },
-  test: async (): Promise<JellyfinTestResult> => {
+  test: async (): Promise<boolean> => {
     const response = await api.post('/admin/jellyfin/test');
     return response.data;
   },
@@ -246,7 +242,7 @@ export const adminTmdbService = {
     const response = await api.put('/admin/tmdb/settings', settings);
     return response.data;
   },
-  test: async (): Promise<TmdbTestResult> => {
+  test: async (): Promise<boolean> => {
     const response = await api.post('/admin/tmdb/test');
     return response.data;
   },

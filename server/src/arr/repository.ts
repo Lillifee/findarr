@@ -1,7 +1,15 @@
-import type { DbMedia, MediaStatus, MediaType } from '@findarr/shared';
+import type {
+  ArrSettings,
+  ArrSettingsQuery,
+  DbMedia,
+  MediaStatus,
+  MediaType,
+} from '@findarr/shared';
 import { isDefined, media } from '@findarr/shared';
 import { and, eq, isNotNull, isNull, sql } from 'drizzle-orm';
 import type { DB } from '../db/setup.js';
+import { readSettings, writeSettings } from '../settings/repository.js';
+import type { ArrServiceConfig, ArrServiceType } from './config.js';
 
 /**
  * Update media record with IDs from Radarr/Sonarr
@@ -220,4 +228,50 @@ export async function clearRemovedArrItems(
   }
 
   return cleared;
+}
+
+export interface ArrSettingsFull extends ArrSettings {
+  apiKey: string | null;
+}
+
+function getArrSettingsFields(service: ArrServiceType) {
+  return {
+    url: `${service}Url`,
+    apiKey: `${service}ApiKey`,
+    qualityProfileId: `${service}QualityProfileId`,
+    rootFolderPath: `${service}RootFolderPath`,
+  };
+}
+export async function getArrSettings(db: DB, config: ArrServiceConfig): Promise<ArrSettingsFull> {
+  const fields = getArrSettingsFields(config.service);
+  const s = await readSettings(db, Object.values(fields));
+  const qualityProfileIdValue = s[fields.qualityProfileId];
+
+  return {
+    url: s[fields.url] ?? null,
+    apiKey: s[fields.apiKey] ?? null,
+    apiKeySet: !!s[fields.apiKey],
+    qualityProfileId: qualityProfileIdValue ? Number.parseInt(qualityProfileIdValue, 10) : null,
+    rootFolderPath: s[fields.rootFolderPath] ?? null,
+  };
+}
+
+export async function setArrSettings(
+  db: DB,
+  config: ArrServiceConfig,
+  settings: {
+    url?: ArrSettingsQuery['url'] | undefined;
+    apiKey?: ArrSettingsQuery['apiKey'] | undefined;
+    qualityProfileId?: ArrSettingsQuery['qualityProfileId'] | undefined;
+    rootFolderPath?: ArrSettingsQuery['rootFolderPath'] | undefined;
+  }
+): Promise<void> {
+  const fields = getArrSettingsFields(config.service);
+
+  await writeSettings(db, {
+    [fields.url]: settings.url,
+    [fields.apiKey]: settings.apiKey,
+    [fields.qualityProfileId]: settings.qualityProfileId?.toString(),
+    [fields.rootFolderPath]: settings.rootFolderPath,
+  } as Record<string, string | undefined>);
 }
