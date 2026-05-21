@@ -41,7 +41,7 @@ export function createArrQueueMonitorScheduler(arrService: AnyArrService): Sched
       runOnStartup: true,
     },
     async (fastify: FastifyInstance) => {
-      const queue = await arrService.getQueue();
+      const queue = await arrService.queue();
       const activeCount = queue.records.length;
 
       if (activeCount > 0) {

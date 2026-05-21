@@ -1,136 +1,63 @@
 import {
+  ArrSettingsQuerySchema,
   CreateUserSchema,
   DeleteUserSchema,
-  RadarrSettingsQuerySchema,
-  SonarrSettingsQuerySchema,
   JellyfinSettingsQuerySchema,
   TmdbSettingsQuerySchema,
 } from '@findarr/shared';
 import type { FastifyPluginAsync } from 'fastify';
 import { createUser, deleteUser, listAllUsers } from '../auth/repository.js';
-import {
-  getRadarrSettings,
-  setRadarrSettings,
-  getSonarrSettings,
-  setSonarrSettings,
-  getJellyfinSettings,
-  setJellyfinSettings,
-  getTmdbSettings,
-  setTmdbSettings,
-} from '../integration/repository.js';
 import { protectedRoute } from '../utils/routes.js';
 
 const adminRoutes: FastifyPluginAsync = async fastify => {
-  // All admin routes require admin role
   fastify.addHook('preHandler', fastify.requireAdmin);
 
-  // User management routes
-  // List all users
   fastify.get('/users', () => listAllUsers(fastify.db));
-
-  // Create new user
   fastify.post('/users', r => createUser(fastify.db, CreateUserSchema.parse(r.body)));
-
-  // Delete user
   fastify.delete(
     '/users/:id',
     protectedRoute(r => deleteUser(fastify.db, DeleteUserSchema.parse(r.params).id, r.user.id))
   );
 
-  // ============================================================================
-  // Radarr settings & status
-  // ============================================================================
+  fastify.get('/radarr/settings', () => fastify.radarr.getSettings());
 
-  fastify.get('/radarr/settings', () => getRadarrSettings(fastify.db));
+  fastify.put('/radarr/settings', r =>
+    fastify.radarr.setSettings(ArrSettingsQuerySchema.parse(r.body))
+  );
 
-  fastify.put('/radarr/settings', async r => {
-    const body = RadarrSettingsQuerySchema.parse(r.body);
-    await setRadarrSettings(fastify.db, body);
-    return getRadarrSettings(fastify.db);
-  });
+  fastify.get('/radarr/quality-profiles', () => fastify.radarr.profiles());
 
-  fastify.get('/radarr/quality-profiles', () => fastify.radarr.getProfiles());
+  fastify.get('/radarr/root-folders', () => fastify.radarr.rootFolders());
 
-  fastify.get('/radarr/root-folders', () => fastify.radarr.getRootFolders());
+  fastify.post('/radarr/test', () => fastify.radarr.testConnection());
 
-  fastify.post('/radarr/test', async () => {
-    const settings = await getRadarrSettings(fastify.db);
-    const connected = await fastify.radarr.testConnection();
-    return {
-      configured: settings.radarrApiKeySet && !!settings.radarrUrl,
-      connected,
-      url: settings.radarrUrl,
-    };
-  });
+  fastify.get('/sonarr/settings', () => fastify.sonarr.getSettings());
 
-  // ============================================================================
-  // Sonarr settings & status
-  // ============================================================================
+  fastify.put('/sonarr/settings', r =>
+    fastify.sonarr.setSettings(ArrSettingsQuerySchema.parse(r.body))
+  );
 
-  fastify.get('/sonarr/settings', () => getSonarrSettings(fastify.db));
+  fastify.get('/sonarr/quality-profiles', () => fastify.sonarr.profiles());
 
-  fastify.put('/sonarr/settings', async r => {
-    await setSonarrSettings(fastify.db, SonarrSettingsQuerySchema.parse(r.body));
-    return getSonarrSettings(fastify.db);
-  });
+  fastify.get('/sonarr/root-folders', () => fastify.sonarr.rootFolders());
 
-  fastify.get('/sonarr/quality-profiles', () => fastify.sonarr.getProfiles());
+  fastify.post('/sonarr/test', () => fastify.sonarr.testConnection());
 
-  fastify.get('/sonarr/root-folders', () => fastify.sonarr.getRootFolders());
+  fastify.get('/jellyfin/settings', () => fastify.jellyfin.getSettings());
 
-  fastify.post('/sonarr/test', async () => {
-    const settings = await getSonarrSettings(fastify.db);
-    const connected = await fastify.sonarr.testConnection();
-    return {
-      configured: settings.sonarrApiKeySet && !!settings.sonarrUrl,
-      connected,
-      url: settings.sonarrUrl,
-    };
-  });
+  fastify.put('/jellyfin/settings', r =>
+    fastify.jellyfin.setSettings(JellyfinSettingsQuerySchema.parse(r.body))
+  );
 
-  // ============================================================================
-  // Jellyfin settings & status
-  // ============================================================================
+  fastify.post('/jellyfin/test', () => fastify.jellyfin.testConnection());
 
-  fastify.get('/jellyfin/settings', () => getJellyfinSettings(fastify.db));
+  fastify.get('/tmdb/settings', () => fastify.tmdb.getSettings());
 
-  fastify.put('/jellyfin/settings', async r => {
-    await setJellyfinSettings(fastify.db, JellyfinSettingsQuerySchema.parse(r.body));
-    return getJellyfinSettings(fastify.db);
-  });
+  fastify.put('/tmdb/settings', r =>
+    fastify.tmdb.setSettings(TmdbSettingsQuerySchema.parse(r.body))
+  );
 
-  fastify.post('/jellyfin/test', () => fastify.jellyfin.getConnectionInfo());
-
-  // ============================================================================
-  // TMDB settings & status
-  // ============================================================================
-
-  fastify.get('/tmdb/settings', () => getTmdbSettings(fastify.db));
-
-  fastify.put('/tmdb/settings', async r => {
-    const body = TmdbSettingsQuerySchema.parse(r.body);
-    await fastify.tmdb.configure(body.tmdbAccessToken);
-    await setTmdbSettings(fastify.db, body);
-    return getTmdbSettings(fastify.db);
-  });
-
-  fastify.post('/tmdb/test', async () => {
-    const settings = await getTmdbSettings(fastify.db);
-
-    if (!settings.tmdbAccessTokenSet || !fastify.tmdb.isConfigured()) {
-      return {
-        configured: settings.tmdbAccessTokenSet,
-        connected: false,
-      };
-    }
-
-    try {
-      await fastify.tmdb.testConnection();
-      return { configured: true, connected: true };
-    } catch {
-      return { configured: true, connected: false };
-    }
-  });
+  fastify.post('/tmdb/test', () => fastify.tmdb.testConnection());
 };
 
 export { adminRoutes };

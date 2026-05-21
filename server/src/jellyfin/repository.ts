@@ -1,6 +1,13 @@
-import { media, type MediaType } from '@findarr/shared';
+import {
+  JellyfinSettingsQuerySchema,
+  media,
+  type JellyfinSettings,
+  type JellyfinSettingsQuery,
+  type MediaType,
+} from '@findarr/shared';
 import { eq, isNotNull, sql } from 'drizzle-orm';
 import type { DB } from '../db/setup.js';
+import { readSettings, writeSettings } from '../settings/repository.js';
 import type { JellyfinMedia } from './transformers.js';
 
 // ============================================================================
@@ -137,4 +144,30 @@ export async function clearRemovedJellyfinItems(db: DB, jellyfinIds: string[]): 
   }
 
   return cleared;
+}
+
+export interface JellyfinSettingsFull extends JellyfinSettings {
+  jellyfinApiKey: string | null;
+}
+
+type JellyfinSettingKeys = Extract<keyof typeof JellyfinSettingsQuerySchema.shape, string>;
+
+const jellyfinKeys = Object.keys(JellyfinSettingsQuerySchema.shape) as JellyfinSettingKeys[];
+
+export async function setJellyfinSettings(db: DB, settings: JellyfinSettingsQuery): Promise<void> {
+  await writeSettings(db, settings);
+}
+
+export async function getJellyfinSettingsFull(db: DB): Promise<JellyfinSettingsFull> {
+  const s = await readSettings(db, jellyfinKeys);
+  return {
+    jellyfinUrl: s.jellyfinUrl,
+    jellyfinApiKeySet: !!s.jellyfinApiKey,
+    jellyfinApiKey: s.jellyfinApiKey,
+  };
+}
+
+export async function getJellyfinSettings(db: DB): Promise<JellyfinSettings> {
+  const { jellyfinApiKey: _jellyfinApiKey, ...settings } = await getJellyfinSettingsFull(db);
+  return settings;
 }

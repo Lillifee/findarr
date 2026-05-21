@@ -136,21 +136,17 @@ export const TmdbSettingsQuerySchema = z.object({
   tmdbAccessToken: z.string().min(1).optional(),
 });
 
-/** Request body for PUT /admin/radarr/settings */
-export const RadarrSettingsQuerySchema = z.object({
-  radarrUrl: z.string().optional(),
-  radarrApiKey: z.string().optional(),
-  radarrQualityProfileId: z.coerce.number().int().positive().optional(),
-  radarrRootFolderPath: z.string().min(1).optional(),
+/** Request body for PUT /admin/radarr/settings and PUT /admin/sonarr/settings */
+export const ArrSettingsQuerySchema = z.object({
+  url: z.string().optional(),
+  apiKey: z.string().optional(),
+  qualityProfileId: z.coerce.number().int().positive().optional(),
+  rootFolderPath: z.string().min(1).optional(),
 });
 
-/** Request body for PUT /admin/sonarr/settings */
-export const SonarrSettingsQuerySchema = z.object({
-  sonarrUrl: z.string().optional(),
-  sonarrApiKey: z.string().optional(),
-  sonarrQualityProfileId: z.coerce.number().int().positive().optional(),
-  sonarrRootFolderPath: z.string().min(1).optional(),
-});
+/** Backward-compatible aliases for ARR service-specific naming */
+export const RadarrSettingsQuerySchema = ArrSettingsQuerySchema;
+export const SonarrSettingsQuerySchema = ArrSettingsQuerySchema;
 
 /** Request body for PUT /admin/jellyfin/settings */
 export const JellyfinSettingsQuerySchema = z.object({
@@ -163,21 +159,17 @@ export const TmdbSettingsSchema = z.object({
   tmdbAccessTokenSet: z.boolean(),
 });
 
-/** Response shape for GET /admin/radarr/settings */
-export const RadarrSettingsSchema = z.object({
-  radarrUrl: z.string().nullable(),
-  radarrApiKeySet: z.boolean(),
-  radarrQualityProfileId: z.number().int().nullable(),
-  radarrRootFolderPath: z.string().nullable(),
+/** Response shape for GET /admin/radarr/settings and GET /admin/sonarr/settings */
+export const ArrSettingsSchema = z.object({
+  url: z.string().nullable(),
+  apiKeySet: z.boolean(),
+  qualityProfileId: z.number().int().nullable(),
+  rootFolderPath: z.string().nullable(),
 });
 
-/** Response shape for GET /admin/sonarr/settings */
-export const SonarrSettingsSchema = z.object({
-  sonarrUrl: z.string().nullable(),
-  sonarrApiKeySet: z.boolean(),
-  sonarrQualityProfileId: z.number().int().nullable(),
-  sonarrRootFolderPath: z.string().nullable(),
-});
+/** Backward-compatible aliases for ARR service-specific naming */
+export const RadarrSettingsSchema = ArrSettingsSchema;
+export const SonarrSettingsSchema = ArrSettingsSchema;
 
 /** Response shape for GET /admin/jellyfin/settings */
 export const JellyfinSettingsSchema = z.object({
@@ -196,26 +188,6 @@ export const ArrRootFolderSchema = z.object({
   id: z.number(),
   path: z.string(),
   freeSpace: z.number().optional(),
-});
-
-/** Response shape for POST /admin/tmdb/test */
-export const TmdbTestResultSchema = z.object({
-  configured: z.boolean(),
-  connected: z.boolean(),
-});
-
-/** Response shape for POST /admin/radarr/test and POST /admin/sonarr/test */
-export const ArrTestResultSchema = z.object({
-  configured: z.boolean(),
-  connected: z.boolean(),
-  url: z.string().nullable(),
-});
-
-/** Response shape for POST /admin/jellyfin/test */
-export const JellyfinTestResultSchema = z.object({
-  url: z.string().nullable(),
-  connected: z.boolean(),
-  apiKeySet: z.boolean(),
 });
 
 /**
@@ -242,20 +214,19 @@ export const SchedulerParamsSchema = z.object({
 
 export type TmdbSettingsQuery = z.infer<typeof TmdbSettingsQuerySchema>;
 export type TmdbSettings = z.infer<typeof TmdbSettingsSchema>;
-export type TmdbTestResult = z.infer<typeof TmdbTestResultSchema>;
 
-export type RadarrSettingsQuery = z.infer<typeof RadarrSettingsQuerySchema>;
-export type SonarrSettingsQuery = z.infer<typeof SonarrSettingsQuerySchema>;
-export type RadarrSettings = z.infer<typeof RadarrSettingsSchema>;
-export type SonarrSettings = z.infer<typeof SonarrSettingsSchema>;
+export type ArrSettingsQuery = z.infer<typeof ArrSettingsQuerySchema>;
+export type ArrSettings = z.infer<typeof ArrSettingsSchema>;
+export type RadarrSettingsQuery = ArrSettingsQuery;
+export type SonarrSettingsQuery = ArrSettingsQuery;
+export type RadarrSettings = ArrSettings;
+export type SonarrSettings = ArrSettings;
 export type ArrQualityProfile = z.infer<typeof ArrQualityProfileSchema>;
 export type ArrRootFolder = z.infer<typeof ArrRootFolderSchema>;
-export type ArrTestResult = z.infer<typeof ArrTestResultSchema>;
 export type ArrLinkQuery = z.infer<typeof ArrLinkQuerySchema>;
 
 export type JellyfinSettingsQuery = z.infer<typeof JellyfinSettingsQuerySchema>;
 export type JellyfinSettings = z.infer<typeof JellyfinSettingsSchema>;
-export type JellyfinTestResult = z.infer<typeof JellyfinTestResultSchema>;
 export type JellyfinLinkQuery = z.infer<typeof JellyfinLinkQuerySchema>;
 
 export type UserSettingsQuery = z.infer<typeof UserSettingsQuerySchema>;

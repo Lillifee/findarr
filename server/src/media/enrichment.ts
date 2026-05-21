@@ -113,7 +113,7 @@ export async function fetchTMDBDetails(
       if (!isDefined(record.tmdbId)) return undefined;
 
       const details = await tmdbService
-        .getDetails({ id: record.tmdbId, type: record.type })
+        .details({ id: record.tmdbId, type: record.type })
         .catch(() => undefined);
 
       // Attach database record to TMDB data

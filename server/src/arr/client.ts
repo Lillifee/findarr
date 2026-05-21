@@ -1,7 +1,7 @@
 import { isDefined } from '@findarr/shared';
 import axios, { type AxiosInstance } from 'axios';
 import { z } from 'zod';
-import { type ArrServiceConfig } from './config.js';
+import type { ArrServiceConfig } from './config.js';
 import {
   SonarrEpisodeListSchema,
   ArrSystemStatusSchema,
@@ -31,33 +31,33 @@ function createHttpClient(baseUrl: string, apiKey: string): AxiosInstance {
  * Generic Arr client factory - works for both Radarr and Sonarr
  * Provides unified interface with service-specific implementations
  */
-export function createArrClient<T extends ArrServiceConfig>(
-  config: T,
-  baseUrl: string,
-  apiKey: string
-) {
-  const http = createHttpClient(baseUrl, apiKey);
+export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKey: string) {
+  const client = createHttpClient(baseUrl, apiKey);
   const isSonarr = config.service === 'sonarr';
 
   return {
     async testConnection(): Promise<boolean> {
-      const response = await http.get('/system/status', { timeout: 5000 });
-      ArrSystemStatusSchema.parse(response.data);
-      return true;
+      try {
+        const response = await client.get('/system/status', { timeout: 5000 });
+        ArrSystemStatusSchema.parse(response.data);
+        return true;
+      } catch {
+        return false;
+      }
     },
 
     async getQualityProfiles(): Promise<ArrQualityProfile[]> {
-      const response = await http.get('/qualityprofile');
+      const response = await client.get('/qualityprofile');
       return z.array(ArrQualityProfileSchema).parse(response.data);
     },
 
     async getRootFolders(): Promise<ArrRootFolder[]> {
-      const response = await http.get('/rootfolder');
+      const response = await client.get('/rootfolder');
       return z.array(ArrRootFolderSchema).parse(response.data);
     },
 
     async getQueue(): Promise<ArrQueueResponse> {
-      const response = await http.get('/queue');
+      const response = await client.get('/queue');
       return ArrQueueResponseSchema.parse(response.data);
     },
 
@@ -100,7 +100,7 @@ export function createArrClient<T extends ArrServiceConfig>(
         ...config.extraFields,
       };
 
-      const response = await http.post(config.mediaEndpoint, payload);
+      const response = await client.post(config.mediaEndpoint, payload);
       return config.libraryItemSchema.parse(response.data);
     },
 
@@ -142,22 +142,22 @@ export function createArrClient<T extends ArrServiceConfig>(
     },
 
     async getEpisodes(seriesId: number): Promise<SonarrEpisode[]> {
-      const response = await http.get('/episode', { params: { seriesId } });
+      const response = await client.get('/episode', { params: { seriesId } });
       return SonarrEpisodeListSchema.parse(response.data);
     },
 
     async setEpisodeMonitoring(episodeIds: number[], monitored: boolean): Promise<void> {
       if (episodeIds.length === 0) return;
-      await http.put('/episode/monitor', { episodeIds, monitored });
+      await client.put('/episode/monitor', { episodeIds, monitored });
     },
 
     async getLibrary(): Promise<Array<RadarrMovie | SonarrSeries>> {
-      const response = await http.get(config.mediaEndpoint);
+      const response = await client.get(config.mediaEndpoint);
       return z.array(config.libraryItemSchema).parse(response.data);
     },
 
     async getLibraryItem(arrId: number): Promise<RadarrMovie | SonarrSeries> {
-      const response = await http.get(`${config.mediaEndpoint}/${arrId}`);
+      const response = await client.get(`${config.mediaEndpoint}/${arrId}`);
       return config.libraryItemSchema.parse(response.data);
     },
 
@@ -165,15 +165,13 @@ export function createArrClient<T extends ArrServiceConfig>(
       id: number,
       seasons: { seasonNumber: number; monitored: boolean }[]
     ): Promise<void> {
-      await http.post('/seasonpass', { series: [{ id, seasons, monitored: true }] });
+      await client.post('/seasonpass', { series: [{ id, seasons, monitored: true }] });
     },
 
     async searchMissingEpisodes(seriesId: number): Promise<void> {
-      await http.post('/command', { name: 'MissingEpisodeSearch', seriesId });
+      await client.post('/command', { name: 'MissingEpisodeSearch', seriesId });
     },
   };
 }
 
-export type ArrClient<T extends ArrServiceConfig = ArrServiceConfig> = ReturnType<
-  typeof createArrClient<T>
->;
+export type ArrClient = ReturnType<typeof createArrClient>;

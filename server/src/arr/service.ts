@@ -1,176 +1,177 @@
+import type { ArrSettings, ArrSettingsQuery } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
 import type { DB } from '../db/setup.js';
-import { getArrSettingsFull } from '../integration/repository.js';
 import { getMediaById } from '../media/repository.js';
 import { trimTrailingSlash } from '../utils/links.js';
 import { createArrClient, type ArrClient } from './client.js';
 import { arrConfig, type ArrServiceConfig } from './config.js';
-import { updateMediaIds } from './repository.js';
+import {
+  getArrSettings,
+  setArrSettings,
+  updateMediaIds,
+  type ArrSettingsFull,
+} from './repository.js';
 import type {
-  ArrQualityProfile,
-  ArrRootFolder,
-  ArrQueueResponse,
   ArrLibraryItem,
+  ArrQualityProfile,
+  ArrQueueResponse,
+  ArrRootFolder,
 } from './schemas.js';
 import { transformArrMedia } from './transformers.js';
 
-/**
- * Generic Arr service factory - works for both Radarr and Sonarr
- * Eliminates duplication by abstracting service-specific differences
- */
-export function createArrService<T extends ArrServiceConfig>(
+type RuntimeState = {
+  settings?: ArrSettingsFull;
+  client?: ArrClient | undefined;
+};
+
+export async function createArrService<T extends ArrServiceConfig>(
   db: DB,
   config: T,
   fastify: FastifyInstance
 ) {
-  const { service } = config;
+  let state: RuntimeState = {};
+  let reloadPromise: Promise<void> | undefined;
 
-  async function getClient(): Promise<ArrClient<T> | null> {
-    const settings = await getArrSettingsFull(db, service);
-    if (!settings.url || !settings.apiKey) return null;
-    return createArrClient(config, settings.url, settings.apiKey);
+  await reload();
+
+  async function reload(): Promise<void> {
+    if (reloadPromise) return reloadPromise;
+
+    reloadPromise = (async () => {
+      const settings = await getArrSettings(db, config);
+      const client =
+        settings.url && settings.apiKey
+          ? createArrClient(config, settings.url, settings.apiKey)
+          : undefined;
+
+      state = { settings, client };
+    })();
+
+    try {
+      await reloadPromise;
+    } finally {
+      reloadPromise = undefined;
+    }
   }
 
-  async function getClientAndSettings() {
-    const client = await getClient();
-    if (!client) return null;
+  function requireClient(): ArrClient {
+    if (!state.client) throw new Error(`${config.service} client is not configured`);
+    return state.client;
+  }
 
-    const { qualityProfileId, rootFolderPath } = await getArrSettingsFull(db, service);
-    if (!qualityProfileId || !rootFolderPath) return null;
+  function requireSettings(): ArrSettingsFull {
+    if (!state.settings) throw new Error(`${config.service} settings are unavailable`);
+    return state.settings;
+  }
 
-    return { client, qualityProfileId, rootFolderPath };
+  async function getSettings(): Promise<ArrSettings> {
+    const { apiKey: _apiKey, ...settings } = requireSettings();
+    return settings;
+  }
+
+  async function setSettings(settingsQuery: ArrSettingsQuery): Promise<ArrSettings> {
+    await setArrSettings(db, config, settingsQuery);
+
+    await reload();
+    return getSettings();
+  }
+
+  async function testConnection(): Promise<boolean> {
+    return state.client ? await state.client.testConnection() : false;
+  }
+
+  async function isConfigured(): Promise<boolean> {
+    return !!state.client;
+  }
+
+  async function request(
+    mediaId: number,
+    id: number | undefined,
+    title: string,
+    arrId?: number | null,
+    seasons?: number[]
+  ): Promise<ArrLibraryItem | undefined> {
+    // Only sonarr needs multiple requests to update shows.
+    if (config.service === 'radarr' && arrId) {
+      return undefined;
+    }
+
+    const client = requireClient();
+    const settings = requireSettings();
+
+    const { qualityProfileId, rootFolderPath } = settings;
+
+    if (!qualityProfileId || !rootFolderPath) return undefined;
+
+    const response = await client.requestOrUpdate(
+      { id, title, arrId },
+      {
+        qualityProfileId,
+        rootFolderPath,
+      },
+      seasons
+    );
+
+    const libraryItem = transformArrMedia(response);
+
+    await updateMediaIds(db, mediaId, {
+      arrId: libraryItem.id,
+      tmdbId: libraryItem.tmdbId,
+      tvdbId: libraryItem.tvdbId,
+      arrUrl: libraryItem.arrUrl,
+    });
+
+    fastify.scheduler.start({ name: config.queueFastSyncScheduler });
+    return libraryItem;
+  }
+
+  async function profiles(): Promise<ArrQualityProfile[]> {
+    return requireClient().getQualityProfiles();
+  }
+
+  async function rootFolders(): Promise<ArrRootFolder[]> {
+    return requireClient().getRootFolders();
+  }
+
+  async function library(): Promise<ArrLibraryItem[]> {
+    const items = await requireClient().getLibrary();
+    return items.map(x => transformArrMedia(x));
+  }
+
+  async function queue(): Promise<ArrQueueResponse> {
+    return requireClient().getQueue();
+  }
+
+  async function resolveUrl(mediaId: number): Promise<string | null> {
+    const mediaRecord = await getMediaById(db, mediaId);
+
+    if (!mediaRecord?.arrUrl) return null;
+
+    const { url } = requireSettings();
+    if (!url) return null;
+
+    return `${trimTrailingSlash(url)}${mediaRecord.arrUrl}`;
   }
 
   return {
-    // Metadata
     config,
-
-    /**
-     * Check if service is configured (has URL and API key)
-     */
-    async isConfigured(): Promise<boolean> {
-      const settings = await getArrSettingsFull(db, service);
-      return !!(settings.url && settings.apiKey);
-    },
-
-    /**
-     * Test connection to Radarr/Sonarr
-     * Returns false if not configured OR connection fails
-     */
-    async testConnection(): Promise<boolean> {
-      const client = await getClient();
-      if (!client) return false;
-
-      return client.testConnection().catch(() => false);
-    },
-
-    /**
-     * Request media (movie or series)
-     * For TV shows, seasons controls which seasons are monitored (null = all seasons)
-     * If media already exists in Sonarr/Radarr (arrId provided), updates it instead
-     */
-    async request(
-      mediaId: number,
-      id: number | undefined,
-      title: string,
-      arrId?: number | null,
-      seasons?: number[]
-    ): Promise<ArrLibraryItem | undefined> {
-      const clientSettings = await getClientAndSettings();
-      if (!clientSettings) return undefined;
-
-      // For movies: if already in Radarr, no action needed
-      if (config.service === 'radarr' && arrId) {
-        return undefined; // Already in library, sync will pick it up
-      }
-
-      const { client, qualityProfileId, rootFolderPath } = clientSettings;
-
-      const response = await client.requestOrUpdate(
-        { id, title, arrId },
-        { qualityProfileId, rootFolderPath },
-        seasons
-      );
-
-      // Transform the response to get ArrLibraryItem with arrUrl
-      const libraryItem = transformArrMedia(response);
-
-      await updateMediaIds(db, mediaId, {
-        arrId: libraryItem.id,
-        tmdbId: libraryItem.tmdbId,
-        tvdbId: libraryItem.tvdbId,
-        arrUrl: libraryItem.arrUrl,
-      });
-
-      fastify.scheduler.start({ name: config.queueFastSyncScheduler });
-      return libraryItem;
-    },
-
-    /**
-     * Get quality profiles
-     */
-    async getProfiles(): Promise<ArrQualityProfile[]> {
-      const client = await getClient();
-      if (!client) return [];
-
-      return client.getQualityProfiles();
-    },
-
-    /**
-     * Get root folders
-     */
-    async getRootFolders(): Promise<ArrRootFolder[]> {
-      const client = await getClient();
-      if (!client) return [];
-
-      return client.getRootFolders();
-    },
-
-    /**
-     * Get library items (movies or series) as unified ArrLibraryItem type
-     */
-    async getLibrary(): Promise<ArrLibraryItem[]> {
-      const client = await getClient();
-      if (!client) return [];
-
-      const items = await client.getLibrary();
-      return items.map(x => transformArrMedia(x));
-    },
-
-    /**
-     * Get download queue
-     */
-    async getQueue(): Promise<ArrQueueResponse> {
-      const client = await getClient();
-      if (!client) return { records: [] };
-
-      return client.getQueue();
-    },
-
-    /**
-     * Resolve full ARR URL from internal media ID + current ARR settings.
-     * Assumes the media record type matches this service (radarr for movies, sonarr for TV).
-     */
-    async resolveUrl(mediaId: number): Promise<string | null> {
-      const mediaRecord = await getMediaById(db, mediaId);
-
-      if (!mediaRecord?.arrUrl) return null;
-
-      const settings = await getArrSettingsFull(db, service);
-      const baseUrl = settings.url;
-
-      if (!baseUrl) return null;
-
-      return `${trimTrailingSlash(baseUrl)}${mediaRecord.arrUrl}`;
-    },
+    getSettings,
+    setSettings,
+    isConfigured,
+    testConnection,
+    request,
+    profiles,
+    rootFolders,
+    library,
+    queue,
+    resolveUrl,
   };
 }
 
-export type ArrService<T extends ArrServiceConfig = ArrServiceConfig> = ReturnType<
-  typeof createArrService<T>
+export type ArrService<T extends ArrServiceConfig = ArrServiceConfig> = Awaited<
+  ReturnType<typeof createArrService<T>>
 >;
 
-// Union type for utility functions that work with both services
 export type AnyArrService =
   | ArrService<typeof arrConfig.radarr>
   | ArrService<typeof arrConfig.sonarr>;

@@ -68,7 +68,7 @@ describe('arr sync collision handling - integration tests', () => {
 
     const radarrService = {
       config: arrConfig.radarr,
-      getQueue: vi.fn().mockResolvedValue({
+      queue: vi.fn().mockResolvedValue({
         records: [{ arrId: 77, trackedDownloadStatus: 'downloading' }],
       }),
     } as unknown as AnyArrService;

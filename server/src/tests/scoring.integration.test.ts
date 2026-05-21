@@ -65,21 +65,21 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     // Mock TMDB service with fixture data (already transformed)
     const tmdbServiceMock: TMDBService = {
       configure: vi.fn().mockResolvedValue(undefined),
-      isConfigured: vi.fn().mockReturnValue(true),
+      isConfigured: vi.fn().mockResolvedValue(true),
       testConnection: vi.fn().mockResolvedValue(undefined),
       search: vi.fn(),
-      fetchDiscover: vi.fn().mockResolvedValue({
+      discover: vi.fn().mockResolvedValue({
         results: [...movieItems, ...tvItems],
         page: 1,
         totalPages: 1,
       }),
-      fetchTrending: vi.fn().mockResolvedValue({
+      trending: vi.fn().mockResolvedValue({
         results: trendingItems,
         page: 1,
         totalPages: 1,
       }),
-      getDetails: vi.fn(),
-      getGenres: vi.fn().mockResolvedValue({ genres: [...genreMap.values()] }),
+      details: vi.fn(),
+      genres: vi.fn().mockResolvedValue({ genres: [...genreMap.values()] }),
       findByExternalId: vi.fn(),
     } as unknown as TMDBService;
 

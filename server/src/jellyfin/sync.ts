@@ -13,10 +13,6 @@ import {
  * @param fullSync - If true, fetches all media; if false, fetches only recent items (default: true)
  */
 export async function syncJellyfinLibrary(fastify: FastifyInstance): Promise<void> {
-  const startTime = Date.now();
-  fastify.log.info({ name: 'jellyfin' }, 'Starting library sync');
-
-  // Check if Jellyfin is configured
   const isConfigured = await fastify.jellyfin.isConfigured();
 
   if (!isConfigured) {
@@ -24,7 +20,9 @@ export async function syncJellyfinLibrary(fastify: FastifyInstance): Promise<voi
     return;
   }
 
-  // Test connection
+  const startTime = Date.now();
+  fastify.log.info({ name: 'jellyfin' }, 'Starting library sync');
+
   const isConnected = await fastify.jellyfin.testConnection();
 
   if (!isConnected) {
@@ -33,18 +31,15 @@ export async function syncJellyfinLibrary(fastify: FastifyInstance): Promise<voi
 
   fastify.log.debug({ name: 'jellyfin' }, 'Connection successful');
 
-  // Fetch items from Jellyfin (includes season data embedded for TV shows)
-  const jellyfinItems = await fastify.jellyfin.getAllMedia();
+  const jellyfinItems = await fastify.jellyfin.library();
 
   if (jellyfinItems.length === 0) {
     fastify.log.warn({ name: 'jellyfin' }, 'No items found with TMDB IDs');
     return;
   }
 
-  // Upsert media items into database (handles seasons for TV shows)
   const affectedRows = await upsertMediaFromJellyfin(fastify.db, jellyfinItems);
 
-  // Cleanup: Find items in DB that are no longer in Jellyfin
   const existingMedia = await getMediaWithJellyfinIds(fastify.db);
   const currentJellyfinIds = new Set(jellyfinItems.map(item => item.jellyfinId));
   const removedJellyfinIds = existingMedia

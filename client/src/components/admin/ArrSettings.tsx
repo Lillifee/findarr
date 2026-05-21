@@ -1,12 +1,4 @@
-import type {
-  ArrQualityProfile,
-  ArrRootFolder,
-  ArrTestResult,
-  JellyfinTestResult,
-  TmdbTestResult,
-  RadarrSettings,
-  SonarrSettings,
-} from '@findarr/shared';
+import type { ArrSettings, ArrQualityProfile, ArrRootFolder } from '@findarr/shared';
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { adminArrService, adminJellyfinService, adminTmdbService } from '../../services/api';
@@ -66,33 +58,17 @@ interface ArrSectionProps {
 function ArrSection({ service, title, description }: ArrSectionProps) {
   const svc = adminArrService[service];
 
-  // Normalize prefixed settings fields to local names for the form
-  type AnyArrSettings = RadarrSettings | SonarrSettings;
-  const norm = useCallback(
-    (settings: AnyArrSettings) => ({
-      url: (settings as Record<string, unknown>)[`${service}Url`] as string | null,
-      apiKeySet: (settings as Record<string, unknown>)[`${service}ApiKeySet`] as boolean,
-      qualityProfileId: (settings as Record<string, unknown>)[`${service}QualityProfileId`] as
-        | number
-        | null,
-      rootFolderPath: (settings as Record<string, unknown>)[`${service}RootFolderPath`] as
-        | string
-        | null,
-    }),
-    [service]
-  );
-
-  const defaultSettings: RadarrSettings = {
-    radarrUrl: null,
-    radarrApiKeySet: false,
-    radarrQualityProfileId: null,
-    radarrRootFolderPath: null,
+  const defaultSettings: ArrSettings = {
+    url: null,
+    apiKeySet: false,
+    qualityProfileId: null,
+    rootFolderPath: null,
   };
 
-  const [settings, setSettings] = useState<AnyArrSettings>(defaultSettings);
+  const [settings, setSettings] = useState<ArrSettings>(defaultSettings);
   const [profiles, setProfiles] = useState<ArrQualityProfile[]>([]);
   const [rootFolders, setRootFolders] = useState<ArrRootFolder[]>([]);
-  const [testResult, setTestResult] = useState<ArrTestResult | null>(null);
+  const [testResult, setTestResult] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isTesting, setIsTesting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -103,7 +79,7 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [selectedProfileId, setSelectedProfileId] = useState('');
   const [selectedRootFolder, setSelectedRootFolder] = useState('');
-  const normalizedSettings = norm(settings);
+  const normalizedSettings = settings;
 
   function clearFeedback() {
     setError('');
@@ -142,7 +118,7 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
     normalizedSettings.url && normalizedSettings.apiKeySet
   );
   const canTestConnection = hasSavedConnectionSettings && !connectionDirty;
-  const connectionEstablished = canTestConnection && Boolean(testResult?.connected);
+  const connectionEstablished = canTestConnection && Boolean(testResult);
   const feedback = error
     ? { tone: 'error' as const, message: error }
     : success
@@ -159,7 +135,7 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
     setIsLoading(true);
     try {
       const currentSettings = await svc.getSettings();
-      const current = norm(currentSettings);
+      const current = currentSettings;
 
       setSettings(currentSettings);
       setUrlInput(current.url ?? '');
@@ -173,7 +149,7 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [svc, norm]);
+  }, [svc]);
 
   useEffect(() => {
     void init();
@@ -186,7 +162,7 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
     try {
       const result = await svc.test();
       setTestResult(result);
-      if (result.connected) {
+      if (result) {
         await loadProfiles();
         setSuccess('Connection successful. Quality profiles and root folders are ready.');
       } else {
@@ -209,13 +185,12 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
     try {
       const changedConnectionSettings = connectionDirty;
       const body: Record<string, unknown> = {};
-      if (urlInput) body[`${service}Url`] = urlInput;
-      if (apiKeyInput) body[`${service}ApiKey`] = apiKeyInput;
-      if (selectedProfileId)
-        body[`${service}QualityProfileId`] = Number.parseInt(selectedProfileId, 10);
-      if (selectedRootFolder) body[`${service}RootFolderPath`] = selectedRootFolder;
+      if (urlInput) body.url = urlInput;
+      if (apiKeyInput) body.apiKey = apiKeyInput;
+      if (selectedProfileId) body.qualityProfileId = Number.parseInt(selectedProfileId, 10);
+      if (selectedRootFolder) body.rootFolderPath = selectedRootFolder;
       const savedSettings = await svc.saveSettings(body as never);
-      const saved = norm(savedSettings);
+      const saved = savedSettings;
 
       setSettings(savedSettings);
       setUrlInput(saved.url ?? '');
@@ -254,7 +229,7 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
         Ready to test
       </span>
     );
-  } else if (testResult?.connected) {
+  } else if (testResult) {
     statusBadge = (
       <span className={`${badgeBase} bg-green-900/50 text-green-400 border border-green-700`}>
         Connected
@@ -376,11 +351,7 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
                 variant="secondary"
                 size="sm"
               >
-                {isTesting
-                  ? 'Testing…'
-                  : testResult?.connected
-                    ? 'Retest Connection'
-                    : 'Test Connection'}
+                {isTesting ? 'Testing…' : testResult ? 'Retest Connection' : 'Test Connection'}
               </Button>
             )}
           </div>
@@ -395,7 +366,7 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
 }
 
 function JellyfinSection() {
-  const [testResult, setTestResult] = useState<JellyfinTestResult | null>(null);
+  const [testResult, setTestResult] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isTesting, setIsTesting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -458,7 +429,7 @@ function JellyfinSection() {
     try {
       const result = await adminJellyfinService.test();
       setTestResult(result);
-      if (result.connected) {
+      if (result) {
         setSuccess('Connection successful. Jellyfin is ready.');
       } else {
         setError('Could not reach Jellyfin. Check the URL and API key, then test again.');
@@ -515,7 +486,7 @@ function JellyfinSection() {
         Ready to test
       </span>
     );
-  } else if (testResult?.connected) {
+  } else if (testResult) {
     statusBadge = (
       <span className={`${badgeBase} bg-green-900/50 text-green-400 border border-green-700`}>
         Connected
@@ -585,11 +556,7 @@ function JellyfinSection() {
                 variant="secondary"
                 size="sm"
               >
-                {isTesting
-                  ? 'Testing…'
-                  : testResult?.connected
-                    ? 'Retest Connection'
-                    : 'Test Connection'}
+                {isTesting ? 'Testing…' : testResult ? 'Retest Connection' : 'Test Connection'}
               </Button>
             )}
           </div>
@@ -605,7 +572,7 @@ function JellyfinSection() {
 
 export function TmdbSection() {
   const { refreshBootstrapStatus } = useAuth();
-  const [testResult, setTestResult] = useState<TmdbTestResult | null>(null);
+  const [testResult, setTestResult] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isTesting, setIsTesting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -659,7 +626,7 @@ export function TmdbSection() {
     try {
       const result = await adminTmdbService.test();
       setTestResult(result);
-      if (result.connected) {
+      if (result) {
         setSuccess('Connection successful. TMDB is ready.');
         await refreshBootstrapStatus();
       } else {
@@ -724,7 +691,7 @@ export function TmdbSection() {
         Ready to test
       </span>
     );
-  } else if (testResult.connected) {
+  } else if (testResult) {
     statusBadge = (
       <span className={`${badgeBase} bg-green-900/50 text-green-400 border border-green-700`}>
         Connected
@@ -785,11 +752,7 @@ export function TmdbSection() {
                 variant="secondary"
                 size="sm"
               >
-                {isTesting
-                  ? 'Testing…'
-                  : testResult?.connected
-                    ? 'Retest Connection'
-                    : 'Test Connection'}
+                {isTesting ? 'Testing…' : testResult ? 'Retest Connection' : 'Test Connection'}
               </Button>
             )}
           </div>
@@ -803,7 +766,7 @@ export function TmdbSection() {
   );
 }
 
-export function ArrSettings() {
+export function IntegrationsSettings() {
   return (
     <div className="space-y-6">
       <PageHeader

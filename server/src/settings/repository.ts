@@ -1,51 +1,30 @@
-import type { UserSettings, UserSettingsQuery } from '@findarr/shared';
-import { userSettings } from '@findarr/shared';
-import { eq, sql } from 'drizzle-orm';
+import { appSettings, objectEntries, isDefined } from '@findarr/shared';
+import { inArray } from 'drizzle-orm';
 import type { DB } from '../db/setup.js';
 
-const DEFAULT_USER_SETTINGS: UserSettings = {
-  language: 'de-DE',
-  regions: ['western'],
-};
-
-export async function getOrCreateUserSettings(db: DB, userId: number): Promise<UserSettings> {
-  const existing = await db.query.userSettings.findFirst({
-    where: eq(userSettings.userId, userId),
-  });
-
-  if (existing) {
-    return existing as UserSettings;
-  }
-
-  await db.insert(userSettings).values({
-    userId,
-    language: DEFAULT_USER_SETTINGS.language,
-    regions: DEFAULT_USER_SETTINGS.regions,
-  });
-
-  return DEFAULT_USER_SETTINGS;
+export async function readSettings<K extends string>(
+  db: DB,
+  keys: K[]
+): Promise<Record<K, string | null>> {
+  const rows = await db.query.appSettings.findMany({ where: inArray(appSettings.key, keys) });
+  const stored = new Map(rows.map(r => [r.key, r.value]));
+  return Object.fromEntries(keys.map(k => [k, stored.get(k) ?? null])) as Record<K, string | null>;
 }
 
-export async function updateUserSettings(
+export async function writeSettings(
   db: DB,
-  userId: number,
-  updates: UserSettingsQuery
-): Promise<UserSettings> {
-  const current = await getOrCreateUserSettings(db, userId);
-
-  const merged: UserSettings = {
-    language: updates.language ?? current.language,
-    regions: updates.regions ?? current.regions,
-  };
-
-  await db
-    .update(userSettings)
-    .set({
-      language: merged.language,
-      regions: merged.regions,
-      updatedAt: sql`(unixepoch() * 1000)`,
-    })
-    .where(eq(userSettings.userId, userId));
-
-  return merged;
+  values: Partial<Record<string, string | undefined>>
+): Promise<void> {
+  const entries = objectEntries(values).filter((entry): entry is [string, string] =>
+    isDefined(entry[1])
+  );
+  if (entries.length === 0) return;
+  await Promise.all(
+    entries.map(([key, value]) =>
+      db.insert(appSettings).values({ key, value }).onConflictDoUpdate({
+        target: appSettings.key,
+        set: { value },
+      })
+    )
+  );
 }

@@ -23,7 +23,7 @@ const authRoutes: FastifyPluginAsync = async fastify => {
   fastify.get('/me', { preHandler: [fastify.requireAuth] }, r => r.user);
 
   // Get bootstrap status for post-login app gating
-  fastify.get('/bootstrap', { preHandler: [fastify.requireAuth] }, async () => ({
+  fastify.get('/bootstrap', { preHandler: [fastify.requireAuth] }, () => ({
     tmdbConfigured: fastify.tmdb.isConfigured(),
   }));
 };
