@@ -2,7 +2,11 @@ import SqlDatabase from 'better-sqlite3';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { arrConfig } from '../arr/config.js';
-import { batchUpdateMediaStatus, getMediaWithArrIds, updateMediaIds } from '../arr/repository.js';
+import {
+  batchUpdateMediaStatuses,
+  listMediaWithArrIds,
+  updateMediaIds,
+} from '../arr/repository.js';
 import type { AnyArrService } from '../arr/service.js';
 import { syncQueue } from '../arr/sync.js';
 import { createDatabase, type DB } from '../db/setup.js';
@@ -29,7 +33,7 @@ describe('arr sync collision handling - integration tests', () => {
     await updateMediaIds(db, movie.id, { arrId: 42, arrUrl: '/movie/123' });
     await updateMediaIds(db, show.id, { arrId: 42, arrUrl: '/series/test-show' });
 
-    await batchUpdateMediaStatus(db, [{ arrId: 42, type: 'movie', status: 'warning' }]);
+    await batchUpdateMediaStatuses(db, [{ arrId: 42, type: 'movie', status: 'warning' }]);
 
     const updatedMovie = await getMediaByTmdbId(db, 123, 'movie');
     const updatedShow = await getMediaByTmdbId(db, 456, 'tv');
@@ -45,7 +49,7 @@ describe('arr sync collision handling - integration tests', () => {
     await updateMediaIds(db, movie.id, { arrId: 11, arrUrl: '/movie/123' });
     await updateMediaIds(db, show.id, { arrId: 22, arrUrl: '/series/test-show' });
 
-    const movieRows = await getMediaWithArrIds(db, 'movie');
+    const movieRows = await listMediaWithArrIds(db, 'movie');
 
     expect(movieRows).toHaveLength(1);
     expect(movieRows[0]?.type).toBe('movie');
@@ -68,7 +72,7 @@ describe('arr sync collision handling - integration tests', () => {
 
     const radarrService = {
       config: arrConfig.radarr,
-      queue: vi.fn().mockResolvedValue({
+      getQueue: vi.fn().mockResolvedValue({
         records: [{ arrId: 77, trackedDownloadStatus: 'downloading' }],
       }),
     } as unknown as AnyArrService;

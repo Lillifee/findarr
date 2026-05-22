@@ -126,7 +126,7 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
       : null;
 
   const loadProfiles = useCallback(async () => {
-    const [p, f] = await Promise.all([svc.getProfiles(), svc.getRootFolders()]);
+    const [p, f] = await Promise.all([svc.listQualityProfiles(), svc.listRootFolders()]);
     setProfiles(p);
     setRootFolders(f);
   }, [svc]);

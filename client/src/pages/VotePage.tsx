@@ -64,7 +64,7 @@ export function VotePage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await searchService.getNextSwipe({
+      const response = await searchService.getNextUnvotedMedia({
         type: currentSearchType,
         genres: selectedGenres,
         interaction: 'unvoted',

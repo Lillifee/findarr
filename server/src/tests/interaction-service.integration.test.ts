@@ -41,14 +41,14 @@ const radarrService: ArrService<typeof arrConfig.radarr> = {
     qualityProfileId: 1,
     rootFolderPath: '/movies',
   }),
-  request: vi.fn().mockResolvedValue({ id: 1, tmdbId: 123, title: 'Test Movie' }),
+  requestMedia: vi.fn().mockResolvedValue({ id: 1, tmdbId: 123, title: 'Test Movie' }),
   isConfigured: vi.fn().mockResolvedValue(true),
   testConnection: vi.fn().mockResolvedValue(false),
-  profiles: vi.fn().mockResolvedValue([]),
-  rootFolders: vi.fn().mockResolvedValue([]),
-  library: vi.fn().mockResolvedValue([]),
-  queue: vi.fn().mockResolvedValue({ records: [] }),
-  resolveUrl: vi.fn().mockResolvedValue(null),
+  listQualityProfiles: vi.fn().mockResolvedValue([]),
+  listRootFolders: vi.fn().mockResolvedValue([]),
+  listLibraryItems: vi.fn().mockResolvedValue([]),
+  getQueue: vi.fn().mockResolvedValue({ records: [] }),
+  resolveMediaUrl: vi.fn().mockResolvedValue(null),
 };
 
 const sonarrService: ArrService<typeof arrConfig.sonarr> = {
@@ -65,26 +65,26 @@ const sonarrService: ArrService<typeof arrConfig.sonarr> = {
     qualityProfileId: 1,
     rootFolderPath: '/tv',
   }),
-  request: vi.fn().mockResolvedValue({ id: 1, tvdbId: 81_189, title: 'Test Show' }),
+  requestMedia: vi.fn().mockResolvedValue({ id: 1, tvdbId: 81_189, title: 'Test Show' }),
   isConfigured: vi.fn().mockResolvedValue(true),
   testConnection: vi.fn().mockResolvedValue(false),
-  profiles: vi.fn().mockResolvedValue([]),
-  rootFolders: vi.fn().mockResolvedValue([]),
-  library: vi.fn().mockResolvedValue([]),
-  queue: vi.fn().mockResolvedValue({ records: [] }),
-  resolveUrl: vi.fn().mockResolvedValue(null),
+  listQualityProfiles: vi.fn().mockResolvedValue([]),
+  listRootFolders: vi.fn().mockResolvedValue([]),
+  listLibraryItems: vi.fn().mockResolvedValue([]),
+  getQueue: vi.fn().mockResolvedValue({ records: [] }),
+  resolveMediaUrl: vi.fn().mockResolvedValue(null),
 };
 
 const catalogService: CatalogService = {
-  search: vi.fn().mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
-  popular: vi.fn().mockResolvedValue({
+  searchMedia: vi.fn().mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
+  getPopularMedia: vi.fn().mockResolvedValue({
     results: [],
     page: 1,
     totalPages: 0,
     feedId: '00000000-0000-0000-0000-000000000000',
   }),
-  discover: vi.fn().mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
-  details: vi.fn().mockImplementation(params =>
+  discoverMedia: vi.fn().mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
+  getMediaDetails: vi.fn().mockImplementation(params =>
     Promise.resolve(
       createMediaTestHelper({
         tmdbId: params.id,
@@ -106,9 +106,9 @@ const catalogService: CatalogService = {
       })
     )
   ),
-  genres: vi.fn().mockResolvedValue({ genres: [] }),
-  available: vi.fn().mockResolvedValue({ results: [] }),
-  nextUnvoted: vi.fn().mockResolvedValue({ media: null, feedId: 'feed-1' }),
+  listGenres: vi.fn().mockResolvedValue({ genres: [] }),
+  getAvailableMedia: vi.fn().mockResolvedValue({ results: [] }),
+  getNextUnvotedMedia: vi.fn().mockResolvedValue({ media: null, feedId: 'feed-1' }),
 };
 
 describe('interaction service - integration tests', () => {
@@ -570,7 +570,7 @@ describe('interaction service - integration tests', () => {
       vi.clearAllMocks();
       vi.mocked(tmdbWithTvdb.details).mockResolvedValue(createTestMovieDetail({ tmdbId: 123 }));
       // Re-mock services after clearAllMocks
-      vi.mocked(radarrService.request).mockResolvedValue({
+      vi.mocked(radarrService.requestMedia).mockResolvedValue({
         type: 'movie',
         id: 1,
         tmdbId: 123,
@@ -579,7 +579,7 @@ describe('interaction service - integration tests', () => {
         monitored: true,
         hasFile: false,
       });
-      vi.mocked(sonarrService.request).mockResolvedValue({
+      vi.mocked(sonarrService.requestMedia).mockResolvedValue({
         type: 'tv',
         id: 1,
         tvdbId: 81_189,
@@ -628,7 +628,13 @@ describe('interaction service - integration tests', () => {
 
       // Allow fire-and-forget to complete
       await vi.waitFor(() =>
-        expect(radarrService.request).toHaveBeenCalledWith(1, 123, 'Test Movie', null, undefined)
+        expect(radarrService.requestMedia).toHaveBeenCalledWith(
+          1,
+          123,
+          'Test Movie',
+          null,
+          undefined
+        )
       );
     });
 
@@ -679,7 +685,13 @@ describe('interaction service - integration tests', () => {
       );
 
       await vi.waitFor(() =>
-        expect(sonarrService.request).toHaveBeenCalledWith(1, 81_189, 'Test Show', null, [1, 2])
+        expect(sonarrService.requestMedia).toHaveBeenCalledWith(
+          1,
+          81_189,
+          'Test Show',
+          null,
+          [1, 2]
+        )
       );
     });
 
@@ -692,7 +704,7 @@ describe('interaction service - integration tests', () => {
       expectDefined(user3);
 
       // Simulate arr not configured — request returns empty object gracefully
-      vi.mocked(radarrService.request).mockResolvedValue(undefined);
+      vi.mocked(radarrService.requestMedia).mockResolvedValue(undefined);
 
       await createInteraction(
         tmdbWithTvdb,
@@ -727,7 +739,7 @@ describe('interaction service - integration tests', () => {
       // Status is still marked requested (arr forwarding is best-effort, non-fatal)
       expect(media.status).toBe('requested');
       // request was attempted but returned empty object (not configured)
-      await vi.waitFor(() => expect(radarrService.request).toHaveBeenCalled());
+      await vi.waitFor(() => expect(radarrService.requestMedia).toHaveBeenCalled());
     });
   });
 });

@@ -3,10 +3,10 @@ import type { FastifyInstance } from 'fastify';
 import { processWithWorkerPool } from '../tmdb/helpers.js';
 import {
   upsertMediaFromArr,
-  getMediaWithArrIds,
-  batchUpdateMediaStatus,
+  listMediaWithArrIds,
+  batchUpdateMediaStatuses,
   clearRemovedArrItems,
-  getExistingTvdbIds,
+  getExistingTvdbIdSet,
 } from './repository.js';
 import type { ArrLibraryItem } from './schemas.js';
 import type { AnyArrService } from './service.js';
@@ -74,7 +74,7 @@ export async function syncLibrary(
   const { mediaType, service } = config;
 
   // Fetch library items (already transformed to ArrLibraryItem)
-  const libraryItems = await arrService.library();
+  const libraryItems = await arrService.listLibraryItems();
 
   if (libraryItems.length === 0) {
     log.info({ name: service, service }, 'No items found');
@@ -86,8 +86,8 @@ export async function syncLibrary(
   // For TV shows: Enrich with tmdbId during sync to avoid duplicate records
   // This prevents conflicts when Jellyfin already has the same show with tmdbId
   if (mediaType === 'tv') {
-    const alreadyProcessed = await getExistingTvdbIds(db);
-    const queue = libraryItems.filter(item => item?.tvdbId && !alreadyProcessed.has(item.tvdbId));
+    const existingTvdbIdSet = await getExistingTvdbIdSet(db);
+    const queue = libraryItems.filter(item => item?.tvdbId && !existingTvdbIdSet.has(item.tvdbId));
 
     if (queue.length > 0) {
       await enrichTvShows(fastify, queue);
@@ -121,7 +121,7 @@ export async function syncLibrary(
   await upsertMediaFromArr(db, itemsToUpsert);
 
   // Cleanup: Find items in DB that are no longer in Radarr/Sonarr
-  const existingMedia = await getMediaWithArrIds(db, mediaType);
+  const existingMedia = await listMediaWithArrIds(db, mediaType);
   const currentArrIds = new Set(libraryItems.map(item => item.id));
   const removedArrIds = existingMedia
     .map(m => m.arrId)
@@ -194,7 +194,7 @@ export async function syncQueue(
   const mediaType = arrService.config.mediaType;
 
   // Get queue from service
-  const queue = await arrService.queue();
+  const queue = await arrService.getQueue();
 
   // Process queue items
   for (const item of queue.records) {
@@ -221,7 +221,7 @@ export async function syncQueue(
 
   // Update statuses for items IN queue
   if (statusUpdates.length > 0) {
-    await batchUpdateMediaStatus(fastify.db, statusUpdates);
+    await batchUpdateMediaStatuses(fastify.db, statusUpdates);
   }
 
   // Detect completions by comparing previous vs current downloading IDs

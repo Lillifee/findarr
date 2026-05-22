@@ -14,10 +14,10 @@ export async function setTmdbSettings(db: DB, settings: TmdbSettingsQuery): Prom
 }
 
 export async function getTmdbSettingsFull(db: DB): Promise<TmdbSettingsFull> {
-  const s = await readSettings(db, tmdbKeys);
+  const settingsValues = await readSettings(db, tmdbKeys);
   return {
-    tmdbAccessTokenSet: !!s.tmdbAccessToken,
-    tmdbAccessToken: s.tmdbAccessToken,
+    tmdbAccessTokenSet: !!settingsValues.tmdbAccessToken,
+    tmdbAccessToken: settingsValues.tmdbAccessToken,
   };
 }
 

@@ -11,7 +11,7 @@ import type { MediaStats } from '../media/scoring.js';
 /**
  * Transform database row to Media object
  */
-const transformToMedia = (row: DbCatalogCache): Media => {
+const mapCatalogCacheRowToMedia = (row: DbCatalogCache): Media => {
   const media: Media = {
     tmdbId: row.tmdbId,
     type: row.type,
@@ -40,7 +40,7 @@ const transformToMedia = (row: DbCatalogCache): Media => {
 /**
  * Transform Media object to database row values
  */
-const transformToDbValues = (media: Media) => ({
+const mapMediaToCatalogCacheValues = (media: Media) => ({
   tmdbId: media.tmdbId,
   type: media.type,
   name: media.name,
@@ -67,7 +67,7 @@ export const upsertCatalogCache = async (db: DB, items: Media[]): Promise<void> 
 
   // SQLite doesn't support batch upsert, so we need to do individual upserts
   for (const item of items) {
-    const values = transformToDbValues(item);
+    const values = mapMediaToCatalogCacheValues(item);
     const { keywords: _keywords, ...updateValues } = values; // Exclude keywords from updates
 
     await db
@@ -85,29 +85,29 @@ export const upsertCatalogCache = async (db: DB, items: Media[]): Promise<void> 
  */
 export const getCatalogCacheBatch = async (
   db: DB,
-  ids: Array<{ tmdbId: number; type: MediaType }>
+  mediaKeys: Array<{ tmdbId: number; type: MediaType }>
 ): Promise<Media[]> => {
-  if (ids.length === 0) return [];
+  if (mediaKeys.length === 0) return [];
 
   // Build query for multiple ID/type combinations
-  const results: DbCatalogCache[] = [];
+  const catalogCacheRows: DbCatalogCache[] = [];
 
-  for (const { tmdbId, type } of ids) {
+  for (const { tmdbId, type } of mediaKeys) {
     const row = await db.query.catalogCache.findFirst({
       where: and(eq(catalogCache.tmdbId, tmdbId), eq(catalogCache.type, type)),
     });
-    if (row) results.push(row as DbCatalogCache);
+    if (row) catalogCacheRows.push(row as DbCatalogCache);
   }
 
-  return results.map(row => transformToMedia(row));
+  return catalogCacheRows.map(row => mapCatalogCacheRowToMedia(row));
 };
 
 /**
  * Get all catalog cache entries
  */
 export const getAllCatalogCache = async (db: DB): Promise<Media[]> => {
-  const results = (await db.query.catalogCache.findMany()) as DbCatalogCache[];
-  return results.map(row => transformToMedia(row));
+  const catalogCacheRows = (await db.query.catalogCache.findMany()) as DbCatalogCache[];
+  return catalogCacheRows.map(row => mapCatalogCacheRowToMedia(row));
 };
 
 /**
@@ -116,9 +116,9 @@ export const getAllCatalogCache = async (db: DB): Promise<Media[]> => {
  */
 export const cleanupCatalogCache = async (
   db: DB,
-  currentIds: Array<{ tmdbId: number; type: MediaType }>
+  activeMediaKeys: Array<{ tmdbId: number; type: MediaType }>
 ): Promise<number> => {
-  if (currentIds.length === 0) {
+  if (activeMediaKeys.length === 0) {
     // Delete all if no current IDs provided
     const result = await db.delete(catalogCache);
     return result.changes;
@@ -128,9 +128,12 @@ export const cleanupCatalogCache = async (
   // Get all existing entries
   const allEntries = await db.query.catalogCache.findMany();
 
-  // Find entries to delete (those not in currentIds)
+  // Find entries to delete (those not in the active catalog set)
   const entriesToDelete = allEntries.filter(
-    entry => !currentIds.some(id => id.tmdbId === entry.tmdbId && id.type === entry.type)
+    entry =>
+      !activeMediaKeys.some(
+        mediaKey => mediaKey.tmdbId === entry.tmdbId && mediaKey.type === entry.type
+      )
   );
 
   // Delete each entry
@@ -149,10 +152,10 @@ export const cleanupCatalogCache = async (
  * Get catalog items that have empty keywords array
  * Used by keyword enrichment to find items that need detailed fetching
  */
-export const getCatalogItemsWithoutKeywords = async (
+export const listCatalogItemsMissingKeywords = async (
   db: DB
 ): Promise<Array<{ tmdbId: number; type: MediaType }>> => {
-  const results = await db.query.catalogCache.findMany({
+  const catalogItems = await db.query.catalogCache.findMany({
     columns: {
       tmdbId: true,
       type: true,
@@ -160,7 +163,7 @@ export const getCatalogItemsWithoutKeywords = async (
     where: isNull(catalogCache.keywords),
   });
 
-  return results.map(row => ({
+  return catalogItems.map(row => ({
     tmdbId: row.tmdbId,
     type: row.type as MediaType,
   }));
@@ -186,7 +189,7 @@ export const updateCatalogKeywords = async (
  * Compute media statistics from catalog cache (trending + recent releases)
  * Used during catalog sync to update normalization bounds
  */
-export const computeMediaStats = async (
+export const computeCatalogMediaStats = async (
   db: DB,
   mediaType: MediaType
 ): Promise<Omit<MediaStats, 'mediaType' | 'updatedAt'>> => {

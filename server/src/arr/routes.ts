@@ -8,7 +8,7 @@ export async function arrRoutes(fastify: FastifyInstance) {
   // Radarr link endpoint: GET /radarr-link?mediaId=123
   fastify.get('/radarr-link', async (request, reply) => {
     const query = ArrLinkQuerySchema.parse(request.query);
-    const url = await fastify.radarr.resolveUrl(query.mediaId);
+    const url = await fastify.radarr.resolveMediaUrl(query.mediaId);
 
     if (!url) {
       return reply.code(404).send({ error: 'Radarr link not available' });
@@ -20,7 +20,7 @@ export async function arrRoutes(fastify: FastifyInstance) {
   // Sonarr link endpoint: GET /sonarr-link?mediaId=123
   fastify.get('/sonarr-link', async (request, reply) => {
     const query = ArrLinkQuerySchema.parse(request.query);
-    const url = await fastify.sonarr.resolveUrl(query.mediaId);
+    const url = await fastify.sonarr.resolveMediaUrl(query.mediaId);
 
     if (!url) {
       return reply.code(404).send({ error: 'Sonarr link not available' });

@@ -25,9 +25,9 @@ const adminRoutes: FastifyPluginAsync = async fastify => {
     fastify.radarr.setSettings(ArrSettingsQuerySchema.parse(r.body))
   );
 
-  fastify.get('/radarr/quality-profiles', () => fastify.radarr.profiles());
+  fastify.get('/radarr/quality-profiles', () => fastify.radarr.listQualityProfiles());
 
-  fastify.get('/radarr/root-folders', () => fastify.radarr.rootFolders());
+  fastify.get('/radarr/root-folders', () => fastify.radarr.listRootFolders());
 
   fastify.post('/radarr/test', () => fastify.radarr.testConnection());
 
@@ -37,9 +37,9 @@ const adminRoutes: FastifyPluginAsync = async fastify => {
     fastify.sonarr.setSettings(ArrSettingsQuerySchema.parse(r.body))
   );
 
-  fastify.get('/sonarr/quality-profiles', () => fastify.sonarr.profiles());
+  fastify.get('/sonarr/quality-profiles', () => fastify.sonarr.listQualityProfiles());
 
-  fastify.get('/sonarr/root-folders', () => fastify.sonarr.rootFolders());
+  fastify.get('/sonarr/root-folders', () => fastify.sonarr.listRootFolders());
 
   fastify.post('/sonarr/test', () => fastify.sonarr.testConnection());
 

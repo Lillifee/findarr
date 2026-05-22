@@ -9,8 +9,6 @@ import {
 /**
  * Sync Jellyfin library to database
  * Updates media table with available items from Jellyfin
- * @param fastify - Fastify instance
- * @param fullSync - If true, fetches all media; if false, fetches only recent items (default: true)
  */
 export async function syncJellyfinLibrary(fastify: FastifyInstance): Promise<void> {
   const isConfigured = await fastify.jellyfin.isConfigured();
@@ -20,7 +18,7 @@ export async function syncJellyfinLibrary(fastify: FastifyInstance): Promise<voi
     return;
   }
 
-  const startTime = Date.now();
+  const syncStartedAt = Date.now();
   fastify.log.info({ name: 'jellyfin' }, 'Starting library sync');
 
   const isConnected = await fastify.jellyfin.testConnection();
@@ -31,7 +29,7 @@ export async function syncJellyfinLibrary(fastify: FastifyInstance): Promise<voi
 
   fastify.log.debug({ name: 'jellyfin' }, 'Connection successful');
 
-  const jellyfinItems = await fastify.jellyfin.library();
+  const jellyfinItems = await fastify.jellyfin.listLibraryItems();
 
   if (jellyfinItems.length === 0) {
     fastify.log.warn({ name: 'jellyfin' }, 'No items found with TMDB IDs');
@@ -40,10 +38,10 @@ export async function syncJellyfinLibrary(fastify: FastifyInstance): Promise<voi
 
   const affectedRows = await upsertMediaFromJellyfin(fastify.db, jellyfinItems);
 
-  const existingMedia = await getMediaWithJellyfinIds(fastify.db);
+  const mediaWithJellyfinIds = await getMediaWithJellyfinIds(fastify.db);
   const currentJellyfinIds = new Set(jellyfinItems.map(item => item.jellyfinId));
-  const removedJellyfinIds = existingMedia
-    .map(m => m.jellyfinId)
+  const removedJellyfinIds = mediaWithJellyfinIds
+    .map(mediaRecord => mediaRecord.jellyfinId)
     .filter(jellyfinId => isDefined(jellyfinId))
     .filter(jellyfinId => !currentJellyfinIds.has(jellyfinId));
 
@@ -52,7 +50,7 @@ export async function syncJellyfinLibrary(fastify: FastifyInstance): Promise<voi
     fastify.log.info({ name: 'jellyfin', clearedCount }, 'Cleaned up removed items');
   }
 
-  const durationMs = Date.now() - startTime;
+  const durationMs = Date.now() - syncStartedAt;
 
   fastify.log.info(
     {

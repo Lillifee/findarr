@@ -95,7 +95,7 @@ export const createInteraction = async (
   await updateUserPreferences(tmdbService, db, data, user.id, isToggle);
 
   // Return enriched media with updated state using catalog service
-  return catalogService.details({ id: data.tmdbId, type: data.mediaType }, user.id);
+  return catalogService.getMediaDetails({ id: data.tmdbId, type: data.mediaType }, user.id);
 };
 
 /**
@@ -151,7 +151,13 @@ async function requestMediaToArr(
   const service = details.type === 'movie' ? radarrService : sonarrService;
   const externalId = details.type === 'movie' ? details.tmdbId : details.tvdbId;
 
-  await service.request(mediaRecord.id, externalId, details.name, mediaRecord.arrId, data.seasons);
+  await service.requestMedia(
+    mediaRecord.id,
+    externalId,
+    details.name,
+    mediaRecord.arrId,
+    data.seasons
+  );
 }
 
 /**

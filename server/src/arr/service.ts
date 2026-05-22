@@ -2,6 +2,7 @@ import type { ArrSettings, ArrSettingsQuery } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
 import type { DB } from '../db/setup.js';
 import { getMediaById } from '../media/repository.js';
+import { createClientLifecycle } from '../utils/clientLifecycleHepler.js';
 import { trimTrailingSlash } from '../utils/links.js';
 import { createArrClient, type ArrClient } from './client.js';
 import { arrConfig, type ArrServiceConfig } from './config.js';
@@ -19,72 +20,43 @@ import type {
 } from './schemas.js';
 import { transformArrMedia } from './transformers.js';
 
-type RuntimeState = {
-  settings?: ArrSettingsFull;
-  client?: ArrClient | undefined;
-};
-
 export async function createArrService<T extends ArrServiceConfig>(
   db: DB,
   config: T,
   fastify: FastifyInstance
 ) {
-  let state: RuntimeState = {};
-  let reloadPromise: Promise<void> | undefined;
+  const lifecycle = createClientLifecycle<ArrSettingsFull, ArrClient>({
+    name: config.service,
+    loadSettings: () => getArrSettings(db, config),
+    createClient: settings =>
+      settings.url && settings.apiKey
+        ? createArrClient(config, settings.url, settings.apiKey)
+        : undefined,
+  });
 
-  await reload();
-
-  async function reload(): Promise<void> {
-    if (reloadPromise) return reloadPromise;
-
-    reloadPromise = (async () => {
-      const settings = await getArrSettings(db, config);
-      const client =
-        settings.url && settings.apiKey
-          ? createArrClient(config, settings.url, settings.apiKey)
-          : undefined;
-
-      state = { settings, client };
-    })();
-
-    try {
-      await reloadPromise;
-    } finally {
-      reloadPromise = undefined;
-    }
-  }
-
-  function requireClient(): ArrClient {
-    if (!state.client) throw new Error(`${config.service} client is not configured`);
-    return state.client;
-  }
-
-  function requireSettings(): ArrSettingsFull {
-    if (!state.settings) throw new Error(`${config.service} settings are unavailable`);
-    return state.settings;
-  }
+  await lifecycle.reload();
 
   async function getSettings(): Promise<ArrSettings> {
-    const { apiKey: _apiKey, ...settings } = requireSettings();
+    const { apiKey: _apiKey, ...settings } = lifecycle.settings();
     return settings;
   }
 
   async function setSettings(settingsQuery: ArrSettingsQuery): Promise<ArrSettings> {
     await setArrSettings(db, config, settingsQuery);
 
-    await reload();
+    await lifecycle.reload();
     return getSettings();
   }
 
   async function testConnection(): Promise<boolean> {
-    return state.client ? await state.client.testConnection() : false;
+    return lifecycle.testConnection();
   }
 
   async function isConfigured(): Promise<boolean> {
-    return !!state.client;
+    return lifecycle.isConfigured();
   }
 
-  async function request(
+  async function requestMedia(
     mediaId: number,
     id: number | undefined,
     title: string,
@@ -96,14 +68,14 @@ export async function createArrService<T extends ArrServiceConfig>(
       return undefined;
     }
 
-    const client = requireClient();
-    const settings = requireSettings();
+    const client = lifecycle.client();
+    const settings = lifecycle.settings();
 
     const { qualityProfileId, rootFolderPath } = settings;
 
     if (!qualityProfileId || !rootFolderPath) return undefined;
 
-    const response = await client.requestOrUpdate(
+    const response = await client.requestOrUpdateMedia(
       { id, title, arrId },
       {
         qualityProfileId,
@@ -125,29 +97,29 @@ export async function createArrService<T extends ArrServiceConfig>(
     return libraryItem;
   }
 
-  async function profiles(): Promise<ArrQualityProfile[]> {
-    return requireClient().getQualityProfiles();
+  async function listQualityProfiles(): Promise<ArrQualityProfile[]> {
+    return lifecycle.client().listQualityProfiles();
   }
 
-  async function rootFolders(): Promise<ArrRootFolder[]> {
-    return requireClient().getRootFolders();
+  async function listRootFolders(): Promise<ArrRootFolder[]> {
+    return lifecycle.client().listRootFolders();
   }
 
-  async function library(): Promise<ArrLibraryItem[]> {
-    const items = await requireClient().getLibrary();
+  async function listLibraryItems(): Promise<ArrLibraryItem[]> {
+    const items = await lifecycle.client().listLibraryItems();
     return items.map(x => transformArrMedia(x));
   }
 
-  async function queue(): Promise<ArrQueueResponse> {
-    return requireClient().getQueue();
+  async function getQueue(): Promise<ArrQueueResponse> {
+    return lifecycle.client().getQueue();
   }
 
-  async function resolveUrl(mediaId: number): Promise<string | null> {
+  async function resolveMediaUrl(mediaId: number): Promise<string | null> {
     const mediaRecord = await getMediaById(db, mediaId);
 
     if (!mediaRecord?.arrUrl) return null;
 
-    const { url } = requireSettings();
+    const { url } = lifecycle.settings();
     if (!url) return null;
 
     return `${trimTrailingSlash(url)}${mediaRecord.arrUrl}`;
@@ -159,12 +131,12 @@ export async function createArrService<T extends ArrServiceConfig>(
     setSettings,
     isConfigured,
     testConnection,
-    request,
-    profiles,
-    rootFolders,
-    library,
-    queue,
-    resolveUrl,
+    requestMedia,
+    listQualityProfiles,
+    listRootFolders,
+    listLibraryItems,
+    getQueue,
+    resolveMediaUrl,
   };
 }
 

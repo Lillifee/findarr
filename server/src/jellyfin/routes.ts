@@ -9,7 +9,7 @@ export async function jellyfinRoutes(fastify: FastifyInstance) {
   // Resolves full Jellyfin URL only when user clicks
   fastify.get('/jellyfin-link', async (request, reply) => {
     const query = JellyfinLinkQuerySchema.parse(request.query);
-    const url = await fastify.jellyfin.resolveUrl(query.mediaId);
+    const url = await fastify.jellyfin.resolveMediaUrl(query.mediaId);
 
     if (!url) {
       return reply.code(404).send({ error: 'Jellyfin link not available' });
