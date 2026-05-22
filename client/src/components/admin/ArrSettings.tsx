@@ -2,6 +2,7 @@ import type { ArrSettings, ArrQualityProfile, ArrRootFolder } from '@findarr/sha
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { adminArrService, adminJellyfinService, adminTmdbService } from '../../services/api';
+import { asVoid } from '../../utils/asyncHandlers';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Input } from '../ui/Input';
@@ -177,7 +178,7 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
     }
   }
 
-  async function handleSave(e: React.FormEvent) {
+  async function handleSave(e: React.ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -252,7 +253,7 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
       </div>
       <p className="text-sm text-gray-400 -mt-3 mb-5">{description}</p>
 
-      <form onSubmit={handleSave} className="space-y-4">
+      <form onSubmit={asVoid(handleSave)} className="space-y-4">
         <div className="grid gap-5 xl:grid-cols-2 xl:items-start">
           <StepPanel
             title="Step 1"
@@ -346,7 +347,7 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
             {canTestConnection && (
               <Button
                 type="button"
-                onClick={handleTest}
+                onClick={asVoid(handleTest)}
                 disabled={isTesting}
                 variant="secondary"
                 size="sm"
@@ -441,7 +442,7 @@ function JellyfinSection() {
     }
   }
 
-  async function handleSave(e: React.FormEvent) {
+  async function handleSave(e: React.ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -510,7 +511,7 @@ function JellyfinSection() {
         Media server — tracks availability of requested content
       </p>
 
-      <form onSubmit={handleSave} className="space-y-4">
+      <form onSubmit={asVoid(handleSave)} className="space-y-4">
         <StepPanel
           title="Step 1"
           message="Save the server URL and API key before testing the connection."
@@ -551,7 +552,7 @@ function JellyfinSection() {
             {canTestConnection && (
               <Button
                 type="button"
-                onClick={handleTest}
+                onClick={asVoid(handleTest)}
                 disabled={isTesting}
                 variant="secondary"
                 size="sm"
@@ -663,7 +664,7 @@ export function TmdbSection() {
     }
   }
 
-  async function handleSave(e: React.FormEvent) {
+  async function handleSave(e: React.ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsSaving(true);
     try {
@@ -715,7 +716,7 @@ export function TmdbSection() {
         Metadata provider for search, discovery, and media details.
       </p>
 
-      <form onSubmit={handleSave} className="space-y-4">
+      <form onSubmit={asVoid(handleSave)} className="space-y-4">
         <StepPanel
           title="Step 1"
           message="Save the TMDB access token before testing the connection."
@@ -747,7 +748,7 @@ export function TmdbSection() {
             {canTestConnection && (
               <Button
                 type="button"
-                onClick={handleTest}
+                onClick={asVoid(handleTest)}
                 disabled={isTesting}
                 variant="secondary"
                 size="sm"

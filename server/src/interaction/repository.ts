@@ -8,7 +8,7 @@ import type {
 } from '@findarr/shared';
 import { isDefined, media, userMediaInteractions } from '@findarr/shared';
 import { and, desc, eq, getTableColumns, inArray, isNotNull, sql } from 'drizzle-orm';
-import type { DB } from '../db/setup.js';
+import type { Database } from '../db/service.js';
 import { toMediaKey } from '../utils/helper.js';
 
 // ============================================================================
@@ -19,7 +19,7 @@ import { toMediaKey } from '../utils/helper.js';
  * Add a user interaction with media (liked, disliked)
  */
 export async function addInteraction(
-  db: DB,
+  db: Database,
   userId: number,
   mediaId: number,
   action: InteractionType
@@ -38,7 +38,7 @@ export async function addInteraction(
  * Check if a user has a specific interaction with media
  */
 export async function hasInteraction(
-  db: DB,
+  db: Database,
   userId: number,
   mediaId: number,
   action: InteractionType
@@ -59,7 +59,7 @@ export async function hasInteraction(
  * Remove all interactions for a user on a specific media
  */
 export async function removeAllInteractions(
-  db: DB,
+  db: Database,
   userId: number,
   mediaId: number
 ): Promise<void> {
@@ -79,7 +79,7 @@ export async function removeAllInteractions(
  * Used for enriching media arrays with user-specific interaction state
  */
 export async function getInteractionsBatch(
-  db: DB,
+  db: Database,
   mediaItems: Media[],
   userId: number
 ): Promise<Map<number, MediaInteraction[]>> {
@@ -116,7 +116,7 @@ export async function getInteractionsBatch(
  * Returns aggregated like and dislike counts for all media
  */
 export async function getVoteCountsBatch(
-  db: DB,
+  db: Database,
   mediaItems: Media[]
 ): Promise<Map<number, { likes: number; dislikes: number }>> {
   const votesMap = new Map<number, { likes: number; dislikes: number }>();
@@ -151,7 +151,7 @@ export async function getVoteCountsBatch(
  * Supports pagination with limit and offset
  */
 export async function getMediaByUserInteractions(
-  db: DB,
+  db: Database,
   userId: number,
   options: {
     type?: InteractionsQuery['type'];
@@ -200,7 +200,7 @@ export async function getMediaByUserInteractions(
 }
 
 export async function getMediaByUserAttention(
-  db: DB,
+  db: Database,
   userId: number,
   options: {
     type?: InteractionsQuery['type'];
@@ -250,7 +250,7 @@ export async function getMediaByUserAttention(
   return { results, totalCount };
 }
 
-export async function getUserInteractionMediaKeys(db: DB, userId: number) {
+export async function getUserInteractionMediaKeys(db: Database, userId: number) {
   const rows = await db
     .selectDistinct({
       tmdbId: media.tmdbId,
@@ -272,7 +272,7 @@ export async function getUserInteractionMediaKeys(db: DB, userId: number) {
  * Returns like count and dislike count
  */
 export async function getVoteCounts(
-  db: DB,
+  db: Database,
   mediaId: number
 ): Promise<{ likes: number; dislikes: number }> {
   const result = await db

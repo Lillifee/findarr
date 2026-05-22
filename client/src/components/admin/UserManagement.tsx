@@ -1,6 +1,7 @@
 import type { User } from '@findarr/shared';
 import { useState, useEffect } from 'react';
 import { adminUserService } from '../../services/api';
+import { asVoid } from '../../utils/asyncHandlers';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Input } from '../ui/Input';
@@ -32,7 +33,7 @@ export function UserManagement() {
     }
   }
 
-  async function handleCreateUser(e: React.FormEvent) {
+  async function handleCreateUser(e: React.ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
     setIsLoading(true);
@@ -83,7 +84,7 @@ export function UserManagement() {
       {showCreateForm && (
         <Card variant="solid" padding="md" className="space-y-4">
           <h3 className="text-lg font-semibold text-white">Create New User</h3>
-          <form onSubmit={handleCreateUser} className="space-y-4">
+          <form onSubmit={asVoid(handleCreateUser)} className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label className="mb-1.5 block text-sm text-gray-300">Email</label>
@@ -188,7 +189,7 @@ export function UserManagement() {
                     type="button"
                     variant="danger"
                     size="sm"
-                    onClick={() => handleDeleteUser(user.id)}
+                    onClick={asVoid(() => handleDeleteUser(user.id))}
                   >
                     Delete
                   </Button>
@@ -227,7 +228,7 @@ export function UserManagement() {
               variant="danger"
               size="sm"
               className="w-full"
-              onClick={() => handleDeleteUser(user.id)}
+              onClick={asVoid(() => handleDeleteUser(user.id))}
             >
               Delete User
             </Button>

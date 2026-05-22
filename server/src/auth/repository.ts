@@ -1,7 +1,7 @@
 import type { CreateUser, User } from '@findarr/shared';
 import { users } from '@findarr/shared';
 import { eq } from 'drizzle-orm';
-import type { DB } from '../db/setup.js';
+import type { Database } from '../db/service.js';
 import { BadRequest, Forbidden, NotFound } from '../utils/errors.js';
 import { hashPassword } from './service.js';
 
@@ -18,7 +18,7 @@ export interface UserWithPassword extends User {
 // ============================================================================
 
 export const getUserByEmail = async (
-  db: DB,
+  db: Database,
   email: string
 ): Promise<UserWithPassword | undefined> => {
   const user = await db.query.users.findFirst({
@@ -27,14 +27,17 @@ export const getUserByEmail = async (
   return user;
 };
 
-export const getUserById = async (db: DB, id: number): Promise<UserWithPassword | undefined> => {
+export const getUserById = async (
+  db: Database,
+  id: number
+): Promise<UserWithPassword | undefined> => {
   const user = await db.query.users.findFirst({
     where: eq(users.id, id),
   });
   return user;
 };
 
-export const listAllUsers = async (db: DB) =>
+export const listAllUsers = async (db: Database) =>
   db.query.users.findMany({
     columns: {
       id: true,
@@ -50,7 +53,10 @@ export const listAllUsers = async (db: DB) =>
 // Create / Update Operations
 // ============================================================================
 
-export const createUser = async (db: DB, { email, password, displayName, role }: CreateUser) => {
+export const createUser = async (
+  db: Database,
+  { email, password, displayName, role }: CreateUser
+) => {
   // Check if user already exists
   const existingUser = await getUserByEmail(db, email);
 
@@ -78,11 +84,21 @@ export const createUser = async (db: DB, { email, password, displayName, role }:
   return user;
 };
 
+export const updateUserPassword = async (db: Database, userId: number, password: string) => {
+  const passwordHash = await hashPassword(password);
+
+  const result = await db.update(users).set({ passwordHash }).where(eq(users.id, userId));
+
+  if (result.changes === 0) {
+    throw NotFound('User not found');
+  }
+};
+
 // ============================================================================
 // Delete Operations
 // ============================================================================
 
-export const deleteUser = async (db: DB, id: number, curUserId: number) => {
+export const deleteUser = async (db: Database, id: number, curUserId: number) => {
   // Prevent deleting yourself
   if (curUserId === id) {
     throw Forbidden('Cannot delete your own account');

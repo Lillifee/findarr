@@ -6,7 +6,7 @@ import {
   type MediaType,
 } from '@findarr/shared';
 import { eq, isNotNull, sql } from 'drizzle-orm';
-import type { DB } from '../db/setup.js';
+import type { Database } from '../db/service.js';
 import { readSettings, writeSettings } from '../settings/repository.js';
 import type { JellyfinMedia } from './transformers.js';
 
@@ -19,7 +19,10 @@ import type { JellyfinMedia } from './transformers.js';
  * Updates jellyfinId, status, and season availability (for TV shows)
  * Only updates when jellyfinId, status, or seasons have actually changed
  */
-export async function upsertMediaFromJellyfin(db: DB, items: JellyfinMedia[]): Promise<number> {
+export async function upsertMediaFromJellyfin(
+  db: Database,
+  items: JellyfinMedia[]
+): Promise<number> {
   let affectedRows = 0;
 
   const upsertItem = async (item: JellyfinMedia) => {
@@ -88,7 +91,7 @@ export async function upsertMediaFromJellyfin(db: DB, items: JellyfinMedia[]): P
 /**
  * Get all media with Jellyfin IDs for sync matching
  */
-export async function getMediaWithJellyfinIds(db: DB): Promise<
+export async function getMediaWithJellyfinIds(db: Database): Promise<
   Array<{
     id: number;
     type: MediaType;
@@ -116,7 +119,10 @@ export async function getMediaWithJellyfinIds(db: DB): Promise<
  * Clear removed items from Jellyfin
  * Resets jellyfinId and status for items no longer in Jellyfin library
  */
-export async function clearRemovedJellyfinItems(db: DB, jellyfinIds: string[]): Promise<number> {
+export async function clearRemovedJellyfinItems(
+  db: Database,
+  jellyfinIds: string[]
+): Promise<number> {
   if (jellyfinIds.length === 0) return 0;
 
   let cleared = 0;
@@ -154,11 +160,14 @@ type JellyfinSettingKeys = Extract<keyof typeof JellyfinSettingsQuerySchema.shap
 
 const jellyfinKeys = Object.keys(JellyfinSettingsQuerySchema.shape) as JellyfinSettingKeys[];
 
-export async function setJellyfinSettings(db: DB, settings: JellyfinSettingsQuery): Promise<void> {
+export async function setJellyfinSettings(
+  db: Database,
+  settings: JellyfinSettingsQuery
+): Promise<void> {
   await writeSettings(db, settings);
 }
 
-export async function getJellyfinSettingsFull(db: DB): Promise<JellyfinSettingsFull> {
+export async function getJellyfinSettingsFull(db: Database): Promise<JellyfinSettingsFull> {
   const settingsValues = await readSettings(db, jellyfinKeys);
   return {
     jellyfinUrl: settingsValues.jellyfinUrl,
@@ -167,7 +176,7 @@ export async function getJellyfinSettingsFull(db: DB): Promise<JellyfinSettingsF
   };
 }
 
-export async function getJellyfinSettings(db: DB): Promise<JellyfinSettings> {
+export async function getJellyfinSettings(db: Database): Promise<JellyfinSettings> {
   const { jellyfinApiKey: _jellyfinApiKey, ...settings } = await getJellyfinSettingsFull(db);
   return settings;
 }

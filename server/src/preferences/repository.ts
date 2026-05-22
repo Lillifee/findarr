@@ -7,7 +7,7 @@ import {
   type UserKeywordPreference,
 } from '@findarr/shared';
 import { eq, sql } from 'drizzle-orm';
-import type { DB } from '../db/setup.js';
+import type { Database } from '../db/service.js';
 
 // ============================================================================
 // User Genre Preferences - Repository
@@ -17,7 +17,7 @@ import type { DB } from '../db/setup.js';
  * Get all genre preferences for a user
  * Returns a map of genreId -> preference data
  */
-export async function getUserGenrePreferences(db: DB, userId: number) {
+export async function getUserGenrePreferences(db: Database, userId: number) {
   const results = await db
     .select({
       genreId: userGenrePreferences.genreId,
@@ -42,7 +42,7 @@ export async function getUserGenrePreferences(db: DB, userId: number) {
  * Increments/decrements preference score
  */
 export async function updateGenrePreference(
-  db: DB,
+  db: Database,
   userId: number,
   genre: Genre,
   scoreDelta: number
@@ -73,7 +73,7 @@ export async function updateGenrePreference(
  * Get all keyword preferences for a user
  * Returns a map of keywordId -> preference data
  */
-export async function getUserKeywordPreferences(db: DB, userId: number) {
+export async function getUserKeywordPreferences(db: Database, userId: number) {
   const results = await db
     .select({
       keywordId: userKeywordPreferences.keywordId,
@@ -98,7 +98,7 @@ export async function getUserKeywordPreferences(db: DB, userId: number) {
  * Increments/decrements preference score
  */
 export async function updateKeywordPreference(
-  db: DB,
+  db: Database,
   userId: number,
   keyword: Keyword,
   scoreDelta: number

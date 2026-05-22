@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { asVoid } from '../utils/asyncHandlers';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';
 import { Input } from './ui/Input';
@@ -11,7 +12,7 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
     setIsLoading(true);
@@ -34,7 +35,7 @@ export function LoginForm() {
             <p className="text-gray-400">Sign in to your account</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={asVoid(handleSubmit)} className="space-y-6">
             <Input
               id="email"
               type="email"

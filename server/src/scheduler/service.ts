@@ -108,7 +108,7 @@ export function createSchedulerService(
   /**
    * Orchestration tick - checks all schedulers and runs if due
    */
-  async function tick(): Promise<void> {
+  function tick(): void {
     const now = Date.now();
 
     for (const scheduler of Object.values(schedulers)) {
@@ -132,7 +132,9 @@ export function createSchedulerService(
     }
 
     // Schedule next tick
-    timer = setTimeout(() => tick(), TICK_INTERVAL_MS);
+    timer = setTimeout(() => {
+      tick();
+    }, TICK_INTERVAL_MS);
     timer.unref(); // Don't keep Node.js process alive
   }
 

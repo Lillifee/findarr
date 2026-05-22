@@ -1,7 +1,8 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import databasePlugin from './plugin.js';
-import * as setupModule from './setup.js';
+import * as setupModule from './service.js';
+import type { Database } from './service.js';
 
 describe('databasePlugin', () => {
   let app: FastifyInstance;
@@ -21,7 +22,7 @@ describe('databasePlugin', () => {
         findMany: vi.fn(() => Promise.resolve([{ id: 1, email: 'test@test.com' }])),
       },
     },
-  } as unknown as setupModule.DB;
+  } as unknown as Database;
 
   beforeEach(async () => {
     app = Fastify();

@@ -1,6 +1,7 @@
 import type { Media, MediaType, TVDetails } from '@findarr/shared';
 import { useState } from 'react';
 import { interactionService, searchService } from '../services/api';
+import { asVoid } from '../utils/asyncHandlers';
 import SeasonSelectorModal from './SeasonSelectorModal';
 
 interface LikeDislikeButtonProps {
@@ -170,7 +171,7 @@ export function LikeDislikeButton({
         <SeasonSelectorModal
           isOpen={isSeasonModalOpen}
           onClose={handleSeasonCancel}
-          onConfirm={handleSeasonConfirm}
+          onConfirm={asVoid(handleSeasonConfirm)}
           seasons={tvDetails.seasons}
           alreadyRequestedSeasons={alreadyRequestedSeasons}
           showName={tvDetails.name}

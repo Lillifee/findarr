@@ -1,5 +1,4 @@
-import type { FastifyInstance } from 'fastify';
-import { createScheduler, type Scheduler } from '../scheduler/types.js';
+import { createScheduler, type Scheduler, type SchedulerContext } from '../scheduler/types.js';
 import type { AnyArrService } from './service.js';
 import { syncComplete, syncLibrary, syncQueue } from './sync.js';
 
@@ -17,8 +16,8 @@ export function createArrLibrarySyncScheduler(arrService: AnyArrService): Schedu
       enabled: true,
       runOnStartup: true,
     },
-    async (fastify: FastifyInstance) => {
-      await syncComplete(fastify, arrService);
+    async (context: SchedulerContext) => {
+      await syncComplete(context, arrService);
       return true; // Continue
     }
   );
@@ -40,12 +39,14 @@ export function createArrQueueMonitorScheduler(arrService: AnyArrService): Sched
       enabled: true,
       runOnStartup: true,
     },
-    async (fastify: FastifyInstance) => {
+    async (context: SchedulerContext) => {
+      if (!(await arrService.isConfigured())) return false;
+
       const queueResponse = await arrService.getQueue();
       const activeCount = queueResponse.records.length;
 
       if (activeCount > 0) {
-        fastify.log.info(
+        context.log.info(
           {
             name: arrService.config.service,
             service: arrService.config.service,
@@ -53,7 +54,7 @@ export function createArrQueueMonitorScheduler(arrService: AnyArrService): Sched
           },
           'Active downloads detected - starting fast sync'
         );
-        fastify.scheduler.start({ name: fastSyncName });
+        context.scheduler.start({ name: fastSyncName });
       }
 
       return true; // Continue
@@ -80,17 +81,17 @@ export function createArrQueueFastSyncScheduler(arrService: AnyArrService): Sche
       runOnStartup: false,
       minRuntime: 60 * 1000, // Don't self-terminate for 60 seconds (handles delayed downloads)
     },
-    async (fastify: FastifyInstance) => {
+    async (context: SchedulerContext) => {
       // Sync queue and get current state
       const { currentDownloadingIds, completedIds, hasActiveDownloads } = await syncQueue(
-        fastify,
+        context,
         arrService,
         previousDownloadingIds
       );
 
       // Handle completions
       if (completedIds.length > 0) {
-        fastify.log.info(
+        context.log.info(
           {
             name: arrService.config.service,
             service: arrService.config.service,
@@ -100,10 +101,10 @@ export function createArrQueueFastSyncScheduler(arrService: AnyArrService): Sche
         );
 
         // Trigger library sync to upgrade completed items to 'downloaded' status
-        await syncLibrary(fastify, arrService);
+        await syncLibrary(context, arrService);
 
         // Trigger Jellyfin queue sync
-        fastify.scheduler.start({ name: 'jellyfinQueueSync' });
+        context.scheduler.start({ name: 'jellyfinQueueSync' });
       }
 
       // Update state for next run

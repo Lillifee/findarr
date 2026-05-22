@@ -4,7 +4,8 @@ import { describe, it, expect, vi, beforeEach, afterEach, type Mocked } from 'vi
 import * as authService from '../auth/service.js';
 import { upsertCatalogCache } from '../catalog/repository.js';
 import { createCatalogService } from '../catalog/service.js';
-import { createDatabase, type DB } from '../db/setup.js';
+import { createDatabase } from '../db/service.js';
+import type { Database } from '../db/service.js';
 import { addInteraction } from '../interaction/repository.js';
 import { createMedia } from '../media/repository.js';
 import { updateGenrePreference, updateKeywordPreference } from '../preferences/repository.js';
@@ -17,7 +18,7 @@ import {
 } from './helpers/testHelper.js';
 
 describe('catalog service - integration tests', () => {
-  let db: DB;
+  let db: Database;
   let sqliteDb: SqlDatabase.Database;
   let tmdbServiceMock: Mocked<TMDBService>;
   let catalogService: ReturnType<typeof createCatalogService>;
@@ -44,7 +45,7 @@ describe('catalog service - integration tests', () => {
       findByExternalId: vi.fn(),
     } as Mocked<TMDBService>;
 
-    catalogService = createCatalogService(db, tmdbServiceMock);
+    catalogService = createCatalogService({ db, tmdbService: tmdbServiceMock });
   });
 
   afterEach(() => {

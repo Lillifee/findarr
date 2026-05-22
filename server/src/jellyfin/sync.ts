@@ -1,5 +1,5 @@
 import { isDefined } from '@findarr/shared';
-import type { FastifyInstance } from 'fastify';
+import type { SchedulerContext } from '../scheduler/types.js';
 import {
   clearRemovedJellyfinItems,
   getMediaWithJellyfinIds,
@@ -10,35 +10,35 @@ import {
  * Sync Jellyfin library to database
  * Updates media table with available items from Jellyfin
  */
-export async function syncJellyfinLibrary(fastify: FastifyInstance): Promise<void> {
-  const isConfigured = await fastify.jellyfin.isConfigured();
+export async function syncJellyfinLibrary(context: SchedulerContext): Promise<void> {
+  const isConfigured = await context.jellyfin.isConfigured();
 
   if (!isConfigured) {
-    fastify.log.debug({ name: 'jellyfin' }, 'Not configured - skipping sync');
+    context.log.debug({ name: 'jellyfin' }, 'Not configured - skipping sync');
     return;
   }
 
   const syncStartedAt = Date.now();
-  fastify.log.info({ name: 'jellyfin' }, 'Starting library sync');
+  context.log.info({ name: 'jellyfin' }, 'Starting library sync');
 
-  const isConnected = await fastify.jellyfin.testConnection();
+  const isConnected = await context.jellyfin.testConnection();
 
   if (!isConnected) {
     throw new Error('Jellyfin connection test failed');
   }
 
-  fastify.log.debug({ name: 'jellyfin' }, 'Connection successful');
+  context.log.debug({ name: 'jellyfin' }, 'Connection successful');
 
-  const jellyfinItems = await fastify.jellyfin.listLibraryItems();
+  const jellyfinItems = await context.jellyfin.listLibraryItems();
 
   if (jellyfinItems.length === 0) {
-    fastify.log.warn({ name: 'jellyfin' }, 'No items found with TMDB IDs');
+    context.log.warn({ name: 'jellyfin' }, 'No items found with TMDB IDs');
     return;
   }
 
-  const affectedRows = await upsertMediaFromJellyfin(fastify.db, jellyfinItems);
+  const affectedRows = await upsertMediaFromJellyfin(context.db, jellyfinItems);
 
-  const mediaWithJellyfinIds = await getMediaWithJellyfinIds(fastify.db);
+  const mediaWithJellyfinIds = await getMediaWithJellyfinIds(context.db);
   const currentJellyfinIds = new Set(jellyfinItems.map(item => item.jellyfinId));
   const removedJellyfinIds = mediaWithJellyfinIds
     .map(mediaRecord => mediaRecord.jellyfinId)
@@ -46,13 +46,13 @@ export async function syncJellyfinLibrary(fastify: FastifyInstance): Promise<voi
     .filter(jellyfinId => !currentJellyfinIds.has(jellyfinId));
 
   if (removedJellyfinIds.length > 0) {
-    const clearedCount = await clearRemovedJellyfinItems(fastify.db, removedJellyfinIds);
-    fastify.log.info({ name: 'jellyfin', clearedCount }, 'Cleaned up removed items');
+    const clearedCount = await clearRemovedJellyfinItems(context.db, removedJellyfinIds);
+    context.log.info({ name: 'jellyfin', clearedCount }, 'Cleaned up removed items');
   }
 
   const durationMs = Date.now() - syncStartedAt;
 
-  fastify.log.info(
+  context.log.info(
     {
       name: 'jellyfin',
       totalFetched: jellyfinItems.length,

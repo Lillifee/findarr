@@ -8,6 +8,7 @@ import { Card } from '../components/ui/Card';
 import { PageHeader } from '../components/ui/PageHeader';
 import { useAuth } from '../contexts/AuthContext';
 import { searchService } from '../services/api';
+import { asVoid } from '../utils/asyncHandlers';
 import { buildCatalogSearchParams } from '../utils/catalogSearchParams';
 
 function getHeroCopy(nextMedia: Media | null, heroError: string | null) {
@@ -179,12 +180,12 @@ export function DashboardPage() {
                 )}
 
                 <div className="mt-6 flex flex-wrap gap-3">
-                  <Button onClick={() => void navigate(heroCopy.primaryAction.onClick)}>
+                  <Button onClick={asVoid(() => navigate(heroCopy.primaryAction.onClick))}>
                     {heroCopy.primaryAction.label}
                   </Button>
                   <Button
                     variant="secondary"
-                    onClick={() => void navigate(heroCopy.secondaryAction.onClick)}
+                    onClick={asVoid(() => navigate(heroCopy.secondaryAction.onClick))}
                   >
                     {heroCopy.secondaryAction.label}
                   </Button>

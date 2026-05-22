@@ -1,5 +1,6 @@
 import { isDefined, type JellyfinSettingsQuery } from '@findarr/shared';
-import type { DB } from '../db/setup.js';
+import type { FastifyBaseLogger } from 'fastify';
+import type { Database } from '../db/service.js';
 import { getMediaById } from '../media/repository.js';
 import { createClientLifecycle } from '../utils/clientLifecycleHepler.js';
 import { trimTrailingSlash } from '../utils/links.js';
@@ -12,17 +13,24 @@ import {
 import type { JellyfinMedia } from './transformers.js';
 import { jellyfinItemToMedia } from './transformers.js';
 
-export async function createJellyfinService(db: DB) {
+export interface JellyfinContext {
+  db: Database;
+  log: FastifyBaseLogger;
+}
+
+export async function createJellyfinService(context: JellyfinContext) {
   const lifecycle = createClientLifecycle<JellyfinSettingsFull, JellyfinClient>({
     name: 'Jellyfin',
-    loadSettings: () => getJellyfinSettingsFull(db),
+    loadSettings: () => getJellyfinSettingsFull(context.db),
     createClient: settings =>
       settings.jellyfinUrl && settings.jellyfinApiKey
         ? createJellyfinClient(settings.jellyfinUrl, settings.jellyfinApiKey)
         : undefined,
   });
 
-  await lifecycle.reload();
+  await lifecycle.reload().catch(() => {
+    context.log.error({ name: 'Jellyfin' }, 'Failed to initialize Jellyfin service');
+  });
 
   function getSettings() {
     const { jellyfinApiKey: _jellyfinApiKey, ...settings } = lifecycle.settings();
@@ -30,7 +38,7 @@ export async function createJellyfinService(db: DB) {
   }
 
   async function setSettings(settingsQuery: JellyfinSettingsQuery) {
-    await setJellyfinSettings(db, settingsQuery);
+    await setJellyfinSettings(context.db, settingsQuery);
 
     await lifecycle.reload();
     return getSettings();
@@ -96,7 +104,7 @@ export async function createJellyfinService(db: DB) {
   }
 
   async function resolveMediaUrl(mediaId: number): Promise<string | null> {
-    const mediaRecord = await getMediaById(db, mediaId);
+    const mediaRecord = await getMediaById(context.db, mediaId);
     if (!mediaRecord?.jellyfinId) return null;
 
     const { jellyfinUrl } = getSettings();

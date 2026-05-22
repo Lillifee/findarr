@@ -1,9 +1,9 @@
 import { appSettings, objectEntries, isDefined } from '@findarr/shared';
 import { inArray } from 'drizzle-orm';
-import type { DB } from '../db/setup.js';
+import type { Database } from '../db/service.js';
 
 export async function readSettings<K extends string>(
-  db: DB,
+  db: Database,
   keys: K[]
 ): Promise<Record<K, string | null>> {
   const rows = await db.query.appSettings.findMany({ where: inArray(appSettings.key, keys) });
@@ -12,7 +12,7 @@ export async function readSettings<K extends string>(
 }
 
 export async function writeSettings(
-  db: DB,
+  db: Database,
   values: Partial<Record<string, string | undefined>>
 ): Promise<void> {
   const entries = objectEntries(values).filter((entry): entry is [string, string] =>

@@ -1,5 +1,4 @@
-import type { FastifyInstance } from 'fastify';
-import { createScheduler, type Scheduler } from '../scheduler/types.js';
+import { createScheduler, type Scheduler, type SchedulerContext } from '../scheduler/types.js';
 import { enrichCatalogKeywords, syncCatalogCache } from './sync.js';
 
 /**
@@ -16,12 +15,12 @@ export function createCatalogCacheSyncScheduler(): Scheduler {
       enabled: true,
       runOnStartup: true,
     },
-    async (fastify: FastifyInstance) => {
+    async (context: SchedulerContext) => {
       // Phase 1: Quick sync (basic media)
-      await syncCatalogCache(fastify);
+      await syncCatalogCache(context);
 
       // Trigger keyword enrichment after sync
-      fastify.scheduler.start({ name: 'catalogKeywordEnrichment' });
+      context.scheduler.start({ name: 'catalogKeywordEnrichment' });
 
       return true; // Continue
     }
@@ -42,9 +41,9 @@ export function createCatalogKeywordEnrichmentScheduler(): Scheduler {
       enabled: false, // Triggered by catalogCacheSync
       runOnStartup: false,
     },
-    async (fastify: FastifyInstance) => {
+    async (context: SchedulerContext) => {
       // Phase 2: Keyword enrichment
-      await enrichCatalogKeywords(fastify);
+      await enrichCatalogKeywords(context);
 
       // Self-terminate after completion (will be re-triggered by next catalog sync)
       return false; // Stop

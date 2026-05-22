@@ -7,7 +7,7 @@ import type {
 } from '@findarr/shared';
 import { isDefined, media } from '@findarr/shared';
 import { and, eq, isNotNull, isNull, sql } from 'drizzle-orm';
-import type { DB } from '../db/setup.js';
+import type { Database } from '../db/service.js';
 import { readSettings, writeSettings } from '../settings/repository.js';
 import type { ArrServiceConfig, ArrServiceType } from './config.js';
 
@@ -15,7 +15,7 @@ import type { ArrServiceConfig, ArrServiceType } from './config.js';
  * Update media record with IDs from Radarr/Sonarr
  */
 export async function updateMediaIds(
-  db: DB,
+  db: Database,
   mediaId: number,
   ids: {
     tmdbId?: number | undefined;
@@ -42,7 +42,7 @@ export async function updateMediaIds(
  * These shows have tvdbId but need TMDB ID for display/search
  */
 export async function getMediaWithoutTmdbId(
-  db: DB
+  db: Database
 ): Promise<Array<Pick<DbMedia, 'id' | 'tvdbId' | 'type'>>> {
   return db
     .select({
@@ -58,7 +58,7 @@ export async function getMediaWithoutTmdbId(
  * Get all existing tvdbIds for TV shows in database
  * Used to skip re-enrichment of shows already processed
  */
-export async function getExistingTvdbIdSet(db: DB): Promise<Set<number>> {
+export async function getExistingTvdbIdSet(db: Database): Promise<Set<number>> {
   const results = await db
     .select({ tvdbId: media.tvdbId })
     .from(media)
@@ -73,7 +73,7 @@ export async function getExistingTvdbIdSet(db: DB): Promise<Set<number>> {
  * TV shows: Use tmdbId constraint if available (enriched), otherwise tvdbId
  */
 export async function upsertMediaFromArr(
-  db: DB,
+  db: Database,
   items: Array<
     Pick<DbMedia, 'type' | 'tvdbId' | 'tmdbId' | 'arrId' | 'arrUrl' | 'status' | 'seasons'>
   >
@@ -141,7 +141,7 @@ export async function upsertMediaFromArr(
  * Update media status by arrId
  */
 export async function updateMediaStatusByArrId(
-  db: DB,
+  db: Database,
   arrId: number,
   type: MediaType,
   status: MediaStatus
@@ -156,7 +156,7 @@ export async function updateMediaStatusByArrId(
  * Batch update media status by arr IDs
  */
 export async function batchUpdateMediaStatuses(
-  db: DB,
+  db: Database,
   updates: Array<{
     arrId: number;
     type: MediaType;
@@ -172,7 +172,7 @@ export async function batchUpdateMediaStatuses(
  * Get all media with arr IDs for sync matching
  */
 export async function listMediaWithArrIds(
-  db: DB,
+  db: Database,
   type: MediaType
 ): Promise<Array<Omit<DbMedia, 'createdAt' | 'updatedAt'>>> {
   return db
@@ -196,7 +196,7 @@ export async function listMediaWithArrIds(
  * Clear removed items from Radarr/Sonarr
  */
 export async function clearRemovedArrItems(
-  db: DB,
+  db: Database,
   ids: number[],
   type: MediaType
 ): Promise<number> {
@@ -243,7 +243,10 @@ function createArrSettingsFieldMap(service: ArrServiceType) {
     rootFolderPath: `${service}RootFolderPath`,
   };
 }
-export async function getArrSettings(db: DB, config: ArrServiceConfig): Promise<ArrSettingsFull> {
+export async function getArrSettings(
+  db: Database,
+  config: ArrServiceConfig
+): Promise<ArrSettingsFull> {
   const fields = createArrSettingsFieldMap(config.service);
   const storedSettings = await readSettings(db, Object.values(fields));
   const qualityProfileIdValue = storedSettings[fields.qualityProfileId];
@@ -258,7 +261,7 @@ export async function getArrSettings(db: DB, config: ArrServiceConfig): Promise<
 }
 
 export async function setArrSettings(
-  db: DB,
+  db: Database,
   config: ArrServiceConfig,
   settings: {
     url?: ArrSettingsQuery['url'] | undefined;

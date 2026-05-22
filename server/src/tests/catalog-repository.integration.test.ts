@@ -8,11 +8,12 @@ import {
   listCatalogItemsMissingKeywords,
   updateCatalogKeywords,
 } from '../catalog/repository.js';
-import { createDatabase, type DB } from '../db/setup.js';
+import { createDatabase } from '../db/service.js';
+import type { Database } from '../db/service.js';
 import { createTestMedia } from './helpers/testHelper.js';
 
 describe('catalog repository - integration tests', () => {
-  let db: DB;
+  let db: Database;
   let sqliteDb: SqlDatabase.Database;
 
   beforeEach(() => {

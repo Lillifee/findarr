@@ -4,7 +4,8 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { arrConfig } from '../arr/config.js';
 import type { ArrService } from '../arr/service.js';
 import type { CatalogService } from '../catalog/service.js';
-import { createDatabase, type DB } from '../db/setup.js';
+import { createDatabase } from '../db/service.js';
+import type { Database } from '../db/service.js';
 import { hasInteraction, getVoteCounts } from '../interaction/repository.js';
 import {
   createInteraction,
@@ -112,7 +113,7 @@ const catalogService: CatalogService = {
 };
 
 describe('interaction service - integration tests', () => {
-  let db: DB;
+  let db: Database;
   let sqliteDb: SqlDatabase.Database;
   let tmdb: TMDBService;
 

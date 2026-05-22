@@ -1,5 +1,5 @@
 import { type DbMedia, type Media, isDefined } from '@findarr/shared';
-import type { DB } from '../db/setup.js';
+import type { Database } from '../db/service.js';
 import { getInteractionsBatch, getVoteCountsBatch } from '../interaction/repository.js';
 import { getUserGenrePreferences, getUserKeywordPreferences } from '../preferences/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
@@ -15,7 +15,7 @@ import { scoreMediaItems, scoreMediaItemsForUser } from './scoring.js';
  * Enrich TMDB media items with database records (status, jellyfinId, arrId, season tracking)
  * Frontend can match season status by seasonNumber from state.record.seasons if needed
  */
-export async function enrichWithRecords(db: DB, mediaItems: Media[]): Promise<Media[]> {
+export async function enrichWithRecords(db: Database, mediaItems: Media[]): Promise<Media[]> {
   if (mediaItems.length === 0) return mediaItems;
 
   const mediaRecords = await getMediaRecordsBatch(db, mediaItems);
@@ -32,7 +32,7 @@ export async function enrichWithRecords(db: DB, mediaItems: Media[]): Promise<Me
  * Uses separate optimized batch queries for interactions and vote counts
  */
 export async function enrichWithInteractions(
-  db: DB,
+  db: Database,
   mediaItems: Media[],
   userId: number
 ): Promise<Media[]> {
@@ -66,7 +66,7 @@ export async function enrichWithInteractions(
  * Returns items with scores attached (does not sort)
  */
 export async function enrichWithScoring(
-  db: DB,
+  db: Database,
   mediaItems: Media[],
   userId?: number
 ): Promise<Media[]> {

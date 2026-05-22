@@ -1,6 +1,6 @@
 import SqlDatabase from 'better-sqlite3';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { createDatabase } from '../db/setup.js';
+import { createDatabase } from './service.js';
 
 describe('setup', () => {
   let sqliteDb: SqlDatabase.Database;

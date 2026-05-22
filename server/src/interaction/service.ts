@@ -10,7 +10,7 @@ import type {
 import type { AnyArrService } from '../arr/service.js';
 import { getCatalogCacheBatch } from '../catalog/repository.js';
 import type { CatalogService } from '../catalog/service.js';
-import type { DB } from '../db/setup.js';
+import type { Database } from '../db/service.js';
 import { fetchTMDBDetails, enrichWithInteractions } from '../media/enrichment.js';
 import {
   createMedia,
@@ -43,7 +43,7 @@ export const createInteraction = async (
   radarrService: AnyArrService,
   sonarrService: AnyArrService,
   catalogService: CatalogService,
-  db: DB,
+  db: Database,
   data: CreateMediaInteraction,
   user?: User
 ): Promise<Media | undefined> => {
@@ -104,7 +104,7 @@ export const createInteraction = async (
  */
 async function updateUserPreferences(
   tmdbService: TMDBService,
-  db: DB,
+  db: Database,
   data: CreateMediaInteraction,
   userId: number,
   isToggle: boolean
@@ -166,7 +166,7 @@ async function requestMediaToArr(
  */
 export async function getUserInteractionsEnriched(
   tmdbService: TMDBService,
-  db: DB,
+  db: Database,
   userId: number,
   params?: InteractionsQuery
 ): Promise<UserInteractionsResponse> {
@@ -186,7 +186,7 @@ export async function getUserInteractionsEnriched(
 
 export async function getUserActivityAttentionEnriched(
   tmdbService: TMDBService,
-  db: DB,
+  db: Database,
   user: User,
   params?: InteractionsQuery
 ): Promise<UserInteractionsResponse> {
@@ -206,7 +206,7 @@ export async function getUserActivityAttentionEnriched(
 
 async function enrichInteractionPage(
   tmdbService: TMDBService,
-  db: DB,
+  db: Database,
   userId: number,
   items: { results: DbMedia[]; totalCount: number },
   page: number,

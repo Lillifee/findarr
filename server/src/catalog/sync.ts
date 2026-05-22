@@ -1,6 +1,6 @@
 import type { Media } from '@findarr/shared';
-import type { FastifyInstance } from 'fastify';
 import { seedMediaStats, upsertMediaStats } from '../media/repository.js';
+import type { SchedulerContext } from '../scheduler/types.js';
 import { processWithWorkerPool } from '../tmdb/helpers.js';
 import {
   upsertCatalogCache,
@@ -15,11 +15,11 @@ import {
  * Phase 1: Quick sync - stores basic media immediately (without keywords)
  * Keywords are enriched separately by enrichCatalogKeywords()
  */
-export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> {
-  if (!(await fastify.tmdb.isConfigured())) return;
+export async function syncCatalogCache(context: SchedulerContext): Promise<void> {
+  if (!(await context.tmdb.isConfigured())) return;
 
   const startTime = Date.now();
-  fastify.log.info({ name: 'catalog', phase: 'cache-sync' }, 'Starting cache sync');
+  context.log.info({ name: 'catalog', phase: 'cache-sync' }, 'Starting cache sync');
 
   // TODO - use language setting from config
   const language = 'en-US';
@@ -27,53 +27,53 @@ export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> 
   const createPageRange = (length: number) => Array.from({ length }).map((_, i) => i + 1);
 
   // Fetch both trending and recent releases (already includes basic metadata)
-  fastify.log.info(
+  context.log.info(
     { name: 'catalog', phase: 'cache-sync' },
     'Fetching trending and discover results from TMDB'
   );
   const [trendingResult, discoverResult] = await Promise.all([
-    fastify.tmdb.trending({ language, time_window: 'week' }, createPageRange(5)),
-    fastify.tmdb.discover({ type: 'both', recentDays: 500 }, createPageRange(15)),
+    context.tmdb.trending({ language, time_window: 'week' }, createPageRange(5)),
+    context.tmdb.discover({ type: 'both', recentDays: 500 }, createPageRange(15)),
   ]);
 
   // Merge and deduplicate (prefer items with trendingRank)
   const mergedMedia = [...trendingResult.results, ...discoverResult.results];
   const deduplicatedMedia = deduplicateMediaByTmdbKey(mergedMedia);
 
-  fastify.log.info(
+  context.log.info(
     { name: 'catalog', phase: 'cache-sync', totalItems: deduplicatedMedia.length },
     'Fetched unique items, storing to database'
   );
 
   // Store basic media immediately (keywords will be empty arrays)
-  await upsertCatalogCache(fastify.db, deduplicatedMedia);
+  await upsertCatalogCache(context.db, deduplicatedMedia);
 
   // Cleanup old entries (items not in current popular list)
   const activeMediaKeys = deduplicatedMedia.map(item => ({
     tmdbId: item.tmdbId,
     type: item.type,
   }));
-  const deletedCount = await cleanupCatalogCache(fastify.db, activeMediaKeys);
+  const deletedCount = await cleanupCatalogCache(context.db, activeMediaKeys);
 
   // Compute and update catalog stats for both types
   // Seed with defaults if first run, then update with growth strategy
-  await seedMediaStats(fastify.db);
+  await seedMediaStats(context.db);
 
-  fastify.log.info(
+  context.log.info(
     { name: 'catalog', phase: 'cache-sync' },
     'Computing catalog stats from current cache'
   );
   const [movieStats, tvStats] = await Promise.all([
-    computeCatalogMediaStats(fastify.db, 'movie'),
-    computeCatalogMediaStats(fastify.db, 'tv'),
+    computeCatalogMediaStats(context.db, 'movie'),
+    computeCatalogMediaStats(context.db, 'tv'),
   ]);
 
   await Promise.all([
-    upsertMediaStats(fastify.db, 'movie', movieStats),
-    upsertMediaStats(fastify.db, 'tv', tvStats),
+    upsertMediaStats(context.db, 'movie', movieStats),
+    upsertMediaStats(context.db, 'tv', tvStats),
   ]);
 
-  fastify.log.info(
+  context.log.info(
     {
       name: 'catalog',
       phase: 'cache-sync',
@@ -94,7 +94,7 @@ export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> 
   const durationMs = Date.now() - startTime;
   const durationSec = Math.round(durationMs / 1000);
 
-  fastify.log.info(
+  context.log.info(
     {
       name: 'catalog',
       phase: 'cache-sync',
@@ -112,23 +112,23 @@ export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> 
  * Phase 2: Background enrichment - fetches detailed data for items without keywords
  * Uses worker pool pattern with rate limiting to avoid overwhelming TMDB API
  */
-export async function enrichCatalogKeywords(fastify: FastifyInstance): Promise<void> {
+export async function enrichCatalogKeywords(context: SchedulerContext): Promise<void> {
   const startTime = Date.now();
-  fastify.log.info({ name: 'catalog', phase: 'keyword-enrichment' }, 'Starting keyword enrichment');
+  context.log.info({ name: 'catalog', phase: 'keyword-enrichment' }, 'Starting keyword enrichment');
 
   try {
     // Get items that need keyword enrichment
-    const mediaItemsMissingKeywords = await listCatalogItemsMissingKeywords(fastify.db);
+    const mediaItemsMissingKeywords = await listCatalogItemsMissingKeywords(context.db);
 
     if (mediaItemsMissingKeywords.length === 0) {
-      fastify.log.info(
+      context.log.info(
         { name: 'catalog', phase: 'keyword-enrichment' },
         'No items need keyword enrichment'
       );
       return;
     }
 
-    fastify.log.info(
+    context.log.info(
       {
         name: 'catalog',
         phase: 'keyword-enrichment',
@@ -140,18 +140,18 @@ export async function enrichCatalogKeywords(fastify: FastifyInstance): Promise<v
     const { successCount } = await processWithWorkerPool({
       items: mediaItemsMissingKeywords,
       processFn: async item => {
-        const details = await fastify.tmdb.details({ id: item.tmdbId, type: item.type });
-        await updateCatalogKeywords(fastify.db, item.tmdbId, item.type, details.keywords ?? []);
+        const details = await context.tmdb.details({ id: item.tmdbId, type: item.type });
+        await updateCatalogKeywords(context.db, item.tmdbId, item.type, details.keywords ?? []);
         return item.tmdbId;
       },
-      log: fastify.log,
+      log: context.log,
     });
 
     const failCount = mediaItemsMissingKeywords.length - successCount;
     const durationMs = Date.now() - startTime;
     const durationSec = Math.round(durationMs / 1000);
 
-    fastify.log.info(
+    context.log.info(
       {
         name: 'catalog',
         phase: 'keyword-enrichment',
@@ -163,7 +163,7 @@ export async function enrichCatalogKeywords(fastify: FastifyInstance): Promise<v
       'Keyword enrichment completed'
     );
   } catch (error) {
-    fastify.log.error(
+    context.log.error(
       { name: 'catalog', phase: 'keyword-enrichment', err: error },
       'Keyword enrichment failed'
     );

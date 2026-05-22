@@ -4,12 +4,12 @@ import { eq } from 'drizzle-orm';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { seed } from './seed.js';
-import { createDatabase } from './setup.js';
-import type { DB } from './setup.js';
+import { createDatabase } from './service.js';
+import type { Database } from './service.js';
 
 describe('seed', () => {
   let app: FastifyInstance;
-  let db: DB;
+  let db: Database;
   let sqliteDb: SqlDatabase.Database;
 
   const settings = {
