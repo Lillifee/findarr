@@ -8,7 +8,7 @@ import { adminRoutes } from './admin/routes.js';
 import arrPlugin from './arr/plugin.js';
 import { arrRoutes } from './arr/routes.js';
 import authPlugin from './auth/plugin.js';
-import authRoutes from './auth/routes.js';
+import { authRoutes, protectedAuthRoutes } from './auth/routes.js';
 import catalogPlugin from './catalog/plugin.js';
 import { catalogRoutes } from './catalog/routes.js';
 import databasePlugin from './db/plugin.js';
@@ -85,6 +85,7 @@ async function start() {
 
     // Register API routes
     await server.register(authRoutes, { prefix: '/api/auth' });
+    await server.register(protectedAuthRoutes, { prefix: '/api/auth' });
     await server.register(adminRoutes, { prefix: '/api/admin' });
     await server.register(arrRoutes, { prefix: '/api' });
     await server.register(jellyfinRoutes, { prefix: '/api' });

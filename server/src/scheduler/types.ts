@@ -1,4 +1,8 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyBaseLogger } from 'fastify';
+import type { Database } from '../db/service.js';
+import type { JellyfinService } from '../jellyfin/service.js';
+import type { TMDBService } from '../tmdb/service.js';
+import type { SchedulerService } from './service.js';
 
 /**
  * Configuration for a scheduler
@@ -29,6 +33,14 @@ export interface SchedulerState {
   startedAt: number | null; // Timestamp when scheduler was first enabled (for minRuntime check)
 }
 
+export interface SchedulerContext {
+  db: Database;
+  log: FastifyBaseLogger;
+  tmdb: TMDBService;
+  jellyfin: JellyfinService;
+  scheduler: SchedulerService;
+}
+
 /**
  * Scheduler instance
  */
@@ -40,7 +52,7 @@ export interface Scheduler {
    * Execute the scheduler task
    * @returns true to continue (reschedule), false to stop (self-terminate)
    */
-  run: (fastify: FastifyInstance) => Promise<boolean>;
+  run: (context: SchedulerContext) => Promise<boolean>;
 }
 
 /**
@@ -48,7 +60,7 @@ export interface Scheduler {
  */
 export function createScheduler(
   config: SchedulerConfig,
-  runFn: (fastify: FastifyInstance) => Promise<boolean>
+  runFn: (context: SchedulerContext) => Promise<boolean>
 ): Scheduler {
   const state: SchedulerState = {
     name: config.name,

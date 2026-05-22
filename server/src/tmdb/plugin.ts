@@ -12,7 +12,7 @@ declare module 'fastify' {
 type TMDBPluginOptions = FastifyPluginOptions;
 
 const tmdbPlugin: FastifyPluginAsync<TMDBPluginOptions> = async fastify => {
-  fastify.decorate('tmdb', await createTMDBService(fastify.db));
+  fastify.decorate('tmdb', await createTMDBService(fastify));
   fastify.log.info({ name: 'tmdb' }, 'TMDB plugin registered');
 };
 

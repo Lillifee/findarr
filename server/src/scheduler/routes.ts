@@ -12,18 +12,20 @@ export async function schedulerRoutes(fastify: FastifyInstance): Promise<void> {
 }
 
 export async function adminSchedulerRoutes(fastify: FastifyInstance): Promise<void> {
+  fastify.addHook('preHandler', fastify.requireAdmin);
+
   // Admin only: Manually trigger scheduler
-  fastify.post('/schedulers/:name/trigger', { preHandler: fastify.requireAdmin }, async request => {
+  fastify.post('/schedulers/:name/trigger', async request => {
     await fastify.scheduler.trigger(SchedulerParamsSchema.parse(request.params));
   });
 
   // Admin only: Start/enable scheduler
-  fastify.post('/schedulers/:name/start', { preHandler: fastify.requireAdmin }, async request => {
+  fastify.post('/schedulers/:name/start', async request => {
     fastify.scheduler.start(SchedulerParamsSchema.parse(request.params));
   });
 
   // Admin only: Stop/disable scheduler
-  fastify.post('/schedulers/:name/stop', { preHandler: fastify.requireAdmin }, async request => {
+  fastify.post('/schedulers/:name/stop', async request => {
     fastify.scheduler.stop(SchedulerParamsSchema.parse(request.params));
   });
 }

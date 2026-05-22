@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { adminTmdbService } from '../services/api';
+import { asVoid } from '../utils/asyncHandlers';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';
 import { Input } from './ui/Input';
@@ -76,7 +77,7 @@ export function TmdbSetupScreen() {
     setError('Could not reach TMDB. Check the access token and try again.');
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -150,7 +151,7 @@ export function TmdbSetupScreen() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={asVoid(handleSubmit)} className="space-y-6">
             <Input
               type="password"
               label="Access Token"

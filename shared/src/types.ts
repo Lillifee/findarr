@@ -11,8 +11,10 @@ import type {
   GenresQuerySchema,
   LoginSchema,
   CreateUserSchema,
+  ChangePasswordSchema,
   DeleteUserSchema,
   CreateInteractionSchema,
+  SetupInitialPasswordSchema,
 } from './schemas.js';
 
 // ============================================================================
@@ -74,6 +76,7 @@ export interface Season {
 
 export interface AppBootstrapStatus {
   tmdbConfigured: boolean;
+  requiresPasswordSetup: boolean;
 }
 
 export type MediaStatus =
@@ -257,6 +260,8 @@ export type AvailableMediaQuery = z.infer<typeof AvailableMediaQuerySchema>;
 export type Login = z.infer<typeof LoginSchema>;
 
 export type CreateUser = z.infer<typeof CreateUserSchema>;
+export type ChangePassword = z.infer<typeof ChangePasswordSchema>;
+export type SetupInitialPassword = z.infer<typeof SetupInitialPasswordSchema>;
 export type DeleteUser = z.infer<typeof DeleteUserSchema>;
 
 // ============================================================================

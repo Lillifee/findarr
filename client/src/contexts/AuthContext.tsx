@@ -1,6 +1,6 @@
 import { isDefined, type User } from '@findarr/shared';
 import axios from 'axios';
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useState, useEffect, type ReactNode } from 'react';
 import { authService } from '../services/api';
 
 interface AuthContextType {
@@ -22,10 +22,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [tmdbConfigured, setTmdbConfigured] = useState(false);
 
+  const applyBootstrapStatus = useCallback(
+    (bootstrap: Awaited<ReturnType<typeof authService.bootstrap>>) => {
+      setTmdbConfigured(bootstrap.tmdbConfigured);
+    },
+    []
+  );
+
+  const refreshUser = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const user = await authService.me();
+      setUser(user);
+      applyBootstrapStatus(await authService.bootstrap());
+    } catch {
+      setUser(null);
+      setTmdbConfigured(false);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [applyBootstrapStatus]);
+
   // Fetch current user on mount
   useEffect(() => {
     void refreshUser();
-  }, []);
+  }, [refreshUser]);
 
   // Add axios interceptor to handle 401 errors
   useEffect(() => {
@@ -43,36 +64,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => axios.interceptors.response.eject(interceptor);
   }, []);
 
-  async function refreshUser() {
-    setIsLoading(true);
-    try {
-      const user = await authService.me();
-      setUser(user);
-      const bootstrap = await authService.bootstrap();
-      setTmdbConfigured(bootstrap.tmdbConfigured);
-    } catch {
-      setUser(null);
-      setTmdbConfigured(false);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
   async function refreshBootstrapStatus() {
     if (!user) {
       setTmdbConfigured(false);
       return;
     }
 
-    const bootstrap = await authService.bootstrap();
-    setTmdbConfigured(bootstrap.tmdbConfigured);
+    applyBootstrapStatus(await authService.bootstrap());
   }
 
   async function login(email: string, password: string) {
     const user = await authService.login({ email, password });
     setUser(user);
-    const bootstrap = await authService.bootstrap();
-    setTmdbConfigured(bootstrap.tmdbConfigured);
+    applyBootstrapStatus(await authService.bootstrap());
   }
 
   async function logout() {

@@ -8,7 +8,7 @@ import type {
 } from '@findarr/shared';
 import { media, mediaStats } from '@findarr/shared';
 import { and, eq, or, sql } from 'drizzle-orm';
-import type { DB } from '../db/setup.js';
+import type { Database } from '../db/service.js';
 import { Conflict, NotFound } from '../utils/errors.js';
 import type { MediaStats } from './scoring.js';
 
@@ -19,7 +19,7 @@ import type { MediaStats } from './scoring.js';
 /**
  * Get media record by internal database ID
  */
-export const getMediaById = async (db: DB, mediaId: number): Promise<DbMedia | undefined> =>
+export const getMediaById = async (db: Database, mediaId: number): Promise<DbMedia | undefined> =>
   (await db.query.media.findFirst({
     where: eq(media.id, mediaId),
   })) as DbMedia | undefined;
@@ -28,7 +28,7 @@ export const getMediaById = async (db: DB, mediaId: number): Promise<DbMedia | u
  * Get media record by TMDB ID and type
  */
 export const getMediaByTmdbId = async (
-  db: DB,
+  db: Database,
   tmdbId: number,
   type: MediaType
 ): Promise<DbMedia | undefined> =>
@@ -41,7 +41,7 @@ export const getMediaByTmdbId = async (
  * Returns the newly created record or existing record if already exists
  */
 export const createMedia = async (
-  db: DB,
+  db: Database,
   tmdbId: number,
   type: MediaType,
   status: MediaStatus = 'pending',
@@ -79,7 +79,7 @@ export const createMedia = async (
  * Update the status of a media record
  */
 export const updateMediaStatus = async (
-  db: DB,
+  db: Database,
   mediaId: number,
   status: MediaStatus
 ): Promise<void> => {
@@ -101,7 +101,7 @@ export const updateMediaStatus = async (
  * Converts season numbers to SeasonRecord format with monitored=true
  */
 export const updateMediaSeasons = async (
-  db: DB,
+  db: Database,
   mediaId: number,
   seasonNumbers: number[] | null
 ): Promise<void> => {
@@ -127,7 +127,7 @@ export const updateMediaSeasons = async (
  * Used for enriching multiple media items at once
  */
 export async function getMediaRecordsBatch(
-  db: DB,
+  db: Database,
   mediaItems: Media[]
 ): Promise<Map<string, MediaRecord>> {
   const mediaRecords = new Map<string, MediaRecord>();
@@ -176,7 +176,7 @@ export async function getMediaRecordsBatch(
 }
 
 export async function getMediaByStatusPaginated(
-  db: DB,
+  db: Database,
   statuses: MediaStatus[],
   options: {
     limit: number;
@@ -246,7 +246,7 @@ const TMDB_STAT_DEFAULTS = {
  * Seed media stats with default values if table is empty
  * Only runs once on first startup before catalog sync
  */
-export const seedMediaStats = async (db: DB): Promise<void> => {
+export const seedMediaStats = async (db: Database): Promise<void> => {
   const existing = await db.select().from(mediaStats);
 
   if (existing.length === 0) {
@@ -262,7 +262,7 @@ export const seedMediaStats = async (db: DB): Promise<void> => {
  * Get media stats for both movie and TV
  * Returns Map for O(1) lookup by media type
  */
-export const getMediaStats = async (db: DB): Promise<Map<MediaType, MediaStats>> => {
+export const getMediaStats = async (db: Database): Promise<Map<MediaType, MediaStats>> => {
   const rows = await db.select().from(mediaStats);
 
   const statsMap = new Map<MediaType, MediaStats>();
@@ -279,7 +279,7 @@ export const getMediaStats = async (db: DB): Promise<Map<MediaType, MediaStats>>
  * Uses SQL GREATEST/LEAST to accumulate extremes
  */
 export const upsertMediaStats = async (
-  db: DB,
+  db: Database,
   mediaType: MediaType,
   stats: Omit<MediaStats, 'mediaType' | 'updatedAt'>
 ): Promise<void> => {

@@ -7,9 +7,9 @@ import {
   type User,
 } from '@findarr/shared';
 import { createUser } from '../../auth/repository.js';
-import type { DB } from '../../db/setup.js';
+import type { Database } from '../../db/service.js';
 
-export const mockDb = {} as unknown as DB;
+export const mockDb = {} as unknown as Database;
 
 // Utility functions to assert
 
@@ -94,7 +94,7 @@ export const createTestMovieDetail = (props?: Partial<MovieDetails>): MovieDetai
 
 // Factory function to create data in the database for testing
 
-export const createTestUserInDb = async (db: DB, props?: Partial<CreateUser>) =>
+export const createTestUserInDb = async (db: Database, props?: Partial<CreateUser>) =>
   await createUser(db, {
     email: 'user@test.com',
     password: 'password',

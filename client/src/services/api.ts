@@ -14,12 +14,14 @@ import type {
   User,
   Media,
   Login,
+  ChangePassword,
   CreateUser,
   ArrSettings,
   ArrQualityProfile,
   ArrRootFolder,
   JellyfinSettings,
   AppBootstrapStatus,
+  SetupInitialPassword,
   TmdbSettings,
   SchedulerState,
   SwipeNextResponse,
@@ -97,6 +99,14 @@ export const authService = {
   bootstrap: async (): Promise<AppBootstrapStatus> => {
     const response = await api.get('/auth/bootstrap');
     return response.data;
+  },
+
+  changePassword: async (payload: ChangePassword): Promise<void> => {
+    await api.put('/auth/password', payload);
+  },
+
+  setupInitialPassword: async (payload: SetupInitialPassword): Promise<void> => {
+    await api.put('/auth/password/setup', payload);
   },
 };
 

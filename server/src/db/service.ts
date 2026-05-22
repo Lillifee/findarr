@@ -2,20 +2,20 @@ import { mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { relationsSchema, schema } from '@findarr/shared';
-import type SqlDatabase from 'better-sqlite3';
 import BetterSqlite3 from 'better-sqlite3';
+import type SqlDatabase from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Combined schema for type inference
-const combinedSchema = { ...schema, ...relationsSchema } as const;
+export const combinedSchema = { ...schema, ...relationsSchema } as const;
 
-export type DB = ReturnType<typeof drizzle<typeof combinedSchema>>;
+export type Database = ReturnType<typeof drizzle<typeof combinedSchema>>;
 
 export type DatabaseConnection = {
-  db: DB;
+  db: Database;
   sqliteDb: SqlDatabase.Database;
 };
 

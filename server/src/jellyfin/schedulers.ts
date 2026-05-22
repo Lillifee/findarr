@@ -1,6 +1,5 @@
-import type { FastifyInstance } from 'fastify';
 import { getMediaByStatusPaginated } from '../media/repository.js';
-import { createScheduler, type Scheduler } from '../scheduler/types.js';
+import { createScheduler, type Scheduler, type SchedulerContext } from '../scheduler/types.js';
 import { syncJellyfinLibrary } from './sync.js';
 
 /**
@@ -16,8 +15,8 @@ export function createJellyfinLibrarySyncScheduler(): Scheduler {
       enabled: true,
       runOnStartup: true,
     },
-    async (fastify: FastifyInstance) => {
-      await syncJellyfinLibrary(fastify); // Full sync
+    async (context: SchedulerContext) => {
+      await syncJellyfinLibrary(context); // Full sync
       return true; // Continue
     }
   );
@@ -37,18 +36,18 @@ export function createJellyfinQueueSyncScheduler(): Scheduler {
       enabled: false, // Disabled by default, triggered manually
       runOnStartup: false,
     },
-    async (fastify: FastifyInstance) => {
+    async (context: SchedulerContext) => {
       // Run partial sync to check recent items
-      await syncJellyfinLibrary(fastify);
+      await syncJellyfinLibrary(context);
 
       // Check if should continue
-      const downloadedMediaPage = await getMediaByStatusPaginated(fastify.db, ['downloaded'], {
+      const downloadedMediaPage = await getMediaByStatusPaginated(context.db, ['downloaded'], {
         offset: 0,
         limit: 1,
       });
 
       if (downloadedMediaPage.totalCount === 0) {
-        fastify.log.info(
+        context.log.info(
           { name: 'jellyfin', schedulerName: 'jellyfinQueueSync' },
           'All downloaded items are now available - stopping queue sync'
         );

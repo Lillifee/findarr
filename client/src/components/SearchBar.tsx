@@ -25,7 +25,7 @@ export function SearchBar({
     setQuery(initialQuery);
   }, [initialQuery]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     // If query is empty and we're in search mode, clear the search

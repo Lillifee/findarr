@@ -12,7 +12,7 @@ import type {
   TmdbSettings,
   TmdbSettingsQuery,
 } from '@findarr/shared';
-import type { DB } from '../db/setup.js';
+import type { FastifyInstance } from 'fastify';
 import { createClientLifecycle } from '../utils/clientLifecycleHepler.js';
 import { createTMDBClient, type TMDBClient } from './client.js';
 import { buildDiscoverParams } from './helpers.js';
@@ -26,21 +26,26 @@ const MEDIA_TYPES = ['movie', 'tv'] as const;
  * TMDB Service - handles data fetching from TMDB API
  * Pure data operations without business logic or caching
  */
-export async function createTMDBService(db: DB) {
+export async function createTMDBService(fastify: FastifyInstance) {
   const genreMap = new Map<number, Genre>();
 
   const lifecycle = createClientLifecycle<TmdbSettingsFull, TMDBClient>({
     name: 'TMDB',
-    loadSettings: () => getTmdbSettingsFull(db),
+    loadSettings: () => getTmdbSettingsFull(fastify.db),
     createClient: settings =>
       settings.tmdbAccessToken ? createTMDBClient(settings.tmdbAccessToken) : undefined,
   });
 
-  await reloadService();
+  await reloadService().catch(error => {
+    fastify.log.error({ name: 'tmdb', error }, 'Failed to initialize TMDB service');
+  });
 
   async function reloadService(): Promise<void> {
     await lifecycle.reload();
-    await ensureGenresLoaded();
+
+    if (await lifecycle.isConfigured()) {
+      await ensureGenresLoaded();
+    }
   }
 
   function getSettings(): TmdbSettings {
@@ -49,7 +54,7 @@ export async function createTMDBService(db: DB) {
   }
 
   async function setSettings(settings: TmdbSettingsQuery): Promise<TmdbSettings> {
-    await setTmdbSettings(db, settings);
+    await setTmdbSettings(fastify.db, settings);
 
     await reloadService();
     return getSettings();

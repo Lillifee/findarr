@@ -14,7 +14,7 @@ import type {
   SwipeNextResponse,
   MediaDetails,
 } from '@findarr/shared';
-import type { DB } from '../db/setup.js';
+import type { Database } from '../db/service.js';
 import { getUserInteractionMediaKeys } from '../interaction/repository.js';
 import {
   enrichWithRecords,
@@ -31,10 +31,16 @@ import { getAllCatalogCache } from './repository.js';
 
 const SWIPE_CANDIDATE_LIMIT = 100;
 
+export interface CatalogContext {
+  db: Database;
+  tmdbService: TMDBService;
+}
+
 /**
  * Catalog service - orchestrates multiple data sources and applies business logic
  */
-export function createCatalogService(db: DB, tmdbService: TMDBService) {
+export function createCatalogService(context: CatalogContext) {
+  const { db, tmdbService } = context;
   const popularFeedSnapshotStore = createFeedSnapshotStore<Media>();
 
   /**

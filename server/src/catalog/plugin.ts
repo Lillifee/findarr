@@ -11,7 +11,7 @@ declare module 'fastify' {
 
 const catalogPlugin: FastifyPluginAsync = async fastify => {
   // Create catalog service using existing db and tmdb services
-  const catalogService = createCatalogService(fastify.db, fastify.tmdb);
+  const catalogService = createCatalogService({ db: fastify.db, tmdbService: fastify.tmdb });
 
   // Decorate fastify instance with catalog service
   fastify.decorate('catalog', catalogService);

@@ -1,16 +1,16 @@
 import type { UserSettings, UserSettingsQuery } from '@findarr/shared';
-import type { DB } from '../db/setup.js';
+import type { Database } from '../db/service.js';
 import {
   getOrCreateUserSettings,
   updateUserSettings as updateUserSettingsInRepository,
 } from './repository.js';
 
-export async function getUserSettings(db: DB, userId: number) {
+export async function getUserSettings(db: Database, userId: number) {
   return getOrCreateUserSettings(db, userId);
 }
 
 export async function saveUserSettings(
-  db: DB,
+  db: Database,
   userId: number,
   updates: UserSettingsQuery
 ): Promise<UserSettings> {

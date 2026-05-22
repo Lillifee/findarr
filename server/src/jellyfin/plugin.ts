@@ -10,7 +10,7 @@ declare module 'fastify' {
 }
 
 const jellyfinPlugin: FastifyPluginAsync = async fastify => {
-  fastify.decorate('jellyfin', await createJellyfinService(fastify.db));
+  fastify.decorate('jellyfin', await createJellyfinService(fastify));
   fastify.log.info({ name: 'jellyfin' }, 'Jellyfin plugin registered');
 };
 

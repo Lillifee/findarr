@@ -1,14 +1,14 @@
 import type { UserSettings, UserSettingsQuery } from '@findarr/shared';
 import { userSettings } from '@findarr/shared';
 import { eq, sql } from 'drizzle-orm';
-import type { DB } from '../db/setup.js';
+import type { Database } from '../db/service.js';
 
 const DEFAULT_USER_SETTINGS: UserSettings = {
   language: 'de-DE',
   regions: ['western'],
 };
 
-export async function getOrCreateUserSettings(db: DB, userId: number): Promise<UserSettings> {
+export async function getOrCreateUserSettings(db: Database, userId: number): Promise<UserSettings> {
   const existing = await db.query.userSettings.findFirst({
     where: eq(userSettings.userId, userId),
   });
@@ -27,7 +27,7 @@ export async function getOrCreateUserSettings(db: DB, userId: number): Promise<U
 }
 
 export async function updateUserSettings(
-  db: DB,
+  db: Database,
   userId: number,
   updates: UserSettingsQuery
 ): Promise<UserSettings> {

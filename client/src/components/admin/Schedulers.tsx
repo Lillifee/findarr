@@ -1,6 +1,7 @@
 import type { SchedulerState } from '@findarr/shared';
 import { useState, useEffect } from 'react';
 import { schedulerService, adminSchedulerService } from '../../services/api';
+import { asVoid } from '../../utils/asyncHandlers';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { PageHeader } from '../ui/PageHeader';
@@ -14,7 +15,7 @@ export function Schedulers() {
   useEffect(() => {
     void loadSchedulers();
     // Refresh every 5 seconds
-    const interval = setInterval(loadSchedulers, 5000);
+    const interval = setInterval(asVoid(loadSchedulers), 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -188,7 +189,7 @@ export function Schedulers() {
                 <td className="px-5 py-4">
                   <div className="flex items-center justify-center gap-2">
                     <Button
-                      onClick={() => handleTrigger(scheduler.name)}
+                      onClick={asVoid(() => handleTrigger(scheduler.name))}
                       disabled={actionLoading === scheduler.name || scheduler.isRunning}
                       variant="secondary"
                       size="sm"
@@ -197,7 +198,7 @@ export function Schedulers() {
                       {actionLoading === scheduler.name ? '...' : 'Trigger'}
                     </Button>
                     <Button
-                      onClick={() => handleToggle(scheduler.name, scheduler.enabled)}
+                      onClick={asVoid(() => handleToggle(scheduler.name, scheduler.enabled))}
                       disabled={actionLoading === scheduler.name}
                       variant={scheduler.enabled ? 'danger' : 'success'}
                       size="sm"
@@ -256,7 +257,7 @@ export function Schedulers() {
 
             <div className="flex gap-2">
               <Button
-                onClick={() => handleTrigger(scheduler.name)}
+                onClick={asVoid(() => handleTrigger(scheduler.name))}
                 disabled={actionLoading === scheduler.name || scheduler.isRunning}
                 variant="secondary"
                 size="sm"
@@ -265,7 +266,7 @@ export function Schedulers() {
                 {actionLoading === scheduler.name ? 'Loading...' : 'Trigger Now'}
               </Button>
               <Button
-                onClick={() => handleToggle(scheduler.name, scheduler.enabled)}
+                onClick={asVoid(() => handleToggle(scheduler.name, scheduler.enabled))}
                 disabled={actionLoading === scheduler.name}
                 variant={scheduler.enabled ? 'danger' : 'success'}
                 size="sm"

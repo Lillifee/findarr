@@ -115,6 +115,7 @@ export default [
     rules: {
       // TypeScript (type-aware - requires loading type checker)
       '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-misused-promises': 'error',
     },
   },
 

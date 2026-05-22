@@ -1,5 +1,5 @@
 import { isDefined, type MediaStatus, type MediaType } from '@findarr/shared';
-import type { FastifyInstance } from 'fastify';
+import type { SchedulerContext } from '../scheduler/types.js';
 import { processWithWorkerPool } from '../tmdb/helpers.js';
 import {
   upsertMediaFromArr,
@@ -16,26 +16,26 @@ import type { AnyArrService } from './service.js';
  * Library sync with inline enrichment for TV shows
  */
 export async function syncComplete(
-  fastify: FastifyInstance,
+  context: SchedulerContext,
   arrService: AnyArrService
 ): Promise<void> {
   // Check if service is configured
   const isConfigured = await arrService.isConfigured();
 
   if (!isConfigured) {
-    fastify.log.debug(
+    context.log.debug(
       { name: arrService.config.service, service: arrService.config.service },
       'Not configured - skipping sync'
     );
     return;
   }
 
-  fastify.log.info(
+  context.log.info(
     { name: arrService.config.service, service: arrService.config.service },
     'Starting library sync'
   );
   const startTime = Date.now();
-  const { log } = fastify;
+  const { log } = context;
 
   // Test connection
   const isConnected = await arrService.testConnection();
@@ -50,12 +50,12 @@ export async function syncComplete(
   );
 
   // Library sync with inline enrichment for TV shows
-  await syncLibrary(fastify, arrService);
+  await syncLibrary(context, arrService);
 
   const durationMs = Date.now() - startTime;
   const durationSec = Math.round(durationMs / 1000);
 
-  fastify.log.info(
+  context.log.info(
     { name: arrService.config.service, service: arrService.config.service, durationSec },
     'Library sync finished successfully'
   );
@@ -66,10 +66,10 @@ export async function syncComplete(
  * Fetches all items from the service and updates database
  */
 export async function syncLibrary(
-  fastify: FastifyInstance,
+  context: SchedulerContext,
   arrService: AnyArrService
 ): Promise<void> {
-  const { db, log } = fastify;
+  const { db, log } = context;
   const { config } = arrService;
   const { mediaType, service } = config;
 
@@ -90,7 +90,7 @@ export async function syncLibrary(
     const queue = libraryItems.filter(item => item?.tvdbId && !existingTvdbIdSet.has(item.tvdbId));
 
     if (queue.length > 0) {
-      await enrichTvShows(fastify, queue);
+      await enrichTvShows(context, queue);
     }
   }
 
@@ -144,10 +144,10 @@ export async function syncLibrary(
  * Provides smooth, continuous processing with exponential backoff retry logic
  */
 export async function enrichTvShows(
-  fastify: FastifyInstance,
+  context: SchedulerContext,
   queue: ArrLibraryItem[]
 ): Promise<number> {
-  const { log } = fastify;
+  const { log } = context;
 
   log.info(
     { name: 'sonarr', service: 'sonarr', totalItems: queue.length },
@@ -159,7 +159,7 @@ export async function enrichTvShows(
     processFn: async item => {
       if (!item?.tvdbId) return null;
 
-      const tmdbId = await fastify.tmdb.findByExternalId('tv', item.tvdbId);
+      const tmdbId = await context.tmdb.findByExternalId('tv', item.tvdbId);
 
       if (tmdbId) item.tmdbId = tmdbId;
       return tmdbId || null;
@@ -181,7 +181,7 @@ export async function enrichTvShows(
  * Returns current state for completion detection
  */
 export async function syncQueue(
-  fastify: FastifyInstance,
+  context: SchedulerContext,
   arrService: AnyArrService,
   previousDownloadingIds: Set<number>
 ): Promise<{
@@ -202,7 +202,7 @@ export async function syncQueue(
       if (item.trackedDownloadStatus === 'warning') {
         // Mark as warning - don't count as active download
         statusUpdates.push({ arrId: item.arrId, type: mediaType, status: 'warning' });
-        fastify.log.warn(
+        context.log.warn(
           {
             name: arrService.config.service,
             service: arrService.config.service,
@@ -221,7 +221,7 @@ export async function syncQueue(
 
   // Update statuses for items IN queue
   if (statusUpdates.length > 0) {
-    await batchUpdateMediaStatuses(fastify.db, statusUpdates);
+    await batchUpdateMediaStatuses(context.db, statusUpdates);
   }
 
   // Detect completions by comparing previous vs current downloading IDs

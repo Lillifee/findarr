@@ -97,7 +97,7 @@ export function MediaDetailPage() {
               />
             </svg>
             <p className="text-red-400">{error}</p>
-            <Button onClick={() => navigate(-1)} variant="secondary">
+            <Button onClick={handleBack} variant="secondary">
               Go Back
             </Button>
           </div>

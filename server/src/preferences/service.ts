@@ -1,5 +1,5 @@
 import type { Genre, Keyword, InteractionType } from '@findarr/shared';
-import type { DB } from '../db/setup.js';
+import type { Database } from '../db/service.js';
 import { updateGenrePreference, updateKeywordPreference } from './repository.js';
 
 // ============================================================================
@@ -14,7 +14,7 @@ const DISLIKE_SCORE = -1;
  * Update user genre preferences based on an interaction
  */
 export async function updateGenreFromInteraction(
-  db: DB,
+  db: Database,
   userId: number,
   genres: Genre[],
   action: InteractionType,
@@ -32,7 +32,7 @@ export async function updateGenreFromInteraction(
  * Update user keyword preferences based on an interaction
  */
 export async function updateKeywordFromInteraction(
-  db: DB,
+  db: Database,
   userId: number,
   keywords: Keyword[],
   action: InteractionType,
@@ -52,7 +52,7 @@ export async function updateKeywordFromInteraction(
  * Update user preferences (both genres and keywords) based on an interaction
  */
 export async function updatePreferencesForInteraction(
-  db: DB,
+  db: Database,
   userId: number,
   genres: Genre[],
   keywords: Keyword[] | undefined,

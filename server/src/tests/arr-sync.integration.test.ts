@@ -9,11 +9,11 @@ import {
 } from '../arr/repository.js';
 import type { AnyArrService } from '../arr/service.js';
 import { syncQueue } from '../arr/sync.js';
-import { createDatabase, type DB } from '../db/setup.js';
+import { createDatabase, type Database } from '../db/service.js';
 import { createMedia, getMediaByTmdbId } from '../media/repository.js';
 
 describe('arr sync collision handling - integration tests', () => {
-  let db: DB;
+  let db: Database;
   let sqliteDb: SqlDatabase.Database;
 
   beforeEach(() => {

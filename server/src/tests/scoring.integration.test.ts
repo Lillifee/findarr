@@ -7,7 +7,8 @@ import * as authService from '../auth/service.js';
 import { computeCatalogMediaStats } from '../catalog/repository.js';
 import { createCatalogService } from '../catalog/service.js';
 import { syncCatalogCache } from '../catalog/sync.js';
-import { createDatabase, type DB } from '../db/setup.js';
+import { createDatabase } from '../db/service.js';
+import type { Database } from '../db/service.js';
 import { updateGenrePreference, updateKeywordPreference } from '../preferences/repository.js';
 import { TMDBSearchResponseSchema } from '../tmdb/schemas.js';
 import type { TMDBService } from '../tmdb/service.js';
@@ -22,7 +23,7 @@ const toFixed2 = (value: number | undefined) =>
 const FIXED_NOW = new Date('2025-01-01T00:00:00.000Z');
 
 describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
-  let db: DB;
+  let db: Database;
   let sqliteDb: SqlDatabase.Database;
   let catalogService: ReturnType<typeof createCatalogService>;
 
@@ -99,7 +100,7 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     await syncCatalogCache(mockFastify);
 
     // Create catalog service for testing
-    catalogService = createCatalogService(db, tmdbServiceMock);
+    catalogService = createCatalogService({ db, tmdbService: tmdbServiceMock });
   });
 
   afterEach(() => {

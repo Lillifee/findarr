@@ -1,7 +1,7 @@
 import type { Media, Genre, Keyword, DbCatalogCache, MediaType } from '@findarr/shared';
 import { catalogCache } from '@findarr/shared';
 import { eq, and, isNull, sql } from 'drizzle-orm';
-import type { DB } from '../db/setup.js';
+import type { Database } from '../db/service.js';
 import type { MediaStats } from '../media/scoring.js';
 
 // ============================================================================
@@ -62,7 +62,7 @@ const mapMediaToCatalogCacheValues = (media: Media) => ({
  * Insert or update catalog cache entries (batch upsert)
  * On conflict, updates all fields EXCEPT keywords (to preserve enrichment)
  */
-export const upsertCatalogCache = async (db: DB, items: Media[]): Promise<void> => {
+export const upsertCatalogCache = async (db: Database, items: Media[]): Promise<void> => {
   if (items.length === 0) return;
 
   // SQLite doesn't support batch upsert, so we need to do individual upserts
@@ -84,7 +84,7 @@ export const upsertCatalogCache = async (db: DB, items: Media[]): Promise<void> 
  * Get catalog cache entries by TMDB IDs (batch lookup)
  */
 export const getCatalogCacheBatch = async (
-  db: DB,
+  db: Database,
   mediaKeys: Array<{ tmdbId: number; type: MediaType }>
 ): Promise<Media[]> => {
   if (mediaKeys.length === 0) return [];
@@ -105,7 +105,7 @@ export const getCatalogCacheBatch = async (
 /**
  * Get all catalog cache entries
  */
-export const getAllCatalogCache = async (db: DB): Promise<Media[]> => {
+export const getAllCatalogCache = async (db: Database): Promise<Media[]> => {
   const catalogCacheRows = (await db.query.catalogCache.findMany()) as DbCatalogCache[];
   return catalogCacheRows.map(row => mapCatalogCacheRowToMedia(row));
 };
@@ -115,7 +115,7 @@ export const getAllCatalogCache = async (db: DB): Promise<Media[]> => {
  * Used for cleanup after syncing new popular items
  */
 export const cleanupCatalogCache = async (
-  db: DB,
+  db: Database,
   activeMediaKeys: Array<{ tmdbId: number; type: MediaType }>
 ): Promise<number> => {
   if (activeMediaKeys.length === 0) {
@@ -153,7 +153,7 @@ export const cleanupCatalogCache = async (
  * Used by keyword enrichment to find items that need detailed fetching
  */
 export const listCatalogItemsMissingKeywords = async (
-  db: DB
+  db: Database
 ): Promise<Array<{ tmdbId: number; type: MediaType }>> => {
   const catalogItems = await db.query.catalogCache.findMany({
     columns: {
@@ -174,7 +174,7 @@ export const listCatalogItemsMissingKeywords = async (
  * Used by background enrichment to add keywords without refetching all data
  */
 export const updateCatalogKeywords = async (
-  db: DB,
+  db: Database,
   tmdbId: number,
   type: MediaType,
   keywords: Keyword[]
@@ -190,7 +190,7 @@ export const updateCatalogKeywords = async (
  * Used during catalog sync to update normalization bounds
  */
 export const computeCatalogMediaStats = async (
-  db: DB,
+  db: Database,
   mediaType: MediaType
 ): Promise<Omit<MediaStats, 'mediaType' | 'updatedAt'>> => {
   const result = await db

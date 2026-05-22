@@ -1,7 +1,8 @@
 import type { ArrSettings, ArrSettingsQuery } from '@findarr/shared';
-import type { FastifyInstance } from 'fastify';
-import type { DB } from '../db/setup.js';
+import type { FastifyBaseLogger } from 'fastify';
+import type { Database } from '../db/service.js';
 import { getMediaById } from '../media/repository.js';
+import type { SchedulerService } from '../scheduler/service.js';
 import { createClientLifecycle } from '../utils/clientLifecycleHepler.js';
 import { trimTrailingSlash } from '../utils/links.js';
 import { createArrClient, type ArrClient } from './client.js';
@@ -20,21 +21,28 @@ import type {
 } from './schemas.js';
 import { transformArrMedia } from './transformers.js';
 
+export interface ArrServiceContext {
+  db: Database;
+  log: FastifyBaseLogger;
+  scheduler: SchedulerService;
+}
+
 export async function createArrService<T extends ArrServiceConfig>(
-  db: DB,
   config: T,
-  fastify: FastifyInstance
+  context: ArrServiceContext
 ) {
   const lifecycle = createClientLifecycle<ArrSettingsFull, ArrClient>({
     name: config.service,
-    loadSettings: () => getArrSettings(db, config),
+    loadSettings: () => getArrSettings(context.db, config),
     createClient: settings =>
       settings.url && settings.apiKey
         ? createArrClient(config, settings.url, settings.apiKey)
         : undefined,
   });
 
-  await lifecycle.reload();
+  await lifecycle.reload().catch(error => {
+    context.log.error({ name: config.service, error }, 'Failed to initialize Arr service');
+  });
 
   async function getSettings(): Promise<ArrSettings> {
     const { apiKey: _apiKey, ...settings } = lifecycle.settings();
@@ -42,7 +50,7 @@ export async function createArrService<T extends ArrServiceConfig>(
   }
 
   async function setSettings(settingsQuery: ArrSettingsQuery): Promise<ArrSettings> {
-    await setArrSettings(db, config, settingsQuery);
+    await setArrSettings(context.db, config, settingsQuery);
 
     await lifecycle.reload();
     return getSettings();
@@ -86,14 +94,14 @@ export async function createArrService<T extends ArrServiceConfig>(
 
     const libraryItem = transformArrMedia(response);
 
-    await updateMediaIds(db, mediaId, {
+    await updateMediaIds(context.db, mediaId, {
       arrId: libraryItem.id,
       tmdbId: libraryItem.tmdbId,
       tvdbId: libraryItem.tvdbId,
       arrUrl: libraryItem.arrUrl,
     });
 
-    fastify.scheduler.start({ name: config.queueFastSyncScheduler });
+    context.scheduler.start({ name: config.queueFastSyncScheduler });
     return libraryItem;
   }
 
@@ -115,7 +123,7 @@ export async function createArrService<T extends ArrServiceConfig>(
   }
 
   async function resolveMediaUrl(mediaId: number): Promise<string | null> {
-    const mediaRecord = await getMediaById(db, mediaId);
+    const mediaRecord = await getMediaById(context.db, mediaId);
 
     if (!mediaRecord?.arrUrl) return null;
 

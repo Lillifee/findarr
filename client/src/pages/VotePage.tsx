@@ -6,6 +6,7 @@ import { MediaView } from '../components/MediaView';
 import { SearchBar } from '../components/SearchBar';
 import { Button } from '../components/ui/Button';
 import { searchService, userSettingsService } from '../services/api';
+import { asVoid } from '../utils/asyncHandlers';
 import { buildCatalogSearchParams, readCatalogSearchParams } from '../utils/catalogSearchParams';
 
 export function VotePage() {
@@ -182,7 +183,7 @@ export function VotePage() {
               />
             </svg>
             <p className="text-red-400 text-lg font-medium">{error}</p>
-            <Button onClick={() => void fetchNextItem()} className="mt-4">
+            <Button onClick={asVoid(fetchNextItem)} className="mt-4">
               Try Again
             </Button>
           </div>
@@ -198,7 +199,7 @@ export function VotePage() {
             <p className="text-gray-400 text-lg mb-6">
               You've voted on the top 100 items. Check back later for more!
             </p>
-            <Button onClick={() => void navigate('/explore')}>Explore</Button>
+            <Button onClick={asVoid(() => navigate('/explore'))}>Explore</Button>
           </div>
         </div>
       )}
