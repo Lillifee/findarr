@@ -70,7 +70,7 @@ export function LikeDislikeButton({
 
       try {
         // Fetch TV details to get seasons
-        const details = await searchService.detailsMedia({
+        const details = await searchService.getMediaDetails({
           id: tmdbId,
           type: 'tv',
         });

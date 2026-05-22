@@ -121,13 +121,13 @@ export async function clearRemovedJellyfinItems(db: DB, jellyfinIds: string[]): 
 
   let cleared = 0;
 
-  for (const id of jellyfinIds) {
-    const current = await db.query.media.findFirst({
-      where: eq(media.jellyfinId, id),
+  for (const jellyfinId of jellyfinIds) {
+    const currentMediaRecord = await db.query.media.findFirst({
+      where: eq(media.jellyfinId, jellyfinId),
       columns: { id: true, status: true, arrId: true },
     });
 
-    if (!current) continue;
+    if (!currentMediaRecord) continue;
 
     // Reset to pending and let Arr sync handle updating status on next run
     await db
@@ -138,7 +138,7 @@ export async function clearRemovedJellyfinItems(db: DB, jellyfinIds: string[]): 
         status: 'pending',
         updatedAt: Date.now(),
       })
-      .where(eq(media.id, current.id));
+      .where(eq(media.id, currentMediaRecord.id));
 
     cleared++;
   }
@@ -159,11 +159,11 @@ export async function setJellyfinSettings(db: DB, settings: JellyfinSettingsQuer
 }
 
 export async function getJellyfinSettingsFull(db: DB): Promise<JellyfinSettingsFull> {
-  const s = await readSettings(db, jellyfinKeys);
+  const settingsValues = await readSettings(db, jellyfinKeys);
   return {
-    jellyfinUrl: s.jellyfinUrl,
-    jellyfinApiKeySet: !!s.jellyfinApiKey,
-    jellyfinApiKey: s.jellyfinApiKey,
+    jellyfinUrl: settingsValues.jellyfinUrl,
+    jellyfinApiKeySet: !!settingsValues.jellyfinApiKey,
+    jellyfinApiKey: settingsValues.jellyfinApiKey,
   };
 }
 

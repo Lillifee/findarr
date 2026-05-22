@@ -17,7 +17,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/search',
     protectedRoute(request =>
-      fastify.catalog.search(SearchQuerySchema.parse(request.query), request.user.id)
+      fastify.catalog.searchMedia(SearchQuerySchema.parse(request.query), request.user.id)
     )
   );
 
@@ -25,7 +25,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/popular',
     protectedRoute(request =>
-      fastify.catalog.popular(PopularQuerySchema.parse(request.query), request.user.id)
+      fastify.catalog.getPopularMedia(PopularQuerySchema.parse(request.query), request.user.id)
     )
   );
 
@@ -33,7 +33,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/discover',
     protectedRoute(request =>
-      fastify.catalog.discover(DiscoverQuerySchema.parse(request.query), request.user.id)
+      fastify.catalog.discoverMedia(DiscoverQuerySchema.parse(request.query), request.user.id)
     )
   );
 
@@ -42,18 +42,23 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/details',
     protectedRoute(request =>
-      fastify.catalog.details(DetailsQuerySchema.parse(request.query), request.user.id)
+      fastify.catalog.getMediaDetails(DetailsQuerySchema.parse(request.query), request.user.id)
     )
   );
 
   // Genres endpoint: GET /genres?type=movie
-  fastify.get('/genres', request => fastify.catalog.genres(GenresQuerySchema.parse(request.query)));
+  fastify.get('/genres', request =>
+    fastify.catalog.listGenres(GenresQuerySchema.parse(request.query))
+  );
 
   // Available overview endpoint: GET /available?type=both&limit=12
   fastify.get(
     '/available',
     protectedRoute(request =>
-      fastify.catalog.available(AvailableMediaQuerySchema.parse(request.query), request.user.id)
+      fastify.catalog.getAvailableMedia(
+        AvailableMediaQuerySchema.parse(request.query),
+        request.user.id
+      )
     )
   );
 
@@ -63,7 +68,7 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/next',
     protectedRoute(request =>
-      fastify.catalog.nextUnvoted(PopularQuerySchema.parse(request.query), request.user.id)
+      fastify.catalog.getNextUnvotedMedia(PopularQuerySchema.parse(request.query), request.user.id)
     )
   );
 }

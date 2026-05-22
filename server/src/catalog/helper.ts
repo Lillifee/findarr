@@ -10,48 +10,48 @@ export interface FeedPage<T> {
 }
 
 export function createFeedSnapshotStore<T>(ttlMs: number = 5 * 60 * 1000) {
-  const snapshots = new Map<string, { items: T[]; createdAt: number }>();
+  const snapshotEntries = new Map<string, { items: T[]; createdAt: number }>();
 
-  async function getOrCreate(
+  async function getOrCreateSnapshot(
     feedId: string | undefined,
     createItems: () => Promise<T[]>
   ): Promise<FeedSnapshot<T>> {
-    const existing = get(feedId);
-    if (existing) {
-      return existing;
+    const existingSnapshot = getSnapshot(feedId);
+    if (existingSnapshot) {
+      return existingSnapshot;
     }
 
-    const items = await createItems();
-    return create(items);
+    const snapshotItems = await createItems();
+    return createSnapshot(snapshotItems);
   }
 
-  function get(feedId: string | undefined): FeedSnapshot<T> | null {
+  function getSnapshot(feedId: string | undefined): FeedSnapshot<T> | null {
     if (!feedId) {
       return null;
     }
 
     const now = Date.now();
-    const existing = snapshots.get(feedId);
-    if (existing && now - existing.createdAt < ttlMs) {
-      return { id: feedId, items: existing.items };
+    const existingEntry = snapshotEntries.get(feedId);
+    if (existingEntry && now - existingEntry.createdAt < ttlMs) {
+      return { id: feedId, items: existingEntry.items };
     }
 
     // Drop expired entries when encountered.
-    if (existing) {
-      snapshots.delete(feedId);
+    if (existingEntry) {
+      snapshotEntries.delete(feedId);
     }
 
     return null;
   }
 
-  function create(items: T[]): FeedSnapshot<T> {
-    const newId = crypto.randomUUID();
-    snapshots.set(newId, { items, createdAt: Date.now() });
-    return { id: newId, items };
+  function createSnapshot(items: T[]): FeedSnapshot<T> {
+    const snapshotId = crypto.randomUUID();
+    snapshotEntries.set(snapshotId, { items, createdAt: Date.now() });
+    return { id: snapshotId, items };
   }
 
   // TODO we could make this as a nested function of a feed, then we don't have to pass allItems
-  function getPage(allItems: T[], page: number, itemsPerPage: number = 20): FeedPage<T> {
+  function getSnapshotPage(allItems: T[], page: number, itemsPerPage: number = 20): FeedPage<T> {
     const startIndex = Math.max(0, (page - 1) * itemsPerPage);
     const totalPages = Math.ceil(allItems.length / itemsPerPage);
     const items = allItems.slice(startIndex, startIndex + itemsPerPage);
@@ -59,5 +59,5 @@ export function createFeedSnapshotStore<T>(ttlMs: number = 5 * 60 * 1000) {
     return { items, page, totalPages };
   }
 
-  return { getOrCreate, getPage };
+  return { getOrCreateSnapshot, getSnapshotPage };
 }

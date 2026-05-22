@@ -25,15 +25,15 @@ export function createJellyfinLibrarySyncScheduler(): Scheduler {
 
 /**
  * Jellyfin Queue Sync Scheduler
- * Triggered manually, runs partial sync every 30 seconds
+ * Triggered manually, runs partial sync every 10 seconds
  * Self-terminates when all downloaded items become available
  */
 export function createJellyfinQueueSyncScheduler(): Scheduler {
   return createScheduler(
     {
       name: 'jellyfinQueueSync',
-      description: 'Partial sync (30s) for recent downloads, self-terminates when done',
-      interval: 10 * 1000, // 30 seconds
+      description: 'Partial sync (10s) for recent downloads, self-terminates when done',
+      interval: 10 * 1000, // 10 seconds
       enabled: false, // Disabled by default, triggered manually
       runOnStartup: false,
     },
@@ -42,12 +42,12 @@ export function createJellyfinQueueSyncScheduler(): Scheduler {
       await syncJellyfinLibrary(fastify);
 
       // Check if should continue
-      const items = await getMediaByStatusPaginated(fastify.db, ['downloaded'], {
+      const downloadedMediaPage = await getMediaByStatusPaginated(fastify.db, ['downloaded'], {
         offset: 0,
         limit: 1,
       });
 
-      if (items.totalCount === 0) {
+      if (downloadedMediaPage.totalCount === 0) {
         fastify.log.info(
           { name: 'jellyfin', schedulerName: 'jellyfinQueueSync' },
           'All downloaded items are now available - stopping queue sync'

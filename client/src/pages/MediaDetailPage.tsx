@@ -31,7 +31,7 @@ export function MediaDetailPage() {
       setLoading(true);
       setError(null);
       try {
-        const mediaDetails = await searchService.detailsMedia({
+        const mediaDetails = await searchService.getMediaDetails({
           id: Number.parseInt(id, 10),
           type,
           language,

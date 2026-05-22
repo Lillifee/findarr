@@ -13,6 +13,7 @@ import type {
   TmdbSettingsQuery,
 } from '@findarr/shared';
 import type { DB } from '../db/setup.js';
+import { createClientLifecycle } from '../utils/clientLifecycleHepler.js';
 import { createTMDBClient, type TMDBClient } from './client.js';
 import { buildDiscoverParams } from './helpers.js';
 import { getTmdbSettingsFull, setTmdbSettings, type TmdbSettingsFull } from './repository.js';
@@ -21,74 +22,45 @@ import { transformMedia, transformDetails } from './transformers.js';
 
 const MEDIA_TYPES = ['movie', 'tv'] as const;
 
-type RuntimeState = {
-  settings?: TmdbSettingsFull;
-  client?: TMDBClient | undefined;
-};
-
 /**
  * TMDB Service - handles data fetching from TMDB API
  * Pure data operations without business logic or caching
  */
 export async function createTMDBService(db: DB) {
-  let state: RuntimeState = {};
-  let reloadPromise: Promise<void> | undefined;
   const genreMap = new Map<number, Genre>();
 
-  await reload();
+  const lifecycle = createClientLifecycle<TmdbSettingsFull, TMDBClient>({
+    name: 'TMDB',
+    loadSettings: () => getTmdbSettingsFull(db),
+    createClient: settings =>
+      settings.tmdbAccessToken ? createTMDBClient(settings.tmdbAccessToken) : undefined,
+  });
 
-  async function reload(): Promise<void> {
-    await reloadClient();
+  await reloadService();
+
+  async function reloadService(): Promise<void> {
+    await lifecycle.reload();
     await ensureGenresLoaded();
   }
 
-  async function reloadClient(): Promise<void> {
-    if (reloadPromise) return reloadPromise;
-
-    reloadPromise = (async () => {
-      const settings = await getTmdbSettingsFull(db);
-      const client = settings.tmdbAccessToken
-        ? createTMDBClient(settings.tmdbAccessToken)
-        : undefined;
-
-      state = { settings, client };
-    })();
-
-    try {
-      await reloadPromise;
-    } finally {
-      reloadPromise = undefined;
-    }
-  }
-
-  function requireClient(): TMDBClient {
-    if (!state.client) throw new Error('TMDB client is not configured');
-    return state.client;
-  }
-
-  function requireSettings(): TmdbSettingsFull {
-    if (!state.settings) throw new Error('TMDB settings are unavailable');
-    return state.settings;
-  }
-
   function getSettings(): TmdbSettings {
-    const { tmdbAccessToken: _tmdbAccessToken, ...settings } = requireSettings();
+    const { tmdbAccessToken: _tmdbAccessToken, ...settings } = lifecycle.settings();
     return settings;
   }
 
   async function setSettings(settings: TmdbSettingsQuery): Promise<TmdbSettings> {
     await setTmdbSettings(db, settings);
 
-    await reload();
+    await reloadService();
     return getSettings();
   }
 
   async function testConnection(): Promise<boolean> {
-    return state.client ? await state.client.testConnection() : false;
+    return lifecycle.testConnection();
   }
 
   async function isConfigured(): Promise<boolean> {
-    return !!state.client;
+    return lifecycle.isConfigured();
   }
 
   async function loadGenres(client: TMDBClient): Promise<void> {
@@ -106,7 +78,7 @@ export async function createTMDBService(db: DB) {
 
   async function ensureGenresLoaded(client?: TMDBClient): Promise<void> {
     if (genreMap.size > 0) return;
-    await loadGenres(client ?? requireClient());
+    await loadGenres(client ?? lifecycle.client());
   }
 
   /**
@@ -115,7 +87,7 @@ export async function createTMDBService(db: DB) {
   async function search(params: SearchQuery): Promise<SearchResponse> {
     const { query, type = 'both', page = 1, language = 'en-US' } = params;
     const region = language.split('-')[1] || 'US';
-    const client = requireClient();
+    const client = lifecycle.client();
 
     const searchTypes = type === 'both' ? MEDIA_TYPES : [type];
     const promises = searchTypes.map(searchType =>
@@ -147,7 +119,7 @@ export async function createTMDBService(db: DB) {
     pages?: number[]
   ): Promise<DiscoverResponse> {
     const { type = 'both', page = 1 } = params;
-    const client = requireClient();
+    const client = lifecycle.client();
 
     const discoverTypes = type === 'both' ? MEDIA_TYPES : [type];
     const pagesToFetch = pages ?? [page];
@@ -180,7 +152,7 @@ export async function createTMDBService(db: DB) {
     pages?: number[]
   ): Promise<DiscoverResponse> {
     const { language = 'en-US', time_window = 'week' } = params;
-    const client = requireClient();
+    const client = lifecycle.client();
 
     const pagesToFetch = pages ?? [1];
     const ranks: Record<MediaType, number> = { movie: 0, tv: 0 };
@@ -211,7 +183,7 @@ export async function createTMDBService(db: DB) {
   async function details(params: DetailsQuery): Promise<MediaDetails> {
     const { id, type, language = 'en-US' } = params;
 
-    const tmdbMovie = await requireClient().details(type, { id, language });
+    const tmdbMovie = await lifecycle.client().details(type, { id, language });
     return transformDetails(tmdbMovie);
   }
 
@@ -230,7 +202,7 @@ export async function createTMDBService(db: DB) {
    * Returns TMDB ID for content matching the external ID
    */
   async function findByExternalId(type: MediaType, tvdbId: number): Promise<number | undefined> {
-    const result = await requireClient().findByExternalId(tvdbId, 'tvdb_id');
+    const result = await lifecycle.client().findByExternalId(tvdbId, 'tvdb_id');
     return type === 'movie' ? result.movie_results?.[0]?.id : result.tv_results?.[0]?.id;
   }
 

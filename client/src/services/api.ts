@@ -45,22 +45,22 @@ export const searchService = {
     return response.data;
   },
 
-  popular: async (params: PopularQuery): Promise<PopularResponse> => {
+  getPopularMedia: async (params: PopularQuery): Promise<PopularResponse> => {
     const response = await api.get('/popular', { params });
     return response.data;
   },
 
-  detailsMedia: async (params: DetailsQuery): Promise<MediaDetails> => {
+  getMediaDetails: async (params: DetailsQuery): Promise<MediaDetails> => {
     const response = await api.get('/details', { params });
     return response.data;
   },
 
-  getGenres: async (params: GenresQuery): Promise<{ genres: Genre[] }> => {
+  listGenres: async (params: GenresQuery): Promise<{ genres: Genre[] }> => {
     const response = await api.get('/genres', { params });
     return response.data;
   },
 
-  getNextSwipe: async (params: PopularQuery = {}): Promise<SwipeNextResponse> => {
+  getNextUnvotedMedia: async (params: PopularQuery = {}): Promise<SwipeNextResponse> => {
     const response = await api.get('/next', { params });
     return response.data;
   },
@@ -176,11 +176,11 @@ export const adminArrService = {
       const response = await api.put('/admin/radarr/settings', settings);
       return response.data;
     },
-    getProfiles: async (): Promise<ArrQualityProfile[]> => {
+    listQualityProfiles: async (): Promise<ArrQualityProfile[]> => {
       const response = await api.get('/admin/radarr/quality-profiles');
       return response.data;
     },
-    getRootFolders: async (): Promise<ArrRootFolder[]> => {
+    listRootFolders: async (): Promise<ArrRootFolder[]> => {
       const response = await api.get('/admin/radarr/root-folders');
       return response.data;
     },
@@ -200,11 +200,11 @@ export const adminArrService = {
       const response = await api.put('/admin/sonarr/settings', settings);
       return response.data;
     },
-    getProfiles: async (): Promise<ArrQualityProfile[]> => {
+    listQualityProfiles: async (): Promise<ArrQualityProfile[]> => {
       const response = await api.get('/admin/sonarr/quality-profiles');
       return response.data;
     },
-    getRootFolders: async (): Promise<ArrRootFolder[]> => {
+    listRootFolders: async (): Promise<ArrRootFolder[]> => {
       const response = await api.get('/admin/sonarr/root-folders');
       return response.data;
     },

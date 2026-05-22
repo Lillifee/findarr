@@ -166,7 +166,7 @@ export function ExplorePage() {
           return;
         }
 
-        const response = await searchService.popular({
+        const response = await searchService.getPopularMedia({
           type,
           genres,
           interaction,

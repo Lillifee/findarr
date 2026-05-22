@@ -85,7 +85,7 @@ export function DashboardPage() {
     setAvailableError(null);
 
     const [nextResult, availableResult] = await Promise.allSettled([
-      searchService.getNextSwipe({ type: 'both', interaction: 'unvoted' }),
+      searchService.getNextUnvotedMedia({ type: 'both', interaction: 'unvoted' }),
       searchService.getAvailableMedia({ page: 1, type: 'both' }),
     ]);
 

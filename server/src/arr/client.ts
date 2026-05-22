@@ -46,12 +46,12 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
       }
     },
 
-    async getQualityProfiles(): Promise<ArrQualityProfile[]> {
+    async listQualityProfiles(): Promise<ArrQualityProfile[]> {
       const response = await client.get('/qualityprofile');
       return z.array(ArrQualityProfileSchema).parse(response.data);
     },
 
-    async getRootFolders(): Promise<ArrRootFolder[]> {
+    async listRootFolders(): Promise<ArrRootFolder[]> {
       const response = await client.get('/rootfolder');
       return z.array(ArrRootFolderSchema).parse(response.data);
     },
@@ -61,7 +61,7 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
       return ArrQueueResponseSchema.parse(response.data);
     },
 
-    async requestOrUpdate(
+    async requestOrUpdateMedia(
       params: {
         id: number | undefined;
         title: string;
@@ -74,7 +74,7 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
       seasonNumbers?: number[]
     ): Promise<RadarrMovie | SonarrSeries> {
       let media = params.arrId
-        ? await this.getLibraryItem(params.arrId)
+        ? await this.getLibraryItemById(params.arrId)
         : await this.requestMedia({ id: params.id, title: params.title }, profileConfig);
 
       media = await this.updateLibrarySeasons(media, seasonNumbers);
@@ -130,15 +130,15 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
         .map(episode => episode.id);
 
       await Promise.all([
-        this.setEpisodeMonitoring(unmonitoredEpisodeIds, false),
-        this.setEpisodeMonitoring(monitoredEpisodeIds, true),
+        this.updateEpisodeMonitoring(unmonitoredEpisodeIds, false),
+        this.updateEpisodeMonitoring(monitoredEpisodeIds, true),
       ]);
 
       if (seasons.length > 0) {
         await this.searchMissingEpisodes(media.id);
       }
 
-      return this.getLibraryItem(media.id);
+      return this.getLibraryItemById(media.id);
     },
 
     async getEpisodes(seriesId: number): Promise<SonarrEpisode[]> {
@@ -146,17 +146,17 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
       return SonarrEpisodeListSchema.parse(response.data);
     },
 
-    async setEpisodeMonitoring(episodeIds: number[], monitored: boolean): Promise<void> {
+    async updateEpisodeMonitoring(episodeIds: number[], monitored: boolean): Promise<void> {
       if (episodeIds.length === 0) return;
       await client.put('/episode/monitor', { episodeIds, monitored });
     },
 
-    async getLibrary(): Promise<Array<RadarrMovie | SonarrSeries>> {
+    async listLibraryItems(): Promise<Array<RadarrMovie | SonarrSeries>> {
       const response = await client.get(config.mediaEndpoint);
       return z.array(config.libraryItemSchema).parse(response.data);
     },
 
-    async getLibraryItem(arrId: number): Promise<RadarrMovie | SonarrSeries> {
+    async getLibraryItemById(arrId: number): Promise<RadarrMovie | SonarrSeries> {
       const response = await client.get(`${config.mediaEndpoint}/${arrId}`);
       return config.libraryItemSchema.parse(response.data);
     },

@@ -5,9 +5,9 @@ import { processWithWorkerPool } from '../tmdb/helpers.js';
 import {
   upsertCatalogCache,
   cleanupCatalogCache,
-  getCatalogItemsWithoutKeywords,
+  listCatalogItemsMissingKeywords,
   updateCatalogKeywords,
-  computeMediaStats,
+  computeCatalogMediaStats,
 } from './repository.js';
 
 /**
@@ -24,7 +24,7 @@ export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> 
   // TODO - use language setting from config
   const language = 'en-US';
 
-  const arrayOfNumbers = (length: number) => Array.from({ length }).map((_, i) => i + 1);
+  const createPageRange = (length: number) => Array.from({ length }).map((_, i) => i + 1);
 
   // Fetch both trending and recent releases (already includes basic metadata)
   fastify.log.info(
@@ -32,28 +32,28 @@ export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> 
     'Fetching trending and discover results from TMDB'
   );
   const [trendingResult, discoverResult] = await Promise.all([
-    fastify.tmdb.trending({ language, time_window: 'week' }, arrayOfNumbers(5)),
-    fastify.tmdb.discover({ type: 'both', recentDays: 500 }, arrayOfNumbers(15)),
+    fastify.tmdb.trending({ language, time_window: 'week' }, createPageRange(5)),
+    fastify.tmdb.discover({ type: 'both', recentDays: 500 }, createPageRange(15)),
   ]);
 
   // Merge and deduplicate (prefer items with trendingRank)
-  const merged = [...trendingResult.results, ...discoverResult.results];
-  const deduped = deduplicateMedia(merged);
+  const mergedMedia = [...trendingResult.results, ...discoverResult.results];
+  const deduplicatedMedia = deduplicateMediaByTmdbKey(mergedMedia);
 
   fastify.log.info(
-    { name: 'catalog', phase: 'cache-sync', totalItems: deduped.length },
+    { name: 'catalog', phase: 'cache-sync', totalItems: deduplicatedMedia.length },
     'Fetched unique items, storing to database'
   );
 
   // Store basic media immediately (keywords will be empty arrays)
-  await upsertCatalogCache(fastify.db, deduped);
+  await upsertCatalogCache(fastify.db, deduplicatedMedia);
 
   // Cleanup old entries (items not in current popular list)
-  const currentIds = deduped.map(item => ({
+  const activeMediaKeys = deduplicatedMedia.map(item => ({
     tmdbId: item.tmdbId,
     type: item.type,
   }));
-  const deletedCount = await cleanupCatalogCache(fastify.db, currentIds);
+  const deletedCount = await cleanupCatalogCache(fastify.db, activeMediaKeys);
 
   // Compute and update catalog stats for both types
   // Seed with defaults if first run, then update with growth strategy
@@ -64,8 +64,8 @@ export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> 
     'Computing catalog stats from current cache'
   );
   const [movieStats, tvStats] = await Promise.all([
-    computeMediaStats(fastify.db, 'movie'),
-    computeMediaStats(fastify.db, 'tv'),
+    computeCatalogMediaStats(fastify.db, 'movie'),
+    computeCatalogMediaStats(fastify.db, 'tv'),
   ]);
 
   await Promise.all([
@@ -98,7 +98,7 @@ export async function syncCatalogCache(fastify: FastifyInstance): Promise<void> 
     {
       name: 'catalog',
       phase: 'cache-sync',
-      totalItems: deduped.length,
+      totalItems: deduplicatedMedia.length,
       deletedCount,
       durationSec,
       language,
@@ -118,9 +118,9 @@ export async function enrichCatalogKeywords(fastify: FastifyInstance): Promise<v
 
   try {
     // Get items that need keyword enrichment
-    const itemsWithoutKeywords = await getCatalogItemsWithoutKeywords(fastify.db);
+    const mediaItemsMissingKeywords = await listCatalogItemsMissingKeywords(fastify.db);
 
-    if (itemsWithoutKeywords.length === 0) {
+    if (mediaItemsMissingKeywords.length === 0) {
       fastify.log.info(
         { name: 'catalog', phase: 'keyword-enrichment' },
         'No items need keyword enrichment'
@@ -132,13 +132,13 @@ export async function enrichCatalogKeywords(fastify: FastifyInstance): Promise<v
       {
         name: 'catalog',
         phase: 'keyword-enrichment',
-        totalItems: itemsWithoutKeywords.length,
+        totalItems: mediaItemsMissingKeywords.length,
       },
       'Enriching items with keywords'
     );
 
     const { successCount } = await processWithWorkerPool({
-      items: itemsWithoutKeywords,
+      items: mediaItemsMissingKeywords,
       processFn: async item => {
         const details = await fastify.tmdb.details({ id: item.tmdbId, type: item.type });
         await updateCatalogKeywords(fastify.db, item.tmdbId, item.type, details.keywords ?? []);
@@ -147,7 +147,7 @@ export async function enrichCatalogKeywords(fastify: FastifyInstance): Promise<v
       log: fastify.log,
     });
 
-    const failCount = itemsWithoutKeywords.length - successCount;
+    const failCount = mediaItemsMissingKeywords.length - successCount;
     const durationMs = Date.now() - startTime;
     const durationSec = Math.round(durationMs / 1000);
 
@@ -157,7 +157,7 @@ export async function enrichCatalogKeywords(fastify: FastifyInstance): Promise<v
         phase: 'keyword-enrichment',
         successCount,
         failCount,
-        totalItems: itemsWithoutKeywords.length,
+        totalItems: mediaItemsMissingKeywords.length,
         durationSec,
       },
       'Keyword enrichment completed'
@@ -175,17 +175,17 @@ export async function enrichCatalogKeywords(fastify: FastifyInstance): Promise<v
  * Deduplicate media items based on ID and type
  * Prefers items with trendingRank (from trending endpoint)
  */
-function deduplicateMedia(items: Media[]): Media[] {
-  const map = new Map<string, Media>();
+function deduplicateMediaByTmdbKey(items: Media[]): Media[] {
+  const mediaByTmdbKey = new Map<string, Media>();
 
   for (const item of items) {
     const key = `${item.tmdbId}_${item.type}`;
-    const existing = map.get(key);
+    const existingItem = mediaByTmdbKey.get(key);
     // Prefer items with trendingRank (from trending) over discover results
-    if (!existing || item.trendingRank) {
-      map.set(key, item);
+    if (!existingItem || item.trendingRank) {
+      mediaByTmdbKey.set(key, item);
     }
   }
 
-  return [...map.values()];
+  return [...mediaByTmdbKey.values()];
 }

@@ -58,7 +58,7 @@ export async function getMediaWithoutTmdbId(
  * Get all existing tvdbIds for TV shows in database
  * Used to skip re-enrichment of shows already processed
  */
-export async function getExistingTvdbIds(db: DB): Promise<Set<number>> {
+export async function getExistingTvdbIdSet(db: DB): Promise<Set<number>> {
   const results = await db
     .select({ tvdbId: media.tvdbId })
     .from(media)
@@ -155,7 +155,7 @@ export async function updateMediaStatusByArrId(
 /**
  * Batch update media status by arr IDs
  */
-export async function batchUpdateMediaStatus(
+export async function batchUpdateMediaStatuses(
   db: DB,
   updates: Array<{
     arrId: number;
@@ -171,7 +171,7 @@ export async function batchUpdateMediaStatus(
 /**
  * Get all media with arr IDs for sync matching
  */
-export async function getMediaWithArrIds(
+export async function listMediaWithArrIds(
   db: DB,
   type: MediaType
 ): Promise<Array<Omit<DbMedia, 'createdAt' | 'updatedAt'>>> {
@@ -204,15 +204,16 @@ export async function clearRemovedArrItems(
 
   let cleared = 0;
 
-  for (const id of ids) {
-    const current = (await db.query.media.findFirst({
-      where: and(eq(media.arrId, id), eq(media.type, type)),
+  for (const arrId of ids) {
+    const currentMediaRecord = (await db.query.media.findFirst({
+      where: and(eq(media.arrId, arrId), eq(media.type, type)),
       columns: { id: true, status: true },
     })) as Pick<DbMedia, 'id' | 'status'> | undefined;
 
-    if (!current) continue;
+    if (!currentMediaRecord) continue;
 
-    const newStatus: MediaStatus = current.status === 'available' ? 'available' : 'pending';
+    const newStatus: MediaStatus =
+      currentMediaRecord.status === 'available' ? 'available' : 'pending';
 
     await db
       .update(media)
@@ -222,7 +223,7 @@ export async function clearRemovedArrItems(
         status: newStatus,
         updatedAt: Date.now(),
       })
-      .where(eq(media.id, current.id));
+      .where(eq(media.id, currentMediaRecord.id));
 
     cleared++;
   }
@@ -234,7 +235,7 @@ export interface ArrSettingsFull extends ArrSettings {
   apiKey: string | null;
 }
 
-function getArrSettingsFields(service: ArrServiceType) {
+function createArrSettingsFieldMap(service: ArrServiceType) {
   return {
     url: `${service}Url`,
     apiKey: `${service}ApiKey`,
@@ -243,16 +244,16 @@ function getArrSettingsFields(service: ArrServiceType) {
   };
 }
 export async function getArrSettings(db: DB, config: ArrServiceConfig): Promise<ArrSettingsFull> {
-  const fields = getArrSettingsFields(config.service);
-  const s = await readSettings(db, Object.values(fields));
-  const qualityProfileIdValue = s[fields.qualityProfileId];
+  const fields = createArrSettingsFieldMap(config.service);
+  const storedSettings = await readSettings(db, Object.values(fields));
+  const qualityProfileIdValue = storedSettings[fields.qualityProfileId];
 
   return {
-    url: s[fields.url] ?? null,
-    apiKey: s[fields.apiKey] ?? null,
-    apiKeySet: !!s[fields.apiKey],
+    url: storedSettings[fields.url] ?? null,
+    apiKey: storedSettings[fields.apiKey] ?? null,
+    apiKeySet: !!storedSettings[fields.apiKey],
     qualityProfileId: qualityProfileIdValue ? Number.parseInt(qualityProfileIdValue, 10) : null,
-    rootFolderPath: s[fields.rootFolderPath] ?? null,
+    rootFolderPath: storedSettings[fields.rootFolderPath] ?? null,
   };
 }
 
@@ -266,7 +267,7 @@ export async function setArrSettings(
     rootFolderPath?: ArrSettingsQuery['rootFolderPath'] | undefined;
   }
 ): Promise<void> {
-  const fields = getArrSettingsFields(config.service);
+  const fields = createArrSettingsFieldMap(config.service);
 
   await writeSettings(db, {
     [fields.url]: settings.url,

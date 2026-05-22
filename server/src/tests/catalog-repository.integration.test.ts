@@ -5,7 +5,7 @@ import {
   getAllCatalogCache,
   getCatalogCacheBatch,
   cleanupCatalogCache,
-  getCatalogItemsWithoutKeywords,
+  listCatalogItemsMissingKeywords,
   updateCatalogKeywords,
 } from '../catalog/repository.js';
 import { createDatabase, type DB } from '../db/setup.js';
@@ -168,7 +168,7 @@ describe('catalog repository - integration tests', () => {
     });
   });
 
-  describe('getCatalogItemsWithoutKeywords', () => {
+  describe('listCatalogItemsMissingKeywords', () => {
     it('should return items without keywords', async () => {
       const itemsWithoutKeywords = [
         createTestMedia({ tmdbId: 1, type: 'movie' }),
@@ -182,7 +182,7 @@ describe('catalog repository - integration tests', () => {
 
       await upsertCatalogCache(db, [...itemsWithoutKeywords, itemWithKeywords]);
 
-      const result = await getCatalogItemsWithoutKeywords(db);
+      const result = await listCatalogItemsMissingKeywords(db);
 
       expect(result).toHaveLength(2);
       expect(result.map(r => r.tmdbId).sort()).toEqual([1, 2]);
@@ -195,7 +195,7 @@ describe('catalog repository - integration tests', () => {
       ];
       await upsertCatalogCache(db, items);
 
-      const result = await getCatalogItemsWithoutKeywords(db);
+      const result = await listCatalogItemsMissingKeywords(db);
       expect(result).toHaveLength(0);
     });
   });
