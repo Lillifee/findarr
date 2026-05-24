@@ -45,7 +45,7 @@ describe('catalog service - integration tests', () => {
       findByExternalId: vi.fn(),
     } as Mocked<TMDBService>;
 
-    catalogService = createCatalogService({ db, tmdbService: tmdbServiceMock });
+    catalogService = createCatalogService({ db, tmdb: tmdbServiceMock });
   });
 
   afterEach(() => {

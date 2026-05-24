@@ -1,15 +1,16 @@
 services:
-  app:
+  findarr:
     image: ghcr.io/lillifee/findarr:latest
-    environment:
-      NODE_ENV: production
-      HOST: 0.0.0.0
-      PORT: '8585'
-    ports:
-      - '8585:8585'
     restart: unless-stopped
+    ports:
+      - 8585:8585
     volumes:
       - findarr-data:/app/server/data
+      # - ./data:/app/server/data
+    environment:
+      - NODE_ENV=production
+      - HOST=0.0.0.0
+      - PORT=8585
 
 volumes:
   findarr-data:

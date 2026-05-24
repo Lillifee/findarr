@@ -53,7 +53,7 @@ export function createClientLifecycle<
     return state.settings;
   }
 
-  async function isConfigured(): Promise<boolean> {
+  function isConfigured(): boolean {
     return !!state.client;
   }
 

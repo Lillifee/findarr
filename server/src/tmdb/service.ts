@@ -43,7 +43,7 @@ export async function createTMDBService(fastify: FastifyInstance) {
   async function reloadService(): Promise<void> {
     await lifecycle.reload();
 
-    if (await lifecycle.isConfigured()) {
+    if (lifecycle.isConfigured()) {
       await ensureGenresLoaded();
     }
   }
@@ -64,7 +64,7 @@ export async function createTMDBService(fastify: FastifyInstance) {
     return lifecycle.testConnection();
   }
 
-  async function isConfigured(): Promise<boolean> {
+  function isConfigured(): boolean {
     return lifecycle.isConfigured();
   }
 

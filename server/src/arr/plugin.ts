@@ -11,10 +11,8 @@ declare module 'fastify' {
 }
 
 const arrPlugin: FastifyPluginAsync = async fastify => {
-  const context = { db: fastify.db, log: fastify.log, scheduler: fastify.scheduler };
-
-  fastify.decorate('radarr', await createArrService(arrConfig.radarr, context));
-  fastify.decorate('sonarr', await createArrService(arrConfig.sonarr, context));
+  fastify.decorate('radarr', await createArrService(arrConfig.radarr, fastify));
+  fastify.decorate('sonarr', await createArrService(arrConfig.sonarr, fastify));
   fastify.log.info({ name: 'arr' }, 'Arr plugin registered (Radarr + Sonarr)');
 };
 

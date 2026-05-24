@@ -100,7 +100,7 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     await syncCatalogCache(mockFastify);
 
     // Create catalog service for testing
-    catalogService = createCatalogService({ db, tmdbService: tmdbServiceMock });
+    catalogService = createCatalogService({ db, tmdb: tmdbServiceMock });
   });
 
   afterEach(() => {

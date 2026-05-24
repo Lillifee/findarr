@@ -48,7 +48,7 @@ export async function createJellyfinService(context: JellyfinContext) {
     return lifecycle.testConnection();
   }
 
-  async function isConfigured(): Promise<boolean> {
+  function isConfigured() {
     return lifecycle.isConfigured();
   }
 

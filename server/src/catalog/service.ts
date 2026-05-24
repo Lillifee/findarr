@@ -33,14 +33,14 @@ const SWIPE_CANDIDATE_LIMIT = 100;
 
 export interface CatalogContext {
   db: Database;
-  tmdbService: TMDBService;
+  tmdb: TMDBService;
 }
 
 /**
  * Catalog service - orchestrates multiple data sources and applies business logic
  */
 export function createCatalogService(context: CatalogContext) {
-  const { db, tmdbService } = context;
+  const { db, tmdb } = context;
   const popularFeedSnapshotStore = createFeedSnapshotStore<Media>();
 
   /**
@@ -48,7 +48,7 @@ export function createCatalogService(context: CatalogContext) {
    * Currently delegates to TMDB
    */
   async function searchMedia(params: SearchQuery, userId: number): Promise<SearchResponse> {
-    const response = await tmdbService.search(params);
+    const response = await tmdb.search(params);
     const results = await enrichMediaResults(response.results, userId);
     return { ...response, results };
   }
@@ -59,7 +59,7 @@ export function createCatalogService(context: CatalogContext) {
    */
   async function discoverMedia(params: DiscoverQuery, userId: number): Promise<DiscoverResponse> {
     const settings = await getUserSettings(db, userId);
-    const response = await tmdbService.discover({ ...params, ...settings });
+    const response = await tmdb.discover({ ...params, ...settings });
     const results = await enrichMediaResults(response.results, userId);
     return { ...response, results };
   }
@@ -70,7 +70,7 @@ export function createCatalogService(context: CatalogContext) {
    * Does NOT create a database record - only fetches existing state
    */
   async function getMediaDetails(params: DetailsQuery, userId: number) {
-    const mediaItem = await tmdbService.details(params);
+    const mediaItem = await tmdb.details(params);
     const [enriched] = await enrichMediaResults([mediaItem], userId);
     return (enriched || mediaItem) as MediaDetails;
   }
@@ -80,7 +80,7 @@ export function createCatalogService(context: CatalogContext) {
    * Currently delegates to TMDB
    */
   async function listGenres(params: GenresQuery): Promise<{ genres: Genre[] }> {
-    return await tmdbService.genres(params);
+    return await tmdb.genres(params);
   }
 
   /**
@@ -100,7 +100,7 @@ export function createCatalogService(context: CatalogContext) {
       limit: itemsPerPage,
     });
 
-    const availableMedia = await fetchTMDBDetails(tmdbService, dbRecords);
+    const availableMedia = await fetchTMDBDetails(tmdb, dbRecords);
     const results = await enrichWithInteractions(db, availableMedia, userId);
     const totalPages = Math.ceil(totalCount / itemsPerPage);
 

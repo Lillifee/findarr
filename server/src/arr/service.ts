@@ -71,6 +71,10 @@ export async function createArrService<T extends ArrServiceConfig>(
     arrId?: number | null,
     seasons?: number[]
   ): Promise<ArrLibraryItem | undefined> {
+    if (!lifecycle.isConfigured()) {
+      return undefined;
+    }
+
     // Only sonarr needs multiple requests to update shows.
     if (config.service === 'radarr' && arrId) {
       return undefined;
@@ -101,6 +105,7 @@ export async function createArrService<T extends ArrServiceConfig>(
       arrUrl: libraryItem.arrUrl,
     });
 
+    // TODO we only need to trigger the scheduler if a new season is monitored.
     context.scheduler.start({ name: config.queueFastSyncScheduler });
     return libraryItem;
   }
