@@ -55,7 +55,7 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, option
     cookie: {
       path: '/',
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: 'auto',
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
     },
