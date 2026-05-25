@@ -42,15 +42,14 @@ export function createArrQueueMonitorScheduler(arrService: AnyArrService): Sched
     async (context: SchedulerContext) => {
       if (!(await arrService.isConfigured())) return false;
 
-      const queueResponse = await arrService.getQueue();
-      const activeCount = queueResponse.records.length;
+      const queueItems = await arrService.getQueue(1);
 
-      if (activeCount > 0) {
+      if (queueItems.length > 0) {
         context.log.info(
           {
             name: arrService.config.service,
             service: arrService.config.service,
-            activeDownloads: activeCount,
+            activeDownloads: queueItems.length,
           },
           'Active downloads detected - starting fast sync'
         );

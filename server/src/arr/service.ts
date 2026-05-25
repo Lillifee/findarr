@@ -13,12 +13,7 @@ import {
   updateMediaIds,
   type ArrSettingsFull,
 } from './repository.js';
-import type {
-  ArrLibraryItem,
-  ArrQualityProfile,
-  ArrQueueResponse,
-  ArrRootFolder,
-} from './schemas.js';
+import type { ArrLibraryItem, ArrQualityProfile, ArrQueueItem, ArrRootFolder } from './schemas.js';
 import { transformArrMedia } from './transformers.js';
 
 export interface ArrServiceContext {
@@ -123,8 +118,8 @@ export async function createArrService<T extends ArrServiceConfig>(
     return items.map(x => transformArrMedia(x));
   }
 
-  async function getQueue(): Promise<ArrQueueResponse> {
-    return lifecycle.client().getQueue();
+  async function getQueue(pageSize: number): Promise<ArrQueueItem[]> {
+    return lifecycle.client().getQueue(pageSize);
   }
 
   async function resolveMediaUrl(mediaId: number): Promise<string | null> {

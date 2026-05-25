@@ -131,6 +131,9 @@ export type SonarrSeries = z.infer<typeof SonarrSeriesSchema>;
 export type SonarrSeason = z.infer<typeof SonarrSeasonSchema>;
 export type SonarrEpisode = z.infer<typeof SonarrEpisodeSchema>;
 export type ArrQueueResponse = z.infer<typeof ArrQueueResponseSchema>;
+export type ArrQueueItem =
+  | z.infer<typeof RadarrQueueItemSchema>
+  | z.infer<typeof SonarrQueueItemSchema>;
 
 /**
  * Unified library item for both Radarr (movies) and Sonarr (TV shows)

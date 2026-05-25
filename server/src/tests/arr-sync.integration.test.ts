@@ -72,9 +72,7 @@ describe('arr sync collision handling - integration tests', () => {
 
     const radarrService = {
       config: arrConfig.radarr,
-      getQueue: vi.fn().mockResolvedValue({
-        records: [{ arrId: 77, trackedDownloadStatus: 'downloading' }],
-      }),
+      getQueue: vi.fn().mockResolvedValue([{ arrId: 77, trackedDownloadStatus: 'downloading' }]),
     } as unknown as AnyArrService;
 
     await syncQueue(fastify, radarrService, new Set());

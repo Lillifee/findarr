@@ -194,30 +194,31 @@ export async function syncQueue(
   const mediaType = arrService.config.mediaType;
 
   // Get queue from service
-  const queue = await arrService.getQueue();
+  const queueItems = await arrService.getQueue(1000);
+  const statusMap = new Map<number, MediaStatus>();
 
-  // Process queue items
-  for (const item of queue.records) {
-    if (item.arrId) {
-      if (item.trackedDownloadStatus === 'warning') {
-        // Mark as warning - don't count as active download
-        statusUpdates.push({ arrId: item.arrId, type: mediaType, status: 'warning' });
-        context.log.warn(
-          {
-            name: arrService.config.service,
-            service: arrService.config.service,
-            arrId: item.arrId,
-            status: item.trackedDownloadStatus,
-          },
-          'Download requires manual intervention'
-        );
-      } else {
-        // Normal downloading state
-        currentDownloadingIds.add(item.arrId);
-        statusUpdates.push({ arrId: item.arrId, type: mediaType, status: 'downloading' });
-      }
+  for (const item of queueItems) {
+    if (!item.arrId) continue;
+
+    if (item.trackedDownloadStatus === 'warning') {
+      statusMap.set(item.arrId, 'warning');
+      context.log.warn(
+        {
+          name: arrService.config.service,
+          service: arrService.config.service,
+          arrId: item.arrId,
+          status: item.trackedDownloadStatus,
+        },
+        'Download requires manual intervention'
+      );
+    } else {
+      statusMap.set(item.arrId, 'downloading');
     }
   }
+
+  statusUpdates.push(
+    ...Array.from(statusMap, ([arrId, status]) => ({ arrId, type: mediaType, status }))
+  );
 
   // Update statuses for items IN queue
   if (statusUpdates.length > 0) {
@@ -225,7 +226,7 @@ export async function syncQueue(
   }
 
   // Detect completions by comparing previous vs current downloading IDs
-  const completedIds = [...previousDownloadingIds].filter(id => !currentDownloadingIds.has(id));
+  const completedIds = [...previousDownloadingIds].filter(id => !statusMap.has(id));
 
   return {
     currentDownloadingIds,

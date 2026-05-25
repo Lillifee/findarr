@@ -10,10 +10,10 @@ import {
   type SonarrEpisode,
   type ArrQualityProfile,
   type ArrRootFolder,
-  type ArrQueueResponse,
   type SonarrSeries,
   type RadarrMovie,
   ArrQueueResponseSchema,
+  type ArrQueueItem,
 } from './schemas.js';
 
 function createHttpClient(baseUrl: string, apiKey: string): AxiosInstance {
@@ -56,9 +56,9 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
       return z.array(ArrRootFolderSchema).parse(response.data);
     },
 
-    async getQueue(): Promise<ArrQueueResponse> {
-      const response = await client.get('/queue');
-      return ArrQueueResponseSchema.parse(response.data);
+    async getQueue(pageSize: number): Promise<ArrQueueItem[]> {
+      const { data } = await client.get('/queue', { params: { page: 1, pageSize } });
+      return ArrQueueResponseSchema.parse(data).records;
     },
 
     async requestOrUpdateMedia(
