@@ -382,7 +382,7 @@ export function ActivityPage() {
         }
       />
 
-      <div className="mx-auto max-w-7xl px-4 py-4 md:px-8 md:py-8">
+      <div className="mx-auto max-w-7xl px-4 py-4 pb-20 md:px-8 md:py-8 md:pb-20">
         {(loadingAttention || attentionResults.length > 0) && (
           <section className="mb-10 rounded-3xl border border-amber-500/20 bg-linear-to-br from-amber-500/10 via-gray-900/70 to-orange-500/10 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.35)] md:p-6">
             <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -472,25 +472,15 @@ export function ActivityPage() {
           )}
 
           {hasMore && (
-            <div className="border-t border-gray-700/50 pb-20 pt-6 text-center md:pb-0 md:pt-8">
-              <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
+            <div className="pt-6 md:pb-0 md:pt-8">
+              <div className="text-center pt-4 md:pt-6 md:pb-0 border-t border-gray-700">
                 <Button
                   onClick={() => {
                     void loadActivity({ append: true, page: currentPage + 1 });
                   }}
                   disabled={loadingMore}
-                  size="sm"
-                  className="text-xs md:text-sm"
                 >
-                  <span>{loadingMore ? 'Loading...' : 'Load more'}</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
+                  {loadingMore ? 'Loading...' : 'Load more'}
                 </Button>
               </div>
             </div>

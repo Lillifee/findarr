@@ -466,7 +466,7 @@ export function ExplorePage() {
       </div>
 
       {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-8">
+      <div className="max-w-7xl mx-auto px-4 pb-20 md:px-8 py-4 md:py-8 md:pb-20">
         {results.length > 0 && (
           <div id="results-section">
             <div className="flex justify-between items-center gap-3 mb-6">
@@ -492,7 +492,7 @@ export function ExplorePage() {
             />
 
             {currentPage < totalPages && (
-              <div className="text-center mt-6 md:mt-8 pt-4 md:pt-6 pb-20 md:pb-0 border-t border-gray-700">
+              <div className="text-center mt-6 md:mt-8 pt-4 md:pt-6 md:pb-0 border-t border-gray-700">
                 <Button
                   onClick={() => {
                     if (currentPage < totalPages) {

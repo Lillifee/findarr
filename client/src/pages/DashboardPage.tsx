@@ -143,7 +143,7 @@ export function DashboardPage() {
           />
         </div>
       </div>
-      <div className="mx-auto max-w-7xl px-4 py-6 md:px-8 md:py-8">
+      <div className="mx-auto max-w-7xl px-4 py-6 pb-20 md:px-8 md:py-8 md:pb-20">
         <div className="space-y-8 md:space-y-10">
           <PageHeader
             title={`Welcome back${user?.displayName ? `, ${user.displayName}` : ''}`}

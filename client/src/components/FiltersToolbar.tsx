@@ -200,7 +200,7 @@ export function FiltersToolbar({
     <>
       <div className="sticky top-0 z-30 border-b border-gray-700/50 bg-gray-800/90 backdrop-blur-md shadow-2xl">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex w-full shrink-0 items-center gap-3 md:w-auto">
             <MediaTypeChips
               selectedType={selectedType}
               onChange={onTypeChange}

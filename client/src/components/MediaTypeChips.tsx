@@ -10,7 +10,7 @@ interface MediaTypeChipsProps {
 const types: { value: SearchType; label: string }[] = [
   { value: 'both', label: 'All' },
   { value: 'movie', label: 'Movies' },
-  { value: 'tv', label: 'TV Shows' },
+  { value: 'tv', label: 'Shows' },
 ];
 
 function getIcon(type: SearchType) {
@@ -65,9 +65,10 @@ export function MediaTypeChips({ selectedType, onChange, disabled = false }: Med
               ? 'bg-gray-200 text-gray-950 border-gray-200 shadow-none hover:bg-gray-100 hover:text-gray-950'
               : 'bg-transparent text-gray-300 border-transparent hover:border-gray-600 hover:bg-gray-700/80 hover:text-white'
           } ${index === 0 ? 'rounded-l-lg' : ''} ${index === types.length - 1 ? 'rounded-r-lg' : ''} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+          title={type.label}
         >
           {getIcon(type.value)}
-          <span>{type.label}</span>
+          <span className="max-[460px]:hidden">{type.label}</span>
         </Badge>
       ))}
     </div>
