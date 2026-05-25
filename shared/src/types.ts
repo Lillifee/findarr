@@ -273,15 +273,30 @@ export type CreateMediaInteraction = z.infer<typeof CreateInteractionSchema>;
 // ============================================================================
 // Scheduler Types
 // ============================================================================
-
-export interface SchedulerState {
+/**
+ * Configuration for a scheduler
+ */
+export interface SchedulerConfig {
   name: string;
   description: string;
+  interval: number;
+  enabled: boolean;
+  runOnStartup?: boolean;
+  minRuntime?: number;
+  maxRuntime?: number;
+}
+
+/**
+ * Runtime state of a scheduler
+ */
+export interface SchedulerState {
   enabled: boolean;
   isRunning: boolean;
   lastRun: number | null;
   nextRun: number | null;
   lastDuration: number | null;
   lastError: string | null;
-  interval: number;
+  startedAt: number | null;
 }
+
+export type SchedulerInfo = SchedulerConfig & SchedulerState;

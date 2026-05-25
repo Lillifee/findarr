@@ -4,11 +4,6 @@ import type { FastifyInstance } from 'fastify';
 export async function schedulerRoutes(fastify: FastifyInstance): Promise<void> {
   // Public: Get all scheduler states
   fastify.get('/schedulers', async () => fastify.scheduler.getState());
-
-  // Public: Get specific scheduler state
-  fastify.get('/schedulers/:name', async request =>
-    fastify.scheduler.getState(SchedulerParamsSchema.parse(request.params))
-  );
 }
 
 export async function adminSchedulerRoutes(fastify: FastifyInstance): Promise<void> {

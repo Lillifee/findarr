@@ -1,37 +1,9 @@
+import type { SchedulerConfig, SchedulerState } from '@findarr/shared';
 import type { FastifyBaseLogger } from 'fastify';
 import type { Database } from '../db/service.js';
 import type { JellyfinService } from '../jellyfin/service.js';
 import type { TMDBService } from '../tmdb/service.js';
 import type { SchedulerService } from './service.js';
-
-/**
- * Configuration for a scheduler
- */
-export interface SchedulerConfig {
-  name: string;
-  description: string; // Human-readable description
-  interval: number; // Default interval in milliseconds
-  enabled: boolean; // Can be disabled
-  runOnStartup?: boolean; // Run immediately on server start
-  minRuntime?: number; // Minimum runtime in ms before allowing self-termination
-}
-
-/**
- * Runtime state of a scheduler
- */
-export interface SchedulerState {
-  name: string;
-  description: string;
-  enabled: boolean;
-  isRunning: boolean;
-  lastRun: number | null; // Timestamp
-  nextRun: number | null; // Timestamp (null = stopped/manual trigger only)
-  lastDuration: number | null; // ms
-  lastError: string | null;
-  interval: number; // Default interval in milliseconds
-  minRuntime: number; // Minimum runtime in ms before allowing self-termination
-  startedAt: number | null; // Timestamp when scheduler was first enabled (for minRuntime check)
-}
 
 export interface SchedulerContext {
   db: Database;
@@ -63,16 +35,12 @@ export function createScheduler(
   runFn: (context: SchedulerContext) => Promise<boolean>
 ): Scheduler {
   const state: SchedulerState = {
-    name: config.name,
-    description: config.description,
     enabled: config.enabled,
     isRunning: false,
     lastRun: null,
     nextRun: null,
     lastDuration: null,
     lastError: null,
-    minRuntime: config.minRuntime ?? 0,
-    interval: config.interval,
     startedAt: null,
   };
 

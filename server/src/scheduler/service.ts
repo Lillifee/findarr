@@ -1,6 +1,11 @@
-import { getErrorMessage, type SchedulerName, type SchedulerParams } from '@findarr/shared';
+import {
+  getErrorMessage,
+  type SchedulerInfo,
+  type SchedulerName,
+  type SchedulerParams,
+} from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
-import type { Scheduler, SchedulerState } from './types.js';
+import type { Scheduler } from './types.js';
 
 const TICK_INTERVAL_MS = 10 * 1000; // 10 seconds
 
@@ -18,9 +23,21 @@ export function createSchedulerService(
    * Execute a scheduler
    */
   async function executeScheduler(scheduler: Scheduler): Promise<void> {
-    const startTime = Date.now();
+    const now = Date.now();
+    const interval = scheduler.config.interval;
+
     scheduler.state.isRunning = true;
     scheduler.state.lastError = null;
+
+    const scheduleNext = () => {
+      scheduler.state.nextRun = Date.now() + interval;
+    };
+
+    const terminate = () => {
+      scheduler.state.nextRun = null;
+      scheduler.state.enabled = false;
+      scheduler.state.startedAt = null;
+    };
 
     try {
       fastify.log.debug(
@@ -28,67 +45,80 @@ export function createSchedulerService(
         'Executing scheduler'
       );
 
-      // Run scheduler and get result
       const shouldContinue = await scheduler.run(fastify);
 
-      const duration = Date.now() - startTime;
-      scheduler.state.lastRun = startTime;
+      const duration = Date.now() - now;
+      const totalRuntime = scheduler.state.startedAt ? Date.now() - scheduler.state.startedAt : 0;
+
+      scheduler.state.lastRun = now;
       scheduler.state.lastDuration = duration;
 
-      // Schedule next run based on return value
-      if (shouldContinue) {
-        // Continue - schedule next run with default interval
-        scheduler.state.nextRun = Date.now() + scheduler.config.interval;
+      const exceededMaxRuntime =
+        shouldContinue && scheduler.config.maxRuntime && totalRuntime > scheduler.config.maxRuntime;
+
+      const belowMinRuntime =
+        !shouldContinue &&
+        scheduler.config.minRuntime &&
+        totalRuntime < scheduler.config.minRuntime;
+
+      if (exceededMaxRuntime) {
+        terminate();
+
         fastify.log.debug(
           {
             name: 'scheduler',
             schedulerName: scheduler.config.name,
             duration,
-            nextRunIn: Math.round(scheduler.config.interval / 1000),
+            totalRuntime,
+            maxRuntime: scheduler.config.maxRuntime,
           },
-          'Scheduler completed'
+          'Scheduler still running after maximum runtime - terminating'
         );
-      } else {
-        // Scheduler wants to self-terminate - check minimum runtime
-        const totalRuntime = scheduler.state.startedAt ? Date.now() - scheduler.state.startedAt : 0;
-        if (scheduler.config.minRuntime && totalRuntime < scheduler.config.minRuntime) {
-          // Too early to terminate - reschedule instead
-          scheduler.state.nextRun = Date.now() + scheduler.config.interval;
-          fastify.log.debug(
-            {
-              name: 'scheduler',
-              schedulerName: scheduler.config.name,
-              duration,
-              totalRuntime,
-              minRuntime: scheduler.config.minRuntime,
-              nextRunIn: Math.round(scheduler.config.interval / 1000),
-            },
-            'Scheduler requested termination but within minimum runtime - rescheduling'
-          );
-        } else {
-          // Allow self-termination
-          scheduler.state.nextRun = null;
-          scheduler.state.enabled = false;
-          scheduler.state.startedAt = null; // Reset for next start
-          fastify.log.info(
-            {
-              name: 'scheduler',
-              schedulerName: scheduler.config.name,
-              duration,
-              totalRuntime,
-            },
-            'Scheduler self-terminated'
-          );
-        }
+
+        return;
       }
+
+      if (belowMinRuntime || shouldContinue) {
+        scheduleNext();
+
+        fastify.log.debug(
+          {
+            name: 'scheduler',
+            schedulerName: scheduler.config.name,
+            duration,
+            totalRuntime,
+            nextRunIn: Math.round(interval / 1000),
+            ...(belowMinRuntime && {
+              minRuntime: scheduler.config.minRuntime,
+            }),
+          },
+          belowMinRuntime
+            ? 'Scheduler requested termination but within minimum runtime - rescheduling'
+            : 'Scheduler completed'
+        );
+
+        return;
+      }
+
+      terminate();
+
+      fastify.log.info(
+        {
+          name: 'scheduler',
+          schedulerName: scheduler.config.name,
+          duration,
+          totalRuntime,
+        },
+        'Scheduler self-terminated'
+      );
     } catch (error) {
-      const duration = Date.now() - startTime;
-      scheduler.state.lastRun = startTime;
+      const duration = Date.now() - now;
+
+      scheduler.state.lastRun = now;
       scheduler.state.lastDuration = duration;
       scheduler.state.lastError = getErrorMessage(error);
 
-      // Schedule retry with default interval
-      scheduler.state.nextRun = Date.now() + scheduler.config.interval;
+      scheduleNext();
 
       fastify.log.error(
         {
@@ -96,7 +126,7 @@ export function createSchedulerService(
           schedulerName: scheduler.config.name,
           duration,
           error: scheduler.state.lastError,
-          retryInSec: scheduler.config.interval / 1000,
+          retryInSec: interval / 1000,
         },
         'Scheduler failed, retrying'
       );
@@ -195,12 +225,8 @@ export function createSchedulerService(
     /**
      * Get state of one or all schedulers
      */
-    getState(params?: SchedulerParams): SchedulerState | SchedulerState[] {
-      if (params?.name) {
-        return { ...schedulers[params.name].state };
-      }
-
-      return Object.values(schedulers).map(s => ({ ...s.state }));
+    getState(): SchedulerInfo[] {
+      return Object.values(schedulers).map(s => ({ ...s.config, ...s.state }));
     },
 
     /**

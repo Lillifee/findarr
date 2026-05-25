@@ -1,4 +1,4 @@
-import type { SchedulerState } from '@findarr/shared';
+import type { SchedulerInfo } from '@findarr/shared';
 import { useState, useEffect } from 'react';
 import { schedulerService, adminSchedulerService } from '../../services/api';
 import { asVoid } from '../../utils/asyncHandlers';
@@ -7,7 +7,7 @@ import { Card } from '../ui/Card';
 import { PageHeader } from '../ui/PageHeader';
 
 export function Schedulers() {
-  const [schedulers, setSchedulers] = useState<SchedulerState[]>([]);
+  const [schedulers, setSchedulers] = useState<SchedulerInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -93,7 +93,7 @@ export function Schedulers() {
     return date.toLocaleDateString();
   }
 
-  function renderStatus(scheduler: SchedulerState) {
+  function renderStatus(scheduler: SchedulerInfo) {
     if (scheduler.isRunning) {
       return (
         <span className="inline-flex rounded-full border border-blue-800 bg-blue-950/40 px-2.5 py-1 text-xs text-blue-200">

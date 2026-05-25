@@ -16,6 +16,13 @@ export function createJellyfinLibrarySyncScheduler(): Scheduler {
       runOnStartup: true,
     },
     async (context: SchedulerContext) => {
+      const isConfigured = context.jellyfin.isConfigured();
+
+      if (!isConfigured) {
+        context.log.debug({ name: 'jellyfin' }, 'Not configured - skipping sync');
+        return false;
+      }
+
       await syncJellyfinLibrary(context); // Full sync
       return true; // Continue
     }
@@ -35,12 +42,24 @@ export function createJellyfinQueueSyncScheduler(): Scheduler {
       interval: 10 * 1000, // 10 seconds
       enabled: false, // Disabled by default, triggered manually
       runOnStartup: false,
+      maxRuntime: 120 * 1000, // Maximum 2 minutes runtime.
     },
     async (context: SchedulerContext) => {
+      const isConfigured = context.jellyfin.isConfigured();
+
+      if (!isConfigured) {
+        context.log.debug({ name: 'jellyfin' }, 'Not configured - skipping sync');
+        return false;
+      }
+
       // Run partial sync to check recent items
       await syncJellyfinLibrary(context);
 
       // Check if should continue
+      // TODO Sometimes items cant be linked to the sonar/radarr and the downloaded status will
+      // never change to available.
+      // We added a maxRuntime of 2 minutes to prevent the scheduler from running indefinitely.
+      // Would be nice collect those items and show them in the UI for manual intervention.
       const downloadedMediaPage = await getMediaByStatusPaginated(context.db, ['downloaded'], {
         offset: 0,
         limit: 1,

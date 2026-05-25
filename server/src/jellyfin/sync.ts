@@ -11,13 +11,6 @@ import {
  * Updates media table with available items from Jellyfin
  */
 export async function syncJellyfinLibrary(context: SchedulerContext): Promise<void> {
-  const isConfigured = await context.jellyfin.isConfigured();
-
-  if (!isConfigured) {
-    context.log.debug({ name: 'jellyfin' }, 'Not configured - skipping sync');
-    return;
-  }
-
   const syncStartedAt = Date.now();
   context.log.info({ name: 'jellyfin' }, 'Starting library sync');
 

@@ -23,13 +23,13 @@ import type {
   AppBootstrapStatus,
   SetupInitialPassword,
   TmdbSettings,
-  SchedulerState,
   SwipeNextResponse,
   ArrLinkQuery,
   JellyfinLinkQuery,
   UserSettings,
   UserSettingsQuery,
   MediaType,
+  SchedulerInfo,
 } from '@findarr/shared';
 import axios from 'axios';
 
@@ -261,13 +261,8 @@ export const adminTmdbService = {
 // Scheduler service
 export const schedulerService = {
   // Get all scheduler states
-  listAll: async (): Promise<SchedulerState[]> => {
+  listAll: async (): Promise<SchedulerInfo[]> => {
     const response = await api.get('/schedulers');
-    return response.data;
-  },
-  // Get specific scheduler state
-  get: async (name: string): Promise<SchedulerState> => {
-    const response = await api.get(`/schedulers/${name}`);
     return response.data;
   },
 };
