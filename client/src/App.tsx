@@ -4,7 +4,7 @@ import { Navigation } from './components/Navigation';
 import { TmdbSetupScreen } from './components/TmdbSetupScreen';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ActivityPage } from './pages/ActivityPage';
-import { IntegrationsSettingsPage } from './pages/admin/ArrSettingsPage';
+import { IntegrationsSettingsPage } from './pages/admin/IntegrationsSettingsPage';
 import { SchedulersPage } from './pages/admin/SchedulersPage';
 import { UserManagementPage } from './pages/admin/UserManagementPage';
 import { DashboardPage } from './pages/DashboardPage';

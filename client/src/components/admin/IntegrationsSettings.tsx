@@ -352,7 +352,7 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
                 variant="secondary"
                 size="sm"
               >
-                {isTesting ? 'Testing…' : testResult ? 'Retest Connection' : 'Test Connection'}
+                {isTesting ? 'Testing…' : testResult ? 'Synchronize' : 'Test & Synchronize'}
               </Button>
             )}
           </div>
@@ -557,7 +557,7 @@ function JellyfinSection() {
                 variant="secondary"
                 size="sm"
               >
-                {isTesting ? 'Testing…' : testResult ? 'Retest Connection' : 'Test Connection'}
+                {isTesting ? 'Testing…' : testResult ? 'Synchronize' : 'Test & Synchronize'}
               </Button>
             )}
           </div>
@@ -753,7 +753,7 @@ export function TmdbSection() {
                 variant="secondary"
                 size="sm"
               >
-                {isTesting ? 'Testing…' : testResult ? 'Retest Connection' : 'Test Connection'}
+                {isTesting ? 'Testing…' : testResult ? 'Synchronize' : 'Test & Synchronize'}
               </Button>
             )}
           </div>

@@ -7,6 +7,9 @@ export const arrConfig = {
   radarr: {
     service: 'radarr' as const,
     mediaType: 'movie',
+
+    // Schedulers
+    syncScheduler: 'radarrLibrarySync' as const,
     queueFastSyncScheduler: 'radarrQueueFastSync' as const,
 
     // Client API fields
@@ -21,6 +24,9 @@ export const arrConfig = {
   sonarr: {
     service: 'sonarr' as const,
     mediaType: 'tv',
+
+    // Schedulers
+    syncScheduler: 'sonarrLibrarySync' as const,
     queueFastSyncScheduler: 'sonarrQueueFastSync' as const,
 
     // Client API fields

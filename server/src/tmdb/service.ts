@@ -12,7 +12,9 @@ import type {
   TmdbSettings,
   TmdbSettingsQuery,
 } from '@findarr/shared';
-import type { FastifyInstance } from 'fastify';
+import type { FastifyBaseLogger } from 'fastify';
+import type { Database } from '../db/service.js';
+import type { SchedulerService } from '../scheduler/service.js';
 import { createClientLifecycle } from '../utils/clientLifecycleHepler.js';
 import { createTMDBClient, type TMDBClient } from './client.js';
 import { buildDiscoverParams } from './helpers.js';
@@ -22,22 +24,28 @@ import { transformMedia, transformDetails } from './transformers.js';
 
 const MEDIA_TYPES = ['movie', 'tv'] as const;
 
+export interface TmdbServiceContext {
+  db: Database;
+  log: FastifyBaseLogger;
+  scheduler: SchedulerService;
+}
+
 /**
  * TMDB Service - handles data fetching from TMDB API
  * Pure data operations without business logic or caching
  */
-export async function createTMDBService(fastify: FastifyInstance) {
+export async function createTMDBService(context: TmdbServiceContext) {
   const genreMap = new Map<number, Genre>();
 
   const lifecycle = createClientLifecycle<TmdbSettingsFull, TMDBClient>({
     name: 'TMDB',
-    loadSettings: () => getTmdbSettingsFull(fastify.db),
+    loadSettings: () => getTmdbSettingsFull(context.db),
     createClient: settings =>
       settings.tmdbAccessToken ? createTMDBClient(settings.tmdbAccessToken) : undefined,
   });
 
   await reloadService().catch(error => {
-    fastify.log.error({ name: 'tmdb', error }, 'Failed to initialize TMDB service');
+    context.log.error({ name: 'tmdb', error }, 'Failed to initialize TMDB service');
   });
 
   async function reloadService(): Promise<void> {
@@ -54,14 +62,21 @@ export async function createTMDBService(fastify: FastifyInstance) {
   }
 
   async function setSettings(settings: TmdbSettingsQuery): Promise<TmdbSettings> {
-    await setTmdbSettings(fastify.db, settings);
+    await setTmdbSettings(context.db, settings);
 
     await reloadService();
     return getSettings();
   }
 
   async function testConnection(): Promise<boolean> {
-    return lifecycle.testConnection();
+    return lifecycle.isConfigured() && (await lifecycle.client().testConnection());
+  }
+
+  async function testAndSync(): Promise<boolean> {
+    return (
+      (await testConnection()) &&
+      (await context.scheduler.trigger({ name: 'catalogCacheSync' }), true)
+    );
   }
 
   function isConfigured(): boolean {
@@ -216,6 +231,7 @@ export async function createTMDBService(fastify: FastifyInstance) {
     setSettings,
     isConfigured,
     testConnection,
+    testAndSync,
     search,
     discover,
     trending,

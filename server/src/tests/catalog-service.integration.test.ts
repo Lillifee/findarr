@@ -34,6 +34,7 @@ describe('catalog service - integration tests', () => {
       configure: vi.fn().mockResolvedValue(undefined),
       isConfigured: vi.fn().mockResolvedValue(true),
       testConnection: vi.fn().mockResolvedValue(true),
+      testAndSync: vi.fn().mockResolvedValue(true),
       connectionInfo: vi.fn().mockResolvedValue({ connected: true }),
       getSettings: vi.fn().mockResolvedValue({ tmdbAccessTokenSet: true }),
       setSettings: vi.fn().mockResolvedValue({ tmdbAccessTokenSet: true }),

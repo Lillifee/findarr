@@ -29,7 +29,7 @@ const adminRoutes: FastifyPluginAsync = async fastify => {
 
   fastify.get('/radarr/root-folders', () => fastify.radarr.listRootFolders());
 
-  fastify.post('/radarr/test', () => fastify.radarr.testConnection());
+  fastify.post('/radarr/test', () => fastify.radarr.testAndSync());
 
   fastify.get('/sonarr/settings', () => fastify.sonarr.getSettings());
 
@@ -41,7 +41,7 @@ const adminRoutes: FastifyPluginAsync = async fastify => {
 
   fastify.get('/sonarr/root-folders', () => fastify.sonarr.listRootFolders());
 
-  fastify.post('/sonarr/test', () => fastify.sonarr.testConnection());
+  fastify.post('/sonarr/test', () => fastify.sonarr.testAndSync());
 
   fastify.get('/jellyfin/settings', () => fastify.jellyfin.getSettings());
 
@@ -49,7 +49,7 @@ const adminRoutes: FastifyPluginAsync = async fastify => {
     fastify.jellyfin.setSettings(JellyfinSettingsQuerySchema.parse(r.body))
   );
 
-  fastify.post('/jellyfin/test', () => fastify.jellyfin.testConnection());
+  fastify.post('/jellyfin/test', () => fastify.jellyfin.testAndSync());
 
   fastify.get('/tmdb/settings', () => fastify.tmdb.getSettings());
 
@@ -57,7 +57,7 @@ const adminRoutes: FastifyPluginAsync = async fastify => {
     fastify.tmdb.setSettings(TmdbSettingsQuerySchema.parse(r.body))
   );
 
-  fastify.post('/tmdb/test', () => fastify.tmdb.testConnection());
+  fastify.post('/tmdb/test', () => fastify.tmdb.testAndSync());
 };
 
 export { adminRoutes };

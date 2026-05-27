@@ -1,4 +1,4 @@
-import { IntegrationsSettings } from '../../components/admin/ArrSettings';
+import { IntegrationsSettings } from '../../components/admin/IntegrationsSettings';
 
 export function IntegrationsSettingsPage() {
   return (

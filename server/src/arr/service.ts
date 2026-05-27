@@ -52,7 +52,14 @@ export async function createArrService<T extends ArrServiceConfig>(
   }
 
   async function testConnection(): Promise<boolean> {
-    return lifecycle.testConnection();
+    return lifecycle.isConfigured() && (await lifecycle.client().testConnection());
+  }
+
+  async function testAndSync(): Promise<boolean> {
+    return (
+      (await testConnection()) &&
+      (await context.scheduler.trigger({ name: config.syncScheduler }), true)
+    );
   }
 
   async function isConfigured(): Promise<boolean> {
@@ -139,6 +146,7 @@ export async function createArrService<T extends ArrServiceConfig>(
     setSettings,
     isConfigured,
     testConnection,
+    testAndSync,
     requestMedia,
     listQualityProfiles,
     listRootFolders,

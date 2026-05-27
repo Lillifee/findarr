@@ -2,6 +2,7 @@ import { isDefined, type JellyfinSettingsQuery } from '@findarr/shared';
 import type { FastifyBaseLogger } from 'fastify';
 import type { Database } from '../db/service.js';
 import { getMediaById } from '../media/repository.js';
+import type { SchedulerService } from '../scheduler/service.js';
 import { createClientLifecycle } from '../utils/clientLifecycleHepler.js';
 import { trimTrailingSlash } from '../utils/links.js';
 import { createJellyfinClient, type JellyfinClient } from './client.js';
@@ -16,6 +17,7 @@ import { jellyfinItemToMedia } from './transformers.js';
 export interface JellyfinContext {
   db: Database;
   log: FastifyBaseLogger;
+  scheduler: SchedulerService;
 }
 
 export async function createJellyfinService(context: JellyfinContext) {
@@ -45,7 +47,14 @@ export async function createJellyfinService(context: JellyfinContext) {
   }
 
   async function testConnection(): Promise<boolean> {
-    return lifecycle.testConnection();
+    return lifecycle.isConfigured() && (await lifecycle.client().testConnection());
+  }
+
+  async function testAndSync(): Promise<boolean> {
+    return (
+      (await testConnection()) &&
+      (await context.scheduler.trigger({ name: 'jellyfinLibrarySync' }), true)
+    );
   }
 
   function isConfigured() {
@@ -118,6 +127,7 @@ export async function createJellyfinService(context: JellyfinContext) {
     setSettings,
     isConfigured,
     testConnection,
+    testAndSync,
     listLibraryItems,
     resolveMediaUrl,
   };

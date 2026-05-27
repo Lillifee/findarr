@@ -1,9 +1,6 @@
 type MaybePromise<T> = T | Promise<T>;
 
-interface ServiceLifecycleOptions<
-  TSettings,
-  TClient extends { testConnection(): Promise<boolean> },
-> {
+interface ServiceLifecycleOptions<TSettings, TClient> {
   name: string;
   loadSettings: () => Promise<TSettings>;
   createClient: (settings: TSettings) => TClient | undefined;
@@ -15,10 +12,9 @@ type LifecycleState<TSettings, TClient> = {
   client?: TClient | undefined;
 };
 
-export function createClientLifecycle<
-  TSettings,
-  TClient extends { testConnection(): Promise<boolean> },
->(options: ServiceLifecycleOptions<TSettings, TClient>) {
+export function createClientLifecycle<TSettings, TClient>(
+  options: ServiceLifecycleOptions<TSettings, TClient>
+) {
   let state: LifecycleState<TSettings, TClient> = {};
   let reloadPromise: Promise<void> | undefined;
 
@@ -57,15 +53,10 @@ export function createClientLifecycle<
     return !!state.client;
   }
 
-  async function testConnection(): Promise<boolean> {
-    return state.client ? await state.client.testConnection() : false;
-  }
-
   return {
     reload,
     client,
     settings,
     isConfigured,
-    testConnection,
   };
 }
