@@ -4,6 +4,16 @@
 
 ---
 
+<div align="center">
+	<img src="screenshots/home.png" alt="Findarr Home" width="700" />
+	<br />
+	<img src="screenshots/vote.png" alt="Findarr Vote" width="700" />
+	<br />
+	<img src="screenshots/explore.png" alt="Findarr Explore" width="700" />
+</div>
+
+---
+
 ## ✨ Features
 
 ### 🔎 Smart Discovery
@@ -98,3 +108,8 @@ Discover → Vote → Request → Watch
 ## ❤️ Built For Self-Hosted Media Stacks
 
 Findarr is designed to fit naturally into modern self-hosted media ecosystems and make group discovery painless.
+
+## Metadata
+
+This product uses the TMDB API but is not endorsed or certified by TMDB.
+https://www.themoviedb.org/

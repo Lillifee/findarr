@@ -111,7 +111,10 @@ export function TmdbSetupScreen() {
                 Setup Required
               </p>
               <h1 className="mb-2 text-3xl font-bold text-white sm:text-4xl">Connect TMDB</h1>
-              <p className="max-w-xl text-sm leading-5 text-gray-400">
+              <p className="max-w-xl text-sm leading-5 mt-2 text-gray-400">
+                This product uses the TMDB API but is not endorsed or certified by TMDB.
+              </p>
+              <p className="max-w-xl text-sm leading-5 mt-2 text-gray-400">
                 Finish the initial Findarr setup by adding a TMDB read access token. This enables
                 search, discovery, and full media metadata throughout the app.
               </p>
