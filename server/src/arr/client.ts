@@ -73,13 +73,11 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
       },
       seasonNumbers?: number[]
     ): Promise<RadarrMovie | SonarrSeries> {
-      let media = params.arrId
-        ? await this.getLibraryItemById(params.arrId)
-        : await this.requestMedia({ id: params.id, title: params.title }, profileConfig);
+      const media =
+        (await this.tryGetLibraryItemById(params.arrId)) ??
+        (await this.requestMedia(params, profileConfig));
 
-      media = await this.updateLibrarySeasons(media, seasonNumbers);
-
-      return media;
+      return await this.updateLibrarySeasons(media, seasonNumbers);
     },
 
     async requestMedia(
@@ -159,6 +157,15 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
     async getLibraryItemById(arrId: number): Promise<RadarrMovie | SonarrSeries> {
       const response = await client.get(`${config.mediaEndpoint}/${arrId}`);
       return config.libraryItemSchema.parse(response.data);
+    },
+
+    async tryGetLibraryItemById(
+      arrId?: number | null
+    ): Promise<RadarrMovie | SonarrSeries | undefined> {
+      if (!isDefined(arrId)) return undefined;
+
+      // In case the item was deleted from the library we want to handle that gracefully.
+      return await this.getLibraryItemById(arrId).catch(() => undefined);
     },
 
     async updateSeasonPass(
