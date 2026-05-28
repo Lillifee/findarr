@@ -49,7 +49,6 @@ export function VotePage() {
     if (JSON.stringify(nextSearchParams.genres) !== JSON.stringify(selectedGenres)) {
       setSelectedGenres(nextSearchParams.genres);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   useEffect(() => {

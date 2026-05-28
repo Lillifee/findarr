@@ -24,10 +24,10 @@
     "code:check": "npm run type-check && npm run lint && npm run format:check && npm run build",
     "code:fix": "npm run type-check && npm run lint:fix && npm run format && npm run build",
     "type-check": "npm run type-check --workspace=@findarr/shared && npm run type-check --workspace=@findarr/server && npm run type-check --workspace=@findarr/client",
-    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
-    "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
-    "format": "prettier --write --log-level silent .",
-    "format:check": "prettier --check .",
+    "lint": "npm exec -- biome lint",
+    "lint:fix": "npm exec -- biome lint --write",
+    "format": "npm exec -- biome format --write",
+    "format:check": "npm exec -- biome check",
     "clean": "del-cli node_modules shared/dist server/dist client/dist **/*.tsbuildinfo",
     "ci": "npm run type-check && npm run lint && npm run format:check && npm run build && npm run test",
     "update": "npx npm-check-updates -u --workspaces && npm install",
@@ -37,19 +37,11 @@
     "docker:run": "docker compose up"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.4.16",
     "concurrently": "^9.2.1",
     "del-cli": "^7.0.0",
-    "eslint": "^9.39.2",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-import-resolver-typescript": "^4.4.4",
-    "eslint-plugin-import-x": "^4.16.1",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-unicorn": "^63.0.0",
     "globals": "^17.3.0",
     "npm-check-updates": "^19.3.2",
-    "prettier": "^3.8.1",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.55.0"
+    "typescript": "^5.9.3"
   }
 }

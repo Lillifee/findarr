@@ -29,7 +29,6 @@ describe('databasePlugin', () => {
 
     vi.spyOn(setupModule, 'createDatabase').mockReturnValue({
       db: mockDb,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sqliteDb: mockSqliteDb as any,
     });
   });

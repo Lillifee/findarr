@@ -110,7 +110,6 @@ export function ExplorePage() {
     if (urlQuery !== currentQuery) {
       setCurrentQuery(urlQuery);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   const loadFeed = useCallback(

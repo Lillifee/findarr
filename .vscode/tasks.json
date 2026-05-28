@@ -62,7 +62,7 @@
       "type": "shell",
       "command": "npm run code:fix",
       "group": "test",
-      "problemMatcher": ["$tsc", "$eslint-stylish"],
+      "problemMatcher": ["$tsc"],
     },
     {
       "label": "Test",
