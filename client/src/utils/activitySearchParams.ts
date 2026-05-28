@@ -23,7 +23,8 @@ export const readActivitySearchParams = (
     (searchParams.get('action') as InteractionsQuery['action'] | null) ??
     defaults.action ??
     'liked',
-  type: (searchParams.get('type') as SearchType | null) ?? defaults.type ?? 'both',
+  type:
+    (searchParams.get('type') as SearchType | null) ?? defaults.type ?? 'both',
 });
 
 export const buildActivitySearchParams = (next: ActivitySearchParamInput) => {

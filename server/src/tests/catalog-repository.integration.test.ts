@@ -1,4 +1,4 @@
-import SqlDatabase from 'better-sqlite3';
+import type SqlDatabase from 'better-sqlite3';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   upsertCatalogCache,
@@ -93,7 +93,9 @@ describe('catalog repository - integration tests', () => {
     });
 
     it('should return empty array for non-existent items', async () => {
-      const result = await getCatalogCacheBatch(db, [{ tmdbId: 999, type: 'movie' }]);
+      const result = await getCatalogCacheBatch(db, [
+        { tmdbId: 999, type: 'movie' },
+      ]);
       expect(result).toHaveLength(0);
     });
 
@@ -163,7 +165,9 @@ describe('catalog repository - integration tests', () => {
       const items = [createTestMedia({ tmdbId: 1, type: 'movie' })];
       await upsertCatalogCache(db, items);
 
-      const deletedCount = await cleanupCatalogCache(db, [{ tmdbId: 1, type: 'movie' }]);
+      const deletedCount = await cleanupCatalogCache(db, [
+        { tmdbId: 1, type: 'movie' },
+      ]);
 
       expect(deletedCount).toBe(0);
     });
@@ -191,8 +195,16 @@ describe('catalog repository - integration tests', () => {
 
     it('should return empty array when all items have keywords', async () => {
       const items = [
-        createTestMedia({ tmdbId: 1, type: 'movie', keywords: [{ id: 1, name: 'action' }] }),
-        createTestMedia({ tmdbId: 2, type: 'tv', keywords: [{ id: 2, name: 'drama' }] }),
+        createTestMedia({
+          tmdbId: 1,
+          type: 'movie',
+          keywords: [{ id: 1, name: 'action' }],
+        }),
+        createTestMedia({
+          tmdbId: 2,
+          type: 'tv',
+          keywords: [{ id: 2, name: 'drama' }],
+        }),
       ];
       await upsertCatalogCache(db, items);
 

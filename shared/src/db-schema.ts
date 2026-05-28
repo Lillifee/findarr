@@ -58,7 +58,14 @@ export const media = sqliteTable(
       status: 'none' | 'requested' | 'monitored' | 'downloaded' | 'available';
     }> | null>(), // TV only: season tracking synced from Sonarr/Jellyfin (none=not in Sonarr, requested=user wants it, monitored=in Sonarr, downloaded=complete in Sonarr, available=in Jellyfin)
     status: text('status', {
-      enum: ['pending', 'requested', 'downloading', 'downloaded', 'available', 'warning'],
+      enum: [
+        'pending',
+        'requested',
+        'downloading',
+        'downloaded',
+        'available',
+        'warning',
+      ],
     })
       .notNull()
       .default('pending'),
@@ -216,7 +223,10 @@ export const userSettings = sqliteTable(
       .notNull()
       .default('["western"]')
       .$type<string[]>(),
-    withGenres: text('withGenres', { mode: 'json' }).notNull().default('[]').$type<string[]>(),
+    withGenres: text('withGenres', { mode: 'json' })
+      .notNull()
+      .default('[]')
+      .$type<string[]>(),
     createdAt: integer('createdAt')
       .notNull()
       .default(sql`(unixepoch() * 1000)`)
@@ -244,30 +254,39 @@ export const mediaRelations = relations(media, ({ many }) => ({
   interactions: many(userMediaInteractions),
 }));
 
-export const userMediaInteractionsRelations = relations(userMediaInteractions, ({ one }) => ({
-  media: one(media, {
-    fields: [userMediaInteractions.mediaId],
-    references: [media.id],
-  }),
-  user: one(users, {
-    fields: [userMediaInteractions.userId],
-    references: [users.id],
-  }),
-}));
+export const userMediaInteractionsRelations = relations(
+  userMediaInteractions,
+  ({ one }) => ({
+    media: one(media, {
+      fields: [userMediaInteractions.mediaId],
+      references: [media.id],
+    }),
+    user: one(users, {
+      fields: [userMediaInteractions.userId],
+      references: [users.id],
+    }),
+  })
+);
 
-export const userGenrePreferencesRelations = relations(userGenrePreferences, ({ one }) => ({
-  user: one(users, {
-    fields: [userGenrePreferences.userId],
-    references: [users.id],
-  }),
-}));
+export const userGenrePreferencesRelations = relations(
+  userGenrePreferences,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [userGenrePreferences.userId],
+      references: [users.id],
+    }),
+  })
+);
 
-export const userKeywordPreferencesRelations = relations(userKeywordPreferences, ({ one }) => ({
-  user: one(users, {
-    fields: [userKeywordPreferences.userId],
-    references: [users.id],
-  }),
-}));
+export const userKeywordPreferencesRelations = relations(
+  userKeywordPreferences,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [userKeywordPreferences.userId],
+      references: [users.id],
+    }),
+  })
+);
 
 export const userSettingsRelations = relations(userSettings, ({ one }) => ({
   user: one(users, {

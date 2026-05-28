@@ -1,5 +1,5 @@
-import { type RegionGroupId } from '@findarr/shared';
-import React from 'react';
+import type { RegionGroupId } from '@findarr/shared';
+import type React from 'react';
 import { Badge } from './ui/Badge';
 import { Button } from './ui/Button';
 
@@ -16,7 +16,12 @@ function getRegionIcon(regionId: RegionGroupId): React.ReactElement {
   switch (regionId) {
     case 'western': {
       return (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -28,7 +33,12 @@ function getRegionIcon(regionId: RegionGroupId): React.ReactElement {
     }
     case 'eastern-europe': {
       return (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -40,7 +50,12 @@ function getRegionIcon(regionId: RegionGroupId): React.ReactElement {
     }
     case 'asian': {
       return (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -52,7 +67,12 @@ function getRegionIcon(regionId: RegionGroupId): React.ReactElement {
     }
     case 'latin-america': {
       return (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -64,7 +84,12 @@ function getRegionIcon(regionId: RegionGroupId): React.ReactElement {
     }
     case 'middle-east-africa': {
       return (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -143,7 +168,12 @@ export function RegionChips({
               {getRegionIcon(regionId)}
               <span>{region.name}</span>
               {isSelected && (
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-3 h-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"

@@ -10,8 +10,14 @@ export function PageHeader({ title, description, action }: PageHeaderProps) {
   return (
     <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
       <div>
-        <h1 className="text-2xl font-semibold text-white md:text-3xl">{title}</h1>
-        {description && <p className="mt-1.5 text-sm text-gray-400 md:text-base">{description}</p>}
+        <h1 className="text-2xl font-semibold text-white md:text-3xl">
+          {title}
+        </h1>
+        {description && (
+          <p className="mt-1.5 text-sm text-gray-400 md:text-base">
+            {description}
+          </p>
+        )}
       </div>
       {action && <div className="shrink-0">{action}</div>}
     </div>

@@ -8,7 +8,11 @@ interface GenreChipsProps {
   disabled?: boolean;
 }
 
-export function GenreChips({ selectedGenres, onGenreChange, disabled = false }: GenreChipsProps) {
+export function GenreChips({
+  selectedGenres,
+  onGenreChange,
+  disabled = false,
+}: GenreChipsProps) {
   const handleGenreToggle = (genreKey: GenreKey) => {
     const updatedKeys = selectedGenres.includes(genreKey)
       ? selectedGenres.filter(k => k !== genreKey)
@@ -34,7 +38,9 @@ export function GenreChips({ selectedGenres, onGenreChange, disabled = false }: 
           aria-hidden={selectedGenres.length === 0}
           tabIndex={selectedGenres.length === 0 ? -1 : 0}
           className={`inline-flex min-h-8 items-center justify-center rounded-full border border-gray-600/70 bg-gray-800/80 px-3 py-1.5 text-xs font-medium text-gray-300 transition-colors hover:border-gray-400 hover:bg-gray-700/80 hover:text-white disabled:cursor-not-allowed ${
-            selectedGenres.length === 0 ? 'pointer-events-none invisible opacity-0' : 'opacity-100'
+            selectedGenres.length === 0
+              ? 'pointer-events-none invisible opacity-0'
+              : 'opacity-100'
           } ${disabled ? 'opacity-50' : ''}`}
         >
           Clear all

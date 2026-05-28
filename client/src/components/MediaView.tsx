@@ -1,4 +1,4 @@
-import { type MovieDetails, type TVDetails, type Media } from '@findarr/shared';
+import type { MovieDetails, TVDetails, Media } from '@findarr/shared';
 import { useState } from 'react';
 import { linkService } from '../services/api.js';
 import { LikeDislikeButton } from './LikeDislikeButton';
@@ -16,7 +16,8 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
   // Common data extraction
   const title = media.name;
   const releaseDate = media.date;
-  const releaseYear = (releaseDate && new Date(releaseDate).getFullYear()) || '';
+  const releaseYear =
+    (releaseDate && new Date(releaseDate).getFullYear()) || '';
   const posterUrl = media.posterPath
     ? `https://image.tmdb.org/t/p/w500${media.posterPath}`
     : undefined;
@@ -26,9 +27,12 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
 
   // Get first official YouTube trailer
   const trailer = media.videos?.find(
-    video => video.site === 'YouTube' && video.type === 'Trailer' && video.official
+    video =>
+      video.site === 'YouTube' && video.type === 'Trailer' && video.official
   );
-  const trailerUrl = trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : undefined;
+  const trailerUrl = trailer
+    ? `https://www.youtube.com/watch?v=${trailer.key}`
+    : undefined;
   const altTrailerUrl = trailer
     ? undefined
     : `https://www.youtube.com/results?search_query=${encodeURIComponent(`${title} ${releaseYear} trailer`)}`;
@@ -51,10 +55,13 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
     return hours > 0 ? `${hours}h ${remainingMinutes}m` : `${value}m`;
   };
 
-  const availabilityStatus = media.state?.record?.status as StatusType | undefined;
+  const availabilityStatus = media.state?.record?.status as
+    | StatusType
+    | undefined;
   const infoTileClass =
     'rounded-xl border border-gray-700/50 bg-gray-800/68 px-3 py-2.5 backdrop-blur-md';
-  const infoLabelClass = 'text-[10px] uppercase tracking-[0.14em] text-gray-400 font-semibold';
+  const infoLabelClass =
+    'text-[10px] uppercase tracking-[0.14em] text-gray-400 font-semibold';
 
   // Build Radarr/Sonarr link
   const arrLink = media.state?.record?.arrUrl
@@ -77,11 +84,25 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
 
   const actionLinks = [
     trailerUrl ? { key: 'trailer', url: trailerUrl, label: 'Trailer' } : null,
-    altTrailerUrl ? { key: 'altTrailer', url: altTrailerUrl, label: 'Search Trailer' } : null,
-    media.homepage ? { key: 'website', url: media.homepage, label: 'Website' } : null,
-    arrLink ? { key: arrLink.label.toLowerCase(), url: arrLink.url, label: arrLink.label } : null,
-    jellyfinLink ? { key: 'jellyfin', url: jellyfinLink.url, label: jellyfinLink.label } : null,
-  ].filter((link): link is { key: string; url: string; label: string } => !!link);
+    altTrailerUrl
+      ? { key: 'altTrailer', url: altTrailerUrl, label: 'Search Trailer' }
+      : null,
+    media.homepage
+      ? { key: 'website', url: media.homepage, label: 'Website' }
+      : null,
+    arrLink
+      ? {
+          key: arrLink.label.toLowerCase(),
+          url: arrLink.url,
+          label: arrLink.label,
+        }
+      : null,
+    jellyfinLink
+      ? { key: 'jellyfin', url: jellyfinLink.url, label: jellyfinLink.label }
+      : null,
+  ].filter(
+    (link): link is { key: string; url: string; label: string } => !!link
+  );
 
   return (
     <div className="relative min-h-screen bg-gray-900">
@@ -148,7 +169,11 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                           className="flex items-center gap-2 px-4 py-2 text-gray-100 transition-colors duration-200 no-underline font-medium hover:bg-gray-700/70 hover:text-white"
                         >
                           {link.key === 'trailer' ? (
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <svg
+                              className="w-4 h-4"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
                               <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
                             </svg>
                           ) : link.key === 'website' ? (
@@ -232,14 +257,20 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                         />
                       </svg>
                     )}
-                    <span>{media.type === 'movie' ? 'Movie' : 'TV Series'}</span>
+                    <span>
+                      {media.type === 'movie' ? 'Movie' : 'TV Series'}
+                    </span>
                   </div>
                 </div>
 
                 <div className={infoTileClass}>
                   <p className={infoLabelClass}>Rating</p>
                   <div className="mt-1.5 flex items-center gap-2 text-sm font-semibold text-white">
-                    <svg className="w-4 h-4 text-amber-300" fill="currentColor" viewBox="0 0 20 20">
+                    <svg
+                      className="w-4 h-4 text-amber-300"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
                     <span>{media.voteAverage.toFixed(1)}</span>
@@ -327,7 +358,9 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
             {/* Overview */}
             {media.overview && (
               <div className="mb-8">
-                <h2 className="text-2xl font-semibold text-white mb-3 drop-shadow-md">Overview</h2>
+                <h2 className="text-2xl font-semibold text-white mb-3 drop-shadow-md">
+                  Overview
+                </h2>
                 <p className="text-gray-200 text-lg leading-relaxed drop-shadow-sm">
                   {media.overview}
                 </p>
@@ -337,7 +370,9 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
             {/* Cast section - Responsive grid */}
             {topCast.length > 0 && (
               <div className="mb-8">
-                <h2 className="text-2xl font-semibold text-white mb-4 drop-shadow-md">Cast</h2>
+                <h2 className="text-2xl font-semibold text-white mb-4 drop-shadow-md">
+                  Cast
+                </h2>
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
                   {topCast.map(actor => (
                     <div key={actor.id} className="flex flex-col items-center">
@@ -363,8 +398,12 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                         </div>
                       )}
                       <div className="text-center w-full">
-                        <p className="text-white font-medium text-xs truncate">{actor.name}</p>
-                        <p className="text-gray-400 text-2xs truncate">{actor.character}</p>
+                        <p className="text-white font-medium text-xs truncate">
+                          {actor.name}
+                        </p>
+                        <p className="text-gray-400 text-2xs truncate">
+                          {actor.character}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -382,7 +421,9 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
             {/* Keywords */}
             {media.keywords && media.keywords.length > 0 && (
               <div className="mb-8">
-                <h3 className="text-xl font-semibold text-white mb-3 drop-shadow-md">Keywords</h3>
+                <h3 className="text-xl font-semibold text-white mb-3 drop-shadow-md">
+                  Keywords
+                </h3>
                 <div className="flex flex-wrap gap-2">
                   {media.keywords.map(keyword => (
                     <span
@@ -408,7 +449,9 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
             initialAction={
               localMedia.state?.interactions?.find(i => i.action === 'liked')
                 ? 'liked'
-                : localMedia.state?.interactions?.find(i => i.action === 'disliked')
+                : localMedia.state?.interactions?.find(
+                      i => i.action === 'disliked'
+                    )
                   ? 'disliked'
                   : null
             }

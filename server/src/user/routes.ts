@@ -14,7 +14,11 @@ export const settingsRoutes: FastifyPluginAsync = async fastify => {
   fastify.put(
     '/',
     protectedRoute(request =>
-      saveUserSettings(fastify.db, request.user.id, UserSettingsQuerySchema.parse(request.body))
+      saveUserSettings(
+        fastify.db,
+        request.user.id,
+        UserSettingsQuerySchema.parse(request.body)
+      )
     )
   );
 };

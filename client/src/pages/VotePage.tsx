@@ -7,12 +7,17 @@ import { SearchBar } from '../components/SearchBar';
 import { Button } from '../components/ui/Button';
 import { searchService, userSettingsService } from '../services/api';
 import { asVoid } from '../utils/asyncHandlers';
-import { buildCatalogSearchParams, readCatalogSearchParams } from '../utils/catalogSearchParams';
+import {
+  buildCatalogSearchParams,
+  readCatalogSearchParams,
+} from '../utils/catalogSearchParams';
 
 export function VotePage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialSearchParams = readCatalogSearchParams(searchParams, { type: 'both' });
+  const initialSearchParams = readCatalogSearchParams(searchParams, {
+    type: 'both',
+  });
   const [currentMedia, setCurrentMedia] = useState<MediaDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isComplete, setIsComplete] = useState(false);
@@ -21,8 +26,12 @@ export function VotePage() {
   const feedIdRef = useRef<string | undefined>(undefined);
 
   // Filter state (same as PopularPage)
-  const [currentSearchType, setCurrentSearchType] = useState<SearchType>(initialSearchParams.type);
-  const [selectedGenres, setSelectedGenres] = useState<GenreKey[]>(initialSearchParams.genres);
+  const [currentSearchType, setCurrentSearchType] = useState<SearchType>(
+    initialSearchParams.type
+  );
+  const [selectedGenres, setSelectedGenres] = useState<GenreKey[]>(
+    initialSearchParams.genres
+  );
   const [settingsLoaded, setSettingsLoaded] = useState(false);
 
   useEffect(() => {
@@ -40,13 +49,17 @@ export function VotePage() {
   }, []);
 
   useEffect(() => {
-    const nextSearchParams = readCatalogSearchParams(searchParams, { type: 'both' });
+    const nextSearchParams = readCatalogSearchParams(searchParams, {
+      type: 'both',
+    });
 
     if (nextSearchParams.type !== currentSearchType) {
       setCurrentSearchType(nextSearchParams.type);
     }
 
-    if (JSON.stringify(nextSearchParams.genres) !== JSON.stringify(selectedGenres)) {
+    if (
+      JSON.stringify(nextSearchParams.genres) !== JSON.stringify(selectedGenres)
+    ) {
       setSelectedGenres(nextSearchParams.genres);
     }
   }, [searchParams]);
@@ -137,7 +150,9 @@ export function VotePage() {
             <div className="w-full md:flex-1 md:w-auto">
               <SearchBar
                 onSearch={query =>
-                  void navigate(`/explore?${buildCatalogSearchParams({ q: query }).toString()}`)
+                  void navigate(
+                    `/explore?${buildCatalogSearchParams({ q: query }).toString()}`
+                  )
                 }
                 loading={false}
               />
@@ -198,7 +213,9 @@ export function VotePage() {
             <p className="text-gray-400 text-lg mb-6">
               You've voted on the top 100 items. Check back later for more!
             </p>
-            <Button onClick={asVoid(() => navigate('/explore'))}>Explore</Button>
+            <Button onClick={asVoid(() => navigate('/explore'))}>
+              Explore
+            </Button>
           </div>
         </div>
       )}

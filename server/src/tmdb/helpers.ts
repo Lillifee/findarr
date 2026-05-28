@@ -22,8 +22,12 @@ export const buildRegionFilters = (regions: RegionGroupId[]) => {
     return { languageFilter: '', countryFilter: '' };
   }
 
-  const includedLanguages = regions.flatMap(groupId => regionGroups[groupId].languages);
-  const includedCountries = regions.flatMap(groupId => regionGroups[groupId].countries);
+  const includedLanguages = regions.flatMap(
+    groupId => regionGroups[groupId].languages
+  );
+  const includedCountries = regions.flatMap(
+    groupId => regionGroups[groupId].countries
+  );
 
   return {
     languageFilter: includedLanguages.join('|'),
@@ -35,7 +39,9 @@ export const buildRegionFilters = (regions: RegionGroupId[]) => {
  * Build genre filter string for TMDB API from selected genre keys
  */
 export const buildGenreFilter = (genres: GenreKey[] | undefined) =>
-  genres?.length ? genres.flatMap(g => unifiedGenres[g]?.ids ?? []).join('|') : '';
+  genres?.length
+    ? genres.flatMap(g => unifiedGenres[g]?.ids ?? []).join('|')
+    : '';
 
 /**
  * Calculate date range from days back
@@ -51,7 +57,10 @@ export const getDateRangeFromDays = (days: number) => {
 /**
  * Build date parameters for discover queries
  */
-export const buildDateParams = (recentDays: number | undefined, type: MediaType | 'both') => {
+export const buildDateParams = (
+  recentDays: number | undefined,
+  type: MediaType | 'both'
+) => {
   if (!recentDays) return {};
 
   const { pastDate, futureDate } = getDateRangeFromDays(recentDays);
@@ -109,7 +118,7 @@ export const buildDiscoverParams = (
 function backoffDelay(attempt: number, baseDelay: number): number {
   // Exponential backoff + jitter
   const jitter = Math.random() * 300;
-  return baseDelay * Math.pow(2, attempt) + jitter;
+  return baseDelay * 2 ** attempt + jitter;
 }
 
 /**
@@ -145,12 +154,19 @@ export async function processWithWorkerPool<TItem, TResult>(options: {
   let queueIndex = 0;
   const results: TResult[] = [];
 
-  async function processWithRetry(item: TItem, attempt = 0): Promise<TResult | null> {
+  async function processWithRetry(
+    item: TItem,
+    attempt = 0
+  ): Promise<TResult | null> {
     try {
       return await processFn(item);
     } catch (error: unknown) {
       // Retry on rate limit errors
-      if (error instanceof HttpError && error.statusCode === 429 && attempt < MAX_RETRIES) {
+      if (
+        error instanceof HttpError &&
+        error.statusCode === 429 &&
+        attempt < MAX_RETRIES
+      ) {
         const delay = backoffDelay(attempt, BASE_DELAY);
         await sleep(delay);
         return processWithRetry(item, attempt + 1);
@@ -179,7 +195,8 @@ export async function processWithWorkerPool<TItem, TResult>(options: {
           localCount++;
         }
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
+        const message =
+          error instanceof Error ? error.message : 'Unknown error';
         log.warn({ name: 'tmdb', error: message }, 'Worker processing failed');
       }
 
@@ -201,7 +218,9 @@ export async function processWithWorkerPool<TItem, TResult>(options: {
   };
 
   // Start worker pool
-  const workerResults = await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
+  const workerResults = await Promise.all(
+    Array.from({ length: CONCURRENCY }, () => worker())
+  );
 
   const successCount = workerResults.reduce((sum, count) => sum + count, 0);
 

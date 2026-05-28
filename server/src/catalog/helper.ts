@@ -51,7 +51,11 @@ export function createFeedSnapshotStore<T>(ttlMs: number = 5 * 60 * 1000) {
   }
 
   // TODO we could make this as a nested function of a feed, then we don't have to pass allItems
-  function getSnapshotPage(allItems: T[], page: number, itemsPerPage: number = 20): FeedPage<T> {
+  function getSnapshotPage(
+    allItems: T[],
+    page: number,
+    itemsPerPage: number = 20
+  ): FeedPage<T> {
     const startIndex = Math.max(0, (page - 1) * itemsPerPage);
     const totalPages = Math.ceil(allItems.length / itemsPerPage);
     const items = allItems.slice(startIndex, startIndex + itemsPerPage);

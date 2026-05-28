@@ -76,7 +76,9 @@ export const createTestTVDetail = (props?: Partial<TVDetails>): TVDetails => ({
   ...props,
 });
 
-export const createTestMovieDetail = (props?: Partial<MovieDetails>): MovieDetails => ({
+export const createTestMovieDetail = (
+  props?: Partial<MovieDetails>
+): MovieDetails => ({
   ...createTestMedia(),
   type: 'movie',
   tagline: 'Test tagline',
@@ -94,7 +96,10 @@ export const createTestMovieDetail = (props?: Partial<MovieDetails>): MovieDetai
 
 // Factory function to create data in the database for testing
 
-export const createTestUserInDb = async (db: Database, props?: Partial<CreateUser>) =>
+export const createTestUserInDb = async (
+  db: Database,
+  props?: Partial<CreateUser>
+) =>
   await createUser(db, {
     email: 'user@test.com',
     password: 'password',

@@ -15,16 +15,22 @@ import {
  * Phase 1: Quick sync - stores basic media immediately (without keywords)
  * Keywords are enriched separately by enrichCatalogKeywords()
  */
-export async function syncCatalogCache(context: SchedulerContext): Promise<void> {
+export async function syncCatalogCache(
+  context: SchedulerContext
+): Promise<void> {
   if (!(await context.tmdb.isConfigured())) return;
 
   const startTime = Date.now();
-  context.log.info({ name: 'catalog', phase: 'cache-sync' }, 'Starting cache sync');
+  context.log.info(
+    { name: 'catalog', phase: 'cache-sync' },
+    'Starting cache sync'
+  );
 
   // TODO - use language setting from config
   const language = 'en-US';
 
-  const createPageRange = (length: number) => Array.from({ length }).map((_, i) => i + 1);
+  const createPageRange = (length: number) =>
+    Array.from({ length }).map((_, i) => i + 1);
 
   // Fetch both trending and recent releases (already includes basic metadata)
   context.log.info(
@@ -32,8 +38,14 @@ export async function syncCatalogCache(context: SchedulerContext): Promise<void>
     'Fetching trending and discover results from TMDB'
   );
   const [trendingResult, discoverResult] = await Promise.all([
-    context.tmdb.trending({ language, time_window: 'week' }, createPageRange(5)),
-    context.tmdb.discover({ type: 'both', recentDays: 500 }, createPageRange(15)),
+    context.tmdb.trending(
+      { language, time_window: 'week' },
+      createPageRange(5)
+    ),
+    context.tmdb.discover(
+      { type: 'both', recentDays: 500 },
+      createPageRange(15)
+    ),
   ]);
 
   // Merge and deduplicate (prefer items with trendingRank)
@@ -41,7 +53,11 @@ export async function syncCatalogCache(context: SchedulerContext): Promise<void>
   const deduplicatedMedia = deduplicateMediaByTmdbKey(mergedMedia);
 
   context.log.info(
-    { name: 'catalog', phase: 'cache-sync', totalItems: deduplicatedMedia.length },
+    {
+      name: 'catalog',
+      phase: 'cache-sync',
+      totalItems: deduplicatedMedia.length,
+    },
     'Fetched unique items, storing to database'
   );
 
@@ -112,13 +128,20 @@ export async function syncCatalogCache(context: SchedulerContext): Promise<void>
  * Phase 2: Background enrichment - fetches detailed data for items without keywords
  * Uses worker pool pattern with rate limiting to avoid overwhelming TMDB API
  */
-export async function enrichCatalogKeywords(context: SchedulerContext): Promise<void> {
+export async function enrichCatalogKeywords(
+  context: SchedulerContext
+): Promise<void> {
   const startTime = Date.now();
-  context.log.info({ name: 'catalog', phase: 'keyword-enrichment' }, 'Starting keyword enrichment');
+  context.log.info(
+    { name: 'catalog', phase: 'keyword-enrichment' },
+    'Starting keyword enrichment'
+  );
 
   try {
     // Get items that need keyword enrichment
-    const mediaItemsMissingKeywords = await listCatalogItemsMissingKeywords(context.db);
+    const mediaItemsMissingKeywords = await listCatalogItemsMissingKeywords(
+      context.db
+    );
 
     if (mediaItemsMissingKeywords.length === 0) {
       context.log.info(
@@ -140,8 +163,16 @@ export async function enrichCatalogKeywords(context: SchedulerContext): Promise<
     const { successCount } = await processWithWorkerPool({
       items: mediaItemsMissingKeywords,
       processFn: async item => {
-        const details = await context.tmdb.details({ id: item.tmdbId, type: item.type });
-        await updateCatalogKeywords(context.db, item.tmdbId, item.type, details.keywords ?? []);
+        const details = await context.tmdb.details({
+          id: item.tmdbId,
+          type: item.type,
+        });
+        await updateCatalogKeywords(
+          context.db,
+          item.tmdbId,
+          item.type,
+          details.keywords ?? []
+        );
         return item.tmdbId;
       },
       log: context.log,

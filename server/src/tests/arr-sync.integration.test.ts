@@ -1,4 +1,4 @@
-import SqlDatabase from 'better-sqlite3';
+import type SqlDatabase from 'better-sqlite3';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { arrConfig } from '../arr/config.js';
@@ -31,9 +31,14 @@ describe('arr sync collision handling - integration tests', () => {
     const show = await createMedia(db, 456, 'tv');
 
     await updateMediaIds(db, movie.id, { arrId: 42, arrUrl: '/movie/123' });
-    await updateMediaIds(db, show.id, { arrId: 42, arrUrl: '/series/test-show' });
+    await updateMediaIds(db, show.id, {
+      arrId: 42,
+      arrUrl: '/series/test-show',
+    });
 
-    await batchUpdateMediaStatuses(db, [{ arrId: 42, type: 'movie', status: 'warning' }]);
+    await batchUpdateMediaStatuses(db, [
+      { arrId: 42, type: 'movie', status: 'warning' },
+    ]);
 
     const updatedMovie = await getMediaByTmdbId(db, 123, 'movie');
     const updatedShow = await getMediaByTmdbId(db, 456, 'tv');
@@ -47,7 +52,10 @@ describe('arr sync collision handling - integration tests', () => {
     const show = await createMedia(db, 456, 'tv');
 
     await updateMediaIds(db, movie.id, { arrId: 11, arrUrl: '/movie/123' });
-    await updateMediaIds(db, show.id, { arrId: 22, arrUrl: '/series/test-show' });
+    await updateMediaIds(db, show.id, {
+      arrId: 22,
+      arrUrl: '/series/test-show',
+    });
 
     const movieRows = await listMediaWithArrIds(db, 'movie');
 
@@ -61,7 +69,10 @@ describe('arr sync collision handling - integration tests', () => {
     const show = await createMedia(db, 456, 'tv');
 
     await updateMediaIds(db, movie.id, { arrId: 77, arrUrl: '/movie/123' });
-    await updateMediaIds(db, show.id, { arrId: 77, arrUrl: '/series/test-show' });
+    await updateMediaIds(db, show.id, {
+      arrId: 77,
+      arrUrl: '/series/test-show',
+    });
 
     const fastify = {
       db,
@@ -72,7 +83,11 @@ describe('arr sync collision handling - integration tests', () => {
 
     const radarrService = {
       config: arrConfig.radarr,
-      getQueue: vi.fn().mockResolvedValue([{ arrId: 77, trackedDownloadStatus: 'downloading' }]),
+      getQueue: vi
+        .fn()
+        .mockResolvedValue([
+          { arrId: 77, trackedDownloadStatus: 'downloading' },
+        ]),
     } as unknown as AnyArrService;
 
     await syncQueue(fastify, radarrService, new Set());

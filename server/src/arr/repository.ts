@@ -75,7 +75,10 @@ export async function getExistingTvdbIdSet(db: Database): Promise<Set<number>> {
 export async function upsertMediaFromArr(
   db: Database,
   items: Array<
-    Pick<DbMedia, 'type' | 'tvdbId' | 'tmdbId' | 'arrId' | 'arrUrl' | 'status' | 'seasons'>
+    Pick<
+      DbMedia,
+      'type' | 'tvdbId' | 'tmdbId' | 'arrId' | 'arrUrl' | 'status' | 'seasons'
+    >
   >
 ): Promise<void> {
   if (items.length === 0) return;
@@ -111,7 +114,8 @@ export async function upsertMediaFromArr(
   // TV shows without valid tmdbId (null, undefined, or -1) - use tvdbId constraint
   // These are shows enrichment failed for or shows without tvdbId from Sonarr
   const tvItemsWithoutValidTmdbId = items.filter(
-    item => item.type === 'tv' && (!item.tmdbId || item.tmdbId <= 0) && item.tvdbId
+    item =>
+      item.type === 'tv' && (!item.tmdbId || item.tmdbId <= 0) && item.tvdbId
   );
   if (tvItemsWithoutValidTmdbId.length > 0) {
     await db
@@ -255,7 +259,9 @@ export async function getArrSettings(
     url: storedSettings[fields.url] ?? null,
     apiKey: storedSettings[fields.apiKey] ?? null,
     apiKeySet: !!storedSettings[fields.apiKey],
-    qualityProfileId: qualityProfileIdValue ? Number.parseInt(qualityProfileIdValue, 10) : null,
+    qualityProfileId: qualityProfileIdValue
+      ? Number.parseInt(qualityProfileIdValue, 10)
+      : null,
     rootFolderPath: storedSettings[fields.rootFolderPath] ?? null,
   };
 }

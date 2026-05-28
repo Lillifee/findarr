@@ -35,14 +35,20 @@ const typeMatches = (item: Media, type: FilterCriteria['type']): boolean =>
  * If no regions are selected, always returns true.
  */
 const regionMatches = (item: Media, regions: RegionGroupId[]): boolean => {
-  const regionGroupsSelected = regions.map(rg => regionGroups[rg]).filter(Boolean);
+  const regionGroupsSelected = regions
+    .map(rg => regionGroups[rg])
+    .filter(Boolean);
 
-  const allowedLanguages = new Set(regionGroupsSelected.flatMap<string>(rg => rg.languages));
+  const allowedLanguages = new Set(
+    regionGroupsSelected.flatMap<string>(rg => rg.languages)
+  );
 
   const languageMatches =
     allowedLanguages.size === 0 || allowedLanguages.has(item.originalLanguage);
 
-  const allowedCountries = new Set(regionGroupsSelected.flatMap<string>(rg => rg.countries));
+  const allowedCountries = new Set(
+    regionGroupsSelected.flatMap<string>(rg => rg.countries)
+  );
 
   const countryMatches =
     allowedCountries.size === 0 ||
@@ -61,10 +67,14 @@ const regionMatches = (item: Media, regions: RegionGroupId[]): boolean => {
  * If no genres are selected, always returns true.
  */
 const genreMatches = (item: Media, genres: GenreKey[]): boolean => {
-  const allowedGenreIds = new Set(genres.flatMap<number>(g => unifiedGenres[g].ids));
+  const allowedGenreIds = new Set(
+    genres.flatMap<number>(g => unifiedGenres[g].ids)
+  );
 
   return (
-    allowedGenreIds.size === 0 || !item.genres || item.genres.some(g => allowedGenreIds.has(g.id))
+    allowedGenreIds.size === 0 ||
+    !item.genres ||
+    item.genres.some(g => allowedGenreIds.has(g.id))
   );
 };
 
@@ -74,7 +84,10 @@ const genreMatches = (item: Media, genres: GenreKey[]): boolean => {
  * Combines type, region, and genre filters.
  * Returns true only if the item satisfies all criteria.
  */
-export const filterByCriteria = (item: Media, filters: FilterCriteria): boolean =>
+export const filterByCriteria = (
+  item: Media,
+  filters: FilterCriteria
+): boolean =>
   typeMatches(item, filters.type) &&
   regionMatches(item, filters.regions) &&
   genreMatches(item, filters.genres);
@@ -87,7 +100,9 @@ export const filterByInteraction = (
   interactionKeys: Set<string>,
   interaction: InteractionFilter = 'unvoted'
 ): boolean => {
-  const hasInteraction = interactionKeys.has(toMediaKey(item.tmdbId, item.type));
+  const hasInteraction = interactionKeys.has(
+    toMediaKey(item.tmdbId, item.type)
+  );
 
   if (interaction === 'all') {
     return true;

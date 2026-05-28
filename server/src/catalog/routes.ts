@@ -17,7 +17,10 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/search',
     protectedRoute(request =>
-      fastify.catalog.searchMedia(SearchQuerySchema.parse(request.query), request.user.id)
+      fastify.catalog.searchMedia(
+        SearchQuerySchema.parse(request.query),
+        request.user.id
+      )
     )
   );
 
@@ -25,7 +28,10 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/popular',
     protectedRoute(request =>
-      fastify.catalog.getPopularMedia(PopularQuerySchema.parse(request.query), request.user.id)
+      fastify.catalog.getPopularMedia(
+        PopularQuerySchema.parse(request.query),
+        request.user.id
+      )
     )
   );
 
@@ -33,7 +39,10 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/discover',
     protectedRoute(request =>
-      fastify.catalog.discoverMedia(DiscoverQuerySchema.parse(request.query), request.user.id)
+      fastify.catalog.discoverMedia(
+        DiscoverQuerySchema.parse(request.query),
+        request.user.id
+      )
     )
   );
 
@@ -42,7 +51,10 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/details',
     protectedRoute(request =>
-      fastify.catalog.getMediaDetails(DetailsQuerySchema.parse(request.query), request.user.id)
+      fastify.catalog.getMediaDetails(
+        DetailsQuerySchema.parse(request.query),
+        request.user.id
+      )
     )
   );
 
@@ -68,7 +80,10 @@ export async function catalogRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/next',
     protectedRoute(request =>
-      fastify.catalog.getNextUnvotedMedia(PopularQuerySchema.parse(request.query), request.user.id)
+      fastify.catalog.getNextUnvotedMedia(
+        PopularQuerySchema.parse(request.query),
+        request.user.id
+      )
     )
   );
 }

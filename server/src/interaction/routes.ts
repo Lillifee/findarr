@@ -1,4 +1,7 @@
-import { CreateInteractionSchema, InteractionsQuerySchema } from '@findarr/shared';
+import {
+  CreateInteractionSchema,
+  InteractionsQuerySchema,
+} from '@findarr/shared';
 import type { FastifyPluginAsync } from 'fastify';
 import { protectedRoute } from '../utils/routes.js';
 import {

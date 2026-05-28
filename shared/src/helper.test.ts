@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { getErrorMessage, isDefined, objectEntries, objectKeys } from './helper.js';
+import {
+  getErrorMessage,
+  isDefined,
+  objectEntries,
+  objectKeys,
+} from './helper.js';
 
 describe('helper', () => {
   it('should return true for defined values and false for undefined or null', () => {

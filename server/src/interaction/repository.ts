@@ -7,7 +7,15 @@ import type {
   MediaStatus,
 } from '@findarr/shared';
 import { isDefined, media, userMediaInteractions } from '@findarr/shared';
-import { and, desc, eq, getTableColumns, inArray, isNotNull, sql } from 'drizzle-orm';
+import {
+  and,
+  desc,
+  eq,
+  getTableColumns,
+  inArray,
+  isNotNull,
+  sql,
+} from 'drizzle-orm';
 import type { Database } from '../db/service.js';
 import { toMediaKey } from '../utils/helper.js';
 
@@ -66,7 +74,10 @@ export async function removeAllInteractions(
   await db
     .delete(userMediaInteractions)
     .where(
-      and(eq(userMediaInteractions.userId, userId), eq(userMediaInteractions.mediaId, mediaId))
+      and(
+        eq(userMediaInteractions.userId, userId),
+        eq(userMediaInteractions.mediaId, mediaId)
+      )
     );
 }
 
@@ -86,7 +97,9 @@ export async function getInteractionsBatch(
   const interactionsMap = new Map<number, MediaInteraction[]>();
 
   // Extract media IDs from items that have records
-  const mediaIds = mediaItems.map(item => item.state?.record?.id).filter(x => isDefined(x));
+  const mediaIds = mediaItems
+    .map(item => item.state?.record?.id)
+    .filter(x => isDefined(x));
   if (mediaIds.length === 0) return interactionsMap;
 
   const rows = await db.query.userMediaInteractions.findMany({
@@ -121,7 +134,9 @@ export async function getVoteCountsBatch(
 ): Promise<Map<number, { likes: number; dislikes: number }>> {
   const votesMap = new Map<number, { likes: number; dislikes: number }>();
 
-  const mediaIds = mediaItems.map(item => item.state?.record?.id).filter(x => isDefined(x));
+  const mediaIds = mediaItems
+    .map(item => item.state?.record?.id)
+    .filter(x => isDefined(x));
   if (mediaIds.length === 0) return votesMap;
 
   const rows = await db
@@ -175,7 +190,10 @@ export async function getMediaByUserInteractions(
   const countResult = await db
     .select({ count: sql<number>`count(distinct ${media.id})` })
     .from(media)
-    .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
+    .innerJoin(
+      userMediaInteractions,
+      eq(media.id, userMediaInteractions.mediaId)
+    )
     .where(whereClause);
 
   const totalCount = Number(countResult[0]?.count ?? 0);
@@ -183,7 +201,10 @@ export async function getMediaByUserInteractions(
   let query = db
     .selectDistinct(getTableColumns(media))
     .from(media)
-    .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
+    .innerJoin(
+      userMediaInteractions,
+      eq(media.id, userMediaInteractions.mediaId)
+    )
     .where(whereClause)
     .orderBy(desc(userMediaInteractions.createdAt), desc(media.updatedAt));
 
@@ -226,7 +247,10 @@ export async function getMediaByUserAttention(
   const countResult = await db
     .select({ count: sql<number>`count(distinct ${media.id})` })
     .from(media)
-    .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
+    .innerJoin(
+      userMediaInteractions,
+      eq(media.id, userMediaInteractions.mediaId)
+    )
     .where(whereClause);
 
   const totalCount = Number(countResult[0]?.count ?? 0);
@@ -234,7 +258,10 @@ export async function getMediaByUserAttention(
   let query = db
     .selectDistinct(getTableColumns(media))
     .from(media)
-    .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
+    .innerJoin(
+      userMediaInteractions,
+      eq(media.id, userMediaInteractions.mediaId)
+    )
     .where(whereClause)
     .orderBy(desc(userMediaInteractions.createdAt), desc(media.updatedAt));
 
@@ -250,15 +277,23 @@ export async function getMediaByUserAttention(
   return { results, totalCount };
 }
 
-export async function getUserInteractionMediaKeys(db: Database, userId: number) {
+export async function getUserInteractionMediaKeys(
+  db: Database,
+  userId: number
+) {
   const rows = await db
     .selectDistinct({
       tmdbId: media.tmdbId,
       type: media.type,
     })
     .from(media)
-    .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
-    .where(and(eq(userMediaInteractions.userId, userId), isNotNull(media.tmdbId)));
+    .innerJoin(
+      userMediaInteractions,
+      eq(media.id, userMediaInteractions.mediaId)
+    )
+    .where(
+      and(eq(userMediaInteractions.userId, userId), isNotNull(media.tmdbId))
+    );
 
   return new Set(rows.map(row => toMediaKey(row.tmdbId ?? -1, row.type)));
 }

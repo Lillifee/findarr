@@ -38,17 +38,28 @@ describe('schemas', () => {
     });
 
     it('should validate PORT range (1-65535)', () => {
-      expect(ServerEnvSchema.safeParse({ ...validEnv, PORT: 0 }).success).toBe(false);
-      expect(ServerEnvSchema.safeParse({ ...validEnv, PORT: 1 }).success).toBe(true);
-      expect(ServerEnvSchema.safeParse({ ...validEnv, PORT: 65_535 }).success).toBe(true);
-      expect(ServerEnvSchema.safeParse({ ...validEnv, PORT: 65_536 }).success).toBe(false);
+      expect(ServerEnvSchema.safeParse({ ...validEnv, PORT: 0 }).success).toBe(
+        false
+      );
+      expect(ServerEnvSchema.safeParse({ ...validEnv, PORT: 1 }).success).toBe(
+        true
+      );
+      expect(
+        ServerEnvSchema.safeParse({ ...validEnv, PORT: 65_535 }).success
+      ).toBe(true);
+      expect(
+        ServerEnvSchema.safeParse({ ...validEnv, PORT: 65_536 }).success
+      ).toBe(false);
     });
 
     it('should only accept valid NODE_ENV values', () => {
-      expect(ServerEnvSchema.safeParse({ ...validEnv, NODE_ENV: 'development' }).success).toBe(
-        true
-      );
-      expect(ServerEnvSchema.safeParse({ ...validEnv, NODE_ENV: 'staging' }).success).toBe(false);
+      expect(
+        ServerEnvSchema.safeParse({ ...validEnv, NODE_ENV: 'development' })
+          .success
+      ).toBe(true);
+      expect(
+        ServerEnvSchema.safeParse({ ...validEnv, NODE_ENV: 'staging' }).success
+      ).toBe(false);
     });
 
     it('should parse complete valid configuration', () => {
@@ -73,7 +84,9 @@ describe('schemas', () => {
     it('should require query parameter', () => {
       expect(SearchQuerySchema.safeParse({}).success).toBe(false);
       expect(SearchQuerySchema.safeParse({ query: '' }).success).toBe(false);
-      expect(SearchQuerySchema.safeParse({ query: 'batman' }).success).toBe(true);
+      expect(SearchQuerySchema.safeParse({ query: 'batman' }).success).toBe(
+        true
+      );
     });
 
     it('should apply default values for page and type', () => {
@@ -89,17 +102,33 @@ describe('schemas', () => {
     });
 
     it('should validate page range (1-1000)', () => {
-      expect(SearchQuerySchema.safeParse({ query: 'test', page: 0 }).success).toBe(false);
-      expect(SearchQuerySchema.safeParse({ query: 'test', page: 1 }).success).toBe(true);
-      expect(SearchQuerySchema.safeParse({ query: 'test', page: 1000 }).success).toBe(true);
-      expect(SearchQuerySchema.safeParse({ query: 'test', page: 1001 }).success).toBe(false);
+      expect(
+        SearchQuerySchema.safeParse({ query: 'test', page: 0 }).success
+      ).toBe(false);
+      expect(
+        SearchQuerySchema.safeParse({ query: 'test', page: 1 }).success
+      ).toBe(true);
+      expect(
+        SearchQuerySchema.safeParse({ query: 'test', page: 1000 }).success
+      ).toBe(true);
+      expect(
+        SearchQuerySchema.safeParse({ query: 'test', page: 1001 }).success
+      ).toBe(false);
     });
 
     it('should only accept valid type values', () => {
-      expect(SearchQuerySchema.safeParse({ query: 'test', type: 'movie' }).success).toBe(true);
-      expect(SearchQuerySchema.safeParse({ query: 'test', type: 'tv' }).success).toBe(true);
-      expect(SearchQuerySchema.safeParse({ query: 'test', type: 'both' }).success).toBe(true);
-      expect(SearchQuerySchema.safeParse({ query: 'test', type: 'person' }).success).toBe(false);
+      expect(
+        SearchQuerySchema.safeParse({ query: 'test', type: 'movie' }).success
+      ).toBe(true);
+      expect(
+        SearchQuerySchema.safeParse({ query: 'test', type: 'tv' }).success
+      ).toBe(true);
+      expect(
+        SearchQuerySchema.safeParse({ query: 'test', type: 'both' }).success
+      ).toBe(true);
+      expect(
+        SearchQuerySchema.safeParse({ query: 'test', type: 'person' }).success
+      ).toBe(false);
     });
   });
 
@@ -123,25 +152,43 @@ describe('schemas', () => {
     it('should reject invalid page numbers', () => {
       expect(DiscoverQuerySchema.safeParse({ page: 0 }).success).toBe(false);
       expect(DiscoverQuerySchema.safeParse({ page: 1001 }).success).toBe(false);
-      expect(DiscoverQuerySchema.safeParse({ page: 'abc' }).success).toBe(false);
+      expect(DiscoverQuerySchema.safeParse({ page: 'abc' }).success).toBe(
+        false
+      );
     });
 
     it('should reject invalid recentDays', () => {
-      expect(DiscoverQuerySchema.safeParse({ recentDays: 0 }).success).toBe(false);
-      expect(DiscoverQuerySchema.safeParse({ recentDays: 5000 }).success).toBe(false);
-      expect(DiscoverQuerySchema.safeParse({ recentDays: 'abc' }).success).toBe(false);
+      expect(DiscoverQuerySchema.safeParse({ recentDays: 0 }).success).toBe(
+        false
+      );
+      expect(DiscoverQuerySchema.safeParse({ recentDays: 5000 }).success).toBe(
+        false
+      );
+      expect(DiscoverQuerySchema.safeParse({ recentDays: 'abc' }).success).toBe(
+        false
+      );
     });
 
     it('should accept valid type values', () => {
-      expect(DiscoverQuerySchema.safeParse({ type: 'movie' }).success).toBe(true);
+      expect(DiscoverQuerySchema.safeParse({ type: 'movie' }).success).toBe(
+        true
+      );
       expect(DiscoverQuerySchema.safeParse({ type: 'tv' }).success).toBe(true);
-      expect(DiscoverQuerySchema.safeParse({ type: 'both' }).success).toBe(true);
-      expect(DiscoverQuerySchema.safeParse({ type: 'invalid' }).success).toBe(false);
+      expect(DiscoverQuerySchema.safeParse({ type: 'both' }).success).toBe(
+        true
+      );
+      expect(DiscoverQuerySchema.safeParse({ type: 'invalid' }).success).toBe(
+        false
+      );
     });
 
     it('should ignore user settings fields that are server-owned', () => {
-      expect(DiscoverQuerySchema.parse({ regions: ['western'] })).toEqual({ genres: [] });
-      expect(DiscoverQuerySchema.parse({ language: 'de-DE' })).toEqual({ genres: [] });
+      expect(DiscoverQuerySchema.parse({ regions: ['western'] })).toEqual({
+        genres: [],
+      });
+      expect(DiscoverQuerySchema.parse({ language: 'de-DE' })).toEqual({
+        genres: [],
+      });
     });
 
     it('should accept genre filters from query params', () => {
@@ -168,8 +215,12 @@ describe('schemas', () => {
     it('should require id and type', () => {
       expect(DetailsQuerySchema.safeParse({}).success).toBe(false);
       expect(DetailsQuerySchema.safeParse({ id: 123 }).success).toBe(false);
-      expect(DetailsQuerySchema.safeParse({ type: 'movie' }).success).toBe(false);
-      expect(DetailsQuerySchema.safeParse({ id: 123, type: 'movie' }).success).toBe(true);
+      expect(DetailsQuerySchema.safeParse({ type: 'movie' }).success).toBe(
+        false
+      );
+      expect(
+        DetailsQuerySchema.safeParse({ id: 123, type: 'movie' }).success
+      ).toBe(true);
     });
 
     it('should coerce id from string to number', () => {
@@ -179,33 +230,48 @@ describe('schemas', () => {
     });
 
     it('should only accept movie or tv type', () => {
-      expect(DetailsQuerySchema.safeParse({ id: 123, type: 'movie' }).success).toBe(true);
-      expect(DetailsQuerySchema.safeParse({ id: 123, type: 'tv' }).success).toBe(true);
-      expect(DetailsQuerySchema.safeParse({ id: 123, type: 'person' }).success).toBe(false);
+      expect(
+        DetailsQuerySchema.safeParse({ id: 123, type: 'movie' }).success
+      ).toBe(true);
+      expect(
+        DetailsQuerySchema.safeParse({ id: 123, type: 'tv' }).success
+      ).toBe(true);
+      expect(
+        DetailsQuerySchema.safeParse({ id: 123, type: 'person' }).success
+      ).toBe(false);
     });
   });
 
   describe('LoginSchema', () => {
     it('should require email and password', () => {
       expect(LoginSchema.safeParse({}).success).toBe(false);
-      expect(LoginSchema.safeParse({ email: 'test@example.com' }).success).toBe(false);
-      expect(LoginSchema.safeParse({ password: 'password123' }).success).toBe(false);
+      expect(LoginSchema.safeParse({ email: 'test@example.com' }).success).toBe(
+        false
+      );
+      expect(LoginSchema.safeParse({ password: 'password123' }).success).toBe(
+        false
+      );
     });
 
     it('should validate email format', () => {
-      expect(LoginSchema.safeParse({ email: 'invalid', password: 'pass' }).success).toBe(false);
-      expect(LoginSchema.safeParse({ email: 'test@example.com', password: 'pass' }).success).toBe(
-        true
-      );
+      expect(
+        LoginSchema.safeParse({ email: 'invalid', password: 'pass' }).success
+      ).toBe(false);
+      expect(
+        LoginSchema.safeParse({ email: 'test@example.com', password: 'pass' })
+          .success
+      ).toBe(true);
     });
 
     it('should require non-empty password', () => {
-      expect(LoginSchema.safeParse({ email: 'test@example.com', password: '' }).success).toBe(
-        false
-      );
-      expect(LoginSchema.safeParse({ email: 'test@example.com', password: 'x' }).success).toBe(
-        true
-      );
+      expect(
+        LoginSchema.safeParse({ email: 'test@example.com', password: '' })
+          .success
+      ).toBe(false);
+      expect(
+        LoginSchema.safeParse({ email: 'test@example.com', password: 'x' })
+          .success
+      ).toBe(true);
     });
   });
 
@@ -218,13 +284,20 @@ describe('schemas', () => {
 
     it('should require email, password, and displayName', () => {
       expect(CreateUserSchema.safeParse({}).success).toBe(false);
-      expect(CreateUserSchema.safeParse({ email: 'test@test.com' }).success).toBe(false);
+      expect(
+        CreateUserSchema.safeParse({ email: 'test@test.com' }).success
+      ).toBe(false);
       expect(CreateUserSchema.safeParse(validUser).success).toBe(true);
     });
 
     it('should enforce password minimum length of 8 characters', () => {
-      expect(CreateUserSchema.safeParse({ ...validUser, password: 'short' }).success).toBe(false);
-      expect(CreateUserSchema.safeParse({ ...validUser, password: '12345678' }).success).toBe(true);
+      expect(
+        CreateUserSchema.safeParse({ ...validUser, password: 'short' }).success
+      ).toBe(false);
+      expect(
+        CreateUserSchema.safeParse({ ...validUser, password: '12345678' })
+          .success
+      ).toBe(true);
     });
 
     it('should default role to user', () => {
@@ -233,9 +306,15 @@ describe('schemas', () => {
     });
 
     it('should only accept valid role values', () => {
-      expect(CreateUserSchema.safeParse({ ...validUser, role: 'user' }).success).toBe(true);
-      expect(CreateUserSchema.safeParse({ ...validUser, role: 'admin' }).success).toBe(true);
-      expect(CreateUserSchema.safeParse({ ...validUser, role: 'moderator' }).success).toBe(false);
+      expect(
+        CreateUserSchema.safeParse({ ...validUser, role: 'user' }).success
+      ).toBe(true);
+      expect(
+        CreateUserSchema.safeParse({ ...validUser, role: 'admin' }).success
+      ).toBe(true);
+      expect(
+        CreateUserSchema.safeParse({ ...validUser, role: 'moderator' }).success
+      ).toBe(false);
     });
   });
 
@@ -248,31 +327,50 @@ describe('schemas', () => {
 
     it('should require mediaType and tmdbId', () => {
       expect(CreateInteractionSchema.safeParse({}).success).toBe(false);
-      expect(CreateInteractionSchema.safeParse({ mediaType: 'movie' }).success).toBe(false);
       expect(
-        CreateInteractionSchema.safeParse({ mediaType: 'movie', tmdbId: 123, action: 'liked' })
-          .success
+        CreateInteractionSchema.safeParse({ mediaType: 'movie' }).success
+      ).toBe(false);
+      expect(
+        CreateInteractionSchema.safeParse({
+          mediaType: 'movie',
+          tmdbId: 123,
+          action: 'liked',
+        }).success
       ).toBe(true);
     });
 
     it('should only accept movie or tv mediaType', () => {
       expect(
-        CreateInteractionSchema.safeParse({ ...validRequest, mediaType: 'movie' }).success
+        CreateInteractionSchema.safeParse({
+          ...validRequest,
+          mediaType: 'movie',
+        }).success
       ).toBe(true);
-      expect(CreateInteractionSchema.safeParse({ ...validRequest, mediaType: 'tv' }).success).toBe(
-        true
-      );
       expect(
-        CreateInteractionSchema.safeParse({ ...validRequest, mediaType: 'person' }).success
+        CreateInteractionSchema.safeParse({ ...validRequest, mediaType: 'tv' })
+          .success
+      ).toBe(true);
+      expect(
+        CreateInteractionSchema.safeParse({
+          ...validRequest,
+          mediaType: 'person',
+        }).success
       ).toBe(false);
     });
 
     it('should require positive integer tmdbId', () => {
-      expect(CreateInteractionSchema.safeParse({ ...validRequest, tmdbId: 0 }).success).toBe(false);
-      expect(CreateInteractionSchema.safeParse({ ...validRequest, tmdbId: -1 }).success).toBe(
-        false
-      );
-      expect(CreateInteractionSchema.safeParse({ ...validRequest, tmdbId: 1 }).success).toBe(true);
+      expect(
+        CreateInteractionSchema.safeParse({ ...validRequest, tmdbId: 0 })
+          .success
+      ).toBe(false);
+      expect(
+        CreateInteractionSchema.safeParse({ ...validRequest, tmdbId: -1 })
+          .success
+      ).toBe(false);
+      expect(
+        CreateInteractionSchema.safeParse({ ...validRequest, tmdbId: 1 })
+          .success
+      ).toBe(true);
     });
   });
 

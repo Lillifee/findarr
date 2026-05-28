@@ -1,5 +1,9 @@
 import type { z } from 'zod';
-import type { MediaRecord, MediaInteractionWithUser, MediaVotes } from './db-types.js';
+import type {
+  MediaRecord,
+  MediaInteractionWithUser,
+  MediaVotes,
+} from './db-types.js';
 import type {
   SearchQuerySchema,
   DiscoverQuerySchema,

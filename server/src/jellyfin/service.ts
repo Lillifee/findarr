@@ -21,21 +21,27 @@ export interface JellyfinContext {
 }
 
 export async function createJellyfinService(context: JellyfinContext) {
-  const lifecycle = createClientLifecycle<JellyfinSettingsFull, JellyfinClient>({
-    name: 'Jellyfin',
-    loadSettings: () => getJellyfinSettingsFull(context.db),
-    createClient: settings =>
-      settings.jellyfinUrl && settings.jellyfinApiKey
-        ? createJellyfinClient(settings.jellyfinUrl, settings.jellyfinApiKey)
-        : undefined,
-  });
+  const lifecycle = createClientLifecycle<JellyfinSettingsFull, JellyfinClient>(
+    {
+      name: 'Jellyfin',
+      loadSettings: () => getJellyfinSettingsFull(context.db),
+      createClient: settings =>
+        settings.jellyfinUrl && settings.jellyfinApiKey
+          ? createJellyfinClient(settings.jellyfinUrl, settings.jellyfinApiKey)
+          : undefined,
+    }
+  );
 
   await lifecycle.reload().catch(() => {
-    context.log.error({ name: 'Jellyfin' }, 'Failed to initialize Jellyfin service');
+    context.log.error(
+      { name: 'Jellyfin' },
+      'Failed to initialize Jellyfin service'
+    );
   });
 
   function getSettings() {
-    const { jellyfinApiKey: _jellyfinApiKey, ...settings } = lifecycle.settings();
+    const { jellyfinApiKey: _jellyfinApiKey, ...settings } =
+      lifecycle.settings();
     return settings;
   }
 
@@ -47,7 +53,9 @@ export async function createJellyfinService(context: JellyfinContext) {
   }
 
   async function testConnection(): Promise<boolean> {
-    return lifecycle.isConfigured() && (await lifecycle.client().testConnection());
+    return (
+      lifecycle.isConfigured() && (await lifecycle.client().testConnection())
+    );
   }
 
   async function testAndSync(): Promise<boolean> {
@@ -76,9 +84,9 @@ export async function createJellyfinService(context: JellyfinContext) {
         limit,
       });
 
-      const transformed = response.Items.map(item => jellyfinItemToMedia(item)).filter(item =>
-        isDefined(item)
-      );
+      const transformed = response.Items.map(item =>
+        jellyfinItemToMedia(item)
+      ).filter(item => isDefined(item));
 
       allItems.push(...transformed);
       startIndex += response.Items.length;
@@ -97,7 +105,9 @@ export async function createJellyfinService(context: JellyfinContext) {
 
           const seasonNumbers = seasonsResponse.Items.filter(
             season =>
-              season.Type === 'Season' && isDefined(season.IndexNumber) && season.IndexNumber > 0
+              season.Type === 'Season' &&
+              isDefined(season.IndexNumber) &&
+              season.IndexNumber > 0
           ).map(season => season.IndexNumber as number);
 
           if (seasonNumbers.length > 0) {

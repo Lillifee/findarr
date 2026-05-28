@@ -1,6 +1,18 @@
-import type { DiscoverResponse, MediaDetails, SearchResponse } from '@findarr/shared';
-import SqlDatabase from 'better-sqlite3';
-import { describe, it, expect, vi, beforeEach, afterEach, type Mocked } from 'vitest';
+import type {
+  DiscoverResponse,
+  MediaDetails,
+  SearchResponse,
+} from '@findarr/shared';
+import type SqlDatabase from 'better-sqlite3';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  type Mocked,
+} from 'vitest';
 import * as authService from '../auth/service.js';
 import { upsertCatalogCache } from '../catalog/repository.js';
 import { createCatalogService } from '../catalog/service.js';
@@ -8,7 +20,10 @@ import { createDatabase } from '../db/service.js';
 import type { Database } from '../db/service.js';
 import { addInteraction } from '../interaction/repository.js';
 import { createMedia } from '../media/repository.js';
-import { updateGenrePreference, updateKeywordPreference } from '../preferences/repository.js';
+import {
+  updateGenrePreference,
+  updateKeywordPreference,
+} from '../preferences/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { saveUserSettings } from '../user/service.js';
 import {
@@ -57,7 +72,11 @@ describe('catalog service - integration tests', () => {
     vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
     const user = await createTestUserInDb(db, { email: 'delegate@test.com' });
 
-    const searchResult: SearchResponse = { results: [], totalPages: 1, page: 0 };
+    const searchResult: SearchResponse = {
+      results: [],
+      totalPages: 1,
+      page: 0,
+    };
     const fetchResult: DiscoverResponse = {
       results: [createTestMedia({ tmdbId: 1 })],
       totalPages: 1,
@@ -77,10 +96,16 @@ describe('catalog service - integration tests', () => {
     );
     expect(search.results).toEqual(searchResult.results);
 
-    const discover = await catalogService.discoverMedia({ type: 'movie', page: 1 }, user.id);
+    const discover = await catalogService.discoverMedia(
+      { type: 'movie', page: 1 },
+      user.id
+    );
     expect(discover.results).toEqual(fetchResult.results);
 
-    const details = await catalogService.getMediaDetails({ id: 1, type: 'movie' }, user.id);
+    const details = await catalogService.getMediaDetails(
+      { id: 1, type: 'movie' },
+      user.id
+    );
     expect(details).toBe(detailsResult);
 
     const genres = await catalogService.listGenres({});
@@ -92,7 +117,9 @@ describe('catalog service - integration tests', () => {
     const user = await createTestUserInDb(db, { email: 'pagination@test.com' });
 
     // Populate catalog cache with 50 items
-    const cachedItems = Array.from({ length: 50 }, (_, i) => createTestMedia({ tmdbId: i + 1 }));
+    const cachedItems = Array.from({ length: 50 }, (_, i) =>
+      createTestMedia({ tmdbId: i + 1 })
+    );
     await upsertCatalogCache(db, cachedItems);
 
     // First page
@@ -112,7 +139,9 @@ describe('catalog service - integration tests', () => {
 
   it('should respect type, region, and genre filters in popular', async () => {
     vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
-    const user = await createTestUserInDb(db, { email: 'type-filter@test.com' });
+    const user = await createTestUserInDb(db, {
+      email: 'type-filter@test.com',
+    });
 
     // Populate catalog cache with mixed types
     const items = [
@@ -121,7 +150,10 @@ describe('catalog service - integration tests', () => {
     ];
     await upsertCatalogCache(db, items);
 
-    const result = await catalogService.getPopularMedia({ type: 'tv' }, user.id);
+    const result = await catalogService.getPopularMedia(
+      { type: 'tv' },
+      user.id
+    );
     expect(result.results.length).toBe(1);
     expect(result.results[0]?.type).toBe('tv');
   });
@@ -134,13 +166,18 @@ describe('catalog service - integration tests', () => {
       page: 1,
     });
 
-    const result = await catalogService.searchMedia({ query: 'test', type: 'movie', page: 1 }, 0);
+    const result = await catalogService.searchMedia(
+      { query: 'test', type: 'movie', page: 1 },
+      0
+    );
     expect(result.results).toEqual(items);
   });
 
   it('should enrich discover results with database state', async () => {
     vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
-    const user = await createTestUserInDb(db, { email: 'discover-enrich@test.com' });
+    const user = await createTestUserInDb(db, {
+      email: 'discover-enrich@test.com',
+    });
 
     const items = [createTestMedia({ tmdbId: 1 })];
     tmdbServiceMock.discover.mockResolvedValue({
@@ -149,14 +186,19 @@ describe('catalog service - integration tests', () => {
       page: 1,
     });
 
-    const result = await catalogService.discoverMedia({ type: 'movie', page: 1 }, user.id);
+    const result = await catalogService.discoverMedia(
+      { type: 'movie', page: 1 },
+      user.id
+    );
     expect(result.results).toEqual(items);
   });
 
   it('should resolve discover filters from stored user settings', async () => {
     vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
 
-    const user = await createTestUserInDb(db, { email: 'discover-settings@test.com' });
+    const user = await createTestUserInDb(db, {
+      email: 'discover-settings@test.com',
+    });
     await saveUserSettings(db, user.id, {
       language: 'fr-FR',
       regions: ['asian'],
@@ -227,7 +269,12 @@ describe('catalog service - integration tests', () => {
     const user = await createTestUserInDb(db);
 
     // Add keyword preferences for the user
-    await updateKeywordPreference(db, user.id, { id: 123, name: 'superhero' }, 3);
+    await updateKeywordPreference(
+      db,
+      user.id,
+      { id: 123, name: 'superhero' },
+      3
+    );
 
     // Populate catalog cache with items that have keywords
     const items = [
@@ -244,7 +291,10 @@ describe('catalog service - integration tests', () => {
 
     // Call discover with userId - should apply keyword preference scoring
     const discoveredItems = [
-      createTestMedia({ tmdbId: 3, keywords: [{ id: 123, name: 'superhero' }] }),
+      createTestMedia({
+        tmdbId: 3,
+        keywords: [{ id: 123, name: 'superhero' }],
+      }),
     ];
     tmdbServiceMock.discover.mockResolvedValue({
       results: discoveredItems,
@@ -252,7 +302,10 @@ describe('catalog service - integration tests', () => {
       page: 1,
     });
 
-    const result = await catalogService.discoverMedia({ page: 1, type: 'movie' }, user.id);
+    const result = await catalogService.discoverMedia(
+      { page: 1, type: 'movie' },
+      user.id
+    );
 
     // Should execute the keyword preference scoring code path
     expect(result.results).toBeDefined();
@@ -282,7 +335,9 @@ describe('catalog service - integration tests', () => {
 
   it('should stop swipe voting after the first 100 popular items are exhausted', async () => {
     vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
-    const user = await createTestUserInDb(db, { email: 'swipe-limit@test.com' });
+    const user = await createTestUserInDb(db, {
+      email: 'swipe-limit@test.com',
+    });
 
     const cachedItems = Array.from({ length: 101 }, (_, index) =>
       createTestMedia({ tmdbId: index + 1, popularity: 1000 - index })
@@ -294,7 +349,10 @@ describe('catalog service - integration tests', () => {
       await addInteraction(db, user.id, mediaRecord.id, 'liked');
     }
 
-    const result = await catalogService.getNextUnvotedMedia({ type: 'both' }, user.id);
+    const result = await catalogService.getNextUnvotedMedia(
+      { type: 'both' },
+      user.id
+    );
 
     expect(result.media).toBeNull();
     expect(tmdbServiceMock.details).not.toHaveBeenCalled();

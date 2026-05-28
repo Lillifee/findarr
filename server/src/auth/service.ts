@@ -1,4 +1,9 @@
-import type { ChangePassword, Login, SetupInitialPassword, User } from '@findarr/shared';
+import type {
+  ChangePassword,
+  Login,
+  SetupInitialPassword,
+  User,
+} from '@findarr/shared';
 import { hash, verify } from '@node-rs/argon2';
 import type { Database } from '../db/service.js';
 import { Forbidden, Unauthorized } from '../utils/errors.js';
@@ -13,7 +18,8 @@ export interface UserWithPassword extends User {
   passwordHash: string;
 }
 
-export const DUMMY_HASH = '$argon2id$v=19$m=65536,t=3,p=4$C29tZVNhbHQ$C29tZUhBU0g';
+export const DUMMY_HASH =
+  '$argon2id$v=19$m=65536,t=3,p=4$C29tZVNhbHQ$C29tZUhBU0g';
 
 // ============================================================================
 // Authentication
@@ -56,7 +62,10 @@ export const changePassword = async (
     throw Unauthorized('Authentication required');
   }
 
-  const isCurrentPasswordValid = await verifyPassword(user.passwordHash, currentPassword);
+  const isCurrentPasswordValid = await verifyPassword(
+    user.passwordHash,
+    currentPassword
+  );
   if (!isCurrentPasswordValid) {
     throw Unauthorized('Current password is incorrect');
   }

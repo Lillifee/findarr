@@ -1,7 +1,13 @@
 import { type DbMedia, type Media, isDefined } from '@findarr/shared';
 import type { Database } from '../db/service.js';
-import { getInteractionsBatch, getVoteCountsBatch } from '../interaction/repository.js';
-import { getUserGenrePreferences, getUserKeywordPreferences } from '../preferences/repository.js';
+import {
+  getInteractionsBatch,
+  getVoteCountsBatch,
+} from '../interaction/repository.js';
+import {
+  getUserGenrePreferences,
+  getUserKeywordPreferences,
+} from '../preferences/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { getMediaRecordsBatch, getMediaStats } from './repository.js';
 import { scoreMediaItems, scoreMediaItemsForUser } from './scoring.js';
@@ -15,7 +21,10 @@ import { scoreMediaItems, scoreMediaItemsForUser } from './scoring.js';
  * Enrich TMDB media items with database records (status, jellyfinId, arrId, season tracking)
  * Frontend can match season status by seasonNumber from state.record.seasons if needed
  */
-export async function enrichWithRecords(db: Database, mediaItems: Media[]): Promise<Media[]> {
+export async function enrichWithRecords(
+  db: Database,
+  mediaItems: Media[]
+): Promise<Media[]> {
   if (mediaItems.length === 0) return mediaItems;
 
   const mediaRecords = await getMediaRecordsBatch(db, mediaItems);
@@ -93,7 +102,11 @@ export async function enrichWithScoring(
     ]);
 
     if (genrePreferences.size > 0 || keywordPreferences.size > 0) {
-      scoredItems = scoreMediaItemsForUser(scoredItems, genrePreferences, keywordPreferences);
+      scoredItems = scoreMediaItemsForUser(
+        scoredItems,
+        genrePreferences,
+        keywordPreferences
+      );
     }
   }
 

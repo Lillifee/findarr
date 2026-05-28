@@ -31,7 +31,12 @@ export function transformSonarrSeries(series: SonarrSeries): ArrLibraryItem {
 
     return {
       seasonNumber: s.seasonNumber,
-      status: total > 0 && downloaded >= total ? 'downloaded' : s.monitored ? 'monitored' : 'none',
+      status:
+        total > 0 && downloaded >= total
+          ? 'downloaded'
+          : s.monitored
+            ? 'monitored'
+            : 'none',
     } as const;
   });
 
@@ -52,6 +57,10 @@ export function transformSonarrSeries(series: SonarrSeries): ArrLibraryItem {
  * Unified transformer that uses the type discriminator from the validated schema
  * Since RadarrMovie and SonarrSeries now include type field, we can use it directly
  */
-export function transformArrMedia(item: RadarrMovie | SonarrSeries): ArrLibraryItem {
-  return item.type === 'movie' ? transformRadarrMovie(item) : transformSonarrSeries(item);
+export function transformArrMedia(
+  item: RadarrMovie | SonarrSeries
+): ArrLibraryItem {
+  return item.type === 'movie'
+    ? transformRadarrMovie(item)
+    : transformSonarrSeries(item);
 }

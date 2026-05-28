@@ -16,7 +16,12 @@ const types: { value: SearchType; label: string }[] = [
 function getIcon(type: SearchType) {
   if (type === 'both') {
     return (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg
+        className="w-4 h-4"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -28,7 +33,12 @@ function getIcon(type: SearchType) {
   }
   if (type === 'movie') {
     return (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg
+        className="w-4 h-4"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -39,7 +49,12 @@ function getIcon(type: SearchType) {
     );
   }
   return (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -50,7 +65,11 @@ function getIcon(type: SearchType) {
   );
 }
 
-export function MediaTypeChips({ selectedType, onChange, disabled = false }: MediaTypeChipsProps) {
+export function MediaTypeChips({
+  selectedType,
+  onChange,
+  disabled = false,
+}: MediaTypeChipsProps) {
   return (
     <div className="inline-flex overflow-hidden rounded-lg border border-gray-700/50 bg-gray-800/70 backdrop-blur-sm">
       {types.map((type, index) => (

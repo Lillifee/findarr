@@ -46,7 +46,9 @@ export function Schedulers() {
   async function handleToggle(name: string, enabled: boolean) {
     setActionLoading(name);
     try {
-      await (enabled ? adminSchedulerService.stop(name) : adminSchedulerService.start(name));
+      await (enabled
+        ? adminSchedulerService.stop(name)
+        : adminSchedulerService.start(name));
       await loadSchedulers();
     } catch {
       alert('Failed to toggle scheduler');
@@ -128,7 +130,9 @@ export function Schedulers() {
   if (error) {
     return (
       <div className="p-4">
-        <div className="p-3 bg-red-900/50 text-red-200 rounded border border-red-700">{error}</div>
+        <div className="p-3 bg-red-900/50 text-red-200 rounded border border-red-700">
+          {error}
+        </div>
       </div>
     );
   }
@@ -138,11 +142,19 @@ export function Schedulers() {
       <PageHeader
         title="Schedulers"
         description="Monitor recurring jobs and trigger them manually when needed."
-        action={<div className="text-sm text-gray-400">Auto-refreshes every 5 seconds</div>}
+        action={
+          <div className="text-sm text-gray-400">
+            Auto-refreshes every 5 seconds
+          </div>
+        }
       />
 
       {/* Desktop Table View */}
-      <Card variant="solid" padding="none" className="hidden overflow-x-auto lg:block">
+      <Card
+        variant="solid"
+        padding="none"
+        className="hidden overflow-x-auto lg:block"
+      >
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-gray-800 text-left text-sm text-gray-400">
@@ -158,12 +170,19 @@ export function Schedulers() {
           </thead>
           <tbody>
             {schedulers.map(scheduler => (
-              <tr key={scheduler.name} className="border-b border-gray-800 last:border-b-0">
+              <tr
+                key={scheduler.name}
+                className="border-b border-gray-800 last:border-b-0"
+              >
                 <td className="px-5 py-4">
-                  <div className="font-mono text-sm text-white">{scheduler.name}</div>
+                  <div className="font-mono text-sm text-white">
+                    {scheduler.name}
+                  </div>
                 </td>
                 <td className="px-5 py-4">
-                  <div className="text-sm text-gray-300">{scheduler.description}</div>
+                  <div className="text-sm text-gray-300">
+                    {scheduler.description}
+                  </div>
                 </td>
                 <td className="px-5 py-4 text-center">
                   <div className="flex items-center justify-center gap-2">
@@ -176,10 +195,14 @@ export function Schedulers() {
                   </span>
                 </td>
                 <td className="px-5 py-4">
-                  <div className="text-sm text-gray-400">{formatTimestamp(scheduler.lastRun)}</div>
+                  <div className="text-sm text-gray-400">
+                    {formatTimestamp(scheduler.lastRun)}
+                  </div>
                 </td>
                 <td className="px-5 py-4">
-                  <div className="text-sm text-gray-400">{formatNextRun(scheduler.nextRun)}</div>
+                  <div className="text-sm text-gray-400">
+                    {formatNextRun(scheduler.nextRun)}
+                  </div>
                 </td>
                 <td className="px-5 py-4 text-center">
                   <span className="text-sm text-gray-400 font-mono">
@@ -190,7 +213,9 @@ export function Schedulers() {
                   <div className="flex items-center justify-center gap-2">
                     <Button
                       onClick={asVoid(() => handleTrigger(scheduler.name))}
-                      disabled={actionLoading === scheduler.name || scheduler.isRunning}
+                      disabled={
+                        actionLoading === scheduler.name || scheduler.isRunning
+                      }
                       variant="secondary"
                       size="sm"
                       title="Run now"
@@ -198,7 +223,9 @@ export function Schedulers() {
                       {actionLoading === scheduler.name ? '...' : 'Trigger'}
                     </Button>
                     <Button
-                      onClick={asVoid(() => handleToggle(scheduler.name, scheduler.enabled))}
+                      onClick={asVoid(() =>
+                        handleToggle(scheduler.name, scheduler.enabled)
+                      )}
                       disabled={actionLoading === scheduler.name}
                       variant={scheduler.enabled ? 'danger' : 'success'}
                       size="sm"
@@ -220,8 +247,12 @@ export function Schedulers() {
           <Card key={scheduler.name} variant="solid" padding="md">
             <div className="flex justify-between items-start mb-3">
               <div>
-                <div className="font-mono text-sm text-white mb-1">{scheduler.name}</div>
-                <div className="text-xs text-gray-400">{scheduler.description}</div>
+                <div className="font-mono text-sm text-white mb-1">
+                  {scheduler.name}
+                </div>
+                <div className="text-xs text-gray-400">
+                  {scheduler.description}
+                </div>
               </div>
               <div>{renderStatus(scheduler)}</div>
             </div>
@@ -241,11 +272,15 @@ export function Schedulers() {
               </div>
               <div>
                 <span className="text-gray-500">Last Run:</span>
-                <span className="ml-1 text-gray-300">{formatTimestamp(scheduler.lastRun)}</span>
+                <span className="ml-1 text-gray-300">
+                  {formatTimestamp(scheduler.lastRun)}
+                </span>
               </div>
               <div>
                 <span className="text-gray-500">Next Run:</span>
-                <span className="ml-1 text-gray-300">{formatNextRun(scheduler.nextRun)}</span>
+                <span className="ml-1 text-gray-300">
+                  {formatNextRun(scheduler.nextRun)}
+                </span>
               </div>
             </div>
 
@@ -258,15 +293,21 @@ export function Schedulers() {
             <div className="flex gap-2">
               <Button
                 onClick={asVoid(() => handleTrigger(scheduler.name))}
-                disabled={actionLoading === scheduler.name || scheduler.isRunning}
+                disabled={
+                  actionLoading === scheduler.name || scheduler.isRunning
+                }
                 variant="secondary"
                 size="sm"
                 className="flex-1"
               >
-                {actionLoading === scheduler.name ? 'Loading...' : 'Trigger Now'}
+                {actionLoading === scheduler.name
+                  ? 'Loading...'
+                  : 'Trigger Now'}
               </Button>
               <Button
-                onClick={asVoid(() => handleToggle(scheduler.name, scheduler.enabled))}
+                onClick={asVoid(() =>
+                  handleToggle(scheduler.name, scheduler.enabled)
+                )}
                 disabled={actionLoading === scheduler.name}
                 variant={scheduler.enabled ? 'danger' : 'success'}
                 size="sm"

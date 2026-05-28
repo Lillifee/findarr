@@ -15,7 +15,9 @@ function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
   const title = item.name;
   const year = item.date ? new Date(item.date).getFullYear() : 'N/A';
   const isLiked = item.state?.interactions?.find(i => i.action === 'liked');
-  const isDisliked = item.state?.interactions?.find(i => i.action === 'disliked');
+  const isDisliked = item.state?.interactions?.find(
+    i => i.action === 'disliked'
+  );
 
   return (
     <div
@@ -67,7 +69,10 @@ function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
           </div>
 
           {/* Like/Dislike Buttons */}
-          <div className="flex justify-center" onClick={e => e.stopPropagation()}>
+          <div
+            className="flex justify-center"
+            onClick={e => e.stopPropagation()}
+          >
             <LikeDislikeButton
               tmdbId={item.tmdbId}
               mediaType={item.type}
@@ -89,7 +94,11 @@ interface ResultsGridProps {
   onUpdateItem?: (updatedItem: Media) => void;
 }
 
-export function ResultsGrid({ results, onSelectItem, onUpdateItem }: ResultsGridProps) {
+export function ResultsGrid({
+  results,
+  onSelectItem,
+  onUpdateItem,
+}: ResultsGridProps) {
   if (results.length === 0) {
     return (
       <div className="text-center py-16 text-gray-400">
@@ -108,7 +117,9 @@ export function ResultsGrid({ results, onSelectItem, onUpdateItem }: ResultsGrid
             />
           </svg>
           <p className="text-lg">No results found</p>
-          <p className="text-sm text-gray-500">Try adjusting your search or filters</p>
+          <p className="text-sm text-gray-500">
+            Try adjusting your search or filters
+          </p>
         </div>
       </div>
     );

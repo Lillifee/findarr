@@ -16,7 +16,10 @@ export function AvailableMediaStrip({
   onSelectItem: (item: Media) => void;
   results: Media[];
 }) {
-  const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>, item: Media) => {
+  const handleCardKeyDown = (
+    event: KeyboardEvent<HTMLElement>,
+    item: Media
+  ) => {
     if (event.key !== 'Enter' && event.key !== ' ') {
       return;
     }
@@ -50,14 +53,19 @@ export function AvailableMediaStrip({
 
   const fadeStyle = hasMore
     ? {
-        WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 5rem), transparent)',
-        maskImage: 'linear-gradient(to right, black calc(100% - 5rem), transparent)',
+        WebkitMaskImage:
+          'linear-gradient(to right, black calc(100% - 5rem), transparent)',
+        maskImage:
+          'linear-gradient(to right, black calc(100% - 5rem), transparent)',
       }
     : undefined;
 
   return (
     <div className="relative overflow-hidden">
-      <div className="scrollbar-hidden overflow-x-auto overflow-y-hidden" style={fadeStyle}>
+      <div
+        className="scrollbar-hidden overflow-x-auto overflow-y-hidden"
+        style={fadeStyle}
+      >
         <div className="flex gap-3 md:gap-4">
           {results.map(item => (
             <div

@@ -1,9 +1,12 @@
-import { type RegionGroupId } from '@findarr/shared';
-import React from 'react';
+import type { RegionGroupId } from '@findarr/shared';
+import type React from 'react';
 import { OptionButton } from './ui/OptionButton';
 
 // Region metadata for UI display (TMDB mapping handled server-side)
-const REGION_INFO: Record<RegionGroupId, { name: string; description: string }> = {
+const REGION_INFO: Record<
+  RegionGroupId,
+  { name: string; description: string }
+> = {
   western: {
     name: 'Western',
     description:
@@ -68,7 +71,9 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex justify-between items-center">
-        <label className="text-sm font-medium text-gray-400">Content Regions</label>
+        <label className="text-sm font-medium text-gray-400">
+          Content Regions
+        </label>
 
         <div className="flex gap-2">
           <button
@@ -124,11 +129,13 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
         })}
       </div>
 
-      {selectedRegions.length > 0 && selectedRegions.length < allRegions.length && (
-        <div className="text-xs text-gray-400 text-center italic">
-          Showing {selectedRegions.length} of {allRegions.length} content regions
-        </div>
-      )}
+      {selectedRegions.length > 0 &&
+        selectedRegions.length < allRegions.length && (
+          <div className="text-xs text-gray-400 text-center italic">
+            Showing {selectedRegions.length} of {allRegions.length} content
+            regions
+          </div>
+        )}
     </div>
   );
 };

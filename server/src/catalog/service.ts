@@ -47,7 +47,10 @@ export function createCatalogService(context: CatalogContext) {
    * Search for media across all sources
    * Currently delegates to TMDB
    */
-  async function searchMedia(params: SearchQuery, userId: number): Promise<SearchResponse> {
+  async function searchMedia(
+    params: SearchQuery,
+    userId: number
+  ): Promise<SearchResponse> {
     const response = await tmdb.search(params);
     const results = await enrichMediaResults(response.results, userId);
     return { ...response, results };
@@ -57,7 +60,10 @@ export function createCatalogService(context: CatalogContext) {
    * Discover media - direct TMDB passthrough for browse mode
    * Allows custom date ranges and filters without caching
    */
-  async function discoverMedia(params: DiscoverQuery, userId: number): Promise<DiscoverResponse> {
+  async function discoverMedia(
+    params: DiscoverQuery,
+    userId: number
+  ): Promise<DiscoverResponse> {
     const settings = await getUserSettings(db, userId);
     const response = await tmdb.discover({ ...params, ...settings });
     const results = await enrichMediaResults(response.results, userId);
@@ -94,11 +100,15 @@ export function createCatalogService(context: CatalogContext) {
     const itemsPerPage = 20;
     const offset = (page - 1) * itemsPerPage;
 
-    const { results: dbRecords, totalCount } = await getMediaByStatusPaginated(db, ['available'], {
-      type,
-      offset,
-      limit: itemsPerPage,
-    });
+    const { results: dbRecords, totalCount } = await getMediaByStatusPaginated(
+      db,
+      ['available'],
+      {
+        type,
+        offset,
+        limit: itemsPerPage,
+      }
+    );
 
     const availableMedia = await fetchTMDBDetails(tmdb, dbRecords);
     const results = await enrichWithInteractions(db, availableMedia, userId);
@@ -136,12 +146,18 @@ export function createCatalogService(context: CatalogContext) {
     );
 
     const unvotedItem =
-      swipeWindow.items.find(item => filterByInteraction(item, interactionKeys, 'unvoted')) || null;
+      swipeWindow.items.find(item =>
+        filterByInteraction(item, interactionKeys, 'unvoted')
+      ) || null;
 
     const media =
       unvotedItem &&
       (await getMediaDetails(
-        { id: unvotedItem.tmdbId, type: unvotedItem.type, language: settings.language },
+        {
+          id: unvotedItem.tmdbId,
+          type: unvotedItem.type,
+          language: settings.language,
+        },
         userId
       ));
 
@@ -151,7 +167,10 @@ export function createCatalogService(context: CatalogContext) {
   /**
    * Popular media - snapshot-backed page load-more API.
    */
-  async function getPopularMedia(params: PopularQuery, userId: number): Promise<PopularResponse> {
+  async function getPopularMedia(
+    params: PopularQuery,
+    userId: number
+  ): Promise<PopularResponse> {
     const { page = 1, type = 'both', interaction, genres = [] } = params;
 
     // Get or create feed snapshot (cached for short time to allow consistent pagination)
@@ -161,10 +180,15 @@ export function createCatalogService(context: CatalogContext) {
     );
 
     // Get the requested page window from the stable snapshot
-    const pageWindow = popularFeedSnapshotStore.getSnapshotPage(popularFeedSnapshot.items, page);
+    const pageWindow = popularFeedSnapshotStore.getSnapshotPage(
+      popularFeedSnapshot.items,
+      page
+    );
 
     // Enrich the items in the current window with full state (scores, records, interactions)
-    const results = await enrichMediaResults(pageWindow.items, userId, { scoring: false });
+    const results = await enrichMediaResults(pageWindow.items, userId, {
+      scoring: false,
+    });
 
     return {
       results,
@@ -177,30 +201,35 @@ export function createCatalogService(context: CatalogContext) {
   async function getPopularFeedSnapshot(params: PopularQuery, userId: number) {
     const { type = 'both', interaction, genres = [] } = params;
 
-    return popularFeedSnapshotStore.getOrCreateSnapshot(params.feedId, async () => {
-      const [settings, cachedCatalogMedia, interactionKeys] = await Promise.all([
-        getUserSettings(db, userId),
-        getAllCatalogCache(db),
-        getUserInteractionMediaKeys(db, userId),
-      ]);
+    return popularFeedSnapshotStore.getOrCreateSnapshot(
+      params.feedId,
+      async () => {
+        const [settings, cachedCatalogMedia, interactionKeys] =
+          await Promise.all([
+            getUserSettings(db, userId),
+            getAllCatalogCache(db),
+            getUserInteractionMediaKeys(db, userId),
+          ]);
 
-      const { regions = [] } = settings;
+        const { regions = [] } = settings;
 
-      let filteredMedia = cachedCatalogMedia.filter(
-        item =>
-          filterByCriteria(item, { type, regions, genres }) &&
-          filterByInteraction(item, interactionKeys, interaction)
-      );
+        let filteredMedia = cachedCatalogMedia.filter(
+          item =>
+            filterByCriteria(item, { type, regions, genres }) &&
+            filterByInteraction(item, interactionKeys, interaction)
+        );
 
-      filteredMedia = await enrichWithScoring(db, filteredMedia, userId);
+        filteredMedia = await enrichWithScoring(db, filteredMedia, userId);
 
-      filteredMedia.sort(
-        (a, b) =>
-          (b.state?.score?.finalTrendingScore || 0) - (a.state?.score?.finalTrendingScore || 0)
-      );
+        filteredMedia.sort(
+          (a, b) =>
+            (b.state?.score?.finalTrendingScore || 0) -
+            (a.state?.score?.finalTrendingScore || 0)
+        );
 
-      return filteredMedia;
-    });
+        return filteredMedia;
+      }
+    );
   }
 
   /**
@@ -210,7 +239,11 @@ export function createCatalogService(context: CatalogContext) {
   async function enrichMediaResults(
     items: Media[],
     userId: number,
-    options: { scoring?: boolean; records?: boolean; interactions?: boolean } = {}
+    options: {
+      scoring?: boolean;
+      records?: boolean;
+      interactions?: boolean;
+    } = {}
   ): Promise<Media[]> {
     let enriched = items;
     const { scoring = true, records = true, interactions = true } = options;

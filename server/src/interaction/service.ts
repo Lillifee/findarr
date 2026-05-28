@@ -11,7 +11,10 @@ import type { AnyArrService } from '../arr/service.js';
 import { getCatalogCacheBatch } from '../catalog/repository.js';
 import type { CatalogService } from '../catalog/service.js';
 import type { Database } from '../db/service.js';
-import { fetchTMDBDetails, enrichWithInteractions } from '../media/enrichment.js';
+import {
+  fetchTMDBDetails,
+  enrichWithInteractions,
+} from '../media/enrichment.js';
 import {
   createMedia,
   getMediaByStatusPaginated,
@@ -52,7 +55,14 @@ export const createInteraction = async (
   // Get or create media record
   const existing = await getMediaByTmdbId(db, data.tmdbId, data.mediaType);
   const media =
-    existing ?? (await createMedia(db, data.tmdbId, data.mediaType, 'pending', data.seasons));
+    existing ??
+    (await createMedia(
+      db,
+      data.tmdbId,
+      data.mediaType,
+      'pending',
+      data.seasons
+    ));
 
   // Update seasons if provided (TV shows only)
   if (data.mediaType === 'tv' && data.seasons !== undefined) {
@@ -63,7 +73,9 @@ export const createInteraction = async (
   // - Toggle: clicking same action without seasons (movies or direct button click)
   // - Update: providing seasons array (TV shows via modal confirmation)
   const isSeasonUpdate = data.seasons !== undefined;
-  const isToggle = !isSeasonUpdate && (await hasInteraction(db, user.id, media.id, data.action));
+  const isToggle =
+    !isSeasonUpdate &&
+    (await hasInteraction(db, user.id, media.id, data.action));
 
   // Handle empty season selection as "unlike" (user deselected all seasons)
   const isUnlike = isSeasonUpdate && data.seasons?.length === 0;
@@ -88,14 +100,23 @@ export const createInteraction = async (
     }
 
     // Forward to Radarr/Sonarr (handles both create and update based on arrId)
-    await requestMediaToArr(tmdbService, radarrService, sonarrService, media, data);
+    await requestMediaToArr(
+      tmdbService,
+      radarrService,
+      sonarrService,
+      media,
+      data
+    );
   }
 
   // Update user genre preferences (fire-and-forget - don't block response)
   await updateUserPreferences(tmdbService, db, data, user.id, isToggle);
 
   // Return enriched media with updated state using catalog service
-  return catalogService.getMediaDetails({ id: data.tmdbId, type: data.mediaType }, user.id);
+  return catalogService.getMediaDetails(
+    { id: data.tmdbId, type: data.mediaType },
+    user.id
+  );
 };
 
 /**
@@ -146,7 +167,10 @@ async function requestMediaToArr(
   mediaRecord: DbMedia,
   data: CreateMediaInteraction
 ): Promise<void> {
-  const details = await tmdbService.details({ id: data.tmdbId, type: data.mediaType });
+  const details = await tmdbService.details({
+    id: data.tmdbId,
+    type: data.mediaType,
+  });
 
   const service = details.type === 'movie' ? radarrService : sonarrService;
   const externalId = details.type === 'movie' ? details.tmdbId : details.tvdbId;
@@ -199,7 +223,12 @@ export async function getUserActivityAttentionEnriched(
   const items =
     user.role === 'admin'
       ? await getMediaByStatusPaginated(db, statuses, { limit, offset, type })
-      : await getMediaByUserAttention(db, user.id, { type, statuses, limit, offset });
+      : await getMediaByUserAttention(db, user.id, {
+          type,
+          statuses,
+          limit,
+          offset,
+        });
 
   return enrichInteractionPage(tmdbService, db, user.id, items, page, limit);
 }

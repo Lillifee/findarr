@@ -19,7 +19,10 @@ import type { MediaStats } from './scoring.js';
 /**
  * Get media record by internal database ID
  */
-export const getMediaById = async (db: Database, mediaId: number): Promise<DbMedia | undefined> =>
+export const getMediaById = async (
+  db: Database,
+  mediaId: number
+): Promise<DbMedia | undefined> =>
   (await db.query.media.findFirst({
     where: eq(media.id, mediaId),
   })) as DbMedia | undefined;
@@ -53,7 +56,10 @@ export const createMedia = async (
 
   // Convert season numbers to SeasonRecord format for storage
   const seasons = seasonNumbers
-    ? seasonNumbers.map(seasonNumber => ({ seasonNumber, status: 'requested' as const }))
+    ? seasonNumbers.map(seasonNumber => ({
+        seasonNumber,
+        status: 'requested' as const,
+      }))
     : null;
 
   const result = await db
@@ -106,7 +112,10 @@ export const updateMediaSeasons = async (
   seasonNumbers: number[] | null
 ): Promise<void> => {
   const seasons = seasonNumbers
-    ? seasonNumbers.map(seasonNumber => ({ seasonNumber, status: 'requested' as const }))
+    ? seasonNumbers.map(seasonNumber => ({
+        seasonNumber,
+        status: 'requested' as const,
+      }))
     : null;
 
   const result = await db
@@ -262,7 +271,9 @@ export const seedMediaStats = async (db: Database): Promise<void> => {
  * Get media stats for both movie and TV
  * Returns Map for O(1) lookup by media type
  */
-export const getMediaStats = async (db: Database): Promise<Map<MediaType, MediaStats>> => {
+export const getMediaStats = async (
+  db: Database
+): Promise<Map<MediaType, MediaStats>> => {
   const rows = await db.select().from(mediaStats);
 
   const statsMap = new Map<MediaType, MediaStats>();

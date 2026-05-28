@@ -8,7 +8,9 @@ export type AuthenticatedRequest = FastifyRequest & {
   user: User;
 };
 
-export function protectedRoute<T>(route: (request: AuthenticatedRequest) => MaybePromise<T>) {
+export function protectedRoute<T>(
+  route: (request: AuthenticatedRequest) => MaybePromise<T>
+) {
   return async (request: FastifyRequest): Promise<T> => {
     if (!request.user) throw Unauthorized();
     return route(request as AuthenticatedRequest);

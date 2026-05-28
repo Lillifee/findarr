@@ -6,14 +6,19 @@ import type { SchedulerService } from '../scheduler/service.js';
 import { createClientLifecycle } from '../utils/clientLifecycleHepler.js';
 import { trimTrailingSlash } from '../utils/links.js';
 import { createArrClient, type ArrClient } from './client.js';
-import { arrConfig, type ArrServiceConfig } from './config.js';
+import type { arrConfig, ArrServiceConfig } from './config.js';
 import {
   getArrSettings,
   setArrSettings,
   updateMediaIds,
   type ArrSettingsFull,
 } from './repository.js';
-import type { ArrLibraryItem, ArrQualityProfile, ArrQueueItem, ArrRootFolder } from './schemas.js';
+import type {
+  ArrLibraryItem,
+  ArrQualityProfile,
+  ArrQueueItem,
+  ArrRootFolder,
+} from './schemas.js';
 import { transformArrMedia } from './transformers.js';
 
 export interface ArrServiceContext {
@@ -36,7 +41,10 @@ export async function createArrService<T extends ArrServiceConfig>(
   });
 
   await lifecycle.reload().catch(error => {
-    context.log.error({ name: config.service, error }, 'Failed to initialize Arr service');
+    context.log.error(
+      { name: config.service, error },
+      'Failed to initialize Arr service'
+    );
   });
 
   async function getSettings(): Promise<ArrSettings> {
@@ -44,7 +52,9 @@ export async function createArrService<T extends ArrServiceConfig>(
     return settings;
   }
 
-  async function setSettings(settingsQuery: ArrSettingsQuery): Promise<ArrSettings> {
+  async function setSettings(
+    settingsQuery: ArrSettingsQuery
+  ): Promise<ArrSettings> {
     await setArrSettings(context.db, config, settingsQuery);
 
     await lifecycle.reload();
@@ -52,7 +62,9 @@ export async function createArrService<T extends ArrServiceConfig>(
   }
 
   async function testConnection(): Promise<boolean> {
-    return lifecycle.isConfigured() && (await lifecycle.client().testConnection());
+    return (
+      lifecycle.isConfigured() && (await lifecycle.client().testConnection())
+    );
   }
 
   async function testAndSync(): Promise<boolean> {

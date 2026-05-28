@@ -10,7 +10,10 @@ interface Props {
   onGenreChange: (genres: GenreKey[]) => void;
 }
 
-export default function GenreSelector({ selectedGenres, onGenreChange }: Props) {
+export default function GenreSelector({
+  selectedGenres,
+  onGenreChange,
+}: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleGenreToggle = (genreKey: GenreKey) => {
@@ -28,7 +31,8 @@ export default function GenreSelector({ selectedGenres, onGenreChange }: Props) 
   return (
     <div className="flex flex-col gap-2">
       <label className="text-sm font-medium text-gray-400">
-        Genres {selectedGenres.length > 0 && `(${selectedGenres.length} selected)`}
+        Genres{' '}
+        {selectedGenres.length > 0 && `(${selectedGenres.length} selected)`}
       </label>
       <div className="relative min-w-45">
         <Button
@@ -36,7 +40,11 @@ export default function GenreSelector({ selectedGenres, onGenreChange }: Props) 
           variant="secondary"
           className="w-full justify-between px-3.5 py-2 text-left text-sm"
         >
-          <span className={selectedGenres.length === 0 ? 'text-gray-400' : 'text-white'}>
+          <span
+            className={
+              selectedGenres.length === 0 ? 'text-gray-400' : 'text-white'
+            }
+          >
             {selectedGenres.length === 0
               ? 'Select genres...'
               : `${selectedGenres.length} genre${selectedGenres.length === 1 ? '' : 's'} selected`}
@@ -73,7 +81,11 @@ export default function GenreSelector({ selectedGenres, onGenreChange }: Props) 
                   onClick={() => handleGenreToggle(key)}
                   selected={isSelected}
                   title={genre.name}
-                  icon={isSelected ? <span className="text-base text-gray-900">✓</span> : undefined}
+                  icon={
+                    isSelected ? (
+                      <span className="text-base text-gray-900">✓</span>
+                    ) : undefined
+                  }
                   className="rounded-none border-x-0 border-t-0 border-b border-gray-700/50 first:border-t-0"
                 />
               );

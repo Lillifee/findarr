@@ -1,4 +1,8 @@
-import { createScheduler, type Scheduler, type SchedulerContext } from '../scheduler/types.js';
+import {
+  createScheduler,
+  type Scheduler,
+  type SchedulerContext,
+} from '../scheduler/types.js';
 import { enrichCatalogKeywords, syncCatalogCache } from './sync.js';
 
 /**

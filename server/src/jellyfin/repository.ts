@@ -47,7 +47,9 @@ export async function upsertMediaFromJellyfin(
         existingSeasons.length > 0
           ? existingSeasons.map(season => ({
               seasonNumber: season.seasonNumber,
-              status: (availableSet.has(season.seasonNumber) ? 'available' : season.status) as
+              status: (availableSet.has(season.seasonNumber)
+                ? 'available'
+                : season.status) as
                 | 'none'
                 | 'requested'
                 | 'monitored'
@@ -111,7 +113,8 @@ export async function getMediaWithJellyfinIds(db: Database): Promise<
 
   // Filter out null values and assert type (we know they're not null due to where clause)
   return results.filter(
-    (item): item is typeof item & { jellyfinId: string } => item.jellyfinId !== null
+    (item): item is typeof item & { jellyfinId: string } =>
+      item.jellyfinId !== null
   );
 }
 
@@ -156,9 +159,14 @@ export interface JellyfinSettingsFull extends JellyfinSettings {
   jellyfinApiKey: string | null;
 }
 
-type JellyfinSettingKeys = Extract<keyof typeof JellyfinSettingsQuerySchema.shape, string>;
+type JellyfinSettingKeys = Extract<
+  keyof typeof JellyfinSettingsQuerySchema.shape,
+  string
+>;
 
-const jellyfinKeys = Object.keys(JellyfinSettingsQuerySchema.shape) as JellyfinSettingKeys[];
+const jellyfinKeys = Object.keys(
+  JellyfinSettingsQuerySchema.shape
+) as JellyfinSettingKeys[];
 
 export async function setJellyfinSettings(
   db: Database,
@@ -167,7 +175,9 @@ export async function setJellyfinSettings(
   await writeSettings(db, settings);
 }
 
-export async function getJellyfinSettingsFull(db: Database): Promise<JellyfinSettingsFull> {
+export async function getJellyfinSettingsFull(
+  db: Database
+): Promise<JellyfinSettingsFull> {
   const settingsValues = await readSettings(db, jellyfinKeys);
   return {
     jellyfinUrl: settingsValues.jellyfinUrl,
@@ -176,7 +186,10 @@ export async function getJellyfinSettingsFull(db: Database): Promise<JellyfinSet
   };
 }
 
-export async function getJellyfinSettings(db: Database): Promise<JellyfinSettings> {
-  const { jellyfinApiKey: _jellyfinApiKey, ...settings } = await getJellyfinSettingsFull(db);
+export async function getJellyfinSettings(
+  db: Database
+): Promise<JellyfinSettings> {
+  const { jellyfinApiKey: _jellyfinApiKey, ...settings } =
+    await getJellyfinSettingsFull(db);
   return settings;
 }

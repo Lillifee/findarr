@@ -11,7 +11,9 @@ import type { TMDBService } from '../tmdb/service.js';
 import { registerErrorHandler } from '../utils/errors.js';
 import { createTestUserInDb } from './helpers/testHelper.js';
 
-function getSessionCookie(reply: Awaited<ReturnType<FastifyInstance['inject']>>) {
+function getSessionCookie(
+  reply: Awaited<ReturnType<FastifyInstance['inject']>>
+) {
   const header = reply.headers['set-cookie'];
 
   if (!header) {
@@ -141,7 +143,9 @@ describe('auth routes - integration tests', () => {
     });
 
     expect(changeReply.statusCode).toBe(401);
-    expect(changeReply.json()).toEqual({ error: 'Current password is incorrect' });
+    expect(changeReply.json()).toEqual({
+      error: 'Current password is incorrect',
+    });
   });
 
   it('returns password-setup requirement in bootstrap for the seeded admin password', async () => {

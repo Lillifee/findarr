@@ -1,4 +1,6 @@
-export const isDefined = <T>(value: T | undefined | null): value is Exclude<T, undefined | null> =>
+export const isDefined = <T>(
+  value: T | undefined | null
+): value is Exclude<T, undefined | null> =>
   value !== undefined && value !== null;
 
 export const objectEntries = <T extends object, K extends keyof T>(object: T) =>
@@ -10,4 +12,5 @@ export const objectKeys = <T extends object, K extends keyof T>(object: T) =>
 export const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
-export const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
+export const sleep = (ms: number): Promise<void> =>
+  new Promise(resolve => setTimeout(resolve, ms));

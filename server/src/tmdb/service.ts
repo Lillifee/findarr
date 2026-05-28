@@ -18,7 +18,11 @@ import type { SchedulerService } from '../scheduler/service.js';
 import { createClientLifecycle } from '../utils/clientLifecycleHepler.js';
 import { createTMDBClient, type TMDBClient } from './client.js';
 import { buildDiscoverParams } from './helpers.js';
-import { getTmdbSettingsFull, setTmdbSettings, type TmdbSettingsFull } from './repository.js';
+import {
+  getTmdbSettingsFull,
+  setTmdbSettings,
+  type TmdbSettingsFull,
+} from './repository.js';
 import type { TMDBTrendingParams } from './schemas.js';
 import { transformMedia, transformDetails } from './transformers.js';
 
@@ -41,11 +45,16 @@ export async function createTMDBService(context: TmdbServiceContext) {
     name: 'TMDB',
     loadSettings: () => getTmdbSettingsFull(context.db),
     createClient: settings =>
-      settings.tmdbAccessToken ? createTMDBClient(settings.tmdbAccessToken) : undefined,
+      settings.tmdbAccessToken
+        ? createTMDBClient(settings.tmdbAccessToken)
+        : undefined,
   });
 
   await reloadService().catch(error => {
-    context.log.error({ name: 'tmdb', error }, 'Failed to initialize TMDB service');
+    context.log.error(
+      { name: 'tmdb', error },
+      'Failed to initialize TMDB service'
+    );
   });
 
   async function reloadService(): Promise<void> {
@@ -57,11 +66,14 @@ export async function createTMDBService(context: TmdbServiceContext) {
   }
 
   function getSettings(): TmdbSettings {
-    const { tmdbAccessToken: _tmdbAccessToken, ...settings } = lifecycle.settings();
+    const { tmdbAccessToken: _tmdbAccessToken, ...settings } =
+      lifecycle.settings();
     return settings;
   }
 
-  async function setSettings(settings: TmdbSettingsQuery): Promise<TmdbSettings> {
+  async function setSettings(
+    settings: TmdbSettingsQuery
+  ): Promise<TmdbSettings> {
     await setTmdbSettings(context.db, settings);
 
     await reloadService();
@@ -69,7 +81,9 @@ export async function createTMDBService(context: TmdbServiceContext) {
   }
 
   async function testConnection(): Promise<boolean> {
-    return lifecycle.isConfigured() && (await lifecycle.client().testConnection());
+    return (
+      lifecycle.isConfigured() && (await lifecycle.client().testConnection())
+    );
   }
 
   async function testAndSync(): Promise<boolean> {
@@ -120,8 +134,12 @@ export async function createTMDBService(context: TmdbServiceContext) {
       response.results.map(item => transformMedia(item, genreMap))
     );
 
-    const sortedResults = allResults.sort((a, b) => b.popularity - a.popularity);
-    const totalPages = Math.max(...searchResponses.map(response => response.total_pages));
+    const sortedResults = allResults.sort(
+      (a, b) => b.popularity - a.popularity
+    );
+    const totalPages = Math.max(
+      ...searchResponses.map(response => response.total_pages)
+    );
 
     return {
       page,
@@ -179,7 +197,9 @@ export async function createTMDBService(context: TmdbServiceContext) {
 
     const responses = await Promise.all(
       MEDIA_TYPES.flatMap(type =>
-        pagesToFetch.map(page => client.trending(type, { language, time_window, page }))
+        pagesToFetch.map(page =>
+          client.trending(type, { language, time_window, page })
+        )
       )
     );
 
@@ -221,9 +241,14 @@ export async function createTMDBService(context: TmdbServiceContext) {
    * Find content by external tvdbId
    * Returns TMDB ID for content matching the external ID
    */
-  async function findByExternalId(type: MediaType, tvdbId: number): Promise<number | undefined> {
+  async function findByExternalId(
+    type: MediaType,
+    tvdbId: number
+  ): Promise<number | undefined> {
     const result = await lifecycle.client().findByExternalId(tvdbId, 'tvdb_id');
-    return type === 'movie' ? result.movie_results?.[0]?.id : result.tv_results?.[0]?.id;
+    return type === 'movie'
+      ? result.movie_results?.[0]?.id
+      : result.tv_results?.[0]?.id;
   }
 
   return {

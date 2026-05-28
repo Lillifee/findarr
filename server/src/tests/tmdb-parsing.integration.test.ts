@@ -108,7 +108,8 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
       const hasBatman = parsed.results.some(
         r =>
           (r.type === 'movie' && r.title?.toLowerCase().includes('batman')) ||
-          (r.type === 'movie' && r.original_title?.toLowerCase().includes('batman'))
+          (r.type === 'movie' &&
+            r.original_title?.toLowerCase().includes('batman'))
       );
       expect(hasBatman).toBe(true);
     });
@@ -285,7 +286,9 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
       const fixture = loadFixture('tmdb/popular-movies.json');
       const parsed = TMDBSearchResponseSchema.parse(fixture);
 
-      const mediaArray = parsed.results.map(item => transformMedia(item, genreMap));
+      const mediaArray = parsed.results.map(item =>
+        transformMedia(item, genreMap)
+      );
 
       expect(mediaArray.length).toBeGreaterThan(0);
       for (const media of mediaArray) {
@@ -301,7 +304,9 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
       const fixture = loadFixture('tmdb/popular-tv.json');
       const parsed = TMDBSearchResponseSchema.parse(fixture);
 
-      const mediaArray = parsed.results.map(item => transformMedia(item, genreMap));
+      const mediaArray = parsed.results.map(item =>
+        transformMedia(item, genreMap)
+      );
 
       expect(mediaArray.length).toBeGreaterThan(0);
       for (const media of mediaArray) {

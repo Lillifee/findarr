@@ -21,13 +21,20 @@ export function LikeDislikeButton({
   compact = false,
   existingMedia,
 }: LikeDislikeButtonProps) {
-  const [currentAction, setCurrentAction] = useState<'liked' | 'disliked' | null>(initialAction);
+  const [currentAction, setCurrentAction] = useState<
+    'liked' | 'disliked' | null
+  >(initialAction);
   const [isLoading, setIsLoading] = useState(false);
   const [isSeasonModalOpen, setIsSeasonModalOpen] = useState(false);
   const [tvDetails, setTvDetails] = useState<TVDetails | null>(null);
-  const [pendingAction, setPendingAction] = useState<'liked' | 'disliked' | null>(null);
+  const [pendingAction, setPendingAction] = useState<
+    'liked' | 'disliked' | null
+  >(null);
 
-  const performAction = async (action: 'liked' | 'disliked', selectedSeasons?: number[]) => {
+  const performAction = async (
+    action: 'liked' | 'disliked',
+    selectedSeasons?: number[]
+  ) => {
     setIsLoading(true);
     try {
       const updatedMedia = await interactionService.toggleInteraction(
@@ -119,7 +126,9 @@ export function LikeDislikeButton({
   // Only include seasons with actual status (not 'none')
   const alreadyRequestedSeasons =
     existingMedia?.type === 'tv' && existingMedia.state?.record?.seasons
-      ? existingMedia.state.record.seasons.filter(s => s.status !== 'none').map(s => s.seasonNumber)
+      ? existingMedia.state.record.seasons
+          .filter(s => s.status !== 'none')
+          .map(s => s.seasonNumber)
       : [];
 
   return (

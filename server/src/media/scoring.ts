@@ -56,11 +56,13 @@ export function scoreMediaItems(
     const globalAverage = stats.avgRating;
 
     // Normalize popularity (log scale)
-    const popularityScore = Math.log10(item.popularity + 1) / Math.log10(stats.maxPopularity + 1);
+    const popularityScore =
+      Math.log10(item.popularity + 1) / Math.log10(stats.maxPopularity + 1);
 
     // Bayesian weighted rating
     const bayes =
-      (item.voteCount / (item.voteCount + MIN_VOTES)) * (item.voteAverage || 0) +
+      (item.voteCount / (item.voteCount + MIN_VOTES)) *
+        (item.voteAverage || 0) +
       (MIN_VOTES / (item.voteCount + MIN_VOTES)) * globalAverage;
     const weightedRating = bayes / 10;
 
@@ -71,14 +73,19 @@ export function scoreMediaItems(
 
     // Recency score
     const recencyScore = item.date
-      ? Math.exp(-Math.abs(Date.now() - new Date(item.date).getTime()) / MS_PER_DAY / 365)
+      ? Math.exp(
+          -Math.abs(Date.now() - new Date(item.date).getTime()) /
+            MS_PER_DAY /
+            365
+        )
       : 0;
 
     // Base score (popularity + rating, no trending penalty)
     const baseScore = 0.3 * popularityScore + 0.7 * weightedRating;
 
     // Trending-boosted score (for popular page sorting)
-    const baseTrendingScore = 0.6 * baseScore + 0.2 * trendingScore + 0.2 * recencyScore;
+    const baseTrendingScore =
+      0.6 * baseScore + 0.2 * trendingScore + 0.2 * recencyScore;
 
     const score: MediaScore = {
       recencyScore,
@@ -141,7 +148,8 @@ export function scoreMediaItemsForUser(
         if (pref) {
           matched = true;
           const normalized =
-            (pref.score + PRIOR_WEIGHT * PRIOR_SCORE) / (pref.count + PRIOR_WEIGHT);
+            (pref.score + PRIOR_WEIGHT * PRIOR_SCORE) /
+            (pref.count + PRIOR_WEIGHT);
           rawScore += scoreContribution(normalized);
         }
       }
@@ -162,7 +170,9 @@ export function scoreMediaItemsForUser(
         if (!pref) continue;
 
         matched = true;
-        const normalized = (pref.score + PRIOR_WEIGHT * PRIOR_SCORE) / (pref.count + PRIOR_WEIGHT);
+        const normalized =
+          (pref.score + PRIOR_WEIGHT * PRIOR_SCORE) /
+          (pref.count + PRIOR_WEIGHT);
         rawScore += scoreContribution(normalized);
       }
 

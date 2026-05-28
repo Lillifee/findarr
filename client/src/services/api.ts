@@ -62,12 +62,16 @@ export const searchService = {
     return response.data;
   },
 
-  getNextUnvotedMedia: async (params: PopularQuery = {}): Promise<SwipeNextResponse> => {
+  getNextUnvotedMedia: async (
+    params: PopularQuery = {}
+  ): Promise<SwipeNextResponse> => {
     const response = await api.get('/next', { params });
     return response.data;
   },
 
-  getAvailableMedia: async (params: AvailableMediaQuery = {}): Promise<AvailableMediaResponse> => {
+  getAvailableMedia: async (
+    params: AvailableMediaQuery = {}
+  ): Promise<AvailableMediaResponse> => {
     const response = await api.get('/available', { params });
     return response.data;
   },
@@ -105,7 +109,9 @@ export const authService = {
     await api.put('/auth/password', payload);
   },
 
-  setupInitialPassword: async (payload: SetupInitialPassword): Promise<void> => {
+  setupInitialPassword: async (
+    payload: SetupInitialPassword
+  ): Promise<void> => {
     await api.put('/auth/password/setup', payload);
   },
 };
@@ -248,7 +254,9 @@ export const adminTmdbService = {
     const response = await api.get('/admin/tmdb/settings');
     return response.data;
   },
-  saveSettings: async (settings: { tmdbAccessToken?: string }): Promise<TmdbSettings> => {
+  saveSettings: async (settings: {
+    tmdbAccessToken?: string;
+  }): Promise<TmdbSettings> => {
     const response = await api.put('/admin/tmdb/settings', settings);
     return response.data;
   },
@@ -291,19 +299,22 @@ export const linkService = {
    * @param query - { mediaId: number }
    * @returns URL to Radarr movie page (browser will handle redirect)
    */
-  radarr: (query: ArrLinkQuery): string => `/api/radarr-link?mediaId=${query.mediaId}`,
+  radarr: (query: ArrLinkQuery): string =>
+    `/api/radarr-link?mediaId=${query.mediaId}`,
 
   /**
    * Get Sonarr link for a TV show
    * @param query - { mediaId: number }
    * @returns URL to Sonarr series page (browser will handle redirect)
    */
-  sonarr: (query: ArrLinkQuery): string => `/api/sonarr-link?mediaId=${query.mediaId}`,
+  sonarr: (query: ArrLinkQuery): string =>
+    `/api/sonarr-link?mediaId=${query.mediaId}`,
 
   /**
    * Get Jellyfin link for media
    * @param query - { mediaId: number }
    * @returns URL to Jellyfin item page (browser will handle redirect)
    */
-  jellyfin: (query: JellyfinLinkQuery): string => `/api/jellyfin-link?mediaId=${query.mediaId}`,
+  jellyfin: (query: JellyfinLinkQuery): string =>
+    `/api/jellyfin-link?mediaId=${query.mediaId}`,
 };

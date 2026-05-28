@@ -95,7 +95,9 @@ export function SettingsPage() {
       setConfirmPassword('');
       setPasswordSuccess('Password updated successfully.');
     } catch {
-      setPasswordError('Failed to change password. Check your current password and try again.');
+      setPasswordError(
+        'Failed to change password. Check your current password and try again.'
+      );
     } finally {
       setIsChangingPassword(false);
     }
@@ -113,7 +115,9 @@ export function SettingsPage() {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(340px,1fr)]">
         <Card variant="solid" padding="none" className="overflow-hidden">
           <div className="border-b border-gray-800 px-5 py-4 md:px-6">
-            <h2 className="text-lg font-semibold text-white">Content Preferences</h2>
+            <h2 className="text-lg font-semibold text-white">
+              Content Preferences
+            </h2>
           </div>
 
           <div className="space-y-6 px-5 py-5 md:px-6 md:py-6">
@@ -141,7 +145,9 @@ export function SettingsPage() {
                   disabled={false}
                 />
 
-                {settingsError && <p className="text-sm text-red-400">{settingsError}</p>}
+                {settingsError && (
+                  <p className="text-sm text-red-400">{settingsError}</p>
+                )}
               </>
             )}
           </div>
@@ -150,7 +156,9 @@ export function SettingsPage() {
         <Card variant="solid" padding="none" className="overflow-hidden">
           <div className="border-b border-gray-800 px-5 py-4 md:px-6">
             <h2 className="text-lg font-semibold text-white">Password</h2>
-            <p className="mt-1 text-sm text-gray-400">Update your sign-in password.</p>
+            <p className="mt-1 text-sm text-gray-400">
+              Update your sign-in password.
+            </p>
           </div>
 
           <form
@@ -186,8 +194,12 @@ export function SettingsPage() {
               required
             />
 
-            {passwordError && <p className="text-sm text-red-400">{passwordError}</p>}
-            {passwordSuccess && <p className="text-sm text-emerald-400">{passwordSuccess}</p>}
+            {passwordError && (
+              <p className="text-sm text-red-400">{passwordError}</p>
+            )}
+            {passwordSuccess && (
+              <p className="text-sm text-emerald-400">{passwordSuccess}</p>
+            )}
 
             <Button
               type="submit"

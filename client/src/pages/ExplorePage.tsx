@@ -1,4 +1,9 @@
-import type { GenreKey, InteractionFilter, SearchType, Media } from '@findarr/shared';
+import type {
+  GenreKey,
+  InteractionFilter,
+  SearchType,
+  Media,
+} from '@findarr/shared';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FiltersToolbar } from '../components/FiltersToolbar';
@@ -7,7 +12,10 @@ import { SearchBar } from '../components/SearchBar';
 import { Button } from '../components/ui/Button';
 import { useHistoryRestoreState } from '../hooks/useHistoryRestoreState';
 import { searchService, userSettingsService } from '../services/api';
-import { buildCatalogSearchParams, readCatalogSearchParams } from '../utils/catalogSearchParams';
+import {
+  buildCatalogSearchParams,
+  readCatalogSearchParams,
+} from '../utils/catalogSearchParams';
 
 interface PopularFeedState {
   currentPage: number;
@@ -25,7 +33,10 @@ interface PopularPageState extends PopularFeedState {
 }
 
 function areGenresEqual(left: GenreKey[], right: GenreKey[]) {
-  return left.length === right.length && left.every((genre, index) => genre === right[index]);
+  return (
+    left.length === right.length &&
+    left.every((genre, index) => genre === right[index])
+  );
 }
 
 function mergeUniqueResults(existing: Media[], incoming: Media[]) {
@@ -49,18 +60,23 @@ export function ExplorePage() {
   const initialSearchParams = readCatalogSearchParams(searchParams, {
     interaction: 'unvoted',
   });
-  const { restoredState, persistState } = useHistoryRestoreState<PopularPageState>();
+  const { restoredState, persistState } =
+    useHistoryRestoreState<PopularPageState>();
 
   const [results, setResults] = useState<Media[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [feedId, setFeedId] = useState<string | undefined>(undefined);
   const [totalPages, setTotalPages] = useState(0);
-  const [currentSearchType, setCurrentSearchType] = useState<SearchType>(initialSearchParams.type);
+  const [currentSearchType, setCurrentSearchType] = useState<SearchType>(
+    initialSearchParams.type
+  );
   const [currentQuery, setCurrentQuery] = useState(initialSearchParams.q);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [language, setLanguage] = useState<string>('de-DE');
-  const [selectedGenres, setSelectedGenres] = useState<GenreKey[]>(initialSearchParams.genres);
+  const [selectedGenres, setSelectedGenres] = useState<GenreKey[]>(
+    initialSearchParams.genres
+  );
   const [interactionFilter, setInteractionFilter] = useState<InteractionFilter>(
     initialSearchParams.interaction ?? 'unvoted'
   );
@@ -212,7 +228,10 @@ export function ExplorePage() {
           return mergedResults;
         });
       } catch (error) {
-        console.error(`Failed to load ${searchMode ? 'search' : 'popular'} results:`, error);
+        console.error(
+          `Failed to load ${searchMode ? 'search' : 'popular'} results:`,
+          error
+        );
       } finally {
         if (latestRequestIdRef.current === requestId) {
           if (append) {
@@ -242,7 +261,9 @@ export function ExplorePage() {
   }, []);
 
   const matchesVisibleFilters = useCallback(
-    (state: Pick<PopularPageState, 'type' | 'genres' | 'interaction' | 'query'>) =>
+    (
+      state: Pick<PopularPageState, 'type' | 'genres' | 'interaction' | 'query'>
+    ) =>
       state.type === currentSearchType &&
       areGenresEqual(state.genres, selectedGenres) &&
       state.interaction === interactionFilter &&
@@ -293,7 +314,11 @@ export function ExplorePage() {
       return;
     }
 
-    if (!hasConsumedRestoreRef.current && restoredState && matchesVisibleFilters(restoredState)) {
+    if (
+      !hasConsumedRestoreRef.current &&
+      restoredState &&
+      matchesVisibleFilters(restoredState)
+    ) {
       hasConsumedRestoreRef.current = true;
       restoreVisibleFeed(restoredState);
       requestAnimationFrame(() => {
@@ -305,7 +330,11 @@ export function ExplorePage() {
     hasConsumedRestoreRef.current = true;
 
     const popularSnapshot = popularSnapshotRef.current;
-    if (!isSearchMode && popularSnapshot && matchesPopularFilters(popularSnapshot)) {
+    if (
+      !isSearchMode &&
+      popularSnapshot &&
+      matchesPopularFilters(popularSnapshot)
+    ) {
       restoreVisibleFeed(popularSnapshot);
       return;
     }
@@ -400,13 +429,19 @@ export function ExplorePage() {
   const handleUpdateItem = (updatedItem: Media) => {
     if (!isSearchMode && interactionFilter === 'unvoted') {
       const filtered = results.filter(
-        item => !(item.tmdbId === updatedItem.tmdbId && item.type === updatedItem.type)
+        item =>
+          !(
+            item.tmdbId === updatedItem.tmdbId && item.type === updatedItem.type
+          )
       );
       setResults(filtered);
 
       // Keep in-memory snapshot in sync so navigating away/back doesn't restore the voted item.
       if (popularSnapshotRef.current) {
-        popularSnapshotRef.current = { ...popularSnapshotRef.current, results: filtered };
+        popularSnapshotRef.current = {
+          ...popularSnapshotRef.current,
+          results: filtered,
+        };
       }
 
       // Persist to history state so F5 doesn't restore the voted item.
@@ -430,7 +465,9 @@ export function ExplorePage() {
     // Keep optimistic in-place update and preserve the existing feed ordering.
     setResults(prev =>
       prev.map(item =>
-        item.tmdbId === updatedItem.tmdbId && item.type === updatedItem.type ? updatedItem : item
+        item.tmdbId === updatedItem.tmdbId && item.type === updatedItem.type
+          ? updatedItem
+          : item
       )
     );
   };

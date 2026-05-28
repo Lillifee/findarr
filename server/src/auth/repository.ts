@@ -84,10 +84,17 @@ export const createUser = async (
   return user;
 };
 
-export const updateUserPassword = async (db: Database, userId: number, password: string) => {
+export const updateUserPassword = async (
+  db: Database,
+  userId: number,
+  password: string
+) => {
   const passwordHash = await hashPassword(password);
 
-  const result = await db.update(users).set({ passwordHash }).where(eq(users.id, userId));
+  const result = await db
+    .update(users)
+    .set({ passwordHash })
+    .where(eq(users.id, userId));
 
   if (result.changes === 0) {
     throw NotFound('User not found');
@@ -98,7 +105,11 @@ export const updateUserPassword = async (db: Database, userId: number, password:
 // Delete Operations
 // ============================================================================
 
-export const deleteUser = async (db: Database, id: number, curUserId: number) => {
+export const deleteUser = async (
+  db: Database,
+  id: number,
+  curUserId: number
+) => {
   // Prevent deleting yourself
   if (curUserId === id) {
     throw Forbidden('Cannot delete your own account');

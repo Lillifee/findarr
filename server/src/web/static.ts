@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fastifyStatic } from '@fastify/static';
-import { type FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const clientDistDir = join(__dirname, '..', '..', '..', 'client', 'dist');
@@ -10,10 +10,15 @@ const clientAssetsDir = join(clientDistDir, 'assets');
 
 export async function registerStatic(server: FastifyInstance) {
   // Serve Vite build assets
-  await server.register(fastifyStatic, { root: clientAssetsDir, prefix: '/assets/' });
+  await server.register(fastifyStatic, {
+    root: clientAssetsDir,
+    prefix: '/assets/',
+  });
 
   // Root document
-  server.get('/', async (_request, reply) => reply.sendFile('index.html', clientDistDir));
+  server.get('/', async (_request, reply) =>
+    reply.sendFile('index.html', clientDistDir)
+  );
 
   // SPA fallback
   server.get('/*', async (request, reply) => {

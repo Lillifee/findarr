@@ -57,8 +57,17 @@ export function MediaDetailPage() {
       {/* Back button - Mobile: top-left, Desktop: aligned with content (accounting for sidebar) */}
       <div className="fixed top-4 md:top-8 left-0 right-0 md:left-64 z-100 pointer-events-none">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <Button onClick={handleBack} variant="secondary" className="pointer-events-auto">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <Button
+            onClick={handleBack}
+            variant="secondary"
+            className="pointer-events-auto"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"

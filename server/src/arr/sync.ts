@@ -56,7 +56,11 @@ export async function syncComplete(
   const durationSec = Math.round(durationMs / 1000);
 
   context.log.info(
-    { name: arrService.config.service, service: arrService.config.service, durationSec },
+    {
+      name: arrService.config.service,
+      service: arrService.config.service,
+      durationSec,
+    },
     'Library sync finished successfully'
   );
 }
@@ -81,13 +85,18 @@ export async function syncLibrary(
     return;
   }
 
-  log.info({ name: service, service, totalItems: libraryItems.length }, 'Fetched items');
+  log.info(
+    { name: service, service, totalItems: libraryItems.length },
+    'Fetched items'
+  );
 
   // For TV shows: Enrich with tmdbId during sync to avoid duplicate records
   // This prevents conflicts when Jellyfin already has the same show with tmdbId
   if (mediaType === 'tv') {
     const existingTvdbIdSet = await getExistingTvdbIdSet(db);
-    const queue = libraryItems.filter(item => item?.tvdbId && !existingTvdbIdSet.has(item.tvdbId));
+    const queue = libraryItems.filter(
+      item => item?.tvdbId && !existingTvdbIdSet.has(item.tvdbId)
+    );
 
     if (queue.length > 0) {
       await enrichTvShows(context, queue);
@@ -129,14 +138,21 @@ export async function syncLibrary(
     .filter(arrId => !currentArrIds.has(arrId));
 
   if (removedArrIds.length > 0) {
-    const clearedCount = await clearRemovedArrItems(db, removedArrIds, mediaType);
+    const clearedCount = await clearRemovedArrItems(
+      db,
+      removedArrIds,
+      mediaType
+    );
     log.info(
       { name: service, service, clearedCount },
       'Cleaned up removed items (reset to pending)'
     );
   }
 
-  log.info({ name: service, service, totalItems: libraryItems.length }, 'Library synced');
+  log.info(
+    { name: service, service, totalItems: libraryItems.length },
+    'Library synced'
+  );
 }
 
 /**
@@ -168,7 +184,12 @@ export async function enrichTvShows(
   });
 
   log.info(
-    { name: 'sonarr', service: 'sonarr', successCount, totalItems: queue.length },
+    {
+      name: 'sonarr',
+      service: 'sonarr',
+      successCount,
+      totalItems: queue.length,
+    },
     'Enrichment complete'
   );
 
@@ -189,7 +210,11 @@ export async function syncQueue(
   completedIds: number[];
   hasActiveDownloads: boolean;
 }> {
-  const statusUpdates: Array<{ arrId: number; type: MediaType; status: MediaStatus }> = [];
+  const statusUpdates: Array<{
+    arrId: number;
+    type: MediaType;
+    status: MediaStatus;
+  }> = [];
   const currentDownloadingIds = new Set<number>();
   const mediaType = arrService.config.mediaType;
 
@@ -217,7 +242,11 @@ export async function syncQueue(
   }
 
   statusUpdates.push(
-    ...Array.from(statusMap, ([arrId, status]) => ({ arrId, type: mediaType, status }))
+    ...Array.from(statusMap, ([arrId, status]) => ({
+      arrId,
+      type: mediaType,
+      status,
+    }))
   );
 
   // Update statuses for items IN queue
@@ -226,7 +255,9 @@ export async function syncQueue(
   }
 
   // Detect completions by comparing previous vs current downloading IDs
-  const completedIds = [...previousDownloadingIds].filter(id => !statusMap.has(id));
+  const completedIds = [...previousDownloadingIds].filter(
+    id => !statusMap.has(id)
+  );
 
   return {
     currentDownloadingIds,

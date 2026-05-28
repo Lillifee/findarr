@@ -31,7 +31,11 @@ function createHttpClient(baseUrl: string, apiKey: string): AxiosInstance {
  * Generic Arr client factory - works for both Radarr and Sonarr
  * Provides unified interface with service-specific implementations
  */
-export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKey: string) {
+export function createArrClient(
+  config: ArrServiceConfig,
+  baseUrl: string,
+  apiKey: string
+) {
   const client = createHttpClient(baseUrl, apiKey);
   const isSonarr = config.service === 'sonarr';
 
@@ -57,7 +61,9 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
     },
 
     async getQueue(pageSize: number): Promise<ArrQueueItem[]> {
-      const { data } = await client.get('/queue', { params: { page: 1, pageSize } });
+      const { data } = await client.get('/queue', {
+        params: { page: 1, pageSize },
+      });
       return ArrQueueResponseSchema.parse(data).records;
     },
 
@@ -102,7 +108,10 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
       return config.libraryItemSchema.parse(response.data);
     },
 
-    async updateLibrarySeasons(media: RadarrMovie | SonarrSeries, seasons?: number[]) {
+    async updateLibrarySeasons(
+      media: RadarrMovie | SonarrSeries,
+      seasons?: number[]
+    ) {
       if (!isSonarr || media.type !== 'tv' || !isDefined(seasons)) {
         return media;
       }
@@ -144,7 +153,10 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
       return SonarrEpisodeListSchema.parse(response.data);
     },
 
-    async updateEpisodeMonitoring(episodeIds: number[], monitored: boolean): Promise<void> {
+    async updateEpisodeMonitoring(
+      episodeIds: number[],
+      monitored: boolean
+    ): Promise<void> {
       if (episodeIds.length === 0) return;
       await client.put('/episode/monitor', { episodeIds, monitored });
     },
@@ -154,7 +166,9 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
       return z.array(config.libraryItemSchema).parse(response.data);
     },
 
-    async getLibraryItemById(arrId: number): Promise<RadarrMovie | SonarrSeries> {
+    async getLibraryItemById(
+      arrId: number
+    ): Promise<RadarrMovie | SonarrSeries> {
       const response = await client.get(`${config.mediaEndpoint}/${arrId}`);
       return config.libraryItemSchema.parse(response.data);
     },
@@ -172,7 +186,9 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
       id: number,
       seasons: { seasonNumber: number; monitored: boolean }[]
     ): Promise<void> {
-      await client.post('/seasonpass', { series: [{ id, seasons, monitored: true }] });
+      await client.post('/seasonpass', {
+        series: [{ id, seasons, monitored: true }],
+      });
     },
 
     async searchMissingEpisodes(seriesId: number): Promise<void> {

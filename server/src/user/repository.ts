@@ -8,7 +8,10 @@ const DEFAULT_USER_SETTINGS: UserSettings = {
   regions: ['western'],
 };
 
-export async function getOrCreateUserSettings(db: Database, userId: number): Promise<UserSettings> {
+export async function getOrCreateUserSettings(
+  db: Database,
+  userId: number
+): Promise<UserSettings> {
   const existing = await db.query.userSettings.findFirst({
     where: eq(userSettings.userId, userId),
   });

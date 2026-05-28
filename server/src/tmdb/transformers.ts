@@ -52,7 +52,9 @@ function transformMovie(
 ): Movie {
   // Map genre_ids to full genre objects
   const genres = tmdbMovie.genre_ids
-    ? tmdbMovie.genre_ids.map(id => genreMap.get(id)).filter((g): g is Genre => g !== undefined)
+    ? tmdbMovie.genre_ids
+        .map(id => genreMap.get(id))
+        .filter((g): g is Genre => g !== undefined)
     : [];
 
   return {
@@ -83,7 +85,9 @@ function transformTVShow(
 ): TVShow {
   // Map genre_ids to full genre objects
   const genres = tmdbTV.genre_ids
-    ? tmdbTV.genre_ids.map(id => genreMap.get(id)).filter((g): g is Genre => g !== undefined)
+    ? tmdbTV.genre_ids
+        .map(id => genreMap.get(id))
+        .filter((g): g is Genre => g !== undefined)
     : [];
 
   return {
@@ -108,14 +112,18 @@ function transformTVShow(
  * Transform TMDB Movie Details or TV Show Details to application type
  */
 export function transformDetails(item: TMDBMovieDetails | TMDBTVDetails) {
-  return item.type === 'movie' ? transformMovieDetails(item) : transformTVDetails(item);
+  return item.type === 'movie'
+    ? transformMovieDetails(item)
+    : transformTVDetails(item);
 }
 
 /**
  * Helper: Extract and transform cast members
  * Limits to top 15 actors sorted by order field
  */
-function extractCast(credits: TMDBCredits | undefined): CastMember[] | undefined {
+function extractCast(
+  credits: TMDBCredits | undefined
+): CastMember[] | undefined {
   if (!credits?.cast || credits.cast.length === 0) return undefined;
 
   return credits.cast.slice(0, 6).map(member => ({

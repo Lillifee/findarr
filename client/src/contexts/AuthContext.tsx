@@ -1,6 +1,13 @@
 import { isDefined, type User } from '@findarr/shared';
 import axios from 'axios';
-import { createContext, useCallback, useContext, useState, useEffect, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from 'react';
 import { authService } from '../services/api';
 
 interface AuthContextType {

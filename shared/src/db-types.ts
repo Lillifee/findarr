@@ -1,5 +1,5 @@
 import type { InferSelectModel } from 'drizzle-orm';
-import {
+import type {
   media,
   users,
   userMediaInteractions,
@@ -14,9 +14,15 @@ import {
 
 export type DbUser = InferSelectModel<typeof users>;
 export type DbMedia = InferSelectModel<typeof media>;
-export type DbUserMediaInteraction = InferSelectModel<typeof userMediaInteractions>;
-export type DbUserGenrePreference = InferSelectModel<typeof userGenrePreferences>;
-export type DbUserKeywordPreference = InferSelectModel<typeof userKeywordPreferences>;
+export type DbUserMediaInteraction = InferSelectModel<
+  typeof userMediaInteractions
+>;
+export type DbUserGenrePreference = InferSelectModel<
+  typeof userGenrePreferences
+>;
+export type DbUserKeywordPreference = InferSelectModel<
+  typeof userKeywordPreferences
+>;
 export type DbCatalogCache = InferSelectModel<typeof catalogCache>;
 
 // ============================================================================
@@ -29,7 +35,10 @@ export type UserKeywordPreference = Omit<DbUserKeywordPreference, 'userId'>;
 
 export type MediaUser = Omit<User, 'role'>;
 export type MediaRecord = Omit<DbMedia, 'tmdbId' | 'type'>;
-export type MediaInteraction = Omit<DbUserMediaInteraction, 'mediaId' | 'userId'>;
+export type MediaInteraction = Omit<
+  DbUserMediaInteraction,
+  'mediaId' | 'userId'
+>;
 
 export interface MediaInteractionWithUser extends MediaInteraction {
   user?: MediaUser;

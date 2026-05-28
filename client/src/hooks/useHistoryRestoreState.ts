@@ -12,11 +12,13 @@ interface LocationRestoreState<T> {
 
 export function useHistoryRestoreState<T>() {
   const location = useLocation();
-  const locationState = (location.state as LocationRestoreState<T> | null) ?? null;
+  const locationState =
+    (location.state as LocationRestoreState<T> | null) ?? null;
 
   const persistState = useCallback(
     (restoreState: T) => {
-      const historyState = (globalThis.history.state ?? {}) as HistoryStateWithUserData;
+      const historyState = (globalThis.history.state ??
+        {}) as HistoryStateWithUserData;
 
       const nextHistoryState = {
         ...historyState,

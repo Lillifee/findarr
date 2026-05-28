@@ -14,7 +14,20 @@ export interface RegionGroup {
 export const regionGroups = {
   western: {
     name: 'Western',
-    languages: ['en', 'de', 'fr', 'es', 'it', 'nl', 'pt', 'da', 'sv', 'no', 'fi', 'is'],
+    languages: [
+      'en',
+      'de',
+      'fr',
+      'es',
+      'it',
+      'nl',
+      'pt',
+      'da',
+      'sv',
+      'no',
+      'fi',
+      'is',
+    ],
     countries: [
       'US',
       'GB',
@@ -44,7 +57,21 @@ export const regionGroups = {
   },
   'eastern-europe': {
     name: 'Eastern Europe',
-    languages: ['pl', 'cs', 'sk', 'hu', 'ro', 'bg', 'hr', 'sl', 'ru', 'uk', 'lv', 'lt', 'et'],
+    languages: [
+      'pl',
+      'cs',
+      'sk',
+      'hu',
+      'ro',
+      'bg',
+      'hr',
+      'sl',
+      'ru',
+      'uk',
+      'lv',
+      'lt',
+      'et',
+    ],
     countries: [
       'PL',
       'CZ',

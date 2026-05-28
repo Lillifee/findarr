@@ -6,17 +6,21 @@ export async function readSettings<K extends string>(
   db: Database,
   keys: K[]
 ): Promise<Record<K, string | null>> {
-  const rows = await db.query.appSettings.findMany({ where: inArray(appSettings.key, keys) });
+  const rows = await db.query.appSettings.findMany({
+    where: inArray(appSettings.key, keys),
+  });
   const stored = new Map(rows.map(r => [r.key, r.value]));
-  return Object.fromEntries(keys.map(k => [k, stored.get(k) ?? null])) as Record<K, string | null>;
+  return Object.fromEntries(
+    keys.map(k => [k, stored.get(k) ?? null])
+  ) as Record<K, string | null>;
 }
 
 export async function writeSettings(
   db: Database,
   values: Partial<Record<string, string | undefined>>
 ): Promise<void> {
-  const entries = objectEntries(values).filter((entry): entry is [string, string] =>
-    isDefined(entry[1])
+  const entries = objectEntries(values).filter(
+    (entry): entry is [string, string] => isDefined(entry[1])
   );
   if (entries.length === 0) return;
   await Promise.all(

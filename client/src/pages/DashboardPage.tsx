@@ -86,7 +86,10 @@ export function DashboardPage() {
     setAvailableError(null);
 
     const [nextResult, availableResult] = await Promise.allSettled([
-      searchService.getNextUnvotedMedia({ type: 'both', interaction: 'unvoted' }),
+      searchService.getNextUnvotedMedia({
+        type: 'both',
+        interaction: 'unvoted',
+      }),
       searchService.getAvailableMedia({ page: 1, type: 'both' }),
     ]);
 
@@ -106,11 +109,16 @@ export function DashboardPage() {
 
     if (availableResult.status === 'fulfilled') {
       setAvailableResults(availableResult.value.results);
-      setAvailableHasMore(availableResult.value.page < availableResult.value.totalPages);
+      setAvailableHasMore(
+        availableResult.value.page < availableResult.value.totalPages
+      );
 
       setAvailableError(null);
     } else {
-      console.error('Failed to load newly available media:', availableResult.reason);
+      console.error(
+        'Failed to load newly available media:',
+        availableResult.reason
+      );
       setAvailableResults([]);
       setAvailableHasMore(false);
       setAvailableError('Newly available titles are unavailable right now.');
@@ -137,7 +145,9 @@ export function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">
           <SearchBar
             onSearch={query =>
-              void navigate(`/explore?${buildCatalogSearchParams({ q: query }).toString()}`)
+              void navigate(
+                `/explore?${buildCatalogSearchParams({ q: query }).toString()}`
+              )
             }
             loading={false}
           />
@@ -180,12 +190,18 @@ export function DashboardPage() {
                 )}
 
                 <div className="mt-6 flex flex-wrap gap-3">
-                  <Button onClick={asVoid(() => navigate(heroCopy.primaryAction.onClick))}>
+                  <Button
+                    onClick={asVoid(() =>
+                      navigate(heroCopy.primaryAction.onClick)
+                    )}
+                  >
                     {heroCopy.primaryAction.label}
                   </Button>
                   <Button
                     variant="secondary"
-                    onClick={asVoid(() => navigate(heroCopy.secondaryAction.onClick))}
+                    onClick={asVoid(() =>
+                      navigate(heroCopy.secondaryAction.onClick)
+                    )}
                   >
                     {heroCopy.secondaryAction.label}
                   </Button>
@@ -213,7 +229,9 @@ export function DashboardPage() {
           <section>
             <div className="mb-4 flex items-end justify-between gap-4">
               <div>
-                <h2 className="text-xl font-semibold text-white md:text-2xl">Newly available</h2>
+                <h2 className="text-xl font-semibold text-white md:text-2xl">
+                  Newly available
+                </h2>
               </div>
             </div>
 

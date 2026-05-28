@@ -9,7 +9,10 @@ import { createCatalogService } from '../catalog/service.js';
 import { syncCatalogCache } from '../catalog/sync.js';
 import { createDatabase } from '../db/service.js';
 import type { Database } from '../db/service.js';
-import { updateGenrePreference, updateKeywordPreference } from '../preferences/repository.js';
+import {
+  updateGenrePreference,
+  updateKeywordPreference,
+} from '../preferences/repository.js';
 import { TMDBSearchResponseSchema } from '../tmdb/schemas.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { transformMedia } from '../tmdb/transformers.js';
@@ -60,8 +63,12 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     const trendingItems = trendingWeekly.results.map((item, index) =>
       transformMedia(item, genreMap, { trendingRank: index + 1 })
     );
-    const movieItems = popularMovies.results.map(item => transformMedia(item, genreMap));
-    const tvItems = popularTV.results.map(item => transformMedia(item, genreMap));
+    const movieItems = popularMovies.results.map(item =>
+      transformMedia(item, genreMap)
+    );
+    const tvItems = popularTV.results.map(item =>
+      transformMedia(item, genreMap)
+    );
 
     // Mock TMDB service with fixture data (already transformed)
     const tmdbServiceMock: TMDBService = {
@@ -116,7 +123,10 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
   it('should score and sort popular media consistently - no user', async () => {
     // Get popular without user preferences
     const user = await createCatalogUser('popular-no-user@test.com');
-    const page1 = await catalogService.getPopularMedia({ type: 'both' }, user.id);
+    const page1 = await catalogService.getPopularMedia(
+      { type: 'both' },
+      user.id
+    );
 
     // Extract relevant scoring data for snapshot (round to avoid floating-point precision issues)
     const scoringSnapshot = page1.results.map(item => ({
@@ -160,11 +170,24 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     await updateGenrePreference(db, user.id, { id: 35, name: 'Comedy' }, -3);
 
     // Add keyword preference (dystopia, based on novel)
-    await updateKeywordPreference(db, user.id, { id: 4565, name: 'dystopia' }, 5);
-    await updateKeywordPreference(db, user.id, { id: 818, name: 'based on novel or book' }, 3);
+    await updateKeywordPreference(
+      db,
+      user.id,
+      { id: 4565, name: 'dystopia' },
+      5
+    );
+    await updateKeywordPreference(
+      db,
+      user.id,
+      { id: 818, name: 'based on novel or book' },
+      3
+    );
 
     // Get popular with user preferences
-    const page1 = await catalogService.getPopularMedia({ type: 'both' }, user.id);
+    const page1 = await catalogService.getPopularMedia(
+      { type: 'both' },
+      user.id
+    );
 
     // Extract relevant scoring data for snapshot (round to avoid floating-point precision issues)
     const scoringSnapshot = page1.results.map(item => ({
@@ -187,13 +210,17 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     }
 
     // Snapshot the ordering and scores with user preferences
-    expect(scoringSnapshot).toMatchSnapshot('popular-scoring-with-user-preferences');
+    expect(scoringSnapshot).toMatchSnapshot(
+      'popular-scoring-with-user-preferences'
+    );
   });
 
   it('should apply genre filtering to popular results', async () => {
     vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
 
-    const user = await createTestUserInDb(db, { email: 'genre-filter@test.com' });
+    const user = await createTestUserInDb(db, {
+      email: 'genre-filter@test.com',
+    });
 
     // Get popular filtered by Action genre from query filter
     const page1 = await catalogService.getPopularMedia(
@@ -219,7 +246,10 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
 
   it('should mix movies and TV shows in popular results', async () => {
     const user = await createCatalogUser('popular-types@test.com');
-    const page1 = await catalogService.getPopularMedia({ type: 'both' }, user.id);
+    const page1 = await catalogService.getPopularMedia(
+      { type: 'both' },
+      user.id
+    );
 
     // Extract types
     const types = page1.results.map(item => ({
@@ -252,8 +282,12 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
 
     // Create snapshot with computed defaults (copy these to TMDB_STAT_DEFAULTS)
     const computedDefaults = {
-      maxPopularity: Math.ceil(Math.max(movieStats.maxPopularity, tvStats.maxPopularity)),
-      maxVoteCount: Math.ceil(Math.max(movieStats.maxVoteCount, tvStats.maxVoteCount)),
+      maxPopularity: Math.ceil(
+        Math.max(movieStats.maxPopularity, tvStats.maxPopularity)
+      ),
+      maxVoteCount: Math.ceil(
+        Math.max(movieStats.maxVoteCount, tvStats.maxVoteCount)
+      ),
       avgRating: Math.ceil(Math.max(movieStats.avgRating, tvStats.avgRating)),
       movieStats: {
         maxPopularity: movieStats.maxPopularity,

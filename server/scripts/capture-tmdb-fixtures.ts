@@ -81,12 +81,16 @@ async function captureFixtures(): Promise<void> {
 
     // 3. Trending daily
     console.log('🔥 Fetching trending (daily)...');
-    const trendingDaily = await client.get('/trending/movie/day', { params: { page: 1 } });
+    const trendingDaily = await client.get('/trending/movie/day', {
+      params: { page: 1 },
+    });
     saveFixture('trending-daily.json', trendingDaily.data);
 
     // 4. Trending weekly
     console.log('🔥 Fetching trending (weekly)...');
-    const trendingWeekly = await client.get('/trending/movie/week', { params: { page: 1 } });
+    const trendingWeekly = await client.get('/trending/movie/week', {
+      params: { page: 1 },
+    });
     saveFixture('trending-weekly.json', trendingWeekly.data);
 
     // 5. Movie details with diverse characteristics
@@ -141,7 +145,9 @@ async function captureFixtures(): Promise<void> {
 
     await new Promise(resolve => setTimeout(resolve, 250));
 
-    const searchOffice = await client.get('/search/tv', { params: { query: 'office', page: 1 } });
+    const searchOffice = await client.get('/search/tv', {
+      params: { query: 'office', page: 1 },
+    });
     saveFixture('search-office.json', searchOffice.data);
 
     // 8. Edge cases

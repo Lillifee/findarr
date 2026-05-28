@@ -1,4 +1,10 @@
-import type { Media, Genre, Keyword, DbCatalogCache, MediaType } from '@findarr/shared';
+import type {
+  Media,
+  Genre,
+  Keyword,
+  DbCatalogCache,
+  MediaType,
+} from '@findarr/shared';
 import { catalogCache } from '@findarr/shared';
 import { eq, and, isNull, sql } from 'drizzle-orm';
 import type { Database } from '../db/service.js';
@@ -24,7 +30,9 @@ const mapCatalogCacheRowToMedia = (row: DbCatalogCache): Media => {
     voteCount: row.voteCount,
     popularity: row.popularity,
     originalLanguage: row.originalLanguage,
-    originCountry: row.originCountry ? JSON.parse(row.originCountry) : undefined,
+    originCountry: row.originCountry
+      ? JSON.parse(row.originCountry)
+      : undefined,
     genres: JSON.parse(row.genres) as Genre[],
     trendingRank: row.trendingRank ?? undefined,
   };
@@ -52,7 +60,9 @@ const mapMediaToCatalogCacheValues = (media: Media) => ({
   voteCount: media.voteCount,
   popularity: media.popularity,
   originalLanguage: media.originalLanguage,
-  originCountry: media.originCountry ? JSON.stringify(media.originCountry) : null,
+  originCountry: media.originCountry
+    ? JSON.stringify(media.originCountry)
+    : null,
   genres: JSON.stringify(media.genres),
   keywords: media.keywords ? JSON.stringify(media.keywords) : null,
   trendingRank: media.trendingRank ?? null,
@@ -62,7 +72,10 @@ const mapMediaToCatalogCacheValues = (media: Media) => ({
  * Insert or update catalog cache entries (batch upsert)
  * On conflict, updates all fields EXCEPT keywords (to preserve enrichment)
  */
-export const upsertCatalogCache = async (db: Database, items: Media[]): Promise<void> => {
+export const upsertCatalogCache = async (
+  db: Database,
+  items: Media[]
+): Promise<void> => {
   if (items.length === 0) return;
 
   // SQLite doesn't support batch upsert, so we need to do individual upserts
@@ -106,7 +119,8 @@ export const getCatalogCacheBatch = async (
  * Get all catalog cache entries
  */
 export const getAllCatalogCache = async (db: Database): Promise<Media[]> => {
-  const catalogCacheRows = (await db.query.catalogCache.findMany()) as DbCatalogCache[];
+  const catalogCacheRows =
+    (await db.query.catalogCache.findMany()) as DbCatalogCache[];
   return catalogCacheRows.map(row => mapCatalogCacheRowToMedia(row));
 };
 
@@ -132,7 +146,8 @@ export const cleanupCatalogCache = async (
   const entriesToDelete = allEntries.filter(
     entry =>
       !activeMediaKeys.some(
-        mediaKey => mediaKey.tmdbId === entry.tmdbId && mediaKey.type === entry.type
+        mediaKey =>
+          mediaKey.tmdbId === entry.tmdbId && mediaKey.type === entry.type
       )
   );
 
@@ -141,7 +156,12 @@ export const cleanupCatalogCache = async (
   for (const entry of entriesToDelete) {
     await db
       .delete(catalogCache)
-      .where(and(eq(catalogCache.tmdbId, entry.tmdbId), eq(catalogCache.type, entry.type)));
+      .where(
+        and(
+          eq(catalogCache.tmdbId, entry.tmdbId),
+          eq(catalogCache.type, entry.type)
+        )
+      );
     deletedCount++;
   }
 

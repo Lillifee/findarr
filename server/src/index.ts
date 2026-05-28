@@ -41,7 +41,13 @@ const server = Fastify({
       },
     },
     serializers: {
-      err: (err: Error & { code?: string; status?: number; response?: { data?: unknown } }) => ({
+      err: (
+        err: Error & {
+          code?: string;
+          status?: number;
+          response?: { data?: unknown };
+        }
+      ) => ({
         type: err.name,
         message: err.message,
         code: err.code,
@@ -60,7 +66,8 @@ async function start() {
 
     // Register CORS with credentials support
     await server.register(cors, {
-      origin: env.NODE_ENV === 'development' ? ['http://localhost:5173'] : false,
+      origin:
+        env.NODE_ENV === 'development' ? ['http://localhost:5173'] : false,
       credentials: true,
     });
 
@@ -71,8 +78,12 @@ async function start() {
     });
 
     // Register plugins
-    await server.register(databasePlugin, { dbPath: path.join(dataPath, 'findarr.db') });
-    await server.register(authPlugin, { secretPath: path.join(dataPath, 'session.secret') });
+    await server.register(databasePlugin, {
+      dbPath: path.join(dataPath, 'findarr.db'),
+    });
+    await server.register(authPlugin, {
+      secretPath: path.join(dataPath, 'session.secret'),
+    });
     await server.register(tmdbPlugin);
 
     await server.register(jellyfinPlugin);
@@ -81,7 +92,10 @@ async function start() {
     await server.register(schedulerPlugin);
 
     // Health check endpoint
-    server.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
+    server.get('/health', async () => ({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+    }));
 
     // Register API routes
     await server.register(authRoutes, { prefix: '/api/auth' });

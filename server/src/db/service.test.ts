@@ -1,4 +1,4 @@
-import SqlDatabase from 'better-sqlite3';
+import type SqlDatabase from 'better-sqlite3';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { createDatabase } from './service.js';
 
@@ -17,7 +17,9 @@ describe('setup', () => {
   it('creates users tables', () => {
     // Check users table exists
     const users = sqliteDb
-      .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
+      .prepare(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='users'"
+      )
       .get();
 
     expect(users).toBeTruthy();

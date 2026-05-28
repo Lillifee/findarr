@@ -1,5 +1,8 @@
 import axios, { type AxiosInstance } from 'axios';
-import { JellyfinItemsResponseSchema, type JellyfinItemsResponse } from './schemas.js';
+import {
+  JellyfinItemsResponseSchema,
+  type JellyfinItemsResponse,
+} from './schemas.js';
 
 export interface GetItemsParams {
   itemTypes: ('Movie' | 'Series' | 'Season')[];
@@ -26,7 +29,9 @@ export function createJellyfinClient(baseUrl: string, apiKey: string) {
   return {
     async testConnection(): Promise<boolean> {
       try {
-        const response = await client.get('/System/Info/Public', { timeout: 5000 });
+        const response = await client.get('/System/Info/Public', {
+          timeout: 5000,
+        });
         return response.status === 200;
       } catch {
         return false;
@@ -34,7 +39,13 @@ export function createJellyfinClient(baseUrl: string, apiKey: string) {
     },
 
     async getItems(params: GetItemsParams): Promise<JellyfinItemsResponse> {
-      const { itemTypes, parentId, startIndex = 0, limit = 100, recursive = true } = params;
+      const {
+        itemTypes,
+        parentId,
+        startIndex = 0,
+        limit = 100,
+        recursive = true,
+      } = params;
 
       const response = await client.get('/Items', {
         params: {

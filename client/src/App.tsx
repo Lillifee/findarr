@@ -72,7 +72,10 @@ function MainApp() {
           {isAdmin && (
             <>
               <Route path="/admin/users" element={<UserManagementPage />} />
-              <Route path="/admin/integrations" element={<IntegrationsSettingsPage />} />
+              <Route
+                path="/admin/integrations"
+                element={<IntegrationsSettingsPage />}
+              />
               <Route path="/admin/schedulers" element={<SchedulersPage />} />
             </>
           )}

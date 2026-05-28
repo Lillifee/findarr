@@ -19,7 +19,9 @@ describe('databasePlugin', () => {
   const mockDb = {
     query: {
       users: {
-        findMany: vi.fn(() => Promise.resolve([{ id: 1, email: 'test@test.com' }])),
+        findMany: vi.fn(() =>
+          Promise.resolve([{ id: 1, email: 'test@test.com' }])
+        ),
       },
     },
   } as unknown as Database;

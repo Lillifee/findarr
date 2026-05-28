@@ -6,12 +6,16 @@ export async function schedulerRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get('/schedulers', async () => fastify.scheduler.getState());
 }
 
-export async function adminSchedulerRoutes(fastify: FastifyInstance): Promise<void> {
+export async function adminSchedulerRoutes(
+  fastify: FastifyInstance
+): Promise<void> {
   fastify.addHook('preHandler', fastify.requireAdmin);
 
   // Admin only: Manually trigger scheduler
   fastify.post('/schedulers/:name/trigger', async request => {
-    await fastify.scheduler.trigger(SchedulerParamsSchema.parse(request.params));
+    await fastify.scheduler.trigger(
+      SchedulerParamsSchema.parse(request.params)
+    );
   });
 
   // Admin only: Start/enable scheduler

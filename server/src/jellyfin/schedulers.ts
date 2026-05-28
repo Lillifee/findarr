@@ -1,5 +1,9 @@
 import { getMediaByStatusPaginated } from '../media/repository.js';
-import { createScheduler, type Scheduler, type SchedulerContext } from '../scheduler/types.js';
+import {
+  createScheduler,
+  type Scheduler,
+  type SchedulerContext,
+} from '../scheduler/types.js';
 import { syncJellyfinLibrary } from './sync.js';
 
 /**
@@ -19,7 +23,10 @@ export function createJellyfinLibrarySyncScheduler(): Scheduler {
       const isConfigured = context.jellyfin.isConfigured();
 
       if (!isConfigured) {
-        context.log.debug({ name: 'jellyfin' }, 'Not configured - skipping sync');
+        context.log.debug(
+          { name: 'jellyfin' },
+          'Not configured - skipping sync'
+        );
         return false;
       }
 
@@ -38,7 +45,8 @@ export function createJellyfinQueueSyncScheduler(): Scheduler {
   return createScheduler(
     {
       name: 'jellyfinQueueSync',
-      description: 'Partial sync (10s) for recent downloads, self-terminates when done',
+      description:
+        'Partial sync (10s) for recent downloads, self-terminates when done',
       interval: 10 * 1000, // 10 seconds
       enabled: false, // Disabled by default, triggered manually
       runOnStartup: false,
@@ -48,7 +56,10 @@ export function createJellyfinQueueSyncScheduler(): Scheduler {
       const isConfigured = context.jellyfin.isConfigured();
 
       if (!isConfigured) {
-        context.log.debug({ name: 'jellyfin' }, 'Not configured - skipping sync');
+        context.log.debug(
+          { name: 'jellyfin' },
+          'Not configured - skipping sync'
+        );
         return false;
       }
 
@@ -60,10 +71,14 @@ export function createJellyfinQueueSyncScheduler(): Scheduler {
       // never change to available.
       // We added a maxRuntime of 2 minutes to prevent the scheduler from running indefinitely.
       // Would be nice collect those items and show them in the UI for manual intervention.
-      const downloadedMediaPage = await getMediaByStatusPaginated(context.db, ['downloaded'], {
-        offset: 0,
-        limit: 1,
-      });
+      const downloadedMediaPage = await getMediaByStatusPaginated(
+        context.db,
+        ['downloaded'],
+        {
+          offset: 0,
+          limit: 1,
+        }
+      );
 
       if (downloadedMediaPage.totalCount === 0) {
         context.log.info(

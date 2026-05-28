@@ -14,7 +14,10 @@ interface DatabasePluginOptions extends FastifyPluginOptions {
   dbPath: string;
 }
 
-const databasePlugin: FastifyPluginAsync<DatabasePluginOptions> = async (fastify, options) => {
+const databasePlugin: FastifyPluginAsync<DatabasePluginOptions> = async (
+  fastify,
+  options
+) => {
   const { dbPath } = options;
   const { db, sqliteDb } = createDatabase(dbPath);
   await seed(fastify, db);

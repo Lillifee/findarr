@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 /* Ensure proper scrolling behavior with fixed navigation */
 html {
@@ -18,20 +18,20 @@ body {
 }
 
 button:not(:disabled),
-[role='button']:not([aria-disabled='true']),
+[role="button"]:not([aria-disabled="true"]),
 a[href],
 summary,
 select:not(:disabled),
-input[type='button']:not(:disabled),
-input[type='submit']:not(:disabled),
-input[type='reset']:not(:disabled) {
+input[type="button"]:not(:disabled),
+input[type="submit"]:not(:disabled),
+input[type="reset"]:not(:disabled) {
   cursor: pointer;
 }
 
 button:disabled,
 select:disabled,
 input:disabled,
-[aria-disabled='true'] {
+[aria-disabled="true"] {
   cursor: not-allowed;
 }
 
@@ -47,13 +47,21 @@ input:disabled,
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #4b5563 0%, #374151 100%); /* gray-600 to gray-700 */
+  background: linear-gradient(
+    180deg,
+    #4b5563 0%,
+    #374151 100%
+  ); /* gray-600 to gray-700 */
   border-radius: 6px;
   border: 2px solid #1f2937; /* bg-gray-800 */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #6b7280 0%, #4b5563 100%); /* gray-500 to gray-600 */
+  background: linear-gradient(
+    180deg,
+    #6b7280 0%,
+    #4b5563 100%
+  ); /* gray-500 to gray-600 */
 }
 
 /* For Firefox */

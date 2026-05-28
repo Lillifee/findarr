@@ -1,6 +1,7 @@
 import type { ReactNode, SelectHTMLAttributes } from 'react';
 
-export interface SelectInputProps extends SelectHTMLAttributes<HTMLSelectElement> {
+export interface SelectInputProps
+  extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: boolean;
   children: ReactNode;
@@ -21,14 +22,31 @@ export function SelectInput({
 
   return (
     <div className="w-full">
-      {label && <label className="mb-2 block text-sm font-medium text-gray-300">{label}</label>}
+      {label && (
+        <label className="mb-2 block text-sm font-medium text-gray-300">
+          {label}
+        </label>
+      )}
       <div className="relative">
-        <select className={`${baseStyles} ${stateStyles} ${className}`} {...props}>
+        <select
+          className={`${baseStyles} ${stateStyles} ${className}`}
+          {...props}
+        >
           {children}
         </select>
         <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
           </svg>
         </span>
       </div>

@@ -22,7 +22,9 @@ export default function SeasonSelectorModal({
   alreadyRequestedSeasons = [],
   showName,
 }: SeasonSelectorModalProps) {
-  const [selectedSeasons, setSelectedSeasons] = useState<Set<number>>(new Set());
+  const [selectedSeasons, setSelectedSeasons] = useState<Set<number>>(
+    new Set()
+  );
 
   // Initialize selection with already requested seasons when modal opens
   useEffect(() => {
@@ -46,7 +48,9 @@ export default function SeasonSelectorModal({
 
   const handleSelectAll = () => {
     // Select all non-special seasons (including already requested)
-    const allSeasons = seasons.filter(s => s.seasonNumber > 0).map(s => s.seasonNumber);
+    const allSeasons = seasons
+      .filter(s => s.seasonNumber > 0)
+      .map(s => s.seasonNumber);
     setSelectedSeasons(new Set(allSeasons));
   };
 
@@ -97,7 +101,12 @@ export default function SeasonSelectorModal({
             className="shrink-0"
             aria-label="Close"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -129,7 +138,9 @@ export default function SeasonSelectorModal({
 
           <div className="grid grid-cols-1 gap-2">
             {regularSeasons.map(season => {
-              const isAlreadyRequested = alreadyRequestedSeasons.includes(season.seasonNumber);
+              const isAlreadyRequested = alreadyRequestedSeasons.includes(
+                season.seasonNumber
+              );
               const isSelected = selectedSeasons.has(season.seasonNumber);
               const status = season.status || 'none';
 
@@ -156,14 +167,20 @@ export default function SeasonSelectorModal({
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <div className="font-medium text-sm text-white truncate">{season.name}</div>
+                      <div className="font-medium text-sm text-white truncate">
+                        {season.name}
+                      </div>
                       {/* Show status badge based on season.status field */}
                       {badgeStatusMap[status] && (
-                        <StatusBadge status={badgeStatusMap[status]} size="sm" />
+                        <StatusBadge
+                          status={badgeStatusMap[status]}
+                          size="sm"
+                        />
                       )}
                     </div>
                     <div className="text-xs text-gray-400">
-                      {season.episodeCount} ep{season.episodeCount === 1 ? '' : 's'}
+                      {season.episodeCount} ep
+                      {season.episodeCount === 1 ? '' : 's'}
                     </div>
                   </div>
                 </label>
@@ -176,7 +193,8 @@ export default function SeasonSelectorModal({
         <div className="border-t border-gray-700/50 p-4">
           {newlySelectedCount > 0 && (
             <p className="text-xs text-gray-300 mb-3">
-              {newlySelectedCount} new season{newlySelectedCount === 1 ? '' : 's'} to request
+              {newlySelectedCount} new season
+              {newlySelectedCount === 1 ? '' : 's'} to request
             </p>
           )}
 

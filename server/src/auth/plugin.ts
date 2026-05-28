@@ -21,8 +21,14 @@ declare module '@fastify/secure-session' {
 
 declare module 'fastify' {
   interface FastifyInstance {
-    requireAuth: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
-    requireAdmin: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    requireAuth: (
+      request: FastifyRequest,
+      reply: FastifyReply
+    ) => Promise<void>;
+    requireAdmin: (
+      request: FastifyRequest,
+      reply: FastifyReply
+    ) => Promise<void>;
   }
 
   interface FastifyRequest {
@@ -44,7 +50,10 @@ function loadOrCreateSecret(secretPath: string) {
   return secret;
 }
 
-const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, options) => {
+const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (
+  fastify,
+  options
+) => {
   // Register cookie support
   await fastify.register(cookie);
 
@@ -62,34 +71,40 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, option
   });
 
   // Helper to require authentication
-  fastify.decorate('requireAuth', async (request: FastifyRequest, reply: FastifyReply) => {
-    const userId = request.session.get('userId');
+  fastify.decorate(
+    'requireAuth',
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const userId = request.session.get('userId');
 
-    if (!userId) {
-      return reply.code(401).send({ error: 'Authentication required' });
+      if (!userId) {
+        return reply.code(401).send({ error: 'Authentication required' });
+      }
+
+      const user = await getUserById(fastify.db, userId);
+
+      if (!user) {
+        // User was deleted, clear session
+        request.session.delete();
+        return reply.code(401).send({ error: 'Authentication required' });
+      }
+
+      // Attach user to request
+      request.user = removePasswordHash(user);
     }
-
-    const user = await getUserById(fastify.db, userId);
-
-    if (!user) {
-      // User was deleted, clear session
-      request.session.delete();
-      return reply.code(401).send({ error: 'Authentication required' });
-    }
-
-    // Attach user to request
-    request.user = removePasswordHash(user);
-  });
+  );
 
   // Helper to require admin role
-  fastify.decorate('requireAdmin', async (request: FastifyRequest, reply: FastifyReply) => {
-    await fastify.requireAuth(request, reply);
+  fastify.decorate(
+    'requireAdmin',
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      await fastify.requireAuth(request, reply);
 
-    if (reply.sent) return; // Already sent 401
-    if (request.user?.role !== 'admin') {
-      return reply.code(403).send({ error: 'Admin access required' });
+      if (reply.sent) return; // Already sent 401
+      if (request.user?.role !== 'admin') {
+        return reply.code(403).send({ error: 'Admin access required' });
+      }
     }
-  });
+  );
 
   fastify.log.info({ name: 'auth' }, 'Authentication plugin initialized');
 };

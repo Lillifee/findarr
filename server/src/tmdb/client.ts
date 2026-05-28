@@ -37,7 +37,10 @@ export function createTMDBClient(accessToken: string) {
   }
 
   /** Search for movies or tv shows */
-  async function search(type: MediaType, params: TMDBSearchParams | TMDBTVSearchParams) {
+  async function search(
+    type: MediaType,
+    params: TMDBSearchParams | TMDBTVSearchParams
+  ) {
     const response = await client.get(`/search/${type}`, { params });
     return TMDBSearchResponseSchema.parse(response.data);
   }
@@ -46,7 +49,10 @@ export function createTMDBClient(accessToken: string) {
    * Discover movies or tv shows with filters.
    * All TMDB discover parameters are supported - see TMDBDiscoverParams interface for full list.
    */
-  async function discover(type: MediaType, params: Partial<TMDBDiscoverParams>) {
+  async function discover(
+    type: MediaType,
+    params: Partial<TMDBDiscoverParams>
+  ) {
     const response = await client.get(`/discover/${type}`, { params });
     return TMDBSearchResponseSchema.parse(response.data);
   }

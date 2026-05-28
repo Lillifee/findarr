@@ -1,4 +1,8 @@
-import { createScheduler, type Scheduler, type SchedulerContext } from '../scheduler/types.js';
+import {
+  createScheduler,
+  type Scheduler,
+  type SchedulerContext,
+} from '../scheduler/types.js';
 import type { AnyArrService } from './service.js';
 import { syncComplete, syncLibrary, syncQueue } from './sync.js';
 
@@ -7,7 +11,9 @@ import { syncComplete, syncLibrary, syncQueue } from './sync.js';
  * Creates a scheduler for complete library sync (Radarr or Sonarr)
  * Runs every 30 minutes
  */
-export function createArrLibrarySyncScheduler(arrService: AnyArrService): Scheduler {
+export function createArrLibrarySyncScheduler(
+  arrService: AnyArrService
+): Scheduler {
   return createScheduler(
     {
       name: `${arrService.config.service}LibrarySync`,
@@ -28,7 +34,9 @@ export function createArrLibrarySyncScheduler(arrService: AnyArrService): Schedu
  * Creates a scheduler that checks for active downloads every 2 minutes
  * Triggers fast scheduler when downloads detected
  */
-export function createArrQueueMonitorScheduler(arrService: AnyArrService): Scheduler {
+export function createArrQueueMonitorScheduler(
+  arrService: AnyArrService
+): Scheduler {
   const fastSyncName = `${arrService.config.service}QueueFastSync` as const;
 
   return createScheduler(
@@ -67,7 +75,9 @@ export function createArrQueueMonitorScheduler(arrService: AnyArrService): Sched
  * Detects completions and triggers library + Jellyfin queue sync
  * Self-terminates when no active downloads
  */
-export function createArrQueueFastSyncScheduler(arrService: AnyArrService): Scheduler {
+export function createArrQueueFastSyncScheduler(
+  arrService: AnyArrService
+): Scheduler {
   // Closure-scoped state for tracking downloads across runs
   let previousDownloadingIds = new Set<number>();
 
@@ -82,11 +92,8 @@ export function createArrQueueFastSyncScheduler(arrService: AnyArrService): Sche
     },
     async (context: SchedulerContext) => {
       // Sync queue and get current state
-      const { currentDownloadingIds, completedIds, hasActiveDownloads } = await syncQueue(
-        context,
-        arrService,
-        previousDownloadingIds
-      );
+      const { currentDownloadingIds, completedIds, hasActiveDownloads } =
+        await syncQueue(context, arrService, previousDownloadingIds);
 
       // Handle completions
       if (completedIds.length > 0) {

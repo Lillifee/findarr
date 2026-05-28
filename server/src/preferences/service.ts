@@ -1,6 +1,9 @@
 import type { Genre, Keyword, InteractionType } from '@findarr/shared';
 import type { Database } from '../db/service.js';
-import { updateGenrePreference, updateKeywordPreference } from './repository.js';
+import {
+  updateGenrePreference,
+  updateKeywordPreference,
+} from './repository.js';
 
 // ============================================================================
 // User Preferences Service - Business Logic
@@ -25,7 +28,9 @@ export async function updateGenreFromInteraction(
   const scoreDelta = isToggle ? -baseScore : baseScore;
 
   // Update preferences for all genres in the media item
-  await Promise.all(genres.map(genre => updateGenrePreference(db, userId, genre, scoreDelta)));
+  await Promise.all(
+    genres.map(genre => updateGenrePreference(db, userId, genre, scoreDelta))
+  );
 }
 
 /**
@@ -44,7 +49,9 @@ export async function updateKeywordFromInteraction(
 
   // Update preferences for all keywords in the media item
   await Promise.all(
-    keywords.map(keyword => updateKeywordPreference(db, userId, keyword, scoreDelta))
+    keywords.map(keyword =>
+      updateKeywordPreference(db, userId, keyword, scoreDelta)
+    )
   );
 }
 

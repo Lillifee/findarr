@@ -48,13 +48,17 @@ export function createSchedulerService(
       const shouldContinue = await scheduler.run(fastify);
 
       const duration = Date.now() - now;
-      const totalRuntime = scheduler.state.startedAt ? Date.now() - scheduler.state.startedAt : 0;
+      const totalRuntime = scheduler.state.startedAt
+        ? Date.now() - scheduler.state.startedAt
+        : 0;
 
       scheduler.state.lastRun = now;
       scheduler.state.lastDuration = duration;
 
       const exceededMaxRuntime =
-        shouldContinue && scheduler.config.maxRuntime && totalRuntime > scheduler.config.maxRuntime;
+        shouldContinue &&
+        scheduler.config.maxRuntime &&
+        totalRuntime > scheduler.config.maxRuntime;
 
       const belowMinRuntime =
         !shouldContinue &&
@@ -155,7 +159,11 @@ export function createSchedulerService(
       // Execute scheduler (async, don't await to prevent blocking other schedulers)
       executeScheduler(scheduler).catch(error => {
         fastify.log.error(
-          { name: 'scheduler', schedulerName: scheduler.config.name, err: error },
+          {
+            name: 'scheduler',
+            schedulerName: scheduler.config.name,
+            err: error,
+          },
           'Unexpected error in scheduler execution'
         );
       });
@@ -187,7 +195,10 @@ export function createSchedulerService(
         scheduler.state.nextRun = Date.now();
       }
 
-      fastify.log.info({ name: 'scheduler', schedulerName: params.name }, 'Scheduler started');
+      fastify.log.info(
+        { name: 'scheduler', schedulerName: params.name },
+        'Scheduler started'
+      );
     },
 
     /**
@@ -202,7 +213,10 @@ export function createSchedulerService(
       scheduler.state.nextRun = null;
       scheduler.state.startedAt = null;
 
-      fastify.log.info({ name: 'scheduler', schedulerName: params.name }, 'Scheduler stopped');
+      fastify.log.info(
+        { name: 'scheduler', schedulerName: params.name },
+        'Scheduler stopped'
+      );
     },
 
     /**
@@ -260,7 +274,10 @@ export function createSchedulerService(
         clearTimeout(timer);
         timer = null;
       }
-      fastify.log.info({ name: 'scheduler' }, 'Stopped scheduler orchestration');
+      fastify.log.info(
+        { name: 'scheduler' },
+        'Stopped scheduler orchestration'
+      );
     },
   };
 }

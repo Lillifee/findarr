@@ -87,20 +87,28 @@ export function UserManagement() {
           <form onSubmit={asVoid(handleCreateUser)} className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="mb-1.5 block text-sm text-gray-300">Email</label>
+                <label className="mb-1.5 block text-sm text-gray-300">
+                  Email
+                </label>
                 <Input
                   type="email"
                   value={formData.email}
-                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  onChange={e =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
                   required
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm text-gray-300">Display Name</label>
+                <label className="mb-1.5 block text-sm text-gray-300">
+                  Display Name
+                </label>
                 <Input
                   type="text"
                   value={formData.displayName}
-                  onChange={e => setFormData({ ...formData, displayName: e.target.value })}
+                  onChange={e =>
+                    setFormData({ ...formData, displayName: e.target.value })
+                  }
                   required
                 />
               </div>
@@ -108,11 +116,15 @@ export function UserManagement() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="mb-1.5 block text-sm text-gray-300">Password</label>
+                <label className="mb-1.5 block text-sm text-gray-300">
+                  Password
+                </label>
                 <Input
                   type="password"
                   value={formData.password}
-                  onChange={e => setFormData({ ...formData, password: e.target.value })}
+                  onChange={e =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
                   required
                   minLength={8}
                 />
@@ -122,7 +134,10 @@ export function UserManagement() {
                   label="Role"
                   value={formData.role}
                   onChange={e =>
-                    setFormData({ ...formData, role: e.target.value as 'user' | 'admin' })
+                    setFormData({
+                      ...formData,
+                      role: e.target.value as 'user' | 'admin',
+                    })
                   }
                 >
                   <option value="user">User</option>
@@ -154,7 +169,11 @@ export function UserManagement() {
         </Card>
       )}
 
-      <Card variant="solid" padding="none" className="hidden overflow-x-auto md:block">
+      <Card
+        variant="solid"
+        padding="none"
+        className="hidden overflow-x-auto md:block"
+      >
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-gray-800 text-left text-sm text-gray-400">
@@ -167,9 +186,16 @@ export function UserManagement() {
           </thead>
           <tbody>
             {users.map(user => (
-              <tr key={user.id} className="border-b border-gray-800 last:border-b-0">
-                <td className="px-5 py-4 text-sm text-gray-300">{user.email}</td>
-                <td className="px-5 py-4 text-sm text-white">{user.displayName}</td>
+              <tr
+                key={user.id}
+                className="border-b border-gray-800 last:border-b-0"
+              >
+                <td className="px-5 py-4 text-sm text-gray-300">
+                  {user.email}
+                </td>
+                <td className="px-5 py-4 text-sm text-white">
+                  {user.displayName}
+                </td>
                 <td className="px-5 py-4">
                   <span
                     className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${
@@ -202,11 +228,20 @@ export function UserManagement() {
 
       <div className="space-y-3 md:hidden">
         {users.map(user => (
-          <Card key={user.id} variant="solid" padding="md" className="space-y-3">
+          <Card
+            key={user.id}
+            variant="solid"
+            padding="md"
+            className="space-y-3"
+          >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <h3 className="mb-1 text-sm font-semibold text-white">{user.displayName}</h3>
-                <div className="truncate text-xs text-gray-400">{user.email}</div>
+                <h3 className="mb-1 text-sm font-semibold text-white">
+                  {user.displayName}
+                </h3>
+                <div className="truncate text-xs text-gray-400">
+                  {user.email}
+                </div>
               </div>
               <span
                 className={`inline-flex shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium ${

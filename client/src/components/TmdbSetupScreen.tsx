@@ -8,16 +8,27 @@ import { Input } from './ui/Input';
 
 type FeedbackTone = 'error' | 'success';
 
-function InlineFeedback({ tone, message }: { tone: FeedbackTone; message: string }) {
+function InlineFeedback({
+  tone,
+  message,
+}: {
+  tone: FeedbackTone;
+  message: string;
+}) {
   const toneClass =
-    tone === 'error' ? 'border-red-800/60 text-red-300' : 'border-emerald-800/60 text-emerald-300';
+    tone === 'error'
+      ? 'border-red-800/60 text-red-300'
+      : 'border-emerald-800/60 text-emerald-300';
   const dotClass = tone === 'error' ? 'bg-red-400' : 'bg-emerald-400';
 
   return (
     <div
       className={`flex items-center gap-2 rounded-lg border border-dashed bg-gray-900/30 px-3 py-2 text-sm ${toneClass}`}
     >
-      <span className={`h-2 w-2 flex-none rounded-full ${dotClass}`} aria-hidden="true" />
+      <span
+        className={`h-2 w-2 flex-none rounded-full ${dotClass}`}
+        aria-hidden="true"
+      />
       <span>{message}</span>
     </div>
   );
@@ -110,13 +121,17 @@ export function TmdbSetupScreen() {
               <p className="mb-5 inline-flex rounded-full border border-amber-400/25 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-300">
                 Setup Required
               </p>
-              <h1 className="mb-2 text-3xl font-bold text-white sm:text-4xl">Connect TMDB</h1>
+              <h1 className="mb-2 text-3xl font-bold text-white sm:text-4xl">
+                Connect TMDB
+              </h1>
               <p className="max-w-xl text-sm leading-5 mt-2 text-gray-400">
-                This product uses the TMDB API but is not endorsed or certified by TMDB.
+                This product uses the TMDB API but is not endorsed or certified
+                by TMDB.
               </p>
               <p className="max-w-xl text-sm leading-5 mt-2 text-gray-400">
-                Finish the initial Findarr setup by adding a TMDB read access token. This enables
-                search, discovery, and full media metadata throughout the app.
+                Finish the initial Findarr setup by adding a TMDB read access
+                token. This enables search, discovery, and full media metadata
+                throughout the app.
               </p>
             </div>
           </div>
@@ -164,16 +179,25 @@ export function TmdbSetupScreen() {
                 setSuccess('');
                 setTokenInput(e.target.value);
               }}
-              placeholder={savedTokenSet ? '••••••••••••••••' : 'Enter TMDB access token'}
+              placeholder={
+                savedTokenSet ? '••••••••••••••••' : 'Enter TMDB access token'
+              }
               autoComplete="new-password"
               className="min-h-12"
             />
 
-            {feedback && <InlineFeedback tone={feedback.tone} message={feedback.message} />}
+            {feedback && (
+              <InlineFeedback tone={feedback.tone} message={feedback.message} />
+            )}
 
             <Button
               type="submit"
-              disabled={isLoading || isSaving || isTesting || (!tokenInput && !savedTokenSet)}
+              disabled={
+                isLoading ||
+                isSaving ||
+                isTesting ||
+                (!tokenInput && !savedTokenSet)
+              }
               className="w-full min-h-12 text-sm"
             >
               {isSaving || isTesting ? 'Finishing…' : 'Finish'}

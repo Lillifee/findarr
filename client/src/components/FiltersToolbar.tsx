@@ -74,7 +74,12 @@ export function FiltersToolbar({
       onClick={() => setFiltersExpanded(current => !current)}
       className="ml-auto inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-gray-700/50 bg-gray-800/70 px-3.5 py-2 text-sm font-medium text-gray-200 backdrop-blur-sm transition-colors hover:border-gray-500 hover:bg-gray-700/80 hover:text-white cursor-pointer whitespace-nowrap"
     >
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg
+        className="w-4 h-4"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -108,14 +113,21 @@ export function FiltersToolbar({
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <h3 className="text-lg font-semibold text-white">Filters</h3>
-                  <p className="mt-1 text-sm text-gray-500">{filterDescription}</p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {filterDescription}
+                  </p>
                 </div>
                 <button
                   onClick={() => setFiltersExpanded(false)}
                   className="flex items-center gap-1.5 self-start rounded-lg border border-gray-700/50 bg-gray-800/70 px-3 py-1.5 text-xs font-medium text-gray-400 hover:border-gray-500 hover:bg-gray-700/80 hover:text-white transition-colors cursor-pointer"
                 >
                   <span>Close</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -129,44 +141,52 @@ export function FiltersToolbar({
 
             <div className="p-4 md:p-5">
               <div className="flex flex-col gap-4">
-                {showInteractionFilter && interactionFilter && onInteractionFilterChange && (
-                  <div className="rounded-xl border border-gray-700/50 bg-gray-800/70 p-4">
-                    <div className="mb-2.5">
-                      <h4 className="text-sm font-semibold text-white">Voting status</h4>
-                    </div>
+                {showInteractionFilter &&
+                  interactionFilter &&
+                  onInteractionFilterChange && (
+                    <div className="rounded-xl border border-gray-700/50 bg-gray-800/70 p-4">
+                      <div className="mb-2.5">
+                        <h4 className="text-sm font-semibold text-white">
+                          Voting status
+                        </h4>
+                      </div>
 
-                    <div className="grid gap-2.5 md:grid-cols-3">
-                      {interactionOptions.map(option => {
-                        const isSelected = interactionFilter === option.value;
+                      <div className="grid gap-2.5 md:grid-cols-3">
+                        {interactionOptions.map(option => {
+                          const isSelected = interactionFilter === option.value;
 
-                        return (
-                          <OptionButton
-                            key={option.value}
-                            disabled={disabled}
-                            onClick={() => onInteractionFilterChange(option.value)}
-                            selected={isSelected}
-                            title={option.label}
-                            description={option.description}
-                            icon={
-                              <span
-                                className={`flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${
-                                  isSelected
-                                    ? 'border-gray-500 bg-gray-200/90 text-gray-900'
-                                    : 'border-gray-600/70 bg-transparent text-transparent'
-                                }`}
-                              >
-                                ✓
-                              </span>
-                            }
-                            className={
-                              disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
-                            }
-                          />
-                        );
-                      })}
+                          return (
+                            <OptionButton
+                              key={option.value}
+                              disabled={disabled}
+                              onClick={() =>
+                                onInteractionFilterChange(option.value)
+                              }
+                              selected={isSelected}
+                              title={option.label}
+                              description={option.description}
+                              icon={
+                                <span
+                                  className={`flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${
+                                    isSelected
+                                      ? 'border-gray-500 bg-gray-200/90 text-gray-900'
+                                      : 'border-gray-600/70 bg-transparent text-transparent'
+                                  }`}
+                                >
+                                  ✓
+                                </span>
+                              }
+                              className={
+                                disabled
+                                  ? 'cursor-not-allowed opacity-50'
+                                  : 'cursor-pointer'
+                              }
+                            />
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 {extraFiltersContent}
 
@@ -189,7 +209,11 @@ export function FiltersToolbar({
   if (disableWrapper) {
     return (
       <div className="flex w-full shrink-0 items-center gap-3 md:w-auto">
-        <MediaTypeChips selectedType={selectedType} onChange={onTypeChange} disabled={disabled} />
+        <MediaTypeChips
+          selectedType={selectedType}
+          onChange={onTypeChange}
+          disabled={disabled}
+        />
         {filterButton}
         {filterPanel && createPortal(filterPanel, document.body)}
       </div>

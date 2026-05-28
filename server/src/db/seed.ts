@@ -23,14 +23,20 @@ export async function seed(fastify: FastifyInstance, db: Database) {
     });
 
     fastify.log.info({ name: 'seed' }, 'Admin user created successfully');
-    fastify.log.info({ name: 'seed', email: 'admin@findarr.com' }, 'Bootstrap admin email');
+    fastify.log.info(
+      { name: 'seed', email: 'admin@findarr.com' },
+      'Bootstrap admin email'
+    );
     fastify.log.warn(
       { name: 'seed' },
       'Bootstrap admin password is changeme - change it after first login'
     );
     fastify.log.info({ name: 'seed' }, 'Database setup and seed complete');
   } catch (error) {
-    fastify.log.error({ name: 'seed', error: getErrorMessage(error) }, 'Error seeding database');
+    fastify.log.error(
+      { name: 'seed', error: getErrorMessage(error) },
+      'Error seeding database'
+    );
     throw error;
   }
 }

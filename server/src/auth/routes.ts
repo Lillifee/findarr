@@ -6,7 +6,12 @@ import {
 } from '@findarr/shared';
 import type { FastifyPluginAsync } from 'fastify';
 import { protectedRoute } from '../utils/routes.js';
-import { changePassword, isPasswordSetupRequired, login, setupInitialPassword } from './service.js';
+import {
+  changePassword,
+  isPasswordSetupRequired,
+  login,
+  setupInitialPassword,
+} from './service.js';
 
 export const authRoutes: FastifyPluginAsync = async fastify => {
   // Login endpoint
@@ -36,7 +41,11 @@ export const protectedAuthRoutes: FastifyPluginAsync = async fastify => {
     '/password',
 
     protectedRoute(async r => {
-      await changePassword(fastify.db, r.user.id, ChangePasswordSchema.parse(r.body));
+      await changePassword(
+        fastify.db,
+        r.user.id,
+        ChangePasswordSchema.parse(r.body)
+      );
       return { success: true };
     })
   );
@@ -45,7 +54,11 @@ export const protectedAuthRoutes: FastifyPluginAsync = async fastify => {
     '/password/setup',
 
     protectedRoute(async r => {
-      await setupInitialPassword(fastify.db, r.user.id, SetupInitialPasswordSchema.parse(r.body));
+      await setupInitialPassword(
+        fastify.db,
+        r.user.id,
+        SetupInitialPasswordSchema.parse(r.body)
+      );
       return { success: true };
     })
   );
@@ -56,7 +69,10 @@ export const protectedAuthRoutes: FastifyPluginAsync = async fastify => {
 
     protectedRoute<AppBootstrapStatus>(async r => ({
       tmdbConfigured: await fastify.tmdb.isConfigured(),
-      requiresPasswordSetup: await isPasswordSetupRequired(fastify.db, r.user.id),
+      requiresPasswordSetup: await isPasswordSetupRequired(
+        fastify.db,
+        r.user.id
+      ),
     }))
   );
 };

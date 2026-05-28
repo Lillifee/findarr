@@ -12,7 +12,10 @@ import { Button } from '../components/ui/Button';
 import { OptionButton } from '../components/ui/OptionButton';
 import { useHistoryRestoreState } from '../hooks/useHistoryRestoreState';
 import { interactionService } from '../services/api';
-import { buildActivitySearchParams, readActivitySearchParams } from '../utils/activitySearchParams';
+import {
+  buildActivitySearchParams,
+  readActivitySearchParams,
+} from '../utils/activitySearchParams';
 
 interface RequestsPageState {
   actionFilter: InteractionsQuery['action'];
@@ -49,13 +52,15 @@ export function ActivityPage() {
     action: 'liked',
     type: 'both',
   });
-  const { restoredState, persistState } = useHistoryRestoreState<RequestsPageState>();
+  const { restoredState, persistState } =
+    useHistoryRestoreState<RequestsPageState>();
   const urlActionFilter = urlSearchParams.action;
   const urlSelectedType = urlSearchParams.type;
 
   const [activityResults, setActivityResults] = useState<Media[]>([]);
   const [attentionResults, setAttentionResults] = useState<Media[]>([]);
-  const [actionFilter, setActionFilter] = useState<InteractionsQuery['action']>(urlActionFilter);
+  const [actionFilter, setActionFilter] =
+    useState<InteractionsQuery['action']>(urlActionFilter);
   const [selectedType, setSelectedType] = useState<SearchType>(urlSelectedType);
   const [loadingActivity, setLoadingActivity] = useState(false);
   const [loadingAttention, setLoadingAttention] = useState(false);
@@ -100,11 +105,12 @@ export function ActivityPage() {
       }
 
       try {
-        const response: UserInteractionsResponse = await interactionService.listActivity({
-          action,
-          page,
-          type,
-        });
+        const response: UserInteractionsResponse =
+          await interactionService.listActivity({
+            action,
+            page,
+            type,
+          });
         const responsePage = response.page;
 
         if (requestId !== activityRequestIdRef.current) {
@@ -174,11 +180,19 @@ export function ActivityPage() {
       totalPages,
       scrollY: window.scrollY,
     });
-  }, [actionFilter, activityResults, currentPage, persistState, selectedType, totalPages]);
+  }, [
+    actionFilter,
+    activityResults,
+    currentPage,
+    persistState,
+    selectedType,
+    totalPages,
+  ]);
 
   const matchesUrlFilters = useCallback(
     (state: Pick<RequestsPageState, 'actionFilter' | 'selectedType'>) =>
-      state.actionFilter === urlActionFilter && state.selectedType === urlSelectedType,
+      state.actionFilter === urlActionFilter &&
+      state.selectedType === urlSelectedType,
     [urlActionFilter, urlSelectedType]
   );
 
@@ -232,7 +246,13 @@ export function ActivityPage() {
     void loadInitialPage();
     void loadAttention(urlSelectedType);
     hasInitializedRef.current = true;
-  }, [loadAttention, matchesUrlFilters, restoredState, urlActionFilter, urlSelectedType]);
+  }, [
+    loadAttention,
+    matchesUrlFilters,
+    restoredState,
+    urlActionFilter,
+    urlSelectedType,
+  ]);
 
   const handleSelectItem = (item: Media) => {
     persistHistoryState();
@@ -241,15 +261,20 @@ export function ActivityPage() {
 
   const handleUpdateItem = (updatedItem: Media) => {
     setActivityResults(prev =>
-      prev.map(item => (keyOf(item) === keyOf(updatedItem) ? updatedItem : item))
+      prev.map(item =>
+        keyOf(item) === keyOf(updatedItem) ? updatedItem : item
+      )
     );
 
     setAttentionResults(prev => {
       const nextResults = prev.map(item =>
         keyOf(item) === keyOf(updatedItem) ? updatedItem : item
       );
-      const hasUserInteraction = (updatedItem.state?.interactions?.length ?? 0) > 0;
-      const isAttentionStatus = attentionStatuses.has(updatedItem.state?.record?.status ?? '');
+      const hasUserInteraction =
+        (updatedItem.state?.interactions?.length ?? 0) > 0;
+      const isAttentionStatus = attentionStatuses.has(
+        updatedItem.state?.record?.status ?? ''
+      );
 
       if (!hasUserInteraction || !isAttentionStatus) {
         return nextResults.filter(item => keyOf(item) !== keyOf(updatedItem));
@@ -323,7 +348,9 @@ export function ActivityPage() {
         extraFiltersContent={
           <div className="rounded-xl border border-gray-700/50 bg-gray-800/70 p-4">
             <div className="mb-2.5">
-              <h4 className="text-sm font-semibold text-white">Voting status</h4>
+              <h4 className="text-sm font-semibold text-white">
+                Voting status
+              </h4>
             </div>
             <div className="grid gap-2.5 md:grid-cols-3">
               <OptionButton
@@ -421,7 +448,9 @@ export function ActivityPage() {
           <div className="mb-6 flex flex-col gap-4">
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
-                <h2 className="text-xl font-bold text-white md:text-3xl">Your Activity</h2>
+                <h2 className="text-xl font-bold text-white md:text-3xl">
+                  Your Activity
+                </h2>
               </div>
 
               <div className="text-xs text-gray-400 md:text-sm">
@@ -455,10 +484,12 @@ export function ActivityPage() {
                   d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                 />
               </svg>
-              <h3 className="text-xl font-semibold text-gray-400 mb-2">No activity yet</h3>
+              <h3 className="text-xl font-semibold text-gray-400 mb-2">
+                No activity yet
+              </h3>
               <p className="text-gray-500 text-center max-w-md">
-                You have not voted on any media yet. Start exploring and your personal request
-                activity will show up here.
+                You have not voted on any media yet. Start exploring and your
+                personal request activity will show up here.
               </p>
             </div>
           )}

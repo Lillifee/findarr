@@ -142,7 +142,9 @@ const TMDBAppendFieldsSchema = {
 //#endregion
 
 // TMDB Movie Details schema
-export const TMDBMovieDetailsSchema = TMDBBaseFieldsSchema.omit({ genre_ids: true })
+export const TMDBMovieDetailsSchema = TMDBBaseFieldsSchema.omit({
+  genre_ids: true,
+})
   .extend({
     title: z.string(),
     release_date: z.string().nullish(),
@@ -166,7 +168,9 @@ export const TMDBMovieDetailsSchema = TMDBBaseFieldsSchema.omit({ genre_ids: tru
   }));
 
 // TMDB TV Show Details schema
-export const TMDBTVDetailsSchema = TMDBBaseFieldsSchema.omit({ genre_ids: true })
+export const TMDBTVDetailsSchema = TMDBBaseFieldsSchema.omit({
+  genre_ids: true,
+})
   .extend({
     name: z.string(),
     first_air_date: z.string().nullish(),
@@ -373,7 +377,9 @@ export type AppendToResponseValue = (typeof APPEND_TO_RESPONSE_VALUES)[number];
 /**
  * Creates a comma-separated append_to_response string for TMDB API calls
  */
-export function createAppendToResponse(...values: AppendToResponseValue[]): string {
+export function createAppendToResponse(
+  ...values: AppendToResponseValue[]
+): string {
   return values.join(',');
 }
 

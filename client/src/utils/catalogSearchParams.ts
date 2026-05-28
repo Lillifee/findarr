@@ -27,11 +27,18 @@ export const readCatalogSearchParams = (
   defaults: CatalogSearchParamDefaults = {}
 ): CatalogSearchParamState => {
   const interaction =
-    (searchParams.get('interaction') as InteractionFilter | null) ?? defaults.interaction;
+    (searchParams.get('interaction') as InteractionFilter | null) ??
+    defaults.interaction;
 
   return {
-    type: (searchParams.get('type') as SearchType | null) ?? defaults.type ?? 'both',
-    page: Number.parseInt(searchParams.get('page') || String(defaults.page ?? 1), 10),
+    type:
+      (searchParams.get('type') as SearchType | null) ??
+      defaults.type ??
+      'both',
+    page: Number.parseInt(
+      searchParams.get('page') || String(defaults.page ?? 1),
+      10
+    ),
     ...(interaction === undefined ? {} : { interaction }),
     q: searchParams.get('q') || '',
     genres: searchParams.getAll('genres') as GenreKey[],

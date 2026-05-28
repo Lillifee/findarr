@@ -1,5 +1,5 @@
 import { users } from '@findarr/shared';
-import SqlDatabase from 'better-sqlite3';
+import type SqlDatabase from 'better-sqlite3';
 import { eq } from 'drizzle-orm';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
