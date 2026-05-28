@@ -55,9 +55,6 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
       isActive ? 'text-white' : 'text-gray-500'
     }`;
 
-  const logoutButtonClass =
-    'w-full rounded-lg border border-gray-700/50 bg-gray-800/70 px-4 py-2.5 flex items-center gap-3 text-left text-sm font-medium text-gray-300 transition-colors hover:border-red-500/40 hover:bg-gray-700/80 hover:text-red-200 cursor-pointer';
-
   const attentionIndicator = hasAttention ? (
     <span className="inline-flex h-2.5 w-2.5 rounded-full bg-amber-400 outline-none ring-1 ring-amber-800 shadow-[0_0_12px_rgba(251,191,36,0.8)]" />
   ) : null;
@@ -198,17 +195,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                   </>
                 )}
 
-                <button onClick={onLogout} className={logoutButtonClass}>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                    />
-                  </svg>
-                  <span>Logout</span>
-                </button>
+                {/* Desktop logout moved to bottom user-info area */}
               </div>
             </div>
           </nav>
@@ -216,9 +203,22 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
 
         {/* Bottom Section - User Info */}
         <div className="border-t border-gray-700/50 p-4">
-          <div className="rounded-lg border border-gray-700/50 bg-gray-800/70 p-3">
-            <div className="text-xs text-gray-400 mb-1">Logged in as</div>
-            <div className="text-sm font-medium text-white truncate">{user?.displayName}</div>
+          <div className="p-0">
+            <button
+              onClick={onLogout}
+              className={navLinkClass({ isActive: false })}
+              aria-label={user?.displayName ? `Logout ${user.displayName}` : 'Logout'}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
+              <span className="font-medium text-sm">Logout {user?.displayName}</span>
+            </button>
           </div>
         </div>
       </aside>
@@ -383,7 +383,8 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                   setMobileAdvancedOpen(false);
                   onLogout();
                 }}
-                className={logoutButtonClass}
+                className={navLinkClass({ isActive: false })}
+                aria-label="Logout"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -393,7 +394,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                     d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                   />
                 </svg>
-                <span>Logout</span>
+                <span className="font-medium">Logout</span>
               </button>
             </div>
           </div>
