@@ -1,10 +1,73 @@
 import type { SchedulerInfo } from '@findarr/shared';
 import { useState, useEffect } from 'react';
+
 import { schedulerService, adminSchedulerService } from '../../services/api';
 import { asVoid } from '../../utils/asyncHandlers';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { PageHeader } from '../ui/PageHeader';
+
+function formatDuration(ms: number | null): string {
+  if (ms === null) return '-';
+  if (ms < 1000) return `${ms}ms`;
+  if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`;
+  return `${(ms / 60_000).toFixed(1)}m`;
+}
+
+function formatInterval(ms: number): string {
+  if (ms < 60_000) return `${ms / 1000}s`;
+  if (ms < 3_600_000) return `${ms / 60_000}m`;
+  return `${ms / 3_600_000}h`;
+}
+
+function formatTimestamp(timestamp: number | null): string {
+  if (timestamp === null) return '-';
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+
+  if (diff < 60_000) return 'just now';
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  return date.toLocaleDateString();
+}
+
+function formatNextRun(timestamp: number | null): string {
+  if (timestamp === null) return 'Stopped';
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diff = date.getTime() - now.getTime();
+
+  if (diff < 0) return 'Now';
+  if (diff < 60_000) return 'in <1m';
+  if (diff < 3_600_000) return `in ${Math.floor(diff / 60_000)}m`;
+  if (diff < 86_400_000) return `in ${Math.floor(diff / 3_600_000)}h`;
+  return date.toLocaleDateString();
+}
+
+function renderStatus(scheduler: SchedulerInfo) {
+  if (scheduler.isRunning) {
+    return (
+      <span className="inline-flex rounded-full border border-blue-800 bg-blue-950/40 px-2.5 py-1 text-xs text-blue-200">
+        Running
+      </span>
+    );
+  }
+
+  if (scheduler.enabled) {
+    return (
+      <span className="inline-flex rounded-full border border-emerald-800 bg-emerald-950/40 px-2.5 py-1 text-xs text-emerald-200">
+        Enabled
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex rounded-full border border-gray-700 bg-gray-800 px-2.5 py-1 text-xs text-gray-300">
+      Disabled
+    </span>
+  );
+}
 
 export function Schedulers() {
   const [schedulers, setSchedulers] = useState<SchedulerInfo[]>([]);
@@ -55,71 +118,9 @@ export function Schedulers() {
     }
   }
 
-  function formatDuration(ms: number | null): string {
-    if (ms === null) return '-';
-    if (ms < 1000) return `${ms}ms`;
-    if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`;
-    return `${(ms / 60_000).toFixed(1)}m`;
-  }
-
-  function formatInterval(ms: number): string {
-    if (ms < 60_000) return `${ms / 1000}s`;
-    if (ms < 3_600_000) return `${ms / 60_000}m`;
-    return `${ms / 3_600_000}h`;
-  }
-
-  function formatTimestamp(timestamp: number | null): string {
-    if (timestamp === null) return '-';
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-
-    if (diff < 60_000) return 'just now';
-    if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-    if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
-    return date.toLocaleDateString();
-  }
-
-  function formatNextRun(timestamp: number | null): string {
-    if (timestamp === null) return 'Stopped';
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diff = date.getTime() - now.getTime();
-
-    if (diff < 0) return 'Now';
-    if (diff < 60_000) return 'in <1m';
-    if (diff < 3_600_000) return `in ${Math.floor(diff / 60_000)}m`;
-    if (diff < 86_400_000) return `in ${Math.floor(diff / 3_600_000)}h`;
-    return date.toLocaleDateString();
-  }
-
-  function renderStatus(scheduler: SchedulerInfo) {
-    if (scheduler.isRunning) {
-      return (
-        <span className="inline-flex rounded-full border border-blue-800 bg-blue-950/40 px-2.5 py-1 text-xs text-blue-200">
-          Running
-        </span>
-      );
-    }
-
-    if (scheduler.enabled) {
-      return (
-        <span className="inline-flex rounded-full border border-emerald-800 bg-emerald-950/40 px-2.5 py-1 text-xs text-emerald-200">
-          Enabled
-        </span>
-      );
-    }
-
-    return (
-      <span className="inline-flex rounded-full border border-gray-700 bg-gray-800 px-2.5 py-1 text-xs text-gray-300">
-        Disabled
-      </span>
-    );
-  }
-
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center p-8">
+      <div className="flex items-center justify-center p-8">
         <div className="text-gray-400">Loading schedulers...</div>
       </div>
     );
@@ -128,7 +129,7 @@ export function Schedulers() {
   if (error) {
     return (
       <div className="p-4">
-        <div className="p-3 bg-red-900/50 text-red-200 rounded border border-red-700">{error}</div>
+        <div className="rounded border border-red-700 bg-red-900/50 p-3 text-red-200">{error}</div>
       </div>
     );
   }
@@ -157,7 +158,7 @@ export function Schedulers() {
             </tr>
           </thead>
           <tbody>
-            {schedulers.map(scheduler => (
+            {schedulers.map((scheduler) => (
               <tr key={scheduler.name} className="border-b border-gray-800 last:border-b-0">
                 <td className="px-5 py-4">
                   <div className="font-mono text-sm text-white">{scheduler.name}</div>
@@ -171,7 +172,7 @@ export function Schedulers() {
                   </div>
                 </td>
                 <td className="px-5 py-4 text-center">
-                  <span className="text-sm text-gray-300 font-mono">
+                  <span className="font-mono text-sm text-gray-300">
                     {formatInterval(scheduler.interval)}
                   </span>
                 </td>
@@ -182,7 +183,7 @@ export function Schedulers() {
                   <div className="text-sm text-gray-400">{formatNextRun(scheduler.nextRun)}</div>
                 </td>
                 <td className="px-5 py-4 text-center">
-                  <span className="text-sm text-gray-400 font-mono">
+                  <span className="font-mono text-sm text-gray-400">
                     {formatDuration(scheduler.lastDuration)}
                   </span>
                 </td>
@@ -215,27 +216,27 @@ export function Schedulers() {
       </Card>
 
       {/* Mobile Card View */}
-      <div className="lg:hidden space-y-4">
-        {schedulers.map(scheduler => (
+      <div className="space-y-4 lg:hidden">
+        {schedulers.map((scheduler) => (
           <Card key={scheduler.name} variant="solid" padding="md">
-            <div className="flex justify-between items-start mb-3">
+            <div className="mb-3 flex items-start justify-between">
               <div>
-                <div className="font-mono text-sm text-white mb-1">{scheduler.name}</div>
+                <div className="mb-1 font-mono text-sm text-white">{scheduler.name}</div>
                 <div className="text-xs text-gray-400">{scheduler.description}</div>
               </div>
               <div>{renderStatus(scheduler)}</div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+            <div className="mb-3 grid grid-cols-2 gap-2 text-xs">
               <div>
                 <span className="text-gray-500">Interval:</span>
-                <span className="ml-1 text-gray-300 font-mono">
+                <span className="ml-1 font-mono text-gray-300">
                   {formatInterval(scheduler.interval)}
                 </span>
               </div>
               <div>
                 <span className="text-gray-500">Duration:</span>
-                <span className="ml-1 text-gray-300 font-mono">
+                <span className="ml-1 font-mono text-gray-300">
                   {formatDuration(scheduler.lastDuration)}
                 </span>
               </div>
@@ -250,7 +251,7 @@ export function Schedulers() {
             </div>
 
             {scheduler.lastError && (
-              <div className="mb-3 p-2 bg-red-900/30 text-red-300 rounded text-xs border border-red-700">
+              <div className="mb-3 rounded border border-red-700 bg-red-900/30 p-2 text-xs text-red-300">
                 {scheduler.lastError}
               </div>
             )}

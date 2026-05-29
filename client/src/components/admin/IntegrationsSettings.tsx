@@ -1,5 +1,6 @@
 import type { ArrSettings, ArrQualityProfile, ArrRootFolder } from '@findarr/shared';
 import { useState, useEffect, useCallback } from 'react';
+
 import { useAuth } from '../../contexts/AuthContext';
 import { adminArrService, adminJellyfinService, adminTmdbService } from '../../services/api';
 import { asVoid } from '../../utils/asyncHandlers';
@@ -37,7 +38,7 @@ function StepPanel({
   return (
     <div className="space-y-4 rounded-xl border border-gray-700/50 bg-gray-900/30 p-4">
       <div className="space-y-1">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">{title}</p>
+        <p className="text-xs font-semibold tracking-[0.18em] text-gray-500 uppercase">{title}</p>
         <p className="text-sm text-gray-300">{message}</p>
       </div>
       {children}
@@ -116,7 +117,7 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
     selectedProfileId !== (normalizedSettings.qualityProfileId?.toString() ?? '') ||
     selectedRootFolder !== (normalizedSettings.rootFolderPath ?? '');
   const hasSavedConnectionSettings = Boolean(
-    normalizedSettings.url && normalizedSettings.apiKeySet
+    normalizedSettings.url && normalizedSettings.apiKeySet,
   );
   const canTestConnection = hasSavedConnectionSettings && !connectionDirty;
   const connectionEstablished = canTestConnection && Boolean(testResult);
@@ -218,7 +219,7 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
     statusBadge = <span className={`${badgeBase} bg-gray-700 text-gray-400`}>Loading…</span>;
   } else if (connectionDirty) {
     statusBadge = (
-      <span className={`${badgeBase} bg-yellow-900/50 text-yellow-400 border border-yellow-700`}>
+      <span className={`${badgeBase} border border-yellow-700 bg-yellow-900/50 text-yellow-400`}>
         Unsaved changes
       </span>
     );
@@ -226,19 +227,19 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
     statusBadge = <span className={`${badgeBase} bg-gray-700 text-gray-400`}>Not configured</span>;
   } else if (!testResult) {
     statusBadge = (
-      <span className={`${badgeBase} bg-blue-900/40 text-blue-300 border border-blue-700/70`}>
+      <span className={`${badgeBase} border border-blue-700/70 bg-blue-900/40 text-blue-300`}>
         Ready to test
       </span>
     );
   } else if (testResult) {
     statusBadge = (
-      <span className={`${badgeBase} bg-green-900/50 text-green-400 border border-green-700`}>
+      <span className={`${badgeBase} border border-green-700 bg-green-900/50 text-green-400`}>
         Connected
       </span>
     );
   } else {
     statusBadge = (
-      <span className={`${badgeBase} bg-red-900/50 text-red-400 border border-red-700`}>
+      <span className={`${badgeBase} border border-red-700 bg-red-900/50 text-red-400`}>
         Disconnected
       </span>
     );
@@ -247,11 +248,11 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
   return (
     <Card variant="solid" padding="md">
       {/* Header */}
-      <div className="flex items-center gap-2 mb-5">
+      <div className="mb-5 flex items-center gap-2">
         <h3 className="text-lg font-semibold text-white">{title}</h3>
         {statusBadge}
       </div>
-      <p className="text-sm text-gray-400 -mt-3 mb-5">{description}</p>
+      <p className="-mt-3 mb-5 text-sm text-gray-400">{description}</p>
 
       <form onSubmit={asVoid(handleSave)} className="space-y-4">
         <div className="grid gap-5 xl:grid-cols-2 xl:items-start">
@@ -260,20 +261,20 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
             message="Save the server URL and API key before testing the connection."
           >
             <div>
-              <label className="block mb-1.5 text-sm text-gray-300">Server URL</label>
+              <label className="mb-1.5 block text-sm text-gray-300">Server URL</label>
               <Input
                 type="url"
                 value={urlInput}
-                onChange={e => handleUrlChange(e.target.value)}
+                onChange={(e) => handleUrlChange(e.target.value)}
                 placeholder="http://localhost:7878"
               />
             </div>
 
             <div>
-              <label className="block mb-1.5 text-sm text-gray-300">
+              <label className="mb-1.5 block text-sm text-gray-300">
                 API Key
                 {normalizedSettings.apiKeySet && !apiKeyInput && (
-                  <span className="ml-2 text-xs text-gray-500 font-normal">
+                  <span className="ml-2 text-xs font-normal text-gray-500">
                     (already set — leave blank to keep)
                   </span>
                 )}
@@ -281,7 +282,7 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
               <Input
                 type="password"
                 value={apiKeyInput}
-                onChange={e => handleApiKeyChange(e.target.value)}
+                onChange={(e) => handleApiKeyChange(e.target.value)}
                 placeholder={normalizedSettings.apiKeySet ? '••••••••••••••••' : 'Enter API key'}
                 autoComplete="new-password"
               />
@@ -294,14 +295,14 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
           >
             {/* Quality Profile */}
             <div>
-              <label className="block mb-1.5 text-sm text-gray-300">Quality Profile</label>
+              <label className="mb-1.5 block text-sm text-gray-300">Quality Profile</label>
               {connectionEstablished && profiles.length > 0 ? (
                 <SelectInput
                   value={selectedProfileId}
-                  onChange={e => handleProfileChange(e.target.value)}
+                  onChange={(e) => handleProfileChange(e.target.value)}
                 >
                   <option value="">— Select quality profile —</option>
-                  {profiles.map(p => (
+                  {profiles.map((p) => (
                     <option key={p.id} value={p.id.toString()}>
                       {p.name}
                     </option>
@@ -316,14 +317,14 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
 
             {/* Root Folder */}
             <div>
-              <label className="block mb-1.5 text-sm text-gray-300">Root Folder</label>
+              <label className="mb-1.5 block text-sm text-gray-300">Root Folder</label>
               {connectionEstablished && rootFolders.length > 0 ? (
                 <SelectInput
                   value={selectedRootFolder}
-                  onChange={e => handleRootFolderChange(e.target.value)}
+                  onChange={(e) => handleRootFolderChange(e.target.value)}
                 >
                   <option value="">— Select root folder —</option>
-                  {rootFolders.map(f => (
+                  {rootFolders.map((f) => (
                     <option key={f.id} value={f.path}>
                       {f.path}
                       {f.freeSpace == null ? '' : ` (${formatBytes(f.freeSpace)})`}
@@ -475,7 +476,7 @@ function JellyfinSection() {
     statusBadge = <span className={`${badgeBase} bg-gray-700 text-gray-400`}>Loading…</span>;
   } else if (isDirty) {
     statusBadge = (
-      <span className={`${badgeBase} bg-yellow-900/50 text-yellow-400 border border-yellow-700`}>
+      <span className={`${badgeBase} border border-yellow-700 bg-yellow-900/50 text-yellow-400`}>
         Unsaved changes
       </span>
     );
@@ -483,19 +484,19 @@ function JellyfinSection() {
     statusBadge = <span className={`${badgeBase} bg-gray-700 text-gray-400`}>Not configured</span>;
   } else if (!testResult) {
     statusBadge = (
-      <span className={`${badgeBase} bg-blue-900/40 text-blue-300 border border-blue-700/70`}>
+      <span className={`${badgeBase} border border-blue-700/70 bg-blue-900/40 text-blue-300`}>
         Ready to test
       </span>
     );
   } else if (testResult) {
     statusBadge = (
-      <span className={`${badgeBase} bg-green-900/50 text-green-400 border border-green-700`}>
+      <span className={`${badgeBase} border border-green-700 bg-green-900/50 text-green-400`}>
         Connected
       </span>
     );
   } else {
     statusBadge = (
-      <span className={`${badgeBase} bg-red-900/50 text-red-400 border border-red-700`}>
+      <span className={`${badgeBase} border border-red-700 bg-red-900/50 text-red-400`}>
         Disconnected
       </span>
     );
@@ -503,11 +504,11 @@ function JellyfinSection() {
 
   return (
     <Card variant="solid" padding="md">
-      <div className="flex items-center gap-2 mb-5">
+      <div className="mb-5 flex items-center gap-2">
         <h3 className="text-lg font-semibold text-white">Jellyfin</h3>
         {statusBadge}
       </div>
-      <p className="text-sm text-gray-400 -mt-3 mb-5">
+      <p className="-mt-3 mb-5 text-sm text-gray-400">
         Media server — tracks availability of requested content
       </p>
 
@@ -517,19 +518,19 @@ function JellyfinSection() {
           message="Save the server URL and API key before testing the connection."
         >
           <div>
-            <label className="block mb-1.5 text-sm text-gray-300">Server URL</label>
+            <label className="mb-1.5 block text-sm text-gray-300">Server URL</label>
             <Input
               type="url"
               value={urlInput}
-              onChange={e => handleUrlChange(e.target.value)}
+              onChange={(e) => handleUrlChange(e.target.value)}
               placeholder="http://localhost:8096"
             />
           </div>
           <div>
-            <label className="block mb-1.5 text-sm text-gray-300">
+            <label className="mb-1.5 block text-sm text-gray-300">
               API Key
               {savedApiKeySet && !apiKeyInput && (
-                <span className="ml-2 text-xs text-gray-500 font-normal">
+                <span className="ml-2 text-xs font-normal text-gray-500">
                   (already set — leave blank to keep)
                 </span>
               )}
@@ -537,7 +538,7 @@ function JellyfinSection() {
             <Input
               type="password"
               value={apiKeyInput}
-              onChange={e => handleApiKeyChange(e.target.value)}
+              onChange={(e) => handleApiKeyChange(e.target.value)}
               placeholder={savedApiKeySet ? '••••••••••••••••' : 'Enter API key'}
               autoComplete="new-password"
             />
@@ -651,9 +652,9 @@ export function TmdbSection() {
     setError('');
     setSuccess('');
     try {
-      const savedSettings = await adminTmdbService.saveSettings({
-        ...(tokenInput ? { tmdbAccessToken: tokenInput } : {}),
-      });
+      const savedSettings = await adminTmdbService.saveSettings(
+        tokenInput ? { tmdbAccessToken: tokenInput } : {},
+      );
 
       setSavedTokenSet(savedSettings.tmdbAccessTokenSet);
       setTokenInput('');
@@ -680,7 +681,7 @@ export function TmdbSection() {
     statusBadge = <span className={`${badgeBase} bg-gray-700 text-gray-400`}>Loading…</span>;
   } else if (isDirty) {
     statusBadge = (
-      <span className={`${badgeBase} bg-yellow-900/50 text-yellow-400 border border-yellow-700`}>
+      <span className={`${badgeBase} border border-yellow-700 bg-yellow-900/50 text-yellow-400`}>
         Unsaved changes
       </span>
     );
@@ -688,19 +689,19 @@ export function TmdbSection() {
     statusBadge = <span className={`${badgeBase} bg-gray-700 text-gray-400`}>Not configured</span>;
   } else if (!testResult) {
     statusBadge = (
-      <span className={`${badgeBase} bg-blue-900/40 text-blue-300 border border-blue-700/70`}>
+      <span className={`${badgeBase} border border-blue-700/70 bg-blue-900/40 text-blue-300`}>
         Ready to test
       </span>
     );
   } else if (testResult) {
     statusBadge = (
-      <span className={`${badgeBase} bg-green-900/50 text-green-400 border border-green-700`}>
+      <span className={`${badgeBase} border border-green-700 bg-green-900/50 text-green-400`}>
         Connected
       </span>
     );
   } else {
     statusBadge = (
-      <span className={`${badgeBase} bg-red-900/50 text-red-400 border border-red-700`}>
+      <span className={`${badgeBase} border border-red-700 bg-red-900/50 text-red-400`}>
         Disconnected
       </span>
     );
@@ -708,11 +709,11 @@ export function TmdbSection() {
 
   return (
     <Card variant="solid" padding="md">
-      <div className="flex items-center gap-2 mb-5">
+      <div className="mb-5 flex items-center gap-2">
         <h3 className="text-lg font-semibold text-white">TMDB</h3>
         {statusBadge}
       </div>
-      <p className="text-sm text-gray-400 -mt-3 mb-5">
+      <p className="-mt-3 mb-5 text-sm text-gray-400">
         Metadata provider for search, discovery, and media details.
       </p>
 
@@ -722,10 +723,10 @@ export function TmdbSection() {
           message="Save the TMDB access token before testing the connection."
         >
           <div>
-            <label className="block mb-1.5 text-sm text-gray-300">
+            <label className="mb-1.5 block text-sm text-gray-300">
               Access Token
               {savedTokenSet && !tokenInput && (
-                <span className="ml-2 text-xs text-gray-500 font-normal">
+                <span className="ml-2 text-xs font-normal text-gray-500">
                   (already set — leave blank to keep)
                 </span>
               )}
@@ -733,7 +734,7 @@ export function TmdbSection() {
             <Input
               type="password"
               value={tokenInput}
-              onChange={e => handleTokenChange(e.target.value)}
+              onChange={(e) => handleTokenChange(e.target.value)}
               placeholder={savedTokenSet ? '••••••••••••••••' : 'Enter TMDB access token'}
               autoComplete="new-password"
             />

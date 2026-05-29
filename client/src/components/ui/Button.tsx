@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
+
 import { buttonSizes, type Size } from './sizes';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -43,7 +44,7 @@ export function Button({
       {...props}
     >
       {loading && (
-        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+        <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-current"></div>
       )}
       {children}
     </button>

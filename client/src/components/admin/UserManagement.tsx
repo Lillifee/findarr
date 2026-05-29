@@ -1,5 +1,6 @@
 import type { User } from '@findarr/shared';
 import { useState, useEffect } from 'react';
+
 import { adminUserService } from '../../services/api';
 import { asVoid } from '../../utils/asyncHandlers';
 import { Button } from '../ui/Button';
@@ -26,8 +27,7 @@ export function UserManagement() {
 
   async function loadUsers() {
     try {
-      const users = await adminUserService.listUsers();
-      setUsers(users);
+      setUsers(await adminUserService.listUsers());
     } catch {
       console.error('Failed to load users');
     }
@@ -91,7 +91,7 @@ export function UserManagement() {
                 <Input
                   type="email"
                   value={formData.email}
-                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
                 />
               </div>
@@ -100,7 +100,7 @@ export function UserManagement() {
                 <Input
                   type="text"
                   value={formData.displayName}
-                  onChange={e => setFormData({ ...formData, displayName: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
                   required
                 />
               </div>
@@ -112,7 +112,7 @@ export function UserManagement() {
                 <Input
                   type="password"
                   value={formData.password}
-                  onChange={e => setFormData({ ...formData, password: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
                   minLength={8}
                 />
@@ -121,7 +121,7 @@ export function UserManagement() {
                 <SelectInput
                   label="Role"
                   value={formData.role}
-                  onChange={e =>
+                  onChange={(e) =>
                     setFormData({ ...formData, role: e.target.value as 'user' | 'admin' })
                   }
                 >
@@ -166,7 +166,7 @@ export function UserManagement() {
             </tr>
           </thead>
           <tbody>
-            {users.map(user => (
+            {users.map((user) => (
               <tr key={user.id} className="border-b border-gray-800 last:border-b-0">
                 <td className="px-5 py-4 text-sm text-gray-300">{user.email}</td>
                 <td className="px-5 py-4 text-sm text-white">{user.displayName}</td>
@@ -201,7 +201,7 @@ export function UserManagement() {
       </Card>
 
       <div className="space-y-3 md:hidden">
-        {users.map(user => (
+        {users.map((user) => (
           <Card key={user.id} variant="solid" padding="md" className="space-y-3">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">

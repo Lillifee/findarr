@@ -1,6 +1,7 @@
 import type { DiscoverResponse, MediaDetails, SearchResponse } from '@findarr/shared';
 import SqlDatabase from 'better-sqlite3';
 import { describe, it, expect, vi, beforeEach, afterEach, type Mocked } from 'vitest';
+
 import * as authService from '../auth/service.js';
 import { upsertCatalogCache } from '../catalog/repository.js';
 import { createCatalogService } from '../catalog/service.js';
@@ -30,20 +31,31 @@ describe('catalog service - integration tests', () => {
     sqliteDb = result.sqliteDb;
 
     // Mock TMDB service
+    // Mock TMDB service that returns movie/TV details with genres
     tmdbServiceMock = {
-      configure: vi.fn().mockResolvedValue(undefined),
-      isConfigured: vi.fn().mockResolvedValue(true),
-      testConnection: vi.fn().mockResolvedValue(true),
-      testAndSync: vi.fn().mockResolvedValue(true),
-      connectionInfo: vi.fn().mockResolvedValue({ connected: true }),
-      getSettings: vi.fn().mockResolvedValue({ tmdbAccessTokenSet: true }),
-      setSettings: vi.fn().mockResolvedValue({ tmdbAccessTokenSet: true }),
-      search: vi.fn(),
-      discover: vi.fn(),
-      trending: vi.fn(),
-      details: vi.fn(),
-      genres: vi.fn(),
-      findByExternalId: vi.fn(),
+      isConfigured: vi.fn<TMDBService['isConfigured']>().mockReturnValue(true),
+      testConnection: vi.fn<TMDBService['testConnection']>().mockResolvedValue(true),
+      testAndSync: vi.fn<TMDBService['testAndSync']>().mockResolvedValue(true),
+      getSettings: vi
+        .fn<TMDBService['getSettings']>()
+        .mockReturnValue({ tmdbAccessTokenSet: true }),
+      setSettings: vi
+        .fn<TMDBService['setSettings']>()
+        .mockResolvedValue({ tmdbAccessTokenSet: true }),
+      search: vi.fn<TMDBService['search']>(),
+      discover: vi.fn<TMDBService['discover']>(),
+      trending: vi.fn<TMDBService['trending']>(),
+      genres: vi.fn<TMDBService['genres']>(),
+      details: vi.fn<TMDBService['details']>().mockResolvedValue(
+        createTestMovieDetail({
+          tmdbId: 123,
+          genres: [
+            { id: 28, name: 'Action' },
+            { id: 12, name: 'Adventure' },
+          ],
+        }),
+      ),
+      findByExternalId: vi.fn<TMDBService['findByExternalId']>(),
     } as Mocked<TMDBService>;
 
     catalogService = createCatalogService({ db, tmdb: tmdbServiceMock });
@@ -73,7 +85,7 @@ describe('catalog service - integration tests', () => {
 
     const search = await catalogService.searchMedia(
       { query: 'test', type: 'movie', page: 0 },
-      user.id
+      user.id,
     );
     expect(search.results).toEqual(searchResult.results);
 
@@ -105,7 +117,7 @@ describe('catalog service - integration tests', () => {
     // Second page
     const secondPage = await catalogService.getPopularMedia(
       { page: 2, feedId: firstPage.feedId },
-      user.id
+      user.id,
     );
     expect(secondPage.results[0]?.tmdbId).toBe(21);
   });
@@ -170,7 +182,7 @@ describe('catalog service - integration tests', () => {
 
     await catalogService.discoverMedia(
       { type: 'movie', page: 2, recentDays: 30, genres: ['Action'] },
-      user.id
+      user.id,
     );
 
     expect(tmdbServiceMock.discover).toHaveBeenCalledWith(
@@ -180,7 +192,7 @@ describe('catalog service - integration tests', () => {
         recentDays: 30,
         language: 'fr-FR',
         regions: ['asian'],
-      })
+      }),
     );
   });
 
@@ -285,7 +297,7 @@ describe('catalog service - integration tests', () => {
     const user = await createTestUserInDb(db, { email: 'swipe-limit@test.com' });
 
     const cachedItems = Array.from({ length: 101 }, (_, index) =>
-      createTestMedia({ tmdbId: index + 1, popularity: 1000 - index })
+      createTestMedia({ tmdbId: index + 1, popularity: 1000 - index }),
     );
     await upsertCatalogCache(db, cachedItems);
 

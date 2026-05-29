@@ -1,13 +1,14 @@
 import { mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
 import { relationsSchema, schema } from '@findarr/shared';
 import BetterSqlite3 from 'better-sqlite3';
 import type SqlDatabase from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const currentDirname = dirname(fileURLToPath(import.meta.url));
 
 // Combined schema for type inference
 export const combinedSchema = { ...schema, ...relationsSchema } as const;
@@ -36,7 +37,7 @@ export function createDatabase(dbPath: string): DatabaseConnection {
   const db = drizzle(sqliteDb, { schema: combinedSchema });
 
   // Apply migrations (from drizzle-kit generated folder)
-  migrate(db, { migrationsFolder: join(__dirname, '..', '..', 'drizzle') });
+  migrate(db, { migrationsFolder: join(currentDirname, '..', '..', 'drizzle') });
 
   return { db, sqliteDb };
 }

@@ -1,4 +1,5 @@
 import type { InferSelectModel } from 'drizzle-orm';
+
 import {
   media,
   users,

@@ -26,7 +26,7 @@ export const RadarrMovieSchema = z
     isAvailable: z.boolean().optional(),
     sizeOnDisk: z.number().optional(),
   })
-  .transform(data => ({ ...data, type: 'movie' as const }));
+  .transform((data) => ({ ...data, type: 'movie' as const }));
 
 // Sonarr season object from GET /api/v3/series
 export const SonarrSeasonSchema = z.object({
@@ -72,7 +72,7 @@ export const SonarrSeriesSchema = z
       })
       .optional(),
   })
-  .transform(data => ({ ...data, type: 'tv' as const }));
+  .transform((data) => ({ ...data, type: 'tv' as const }));
 
 // Base queue item fields shared between Radarr and Sonarr
 const BaseQueueItemSchema = z.object({
@@ -94,10 +94,10 @@ const BaseQueueItemSchema = z.object({
 export const RadarrQueueItemSchema = BaseQueueItemSchema.extend({
   movieId: z.number().optional(),
 })
-  .refine(data => data.movieId !== undefined, {
+  .refine((data) => data.movieId !== undefined, {
     message: 'Must have movieId for Radarr queue item',
   })
-  .transform(data => ({
+  .transform((data) => ({
     ...data,
     type: 'movie' as const,
     arrId: data.movieId,
@@ -107,10 +107,10 @@ export const RadarrQueueItemSchema = BaseQueueItemSchema.extend({
 export const SonarrQueueItemSchema = BaseQueueItemSchema.extend({
   seriesId: z.number().optional(),
 })
-  .refine(data => data.seriesId !== undefined, {
+  .refine((data) => data.seriesId !== undefined, {
     message: 'Must have seriesId for Sonarr queue item',
   })
-  .transform(data => ({
+  .transform((data) => ({
     ...data,
     type: 'tv' as const,
     arrId: data.seriesId,

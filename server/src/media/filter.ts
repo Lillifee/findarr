@@ -7,6 +7,7 @@ import {
   regionGroups,
   unifiedGenres,
 } from '@findarr/shared';
+
 import { toMediaKey } from '../utils/helper.js';
 
 /**
@@ -35,19 +36,19 @@ const typeMatches = (item: Media, type: FilterCriteria['type']): boolean =>
  * If no regions are selected, always returns true.
  */
 const regionMatches = (item: Media, regions: RegionGroupId[]): boolean => {
-  const regionGroupsSelected = regions.map(rg => regionGroups[rg]).filter(Boolean);
+  const regionGroupsSelected = regions.map((rg) => regionGroups[rg]).filter(Boolean);
 
-  const allowedLanguages = new Set(regionGroupsSelected.flatMap<string>(rg => rg.languages));
+  const allowedLanguages = new Set(regionGroupsSelected.flatMap<string>((rg) => rg.languages));
 
   const languageMatches =
     allowedLanguages.size === 0 || allowedLanguages.has(item.originalLanguage);
 
-  const allowedCountries = new Set(regionGroupsSelected.flatMap<string>(rg => rg.countries));
+  const allowedCountries = new Set(regionGroupsSelected.flatMap<string>((rg) => rg.countries));
 
   const countryMatches =
     allowedCountries.size === 0 ||
     !item.originCountry ||
-    item.originCountry.some(c => allowedCountries.has(c));
+    item.originCountry.some((c) => allowedCountries.has(c));
 
   return languageMatches && countryMatches;
 };
@@ -61,10 +62,10 @@ const regionMatches = (item: Media, regions: RegionGroupId[]): boolean => {
  * If no genres are selected, always returns true.
  */
 const genreMatches = (item: Media, genres: GenreKey[]): boolean => {
-  const allowedGenreIds = new Set(genres.flatMap<number>(g => unifiedGenres[g].ids));
+  const allowedGenreIds = new Set(genres.flatMap<number>((g) => unifiedGenres[g].ids));
 
   return (
-    allowedGenreIds.size === 0 || !item.genres || item.genres.some(g => allowedGenreIds.has(g.id))
+    allowedGenreIds.size === 0 || !item.genres || item.genres.some((g) => allowedGenreIds.has(g.id))
   );
 };
 
@@ -85,7 +86,7 @@ export const filterByCriteria = (item: Media, filters: FilterCriteria): boolean 
 export const filterByInteraction = (
   item: Media,
   interactionKeys: Set<string>,
-  interaction: InteractionFilter = 'unvoted'
+  interaction: InteractionFilter = 'unvoted',
 ): boolean => {
   const hasInteraction = interactionKeys.has(toMediaKey(item.tmdbId, item.type));
 

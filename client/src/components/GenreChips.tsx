@@ -1,5 +1,6 @@
 import { objectEntries, unifiedGenres } from '@findarr/shared';
 import type { GenreKey } from '@findarr/shared';
+
 import { Badge } from './ui/Badge';
 
 interface GenreChipsProps {
@@ -11,7 +12,7 @@ interface GenreChipsProps {
 export function GenreChips({ selectedGenres, onGenreChange, disabled = false }: GenreChipsProps) {
   const handleGenreToggle = (genreKey: GenreKey) => {
     const updatedKeys = selectedGenres.includes(genreKey)
-      ? selectedGenres.filter(k => k !== genreKey)
+      ? selectedGenres.filter((k) => k !== genreKey)
       : [...selectedGenres, genreKey];
 
     onGenreChange(updatedKeys);
@@ -23,7 +24,7 @@ export function GenreChips({ selectedGenres, onGenreChange, disabled = false }: 
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <label className="text-sm font-medium text-gray-300">
           Genres {selectedGenres.length > 0 && `(${selectedGenres.length})`}
         </label>
@@ -55,7 +56,7 @@ export function GenreChips({ selectedGenres, onGenreChange, disabled = false }: 
                 isSelected
                   ? 'border-gray-400 bg-gray-300/90 text-gray-950 hover:border-gray-200 hover:bg-gray-200 hover:text-gray-950'
                   : 'border-gray-600/70 bg-gray-800/80 text-gray-200 hover:border-gray-400 hover:bg-gray-700/80 hover:text-white'
-              } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+              } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
             >
               <span>{genre.name}</span>
               <span className="flex h-3 w-3 items-center justify-center">

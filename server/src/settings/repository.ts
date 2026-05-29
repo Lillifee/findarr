@@ -1,22 +1,26 @@
 import { appSettings, objectEntries, isDefined } from '@findarr/shared';
 import { inArray } from 'drizzle-orm';
+
 import type { Database } from '../db/service.js';
 
 export async function readSettings<K extends string>(
   db: Database,
-  keys: K[]
+  keys: K[],
 ): Promise<Record<K, string | null>> {
   const rows = await db.query.appSettings.findMany({ where: inArray(appSettings.key, keys) });
-  const stored = new Map(rows.map(r => [r.key, r.value]));
-  return Object.fromEntries(keys.map(k => [k, stored.get(k) ?? null])) as Record<K, string | null>;
+  const stored = new Map(rows.map((r) => [r.key, r.value]));
+  return Object.fromEntries(keys.map((k) => [k, stored.get(k) ?? null])) as Record<
+    K,
+    string | null
+  >;
 }
 
 export async function writeSettings(
   db: Database,
-  values: Partial<Record<string, string | undefined>>
+  values: Partial<Record<string, string | undefined>>,
 ): Promise<void> {
   const entries = objectEntries(values).filter((entry): entry is [string, string] =>
-    isDefined(entry[1])
+    isDefined(entry[1]),
   );
   if (entries.length === 0) return;
   await Promise.all(
@@ -24,7 +28,7 @@ export async function writeSettings(
       db.insert(appSettings).values({ key, value }).onConflictDoUpdate({
         target: appSettings.key,
         set: { value },
-      })
-    )
+      }),
+    ),
   );
 }

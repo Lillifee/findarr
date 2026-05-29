@@ -26,7 +26,7 @@ export const TMDBMovieSchema = TMDBBaseFieldsSchema.extend({
   original_title: z.string(),
   adult: z.boolean().optional(),
   video: z.boolean().optional(),
-}).transform(data => ({
+}).transform((data) => ({
   type: 'movie' as const,
   ...data,
 }));
@@ -36,7 +36,7 @@ export const TMDBTVSchema = TMDBBaseFieldsSchema.extend({
   name: z.string(),
   first_air_date: z.string().nullish(),
   original_name: z.string(),
-}).transform(data => ({
+}).transform((data) => ({
   type: 'tv' as const,
   ...data,
 }));
@@ -160,7 +160,7 @@ export const TMDBMovieDetailsSchema = TMDBBaseFieldsSchema.omit({ genre_ids: tru
     // Append-to-response fields
     ...TMDBAppendFieldsSchema,
   })
-  .transform(data => ({
+  .transform((data) => ({
     ...data,
     type: 'movie' as const,
   }));
@@ -184,7 +184,7 @@ export const TMDBTVDetailsSchema = TMDBBaseFieldsSchema.omit({ genre_ids: true }
     // Append-to-response fields
     ...TMDBAppendFieldsSchema,
   })
-  .transform(data => ({
+  .transform((data) => ({
     ...data,
     type: 'tv' as const,
     show_type: data.type,

@@ -6,6 +6,7 @@ import type {
 } from '@findarr/shared';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+
 import { FiltersToolbar } from '../components/FiltersToolbar';
 import { ResultsGrid } from '../components/ResultsGrid';
 import { Button } from '../components/ui/Button';
@@ -28,7 +29,7 @@ function keyOf(item: Media) {
 }
 
 function mergeUniqueResults(existing: Media[], incoming: Media[]) {
-  const seen = new Set(existing.map(item => keyOf(item)));
+  const seen = new Set(existing.map((item) => keyOf(item)));
   const merged = [...existing];
 
   for (const item of incoming) {
@@ -120,7 +121,7 @@ export function ActivityPage() {
           return;
         }
 
-        setActivityResults(prev => mergeUniqueResults(prev, response.results));
+        setActivityResults((prev) => mergeUniqueResults(prev, response.results));
       } catch (error) {
         console.error('Failed to load personal activity:', error);
       } finally {
@@ -133,7 +134,7 @@ export function ActivityPage() {
         }
       }
     },
-    [actionFilter, selectedType]
+    [actionFilter, selectedType],
   );
 
   const loadAttention = useCallback(
@@ -158,7 +159,7 @@ export function ActivityPage() {
         }
       }
     },
-    [selectedType]
+    [selectedType],
   );
 
   const persistHistoryState = useCallback(() => {
@@ -179,7 +180,7 @@ export function ActivityPage() {
   const matchesUrlFilters = useCallback(
     (state: Pick<RequestsPageState, 'actionFilter' | 'selectedType'>) =>
       state.actionFilter === urlActionFilter && state.selectedType === urlSelectedType,
-    [urlActionFilter, urlSelectedType]
+    [urlActionFilter, urlSelectedType],
   );
 
   useEffect(() => {
@@ -240,19 +241,19 @@ export function ActivityPage() {
   };
 
   const handleUpdateItem = (updatedItem: Media) => {
-    setActivityResults(prev =>
-      prev.map(item => (keyOf(item) === keyOf(updatedItem) ? updatedItem : item))
+    setActivityResults((prev) =>
+      prev.map((item) => (keyOf(item) === keyOf(updatedItem) ? updatedItem : item)),
     );
 
-    setAttentionResults(prev => {
-      const nextResults = prev.map(item =>
-        keyOf(item) === keyOf(updatedItem) ? updatedItem : item
+    setAttentionResults((prev) => {
+      const nextResults = prev.map((item) =>
+        keyOf(item) === keyOf(updatedItem) ? updatedItem : item,
       );
       const hasUserInteraction = (updatedItem.state?.interactions?.length ?? 0) > 0;
       const isAttentionStatus = attentionStatuses.has(updatedItem.state?.record?.status ?? '');
 
       if (!hasUserInteraction || !isAttentionStatus) {
-        return nextResults.filter(item => keyOf(item) !== keyOf(updatedItem));
+        return nextResults.filter((item) => keyOf(item) !== keyOf(updatedItem));
       }
 
       return nextResults;
@@ -270,10 +271,10 @@ export function ActivityPage() {
         buildActivitySearchParams({
           action: nextAction,
           type: nextType,
-        })
+        }),
       );
     },
-    [actionFilter, selectedType, setSearchParams]
+    [actionFilter, selectedType, setSearchParams],
   );
 
   useEffect(() => {
@@ -314,7 +315,7 @@ export function ActivityPage() {
     <>
       <FiltersToolbar
         selectedType={selectedType}
-        onTypeChange={type => reloadActivityWith({ type })}
+        onTypeChange={(type) => reloadActivityWith({ type })}
         selectedGenres={[]}
         onGenresChange={() => undefined}
         showFiltersButton
@@ -387,7 +388,7 @@ export function ActivityPage() {
           <section className="mb-10 rounded-3xl border border-amber-500/20 bg-linear-to-br from-amber-500/10 via-gray-900/70 to-orange-500/10 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.35)] md:p-6">
             <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-200/80">
+                <p className="text-xs font-semibold tracking-[0.28em] text-amber-200/80 uppercase">
                   Queue
                 </p>
               </div>
@@ -432,9 +433,9 @@ export function ActivityPage() {
           </div>
 
           {loadingActivity && activityResults.length === 0 && (
-            <div className="flex justify-center items-center py-20">
+            <div className="flex items-center justify-center py-20">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
+                <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-amber-500"></div>
                 <p className="text-gray-400">Loading your activity...</p>
               </div>
             </div>
@@ -443,7 +444,7 @@ export function ActivityPage() {
           {!loadingActivity && activityResults.length === 0 && (
             <div className="flex flex-col items-center justify-center py-20">
               <svg
-                className="w-24 h-24 text-gray-600 mb-4"
+                className="mb-4 h-24 w-24 text-gray-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -455,8 +456,8 @@ export function ActivityPage() {
                   d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                 />
               </svg>
-              <h3 className="text-xl font-semibold text-gray-400 mb-2">No activity yet</h3>
-              <p className="text-gray-500 text-center max-w-md">
+              <h3 className="mb-2 text-xl font-semibold text-gray-400">No activity yet</h3>
+              <p className="max-w-md text-center text-gray-500">
                 You have not voted on any media yet. Start exploring and your personal request
                 activity will show up here.
               </p>
@@ -472,8 +473,8 @@ export function ActivityPage() {
           )}
 
           {hasMore && (
-            <div className="pt-6 md:pb-0 md:pt-8">
-              <div className="text-center pt-4 md:pt-6 md:pb-0 border-t border-gray-700">
+            <div className="pt-6 md:pt-8 md:pb-0">
+              <div className="border-t border-gray-700 pt-4 text-center md:pt-6 md:pb-0">
                 <Button
                   onClick={() => {
                     void loadActivity({ append: true, page: currentPage + 1 });

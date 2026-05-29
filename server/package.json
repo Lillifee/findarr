@@ -2,8 +2,8 @@
   "name": "@findarr/server",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
   "description": "Fastify backend server for Findarr",
+  "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
@@ -13,7 +13,7 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:fixtures": "tsx scripts/capture-tmdb-fixtures.ts",
-    "type-check": "tsc -p tsconfig.json --noEmit",
+    "type:check": "tsc -p tsconfig.json --noEmit",
     "clean": "rimraf dist *.tsbuildinfo",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",

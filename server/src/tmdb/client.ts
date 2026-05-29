@@ -1,5 +1,6 @@
 import type { MediaType } from '@findarr/shared';
 import axios, { type AxiosInstance } from 'axios';
+
 import {
   type TMDBSearchParams,
   type TMDBTVSearchParams,
@@ -91,7 +92,7 @@ export function createTMDBClient(accessToken: string) {
    */
   async function findByExternalId(
     externalId: string | number,
-    externalSource: 'tvdb_id' | 'imdb_id'
+    externalSource: 'tvdb_id' | 'imdb_id',
   ) {
     const response = await client.get(`/find/${externalId}`, {
       params: { external_source: externalSource },

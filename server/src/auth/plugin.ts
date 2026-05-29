@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+
 import cookie from '@fastify/cookie';
 import secureSession from '@fastify/secure-session';
 import type { User } from '@findarr/shared';
@@ -10,6 +11,7 @@ import type {
   FastifyPluginOptions,
 } from 'fastify';
 import fp from 'fastify-plugin';
+
 import { getUserById, removePasswordHash } from './repository.js';
 
 // Extend session data type

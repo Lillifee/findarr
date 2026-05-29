@@ -25,7 +25,7 @@ export function createJellyfinLibrarySyncScheduler(): Scheduler {
 
       await syncJellyfinLibrary(context); // Full sync
       return true; // Continue
-    }
+    },
   );
 }
 
@@ -68,12 +68,12 @@ export function createJellyfinQueueSyncScheduler(): Scheduler {
       if (downloadedMediaPage.totalCount === 0) {
         context.log.info(
           { name: 'jellyfin', schedulerName: 'jellyfinQueueSync' },
-          'All downloaded items are now available - stopping queue sync'
+          'All downloaded items are now available - stopping queue sync',
         );
         return false; // Self-terminate
       }
 
       return true; // Continue
-    }
+    },
   );
 }

@@ -24,7 +24,7 @@ interface CatalogSearchParamInput {
 
 export const readCatalogSearchParams = (
   searchParams: URLSearchParams,
-  defaults: CatalogSearchParamDefaults = {}
+  defaults: CatalogSearchParamDefaults = {},
 ): CatalogSearchParamState => {
   const interaction =
     (searchParams.get('interaction') as InteractionFilter | null) ?? defaults.interaction;

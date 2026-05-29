@@ -1,5 +1,6 @@
 import SqlDatabase from 'better-sqlite3';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+
 import { createDatabase } from './service.js';
 
 describe('setup', () => {
@@ -27,7 +28,7 @@ describe('setup', () => {
     // Check user_media_interactions table exists
     const requests = sqliteDb
       .prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='user_media_interactions'"
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='user_media_interactions'",
       )
       .get();
     expect(requests).toBeTruthy();

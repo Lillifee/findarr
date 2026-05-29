@@ -10,6 +10,7 @@ import {
   type MediaType,
 } from '@findarr/shared';
 import type { FastifyBaseLogger } from 'fastify';
+
 import { HttpError } from '../utils/errors.js';
 import type { TMDBDiscoverParams } from './schemas.js';
 
@@ -22,8 +23,8 @@ export const buildRegionFilters = (regions: RegionGroupId[]) => {
     return { languageFilter: '', countryFilter: '' };
   }
 
-  const includedLanguages = regions.flatMap(groupId => regionGroups[groupId].languages);
-  const includedCountries = regions.flatMap(groupId => regionGroups[groupId].countries);
+  const includedLanguages = regions.flatMap((groupId) => regionGroups[groupId].languages);
+  const includedCountries = regions.flatMap((groupId) => regionGroups[groupId].countries);
 
   return {
     languageFilter: includedLanguages.join('|'),
@@ -35,7 +36,7 @@ export const buildRegionFilters = (regions: RegionGroupId[]) => {
  * Build genre filter string for TMDB API from selected genre keys
  */
 export const buildGenreFilter = (genres: GenreKey[] | undefined) =>
-  genres?.length ? genres.flatMap(g => unifiedGenres[g]?.ids ?? []).join('|') : '';
+  genres?.length ? genres.flatMap((g) => unifiedGenres[g]?.ids ?? []).join('|') : '';
 
 /**
  * Calculate date range from days back
@@ -74,7 +75,7 @@ export const buildDateParams = (recentDays: number | undefined, type: MediaType 
 };
 
 export const buildDiscoverParams = (
-  params: DiscoverQuery & UserSettingsQuery
+  params: DiscoverQuery & UserSettingsQuery,
 ): TMDBDiscoverParams => {
   const {
     type = 'both',
@@ -192,7 +193,7 @@ export async function processWithWorkerPool<TItem, TResult>(options: {
             totalItems: items.length,
             successCount: results.length,
           },
-          'Worker progress'
+          'Worker progress',
         );
       }
     }

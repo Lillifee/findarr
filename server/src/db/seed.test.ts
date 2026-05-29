@@ -3,6 +3,7 @@ import SqlDatabase from 'better-sqlite3';
 import { eq } from 'drizzle-orm';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+
 import { seed } from './seed.js';
 import { createDatabase } from './service.js';
 import type { Database } from './service.js';
@@ -55,6 +56,6 @@ describe('seed', () => {
 
   it('should throw on database errors', async () => {
     sqliteDb.close(); // Close DB to trigger error
-    await expect(seed(app, db)).rejects.toThrow();
+    await expect(seed(app, db)).rejects.toThrow('The database connection is not open');
   });
 });

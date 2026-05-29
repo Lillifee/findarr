@@ -45,13 +45,13 @@ export type MediaStats = {
 export function scoreMediaItems(
   items: Media[],
   movieStats: MediaStats,
-  tvStats: MediaStats
+  tvStats: MediaStats,
 ): Media[] {
   if (items.length === 0) return items;
 
   const MIN_VOTES = 50;
 
-  const scored = items.map<Media>(item => {
+  const scored = items.map<Media>((item) => {
     const stats = item.type === 'movie' ? movieStats : tvStats;
     const globalAverage = stats.avgRating;
 
@@ -112,7 +112,7 @@ export function scoreMediaItems(
 export function scoreMediaItemsForUser(
   items: Media[],
   genrePreferences: Map<number, UserGenrePreference>,
-  keywordPreferences: Map<number, UserKeywordPreference> = new Map()
+  keywordPreferences: Map<number, UserKeywordPreference> = new Map(),
 ): Media[] {
   if (genrePreferences.size === 0 && keywordPreferences.size === 0) {
     return items;
@@ -126,7 +126,7 @@ export function scoreMediaItemsForUser(
   const scoreContribution = (normalized: number) =>
     Math.sqrt(Math.max(0, normalized)) - Math.sqrt(Math.max(0, -normalized));
 
-  const scored = items.map<Media>(item => {
+  const scored = items.map<Media>((item) => {
     // Neutral defaults (0.5) so unmatched preferences do not implicitly demote items.
     let genreScore = 0.5;
     let keywordScore = 0.5;

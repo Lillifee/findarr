@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync, FastifyPluginOptions } from 'fastify';
 import fp from 'fastify-plugin';
+
 import { createTMDBService, type TMDBService } from './service.js';
 
 // Extend Fastify instance with tmdb service
@@ -11,7 +12,7 @@ declare module 'fastify' {
 
 type TMDBPluginOptions = FastifyPluginOptions;
 
-const tmdbPlugin: FastifyPluginAsync<TMDBPluginOptions> = async fastify => {
+const tmdbPlugin: FastifyPluginAsync<TMDBPluginOptions> = async (fastify) => {
   fastify.decorate('tmdb', await createTMDBService(fastify));
   fastify.log.info({ name: 'tmdb' }, 'TMDB plugin registered');
 };

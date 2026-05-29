@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
+
 import { badgeSizes, type Size } from './sizes';
 
 export interface BadgeProps extends ButtonHTMLAttributes<HTMLButtonElement> {

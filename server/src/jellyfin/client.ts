@@ -1,4 +1,5 @@
 import axios, { type AxiosInstance } from 'axios';
+
 import { JellyfinItemsResponseSchema, type JellyfinItemsResponse } from './schemas.js';
 
 export interface GetItemsParams {

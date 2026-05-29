@@ -1,6 +1,7 @@
 import type { UserSettings, UserSettingsQuery } from '@findarr/shared';
 import { userSettings } from '@findarr/shared';
 import { eq, sql } from 'drizzle-orm';
+
 import type { Database } from '../db/service.js';
 
 const DEFAULT_USER_SETTINGS: UserSettings = {
@@ -29,7 +30,7 @@ export async function getOrCreateUserSettings(db: Database, userId: number): Pro
 export async function updateUserSettings(
   db: Database,
   userId: number,
-  updates: UserSettingsQuery
+  updates: UserSettingsQuery,
 ): Promise<UserSettings> {
   const current = await getOrCreateUserSettings(db, userId);
 

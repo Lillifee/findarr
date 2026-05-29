@@ -7,6 +7,7 @@ import {
   type UserKeywordPreference,
 } from '@findarr/shared';
 import { eq, sql } from 'drizzle-orm';
+
 import type { Database } from '../db/service.js';
 
 // ============================================================================
@@ -45,7 +46,7 @@ export async function updateGenrePreference(
   db: Database,
   userId: number,
   genre: Genre,
-  scoreDelta: number
+  scoreDelta: number,
 ) {
   await db
     .insert(userGenrePreferences)
@@ -101,7 +102,7 @@ export async function updateKeywordPreference(
   db: Database,
   userId: number,
   keyword: Keyword,
-  scoreDelta: number
+  scoreDelta: number,
 ) {
   await db
     .insert(userKeywordPreferences)

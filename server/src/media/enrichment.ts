@@ -1,4 +1,5 @@
 import { type DbMedia, type Media, isDefined } from '@findarr/shared';
+
 import type { Database } from '../db/service.js';
 import { getInteractionsBatch, getVoteCountsBatch } from '../interaction/repository.js';
 import { getUserGenrePreferences, getUserKeywordPreferences } from '../preferences/repository.js';
@@ -20,7 +21,7 @@ export async function enrichWithRecords(db: Database, mediaItems: Media[]): Prom
 
   const mediaRecords = await getMediaRecordsBatch(db, mediaItems);
 
-  return mediaItems.map(item => {
+  return mediaItems.map((item) => {
     const record = mediaRecords.get(`${item.tmdbId}_${item.type}`);
     return record ? { ...item, state: { ...item.state, record } } : item;
   });
@@ -34,7 +35,7 @@ export async function enrichWithRecords(db: Database, mediaItems: Media[]): Prom
 export async function enrichWithInteractions(
   db: Database,
   mediaItems: Media[],
-  userId: number
+  userId: number,
 ): Promise<Media[]> {
   // Fetch interactions (user-specific or all with user info)
   const interactionsMap = await getInteractionsBatch(db, mediaItems, userId);
@@ -42,7 +43,7 @@ export async function enrichWithInteractions(
   // Fetch vote counts (always aggregated across all users)
   const votesMap = await getVoteCountsBatch(db, mediaItems);
 
-  return mediaItems.map(item => {
+  return mediaItems.map((item) => {
     const mediaId = item.state?.record?.id;
     if (!mediaId) return item;
 
@@ -68,7 +69,7 @@ export async function enrichWithInteractions(
 export async function enrichWithScoring(
   db: Database,
   mediaItems: Media[],
-  userId?: number
+  userId?: number,
 ): Promise<Media[]> {
   if (mediaItems.length === 0) return mediaItems;
 
@@ -106,10 +107,10 @@ export async function enrichWithScoring(
  */
 export async function fetchTMDBDetails(
   tmdbService: TMDBService,
-  mediaDbRows: DbMedia[]
+  mediaDbRows: DbMedia[],
 ): Promise<Media[]> {
   const results = await Promise.all(
-    mediaDbRows.map(async record => {
+    mediaDbRows.map(async (record) => {
       if (!isDefined(record.tmdbId)) return undefined;
 
       const details = await tmdbService
@@ -118,8 +119,8 @@ export async function fetchTMDBDetails(
 
       // Attach database record to TMDB data
       return details && { ...details, state: { record } };
-    })
+    }),
   );
 
-  return results.filter(x => isDefined(x));
+  return results.filter((x) => isDefined(x));
 }

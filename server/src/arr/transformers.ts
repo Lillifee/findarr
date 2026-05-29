@@ -24,7 +24,7 @@ export function transformRadarrMovie(radarrMovie: RadarrMovie): ArrLibraryItem {
  * Transform Sonarr Series to unified ArrLibraryItem type
  */
 export function transformSonarrSeries(series: SonarrSeries): ArrLibraryItem {
-  const seasons = series.seasons?.map(s => {
+  const seasons = series.seasons?.map((s) => {
     const stats = s.statistics;
     const total = stats?.totalEpisodeCount ?? stats?.episodeCount ?? 0;
     const downloaded = stats?.episodeFileCount ?? 0;

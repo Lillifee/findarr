@@ -1,5 +1,6 @@
 import { type RegionGroupId } from '@findarr/shared';
 import React from 'react';
+
 import { OptionButton } from './ui/OptionButton';
 
 // Region metadata for UI display (TMDB mapping handled server-side)
@@ -47,7 +48,7 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
   const handleRegionToggle = (regionId: RegionGroupId) => {
     if (selectedRegions.includes(regionId)) {
       // Remove it
-      onRegionsChange(selectedRegions.filter(id => id !== regionId));
+      onRegionsChange(selectedRegions.filter((id) => id !== regionId));
     } else {
       // Add it
       onRegionsChange([...selectedRegions, regionId]);
@@ -67,7 +68,7 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <label className="text-sm font-medium text-gray-400">Content Regions</label>
 
         <div className="flex gap-2">
@@ -99,7 +100,7 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-2">
-        {allRegions.map(regionId => {
+        {allRegions.map((regionId) => {
           const region = REGION_INFO[regionId];
           const isSelected = selectedRegions.includes(regionId);
 
@@ -125,7 +126,7 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
       </div>
 
       {selectedRegions.length > 0 && selectedRegions.length < allRegions.length && (
-        <div className="text-xs text-gray-400 text-center italic">
+        <div className="text-center text-xs text-gray-400 italic">
           Showing {selectedRegions.length} of {allRegions.length} content regions
         </div>
       )}

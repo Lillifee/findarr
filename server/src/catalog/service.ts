@@ -14,6 +14,7 @@ import type {
   SwipeNextResponse,
   MediaDetails,
 } from '@findarr/shared';
+
 import type { Database } from '../db/service.js';
 import { getUserInteractionMediaKeys } from '../interaction/repository.js';
 import {
@@ -88,7 +89,7 @@ export function createCatalogService(context: CatalogContext) {
    */
   async function getAvailableMedia(
     params: AvailableMediaQuery,
-    userId: number
+    userId: number,
   ): Promise<AvailableMediaResponse> {
     const { type = 'both', page = 1 } = params;
     const itemsPerPage = 20;
@@ -112,7 +113,7 @@ export function createCatalogService(context: CatalogContext) {
    */
   async function getNextUnvotedMedia(
     params: PopularQuery,
-    userId: number
+    userId: number,
   ): Promise<SwipeNextResponse> {
     const settings = await getUserSettings(db, userId);
 
@@ -124,7 +125,7 @@ export function createCatalogService(context: CatalogContext) {
           genres: params.genres,
           interaction: 'all',
         },
-        userId
+        userId,
       ),
       getUserInteractionMediaKeys(db, userId),
     ]);
@@ -132,17 +133,18 @@ export function createCatalogService(context: CatalogContext) {
     const swipeWindow = popularFeedSnapshotStore.getSnapshotPage(
       popularFeedSnapshot.items,
       1,
-      SWIPE_CANDIDATE_LIMIT
+      SWIPE_CANDIDATE_LIMIT,
     );
 
     const unvotedItem =
-      swipeWindow.items.find(item => filterByInteraction(item, interactionKeys, 'unvoted')) || null;
+      swipeWindow.items.find((item) => filterByInteraction(item, interactionKeys, 'unvoted')) ||
+      null;
 
     const media =
       unvotedItem &&
       (await getMediaDetails(
         { id: unvotedItem.tmdbId, type: unvotedItem.type, language: settings.language },
-        userId
+        userId,
       ));
 
     return { media, feedId: popularFeedSnapshot.id };
@@ -157,7 +159,7 @@ export function createCatalogService(context: CatalogContext) {
     // Get or create feed snapshot (cached for short time to allow consistent pagination)
     const popularFeedSnapshot = await getPopularFeedSnapshot(
       { ...params, type, interaction, genres },
-      userId
+      userId,
     );
 
     // Get the requested page window from the stable snapshot
@@ -187,16 +189,16 @@ export function createCatalogService(context: CatalogContext) {
       const { regions = [] } = settings;
 
       let filteredMedia = cachedCatalogMedia.filter(
-        item =>
+        (item) =>
           filterByCriteria(item, { type, regions, genres }) &&
-          filterByInteraction(item, interactionKeys, interaction)
+          filterByInteraction(item, interactionKeys, interaction),
       );
 
       filteredMedia = await enrichWithScoring(db, filteredMedia, userId);
 
       filteredMedia.sort(
         (a, b) =>
-          (b.state?.score?.finalTrendingScore || 0) - (a.state?.score?.finalTrendingScore || 0)
+          (b.state?.score?.finalTrendingScore || 0) - (a.state?.score?.finalTrendingScore || 0),
       );
 
       return filteredMedia;
@@ -210,7 +212,7 @@ export function createCatalogService(context: CatalogContext) {
   async function enrichMediaResults(
     items: Media[],
     userId: number,
-    options: { scoring?: boolean; records?: boolean; interactions?: boolean } = {}
+    options: { scoring?: boolean; records?: boolean; interactions?: boolean } = {},
   ): Promise<Media[]> {
     let enriched = items;
     const { scoring = true, records = true, interactions = true } = options;

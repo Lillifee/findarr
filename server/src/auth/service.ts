@@ -1,5 +1,6 @@
 import type { ChangePassword, Login, SetupInitialPassword, User } from '@findarr/shared';
 import { hash, verify } from '@node-rs/argon2';
+
 import type { Database } from '../db/service.js';
 import { Forbidden, Unauthorized } from '../utils/errors.js';
 import {
@@ -48,7 +49,7 @@ export const isAdminPasswordSetupRequired = async (user: UserWithPassword) =>
 export const changePassword = async (
   db: Database,
   userId: number,
-  { currentPassword, newPassword }: ChangePassword
+  { currentPassword, newPassword }: ChangePassword,
 ) => {
   const user = await getUserById(db, userId);
 
@@ -67,7 +68,7 @@ export const changePassword = async (
 export const setupInitialPassword = async (
   db: Database,
   userId: number,
-  { newPassword }: SetupInitialPassword
+  { newPassword }: SetupInitialPassword,
 ) => {
   const user = await getUserById(db, userId);
 

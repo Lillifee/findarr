@@ -29,10 +29,10 @@ export function useHistoryRestoreState<T>() {
       globalThis.history.replaceState(
         nextHistoryState,
         '',
-        `${location.pathname}${location.search}`
+        `${location.pathname}${location.search}`,
       );
     },
-    [location.pathname, location.search]
+    [location.pathname, location.search],
   );
 
   return {

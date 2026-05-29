@@ -1,6 +1,7 @@
 import { isDefined } from '@findarr/shared';
 import axios, { type AxiosInstance } from 'axios';
 import { z } from 'zod';
+
 import type { ArrServiceConfig } from './config.js';
 import {
   SonarrEpisodeListSchema,
@@ -71,7 +72,7 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
         qualityProfileId: number;
         rootFolderPath: string;
       },
-      seasonNumbers?: number[]
+      seasonNumbers?: number[],
     ): Promise<RadarrMovie | SonarrSeries> {
       const media =
         (await this.tryGetLibraryItemById(params.arrId)) ??
@@ -88,7 +89,7 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
       profileConfig: {
         qualityProfileId: number;
         rootFolderPath: string;
-      }
+      },
     ): Promise<RadarrMovie | SonarrSeries> {
       const payload = {
         [config.mediaIdField]: params.id,
@@ -110,7 +111,7 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
       const monitoredSeasons = new Set(seasons);
 
       const updatedSeasons =
-        media.seasons?.map(season => ({
+        media.seasons?.map((season) => ({
           seasonNumber: season.seasonNumber,
           monitored: monitoredSeasons.has(season.seasonNumber),
         })) ?? [];
@@ -120,12 +121,12 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
       const episodes = await this.getEpisodes(media.id);
 
       const monitoredEpisodeIds = episodes
-        .filter(episode => monitoredSeasons.has(episode.seasonNumber))
-        .map(episode => episode.id);
+        .filter((episode) => monitoredSeasons.has(episode.seasonNumber))
+        .map((episode) => episode.id);
 
       const unmonitoredEpisodeIds = episodes
-        .filter(episode => !monitoredSeasons.has(episode.seasonNumber))
-        .map(episode => episode.id);
+        .filter((episode) => !monitoredSeasons.has(episode.seasonNumber))
+        .map((episode) => episode.id);
 
       await Promise.all([
         this.updateEpisodeMonitoring(unmonitoredEpisodeIds, false),
@@ -160,7 +161,7 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
     },
 
     async tryGetLibraryItemById(
-      arrId?: number | null
+      arrId?: number | null,
     ): Promise<RadarrMovie | SonarrSeries | undefined> {
       if (!isDefined(arrId)) return undefined;
 
@@ -170,7 +171,7 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
 
     async updateSeasonPass(
       id: number,
-      seasons: { seasonNumber: number; monitored: boolean }[]
+      seasons: { seasonNumber: number; monitored: boolean }[],
     ): Promise<void> {
       await client.post('/seasonpass', { series: [{ id, seasons, monitored: true }] });
     },

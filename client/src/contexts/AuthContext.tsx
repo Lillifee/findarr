@@ -1,6 +1,7 @@
 import { isDefined, type User } from '@findarr/shared';
 import axios from 'axios';
 import { createContext, useCallback, useContext, useState, useEffect, type ReactNode } from 'react';
+
 import { authService } from '../services/api';
 
 interface AuthContextType {
@@ -26,14 +27,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (bootstrap: Awaited<ReturnType<typeof authService.bootstrap>>) => {
       setTmdbConfigured(bootstrap.tmdbConfigured);
     },
-    []
+    [],
   );
 
   const refreshUser = useCallback(async () => {
     setIsLoading(true);
     try {
-      const user = await authService.me();
-      setUser(user);
+      setUser(await authService.me());
       applyBootstrapStatus(await authService.bootstrap());
     } catch {
       setUser(null);
@@ -51,14 +51,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Add axios interceptor to handle 401 errors
   useEffect(() => {
     const interceptor = axios.interceptors.response.use(
-      response => response,
-      error => {
+      (response) => response,
+      (error) => {
         if (error.response?.status === 401) {
           // Clear user on 401
           setUser(null);
         }
         return Promise.reject(error);
-      }
+      },
     );
 
     return () => axios.interceptors.response.eject(interceptor);
@@ -74,8 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function login(email: string, password: string) {
-    const user = await authService.login({ email, password });
-    setUser(user);
+    setUser(await authService.login({ email, password }));
     applyBootstrapStatus(await authService.bootstrap());
   }
 

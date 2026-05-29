@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+
 import { useAuth } from '../contexts/AuthContext';
 import { adminTmdbService } from '../services/api';
 import { asVoid } from '../utils/asyncHandlers';
@@ -57,9 +58,9 @@ export function TmdbSetupScreen() {
   }, [loadSettings]);
 
   async function saveSettings() {
-    const savedSettings = await adminTmdbService.saveSettings({
-      ...(tokenInput ? { tmdbAccessToken: tokenInput } : {}),
-    });
+    const savedSettings = await adminTmdbService.saveSettings(
+      tokenInput ? { tmdbAccessToken: tokenInput } : {},
+    );
 
     setSavedTokenSet(savedSettings.tmdbAccessTokenSet);
     setTokenInput('');
@@ -98,7 +99,7 @@ export function TmdbSetupScreen() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 px-4">
       <div className="w-full max-w-2xl">
         <Card
           variant="solid"
@@ -107,14 +108,14 @@ export function TmdbSetupScreen() {
         >
           <div className="mb-5 flex items-start justify-between gap-4">
             <div>
-              <p className="mb-5 inline-flex rounded-full border border-amber-400/25 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-300">
+              <p className="mb-5 inline-flex rounded-full border border-amber-400/25 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold tracking-[0.18em] text-amber-300 uppercase">
                 Setup Required
               </p>
               <h1 className="mb-2 text-3xl font-bold text-white sm:text-4xl">Connect TMDB</h1>
-              <p className="max-w-xl text-sm leading-5 mt-2 text-gray-400">
+              <p className="mt-2 max-w-xl text-sm leading-5 text-gray-400">
                 This product uses the TMDB API but is not endorsed or certified by TMDB.
               </p>
-              <p className="max-w-xl text-sm leading-5 mt-2 text-gray-400">
+              <p className="mt-2 max-w-xl text-sm leading-5 text-gray-400">
                 Finish the initial Findarr setup by adding a TMDB read access token. This enables
                 search, discovery, and full media metadata throughout the app.
               </p>
@@ -159,7 +160,7 @@ export function TmdbSetupScreen() {
               type="password"
               label="Access Token"
               value={tokenInput}
-              onChange={e => {
+              onChange={(e) => {
                 setError('');
                 setSuccess('');
                 setTokenInput(e.target.value);
@@ -174,7 +175,7 @@ export function TmdbSetupScreen() {
             <Button
               type="submit"
               disabled={isLoading || isSaving || isTesting || (!tokenInput && !savedTokenSet)}
-              className="w-full min-h-12 text-sm"
+              className="min-h-12 w-full text-sm"
             >
               {isSaving || isTesting ? 'Finishing…' : 'Finish'}
             </Button>

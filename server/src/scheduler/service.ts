@@ -5,6 +5,7 @@ import {
   type SchedulerParams,
 } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
+
 import type { Scheduler } from './types.js';
 
 const TICK_INTERVAL_MS = 10 * 1000; // 10 seconds
@@ -15,7 +16,7 @@ const TICK_INTERVAL_MS = 10 * 1000; // 10 seconds
  */
 export function createSchedulerService(
   fastify: FastifyInstance,
-  schedulers: Record<SchedulerName, Scheduler>
+  schedulers: Record<SchedulerName, Scheduler>,
 ) {
   let timer: NodeJS.Timeout | null = null;
 
@@ -42,7 +43,7 @@ export function createSchedulerService(
     try {
       fastify.log.debug(
         { name: 'scheduler', schedulerName: scheduler.config.name },
-        'Executing scheduler'
+        'Executing scheduler',
       );
 
       const shouldContinue = await scheduler.run(fastify);
@@ -72,7 +73,7 @@ export function createSchedulerService(
             totalRuntime,
             maxRuntime: scheduler.config.maxRuntime,
           },
-          'Scheduler still running after maximum runtime - terminating'
+          'Scheduler still running after maximum runtime - terminating',
         );
 
         return;
@@ -94,7 +95,7 @@ export function createSchedulerService(
           },
           belowMinRuntime
             ? 'Scheduler requested termination but within minimum runtime - rescheduling'
-            : 'Scheduler completed'
+            : 'Scheduler completed',
         );
 
         return;
@@ -109,7 +110,7 @@ export function createSchedulerService(
           duration,
           totalRuntime,
         },
-        'Scheduler self-terminated'
+        'Scheduler self-terminated',
       );
     } catch (error) {
       const duration = Date.now() - now;
@@ -128,7 +129,7 @@ export function createSchedulerService(
           error: scheduler.state.lastError,
           retryInSec: interval / 1000,
         },
-        'Scheduler failed, retrying'
+        'Scheduler failed, retrying',
       );
     } finally {
       scheduler.state.isRunning = false;
@@ -153,10 +154,10 @@ export function createSchedulerService(
       }
 
       // Execute scheduler (async, don't await to prevent blocking other schedulers)
-      executeScheduler(scheduler).catch(error => {
+      executeScheduler(scheduler).catch((error) => {
         fastify.log.error(
           { name: 'scheduler', schedulerName: scheduler.config.name, err: error },
-          'Unexpected error in scheduler execution'
+          'Unexpected error in scheduler execution',
         );
       });
     }
@@ -217,7 +218,7 @@ export function createSchedulerService(
 
       fastify.log.info(
         { name: 'scheduler', schedulerName: params.name },
-        'Manually triggering scheduler'
+        'Manually triggering scheduler',
       );
       await executeScheduler(scheduler);
     },
@@ -226,7 +227,7 @@ export function createSchedulerService(
      * Get state of one or all schedulers
      */
     getState(): SchedulerInfo[] {
-      return Object.values(schedulers).map(s => ({ ...s.config, ...s.state }));
+      return Object.values(schedulers).map((s) => ({ ...s.config, ...s.state }));
     },
 
     /**
@@ -235,7 +236,7 @@ export function createSchedulerService(
     async startOrchestration() {
       fastify.log.info(
         { name: 'scheduler', tickIntervalSec: TICK_INTERVAL_MS / 1000 },
-        'Starting scheduler orchestration'
+        'Starting scheduler orchestration',
       );
 
       // Initialize schedulers that should run on startup

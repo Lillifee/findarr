@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+
 import {
   ServerEnvSchema,
   SearchQuerySchema,
@@ -46,7 +47,7 @@ describe('schemas', () => {
 
     it('should only accept valid NODE_ENV values', () => {
       expect(ServerEnvSchema.safeParse({ ...validEnv, NODE_ENV: 'development' }).success).toBe(
-        true
+        true,
       );
       expect(ServerEnvSchema.safeParse({ ...validEnv, NODE_ENV: 'staging' }).success).toBe(false);
     });
@@ -195,16 +196,16 @@ describe('schemas', () => {
     it('should validate email format', () => {
       expect(LoginSchema.safeParse({ email: 'invalid', password: 'pass' }).success).toBe(false);
       expect(LoginSchema.safeParse({ email: 'test@example.com', password: 'pass' }).success).toBe(
-        true
+        true,
       );
     });
 
     it('should require non-empty password', () => {
       expect(LoginSchema.safeParse({ email: 'test@example.com', password: '' }).success).toBe(
-        false
+        false,
       );
       expect(LoginSchema.safeParse({ email: 'test@example.com', password: 'x' }).success).toBe(
-        true
+        true,
       );
     });
   });
@@ -251,26 +252,26 @@ describe('schemas', () => {
       expect(CreateInteractionSchema.safeParse({ mediaType: 'movie' }).success).toBe(false);
       expect(
         CreateInteractionSchema.safeParse({ mediaType: 'movie', tmdbId: 123, action: 'liked' })
-          .success
+          .success,
       ).toBe(true);
     });
 
     it('should only accept movie or tv mediaType', () => {
       expect(
-        CreateInteractionSchema.safeParse({ ...validRequest, mediaType: 'movie' }).success
+        CreateInteractionSchema.safeParse({ ...validRequest, mediaType: 'movie' }).success,
       ).toBe(true);
       expect(CreateInteractionSchema.safeParse({ ...validRequest, mediaType: 'tv' }).success).toBe(
-        true
+        true,
       );
       expect(
-        CreateInteractionSchema.safeParse({ ...validRequest, mediaType: 'person' }).success
+        CreateInteractionSchema.safeParse({ ...validRequest, mediaType: 'person' }).success,
       ).toBe(false);
     });
 
     it('should require positive integer tmdbId', () => {
       expect(CreateInteractionSchema.safeParse({ ...validRequest, tmdbId: 0 }).success).toBe(false);
       expect(CreateInteractionSchema.safeParse({ ...validRequest, tmdbId: -1 }).success).toBe(
-        false
+        false,
       );
       expect(CreateInteractionSchema.safeParse({ ...validRequest, tmdbId: 1 }).success).toBe(true);
     });

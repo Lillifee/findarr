@@ -1,5 +1,6 @@
 import type { ArrSettings, ArrSettingsQuery } from '@findarr/shared';
 import type { FastifyBaseLogger } from 'fastify';
+
 import type { Database } from '../db/service.js';
 import { getMediaById } from '../media/repository.js';
 import type { SchedulerService } from '../scheduler/service.js';
@@ -24,18 +25,18 @@ export interface ArrServiceContext {
 
 export async function createArrService<T extends ArrServiceConfig>(
   config: T,
-  context: ArrServiceContext
+  context: ArrServiceContext,
 ) {
   const lifecycle = createClientLifecycle<ArrSettingsFull, ArrClient>({
     name: config.service,
     loadSettings: () => getArrSettings(context.db, config),
-    createClient: settings =>
+    createClient: (settings) =>
       settings.url && settings.apiKey
         ? createArrClient(config, settings.url, settings.apiKey)
         : undefined,
   });
 
-  await lifecycle.reload().catch(error => {
+  await lifecycle.reload().catch((error) => {
     context.log.error({ name: config.service, error }, 'Failed to initialize Arr service');
   });
 
@@ -71,7 +72,7 @@ export async function createArrService<T extends ArrServiceConfig>(
     id: number | undefined,
     title: string,
     arrId?: number | null,
-    seasons?: number[]
+    seasons?: number[],
   ): Promise<ArrLibraryItem | undefined> {
     if (!lifecycle.isConfigured()) {
       return undefined;
@@ -95,7 +96,7 @@ export async function createArrService<T extends ArrServiceConfig>(
         qualityProfileId,
         rootFolderPath,
       },
-      seasons
+      seasons,
     );
 
     const libraryItem = transformArrMedia(response);
@@ -122,7 +123,7 @@ export async function createArrService<T extends ArrServiceConfig>(
 
   async function listLibraryItems(): Promise<ArrLibraryItem[]> {
     const items = await lifecycle.client().listLibraryItems();
-    return items.map(x => transformArrMedia(x));
+    return items.map((x) => transformArrMedia(x));
   }
 
   async function getQueue(pageSize: number): Promise<ArrQueueItem[]> {

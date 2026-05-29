@@ -1,6 +1,7 @@
 import type { Media } from '@findarr/shared';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { AvailableMediaStrip } from '../components/AvailableMediaStrip';
 import { SearchBar } from '../components/SearchBar';
 import { Button } from '../components/ui/Button';
@@ -133,10 +134,10 @@ export function DashboardPage() {
 
   return (
     <>
-      <div className="sticky top-0 z-30 border-b border-gray-700/50 bg-gray-800/90 backdrop-blur-md shadow-2xl">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">
+      <div className="sticky top-0 z-30 border-b border-gray-700/50 bg-gray-800/90 shadow-2xl backdrop-blur-md">
+        <div className="mx-auto max-w-7xl px-4 py-3 md:px-8">
           <SearchBar
-            onSearch={query =>
+            onSearch={(query) =>
               void navigate(`/explore?${buildCatalogSearchParams({ q: query }).toString()}`)
             }
             loading={false}
@@ -158,7 +159,7 @@ export function DashboardPage() {
           >
             <div className="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-end">
               <div className="max-w-3xl">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-200/80">
+                <p className="text-xs font-semibold tracking-[0.24em] text-amber-200/80 uppercase">
                   {heroCopy.eyebrow}
                 </p>
 

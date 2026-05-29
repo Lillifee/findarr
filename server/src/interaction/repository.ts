@@ -8,6 +8,7 @@ import type {
 } from '@findarr/shared';
 import { isDefined, media, userMediaInteractions } from '@findarr/shared';
 import { and, desc, eq, getTableColumns, inArray, isNotNull, sql } from 'drizzle-orm';
+
 import type { Database } from '../db/service.js';
 import { toMediaKey } from '../utils/helper.js';
 
@@ -22,7 +23,7 @@ export async function addInteraction(
   db: Database,
   userId: number,
   mediaId: number,
-  action: InteractionType
+  action: InteractionType,
 ): Promise<void> {
   await db
     .insert(userMediaInteractions)
@@ -41,13 +42,13 @@ export async function hasInteraction(
   db: Database,
   userId: number,
   mediaId: number,
-  action: InteractionType
+  action: InteractionType,
 ): Promise<boolean> {
   const result = await db.query.userMediaInteractions.findFirst({
     where: and(
       eq(userMediaInteractions.userId, userId),
       eq(userMediaInteractions.mediaId, mediaId),
-      eq(userMediaInteractions.action, action)
+      eq(userMediaInteractions.action, action),
     ),
     columns: { id: true },
   });
@@ -61,12 +62,12 @@ export async function hasInteraction(
 export async function removeAllInteractions(
   db: Database,
   userId: number,
-  mediaId: number
+  mediaId: number,
 ): Promise<void> {
   await db
     .delete(userMediaInteractions)
     .where(
-      and(eq(userMediaInteractions.userId, userId), eq(userMediaInteractions.mediaId, mediaId))
+      and(eq(userMediaInteractions.userId, userId), eq(userMediaInteractions.mediaId, mediaId)),
     );
 }
 
@@ -81,12 +82,12 @@ export async function removeAllInteractions(
 export async function getInteractionsBatch(
   db: Database,
   mediaItems: Media[],
-  userId: number
+  userId: number,
 ): Promise<Map<number, MediaInteraction[]>> {
   const interactionsMap = new Map<number, MediaInteraction[]>();
 
   // Extract media IDs from items that have records
-  const mediaIds = mediaItems.map(item => item.state?.record?.id).filter(x => isDefined(x));
+  const mediaIds = mediaItems.map((item) => item.state?.record?.id).filter((x) => isDefined(x));
   if (mediaIds.length === 0) return interactionsMap;
 
   const rows = await db.query.userMediaInteractions.findMany({
@@ -98,7 +99,7 @@ export async function getInteractionsBatch(
     },
     where: and(
       eq(userMediaInteractions.userId, userId),
-      inArray(userMediaInteractions.mediaId, mediaIds)
+      inArray(userMediaInteractions.mediaId, mediaIds),
     ),
   });
 
@@ -117,11 +118,11 @@ export async function getInteractionsBatch(
  */
 export async function getVoteCountsBatch(
   db: Database,
-  mediaItems: Media[]
+  mediaItems: Media[],
 ): Promise<Map<number, { likes: number; dislikes: number }>> {
   const votesMap = new Map<number, { likes: number; dislikes: number }>();
 
-  const mediaIds = mediaItems.map(item => item.state?.record?.id).filter(x => isDefined(x));
+  const mediaIds = mediaItems.map((item) => item.state?.record?.id).filter((x) => isDefined(x));
   if (mediaIds.length === 0) return votesMap;
 
   const rows = await db
@@ -158,7 +159,7 @@ export async function getMediaByUserInteractions(
     action?: InteractionsQuery['action'];
     limit?: number;
     offset?: number;
-  } = {}
+  } = {},
 ): Promise<{ results: DbMedia[]; totalCount: number }> {
   const conditions = [eq(userMediaInteractions.userId, userId)];
 
@@ -207,7 +208,7 @@ export async function getMediaByUserAttention(
     statuses: MediaStatus[];
     limit?: number;
     offset?: number;
-  }
+  },
 ): Promise<{ results: DbMedia[]; totalCount: number }> {
   const conditions = [eq(userMediaInteractions.userId, userId)];
 
@@ -260,7 +261,7 @@ export async function getUserInteractionMediaKeys(db: Database, userId: number) 
     .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
     .where(and(eq(userMediaInteractions.userId, userId), isNotNull(media.tmdbId)));
 
-  return new Set(rows.map(row => toMediaKey(row.tmdbId ?? -1, row.type)));
+  return new Set(rows.map((row) => toMediaKey(row.tmdbId ?? -1, row.type)));
 }
 
 // ============================================================================
@@ -273,7 +274,7 @@ export async function getUserInteractionMediaKeys(db: Database, userId: number) 
  */
 export async function getVoteCounts(
   db: Database,
-  mediaId: number
+  mediaId: number,
 ): Promise<{ likes: number; dislikes: number }> {
   const result = await db
     .select({

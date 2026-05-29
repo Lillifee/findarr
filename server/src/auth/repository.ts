@@ -1,6 +1,7 @@
 import type { CreateUser, User } from '@findarr/shared';
 import { users } from '@findarr/shared';
 import { eq } from 'drizzle-orm';
+
 import type { Database } from '../db/service.js';
 import { BadRequest, Forbidden, NotFound } from '../utils/errors.js';
 import { hashPassword } from './service.js';
@@ -19,7 +20,7 @@ export interface UserWithPassword extends User {
 
 export const getUserByEmail = async (
   db: Database,
-  email: string
+  email: string,
 ): Promise<UserWithPassword | undefined> => {
   const user = await db.query.users.findFirst({
     where: eq(users.email, email),
@@ -29,7 +30,7 @@ export const getUserByEmail = async (
 
 export const getUserById = async (
   db: Database,
-  id: number
+  id: number,
 ): Promise<UserWithPassword | undefined> => {
   const user = await db.query.users.findFirst({
     where: eq(users.id, id),
@@ -46,7 +47,7 @@ export const listAllUsers = async (db: Database) =>
       role: true,
       createdAt: true,
     },
-    orderBy: (users, { asc }) => [asc(users.createdAt)],
+    orderBy: (usr, { asc }) => [asc(usr.createdAt)],
   });
 
 // ============================================================================
@@ -55,7 +56,7 @@ export const listAllUsers = async (db: Database) =>
 
 export const createUser = async (
   db: Database,
-  { email, password, displayName, role }: CreateUser
+  { email, password, displayName, role }: CreateUser,
 ) => {
   // Check if user already exists
   const existingUser = await getUserByEmail(db, email);

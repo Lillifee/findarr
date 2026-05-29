@@ -34,10 +34,10 @@ export function Input({
   if (prefixIcon || suffixIcon) {
     return (
       <div className="w-full">
-        {label && <label className="block text-sm font-medium text-gray-300 mb-2">{label}</label>}
+        {label && <label className="mb-2 block text-sm font-medium text-gray-300">{label}</label>}
         <div className={containerStyles}>
           {prefixIcon && (
-            <div className="absolute left-3 text-gray-400 pointer-events-none">{prefixIcon}</div>
+            <div className="pointer-events-none absolute left-3 text-gray-400">{prefixIcon}</div>
           )}
           <input
             className={`${baseStyles} ${variantStyles[variant]} ${errorStyles} ${prefixIcon ? 'pl-10' : ''} ${suffixIcon ? 'pr-10' : ''} ${className}`}
@@ -51,7 +51,7 @@ export function Input({
 
   return (
     <div className="w-full">
-      {label && <label className="block text-sm font-medium text-gray-300 mb-2">{label}</label>}
+      {label && <label className="mb-2 block text-sm font-medium text-gray-300">{label}</label>}
       <input
         className={`${baseStyles} ${variantStyles[variant]} ${errorStyles} ${className}`}
         {...props}

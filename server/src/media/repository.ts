@@ -8,6 +8,7 @@ import type {
 } from '@findarr/shared';
 import { media, mediaStats } from '@findarr/shared';
 import { and, eq, or, sql } from 'drizzle-orm';
+
 import type { Database } from '../db/service.js';
 import { Conflict, NotFound } from '../utils/errors.js';
 import type { MediaStats } from './scoring.js';
@@ -30,7 +31,7 @@ export const getMediaById = async (db: Database, mediaId: number): Promise<DbMed
 export const getMediaByTmdbId = async (
   db: Database,
   tmdbId: number,
-  type: MediaType
+  type: MediaType,
 ): Promise<DbMedia | undefined> =>
   (await db.query.media.findFirst({
     where: and(eq(media.tmdbId, tmdbId), eq(media.type, type)),
@@ -45,7 +46,7 @@ export const createMedia = async (
   tmdbId: number,
   type: MediaType,
   status: MediaStatus = 'pending',
-  seasonNumbers?: number[] // For initial request: convert to SeasonRecord[]
+  seasonNumbers?: number[], // For initial request: convert to SeasonRecord[]
 ) => {
   // Check if media already exists (prevent duplicates since we removed the unique constraint)
   const existing = await getMediaByTmdbId(db, tmdbId, type);
@@ -53,7 +54,7 @@ export const createMedia = async (
 
   // Convert season numbers to SeasonRecord format for storage
   const seasons = seasonNumbers
-    ? seasonNumbers.map(seasonNumber => ({ seasonNumber, status: 'requested' as const }))
+    ? seasonNumbers.map((seasonNumber) => ({ seasonNumber, status: 'requested' as const }))
     : null;
 
   const result = await db
@@ -81,7 +82,7 @@ export const createMedia = async (
 export const updateMediaStatus = async (
   db: Database,
   mediaId: number,
-  status: MediaStatus
+  status: MediaStatus,
 ): Promise<void> => {
   const result = await db
     .update(media)
@@ -103,10 +104,10 @@ export const updateMediaStatus = async (
 export const updateMediaSeasons = async (
   db: Database,
   mediaId: number,
-  seasonNumbers: number[] | null
+  seasonNumbers: number[] | null,
 ): Promise<void> => {
   const seasons = seasonNumbers
-    ? seasonNumbers.map(seasonNumber => ({ seasonNumber, status: 'requested' as const }))
+    ? seasonNumbers.map((seasonNumber) => ({ seasonNumber, status: 'requested' as const }))
     : null;
 
   const result = await db
@@ -128,14 +129,14 @@ export const updateMediaSeasons = async (
  */
 export async function getMediaRecordsBatch(
   db: Database,
-  mediaItems: Media[]
+  mediaItems: Media[],
 ): Promise<Map<string, MediaRecord>> {
   const mediaRecords = new Map<string, MediaRecord>();
   if (mediaItems.length === 0) return mediaRecords;
 
   // Build OR conditions for batch query
-  const conditions = mediaItems.map(item =>
-    and(eq(media.tmdbId, item.tmdbId), eq(media.type, item.type))
+  const conditions = mediaItems.map((item) =>
+    and(eq(media.tmdbId, item.tmdbId), eq(media.type, item.type)),
   );
 
   const rows = await db.query.media.findMany({
@@ -182,13 +183,13 @@ export async function getMediaByStatusPaginated(
     limit: number;
     offset: number;
     type?: SearchType;
-  }
+  },
 ): Promise<{ results: DbMedia[]; totalCount: number }> {
   if (statuses.length === 0) {
     return { results: [], totalCount: 0 };
   }
 
-  const statusConditions = statuses.map(status => eq(media.status, status));
+  const statusConditions = statuses.map((status) => eq(media.status, status));
   const whereClause =
     options.type && options.type !== 'both'
       ? and(or(...statusConditions), eq(media.type, options.type))
@@ -215,7 +216,7 @@ export async function getMediaByStatusPaginated(
       updatedAt: true,
     },
     where: whereClause,
-    orderBy: (media, { desc }) => [desc(media.jellyfinAddedAt)],
+    orderBy: (x, { desc }) => [desc(x.jellyfinAddedAt)],
     limit: options.limit,
     offset: options.offset,
   });
@@ -281,7 +282,7 @@ export const getMediaStats = async (db: Database): Promise<Map<MediaType, MediaS
 export const upsertMediaStats = async (
   db: Database,
   mediaType: MediaType,
-  stats: Omit<MediaStats, 'mediaType' | 'updatedAt'>
+  stats: Omit<MediaStats, 'mediaType' | 'updatedAt'>,
 ): Promise<void> => {
   const now = Date.now();
 

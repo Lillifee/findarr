@@ -136,7 +136,7 @@ export const interactionService = {
     tmdbId: number,
     mediaType: MediaType,
     action: 'liked' | 'disliked',
-    seasons?: number[]
+    seasons?: number[],
   ): Promise<Media | undefined> => {
     const response = await api.post('/interactions', {
       tmdbId,
@@ -148,14 +148,14 @@ export const interactionService = {
   },
 
   listActivity: async (
-    params: Partial<InteractionsQuery> = {}
+    params: Partial<InteractionsQuery> = {},
   ): Promise<UserInteractionsResponse> => {
     const response = await api.get('/interactions', { params });
     return response.data;
   },
 
   listAttention: async (
-    params: Partial<InteractionsQuery> = {}
+    params: Partial<InteractionsQuery> = {},
   ): Promise<UserInteractionsResponse> => {
     const response = await api.get('/interactions/attention', { params });
     return response.data;
@@ -181,7 +181,7 @@ export const adminArrService = {
       return response.data;
     },
     saveSettings: async (
-      settings: Partial<ArrSettings & { apiKey?: string }>
+      settings: Partial<ArrSettings & { apiKey?: string }>,
     ): Promise<ArrSettings> => {
       const response = await api.put('/admin/radarr/settings', settings);
       return response.data;
@@ -205,7 +205,7 @@ export const adminArrService = {
       return response.data;
     },
     saveSettings: async (
-      settings: Partial<ArrSettings & { apiKey?: string }>
+      settings: Partial<ArrSettings & { apiKey?: string }>,
     ): Promise<ArrSettings> => {
       const response = await api.put('/admin/sonarr/settings', settings);
       return response.data;

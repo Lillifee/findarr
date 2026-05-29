@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 
@@ -50,16 +51,16 @@ export function SearchBar({
     <button
       type="button"
       onClick={handleClear}
-      onMouseDown={event => event.preventDefault()}
+      onMouseDown={(event) => event.preventDefault()}
       disabled={!canClear}
-      className={`p-1.5 rounded-full transition-all ${
+      className={`rounded-full p-1.5 transition-all ${
         canClear
-          ? 'text-gray-400 hover:text-white hover:bg-gray-700/60 cursor-pointer'
-          : 'text-transparent cursor-default pointer-events-none'
+          ? 'cursor-pointer text-gray-400 hover:bg-gray-700/60 hover:text-white'
+          : 'pointer-events-none cursor-default text-transparent'
       }`}
       aria-label="Clear search"
     >
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -72,7 +73,7 @@ export function SearchBar({
 
   const searchIcon = loading ? (
     <svg
-      className="animate-spin h-5 w-5"
+      className="h-5 w-5 animate-spin"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -109,7 +110,7 @@ export function SearchBar({
           <Input
             type="text"
             value={query}
-            onChange={e => setQuery(e.target.value)}
+            onChange={(e) => setQuery(e.target.value)}
             placeholder="Search movies or TV shows..."
             disabled={loading}
             variant="search"

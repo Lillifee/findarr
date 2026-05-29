@@ -1,4 +1,5 @@
 import { isDefined, type MediaStatus, type MediaType } from '@findarr/shared';
+
 import type { SchedulerContext } from '../scheduler/types.js';
 import { processWithWorkerPool } from '../tmdb/helpers.js';
 import {
@@ -17,7 +18,7 @@ import type { AnyArrService } from './service.js';
  */
 export async function syncComplete(
   context: SchedulerContext,
-  arrService: AnyArrService
+  arrService: AnyArrService,
 ): Promise<void> {
   // Check if service is configured
   const isConfigured = await arrService.isConfigured();
@@ -25,14 +26,14 @@ export async function syncComplete(
   if (!isConfigured) {
     context.log.debug(
       { name: arrService.config.service, service: arrService.config.service },
-      'Not configured - skipping sync'
+      'Not configured - skipping sync',
     );
     return;
   }
 
   context.log.info(
     { name: arrService.config.service, service: arrService.config.service },
-    'Starting library sync'
+    'Starting library sync',
   );
   const startTime = Date.now();
   const { log } = context;
@@ -46,7 +47,7 @@ export async function syncComplete(
 
   log.debug(
     { name: arrService.config.service, service: arrService.config.service },
-    'Connection successful'
+    'Connection successful',
   );
 
   // Library sync with inline enrichment for TV shows
@@ -57,7 +58,7 @@ export async function syncComplete(
 
   context.log.info(
     { name: arrService.config.service, service: arrService.config.service, durationSec },
-    'Library sync finished successfully'
+    'Library sync finished successfully',
   );
 }
 
@@ -67,7 +68,7 @@ export async function syncComplete(
  */
 export async function syncLibrary(
   context: SchedulerContext,
-  arrService: AnyArrService
+  arrService: AnyArrService,
 ): Promise<void> {
   const { db, log } = context;
   const { config } = arrService;
@@ -87,7 +88,9 @@ export async function syncLibrary(
   // This prevents conflicts when Jellyfin already has the same show with tmdbId
   if (mediaType === 'tv') {
     const existingTvdbIdSet = await getExistingTvdbIdSet(db);
-    const queue = libraryItems.filter(item => item?.tvdbId && !existingTvdbIdSet.has(item.tvdbId));
+    const queue = libraryItems.filter(
+      (item) => item?.tvdbId && !existingTvdbIdSet.has(item.tvdbId),
+    );
 
     if (queue.length > 0) {
       await enrichTvShows(context, queue);
@@ -95,7 +98,7 @@ export async function syncLibrary(
   }
 
   // Map library items to upsert format
-  const itemsToUpsert = libraryItems.map(item => ({
+  const itemsToUpsert = libraryItems.map((item) => ({
     type: mediaType,
     arrId: item.id,
     arrUrl: item.arrUrl ?? null,
@@ -108,31 +111,31 @@ export async function syncLibrary(
   // Count items that will be skipped due to missing IDs
   const itemsWithRequiredIds =
     mediaType === 'tv'
-      ? itemsToUpsert.filter(item => item.tvdbId !== null)
-      : itemsToUpsert.filter(item => item.tmdbId !== null);
+      ? itemsToUpsert.filter((item) => item.tvdbId !== null)
+      : itemsToUpsert.filter((item) => item.tmdbId !== null);
 
   const skippedCount = itemsToUpsert.length - itemsWithRequiredIds.length;
   if (skippedCount > 0) {
     log.warn(
       { name: service, service, skippedCount, mediaType },
-      'Skipping items missing required external ID'
+      'Skipping items missing required external ID',
     );
   }
   await upsertMediaFromArr(db, itemsToUpsert);
 
   // Cleanup: Find items in DB that are no longer in Radarr/Sonarr
   const existingMedia = await listMediaWithArrIds(db, mediaType);
-  const currentArrIds = new Set(libraryItems.map(item => item.id));
+  const currentArrIds = new Set(libraryItems.map((item) => item.id));
   const removedArrIds = existingMedia
-    .map(m => m.arrId)
-    .filter(arrId => isDefined(arrId))
-    .filter(arrId => !currentArrIds.has(arrId));
+    .map((m) => m.arrId)
+    .filter((arrId) => isDefined(arrId))
+    .filter((arrId) => !currentArrIds.has(arrId));
 
   if (removedArrIds.length > 0) {
     const clearedCount = await clearRemovedArrItems(db, removedArrIds, mediaType);
     log.info(
       { name: service, service, clearedCount },
-      'Cleaned up removed items (reset to pending)'
+      'Cleaned up removed items (reset to pending)',
     );
   }
 
@@ -145,18 +148,18 @@ export async function syncLibrary(
  */
 export async function enrichTvShows(
   context: SchedulerContext,
-  queue: ArrLibraryItem[]
+  queue: ArrLibraryItem[],
 ): Promise<number> {
   const { log } = context;
 
   log.info(
     { name: 'sonarr', service: 'sonarr', totalItems: queue.length },
-    'Enriching new TV shows with TMDB IDs'
+    'Enriching new TV shows with TMDB IDs',
   );
 
   const { successCount } = await processWithWorkerPool({
     items: queue,
-    processFn: async item => {
+    processFn: async (item) => {
       if (!item?.tvdbId) return null;
 
       const tmdbId = await context.tmdb.findByExternalId('tv', item.tvdbId);
@@ -169,7 +172,7 @@ export async function enrichTvShows(
 
   log.info(
     { name: 'sonarr', service: 'sonarr', successCount, totalItems: queue.length },
-    'Enrichment complete'
+    'Enrichment complete',
   );
 
   return successCount;
@@ -183,7 +186,7 @@ export async function enrichTvShows(
 export async function syncQueue(
   context: SchedulerContext,
   arrService: AnyArrService,
-  previousDownloadingIds: Set<number>
+  previousDownloadingIds: Set<number>,
 ): Promise<{
   currentDownloadingIds: Set<number>;
   completedIds: number[];
@@ -209,7 +212,7 @@ export async function syncQueue(
           arrId: item.arrId,
           status: item.trackedDownloadStatus,
         },
-        'Download requires manual intervention'
+        'Download requires manual intervention',
       );
     } else {
       statusMap.set(item.arrId, 'downloading');
@@ -217,7 +220,7 @@ export async function syncQueue(
   }
 
   statusUpdates.push(
-    ...Array.from(statusMap, ([arrId, status]) => ({ arrId, type: mediaType, status }))
+    ...Array.from(statusMap, ([arrId, status]) => ({ arrId, type: mediaType, status })),
   );
 
   // Update statuses for items IN queue
@@ -226,7 +229,7 @@ export async function syncQueue(
   }
 
   // Detect completions by comparing previous vs current downloading IDs
-  const completedIds = [...previousDownloadingIds].filter(id => !statusMap.has(id));
+  const completedIds = [...previousDownloadingIds].filter((id) => !statusMap.has(id));
 
   return {
     currentDownloadingIds,

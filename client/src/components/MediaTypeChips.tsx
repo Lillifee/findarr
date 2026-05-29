@@ -1,4 +1,5 @@
 import type { SearchType } from '@findarr/shared';
+
 import { Badge } from './ui/Badge';
 
 interface MediaTypeChipsProps {
@@ -16,7 +17,7 @@ const types: { value: SearchType; label: string }[] = [
 function getIcon(type: SearchType) {
   if (type === 'both') {
     return (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -28,7 +29,7 @@ function getIcon(type: SearchType) {
   }
   if (type === 'movie') {
     return (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -39,7 +40,7 @@ function getIcon(type: SearchType) {
     );
   }
   return (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -62,8 +63,8 @@ export function MediaTypeChips({ selectedType, onChange, disabled = false }: Med
           onClick={() => !disabled && onChange(type.value)}
           className={`min-h-8 rounded-none px-3 py-1.5 text-sm ${
             selectedType === type.value
-              ? 'bg-gray-200 text-gray-950 border-gray-200 shadow-none hover:bg-gray-100 hover:text-gray-950'
-              : 'bg-transparent text-gray-300 border-transparent hover:border-gray-600 hover:bg-gray-700/80 hover:text-white'
+              ? 'border-gray-200 bg-gray-200 text-gray-950 shadow-none hover:bg-gray-100 hover:text-gray-950'
+              : 'border-transparent bg-transparent text-gray-300 hover:border-gray-600 hover:bg-gray-700/80 hover:text-white'
           } ${index === 0 ? 'rounded-l-lg' : ''} ${index === types.length - 1 ? 'rounded-r-lg' : ''} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
           title={type.label}
         >

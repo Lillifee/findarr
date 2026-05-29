@@ -6,6 +6,7 @@ import {
   type MediaType,
 } from '@findarr/shared';
 import { eq, isNotNull, sql } from 'drizzle-orm';
+
 import type { Database } from '../db/service.js';
 import { readSettings, writeSettings } from '../settings/repository.js';
 import type { JellyfinMedia } from './transformers.js';
@@ -21,7 +22,7 @@ import type { JellyfinMedia } from './transformers.js';
  */
 export async function upsertMediaFromJellyfin(
   db: Database,
-  items: JellyfinMedia[]
+  items: JellyfinMedia[],
 ): Promise<number> {
   let affectedRows = 0;
 
@@ -45,7 +46,7 @@ export async function upsertMediaFromJellyfin(
 
       updatedSeasons =
         existingSeasons.length > 0
-          ? existingSeasons.map(season => ({
+          ? existingSeasons.map((season) => ({
               seasonNumber: season.seasonNumber,
               status: (availableSet.has(season.seasonNumber) ? 'available' : season.status) as
                 | 'none'
@@ -111,7 +112,7 @@ export async function getMediaWithJellyfinIds(db: Database): Promise<
 
   // Filter out null values and assert type (we know they're not null due to where clause)
   return results.filter(
-    (item): item is typeof item & { jellyfinId: string } => item.jellyfinId !== null
+    (item): item is typeof item & { jellyfinId: string } => item.jellyfinId !== null,
   );
 }
 
@@ -121,7 +122,7 @@ export async function getMediaWithJellyfinIds(db: Database): Promise<
  */
 export async function clearRemovedJellyfinItems(
   db: Database,
-  jellyfinIds: string[]
+  jellyfinIds: string[],
 ): Promise<number> {
   if (jellyfinIds.length === 0) return 0;
 
@@ -162,7 +163,7 @@ const jellyfinKeys = Object.keys(JellyfinSettingsQuerySchema.shape) as JellyfinS
 
 export async function setJellyfinSettings(
   db: Database,
-  settings: JellyfinSettingsQuery
+  settings: JellyfinSettingsQuery,
 ): Promise<void> {
   await writeSettings(db, settings);
 }

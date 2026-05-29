@@ -11,13 +11,14 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
 import axios from 'axios';
 import * as dotenv from 'dotenv';
 
 // Load environment variables from .env file
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-dotenv.config({ path: join(__dirname, '../.env') });
+const currentFilePath = fileURLToPath(import.meta.url);
+const currentDirName = dirname(currentFilePath);
+dotenv.config({ path: join(currentDirName, '../.env') });
 
 const TMDB_ACCESS_TOKEN = process.env.TMDB_ACCESS_TOKEN;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
@@ -36,7 +37,7 @@ if (!TMDB_ACCESS_TOKEN) {
   process.exit(1);
 }
 
-const fixturesDir = join(__dirname, '../fixtures/tmdb');
+const fixturesDir = join(currentDirName, '../fixtures/tmdb');
 
 // Ensure fixtures directory exists
 mkdirSync(fixturesDir, { recursive: true });
@@ -108,7 +109,7 @@ async function captureFixtures(): Promise<void> {
       });
       saveFixture(`movie-${id}.json`, details.data);
       // Rate limit: wait 250ms between requests
-      await new Promise(resolve => setTimeout(resolve, 250));
+      await new Promise((resolve) => setTimeout(resolve, 250));
     }
 
     // 6. TV show details with diverse characteristics
@@ -129,7 +130,7 @@ async function captureFixtures(): Promise<void> {
         params: { append_to_response: 'credits,keywords,external_ids' },
       });
       saveFixture(`tv-${id}.json`, details.data);
-      await new Promise(resolve => setTimeout(resolve, 250));
+      await new Promise((resolve) => setTimeout(resolve, 250));
     }
 
     // 7. Search results (mixed quality/popularity)
@@ -139,7 +140,7 @@ async function captureFixtures(): Promise<void> {
     });
     saveFixture('search-batman.json', searchBatman.data);
 
-    await new Promise(resolve => setTimeout(resolve, 250));
+    await new Promise((resolve) => setTimeout(resolve, 250));
 
     const searchOffice = await client.get('/search/tv', { params: { query: 'office', page: 1 } });
     saveFixture('search-office.json', searchOffice.data);
@@ -158,7 +159,7 @@ async function captureFixtures(): Promise<void> {
     });
     saveFixture('edge-case-low-votes.json', lowVotes.data);
 
-    await new Promise(resolve => setTimeout(resolve, 250));
+    await new Promise((resolve) => setTimeout(resolve, 250));
 
     // Obscure but highly rated
     const obscureHighRated = await client.get('/discover/movie', {

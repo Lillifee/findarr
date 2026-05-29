@@ -6,6 +6,7 @@ import {
   type TVDetails,
   type User,
 } from '@findarr/shared';
+
 import { createUser } from '../../auth/repository.js';
 import type { Database } from '../../db/service.js';
 

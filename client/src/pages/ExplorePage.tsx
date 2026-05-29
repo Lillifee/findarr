@@ -1,6 +1,7 @@
 import type { GenreKey, InteractionFilter, SearchType, Media } from '@findarr/shared';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+
 import { FiltersToolbar } from '../components/FiltersToolbar';
 import { ResultsGrid } from '../components/ResultsGrid';
 import { SearchBar } from '../components/SearchBar';
@@ -30,7 +31,7 @@ function areGenresEqual(left: GenreKey[], right: GenreKey[]) {
 
 function mergeUniqueResults(existing: Media[], incoming: Media[]) {
   const keyOf = (item: Media) => `${item.type}_${item.tmdbId}`;
-  const seen = new Set(existing.map(item => keyOf(item)));
+  const seen = new Set(existing.map((item) => keyOf(item)));
   const merged = [...existing];
 
   for (const item of incoming) {
@@ -62,7 +63,7 @@ export function ExplorePage() {
   const [language, setLanguage] = useState<string>('de-DE');
   const [selectedGenres, setSelectedGenres] = useState<GenreKey[]>(initialSearchParams.genres);
   const [interactionFilter, setInteractionFilter] = useState<InteractionFilter>(
-    initialSearchParams.interaction ?? 'unvoted'
+    initialSearchParams.interaction ?? 'unvoted',
   );
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const popularSnapshotRef = useRef<PopularPageState | null>(null);
@@ -110,7 +111,7 @@ export function ExplorePage() {
     if (urlQuery !== currentQuery) {
       setCurrentQuery(urlQuery);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   const loadFeed = useCallback(
@@ -162,7 +163,7 @@ export function ExplorePage() {
             return;
           }
 
-          setResults(prev => mergeUniqueResults(prev, response.results));
+          setResults((prev) => mergeUniqueResults(prev, response.results));
           return;
         }
 
@@ -197,7 +198,7 @@ export function ExplorePage() {
           return;
         }
 
-        setResults(prev => {
+        setResults((prev) => {
           const mergedResults = mergeUniqueResults(prev, response.results);
           popularSnapshotRef.current = {
             type,
@@ -232,7 +233,7 @@ export function ExplorePage() {
       language,
       selectedGenres,
       settingsLoaded,
-    ]
+    ],
   );
 
   const restoreVisibleFeed = useCallback((state: PopularFeedState) => {
@@ -248,7 +249,7 @@ export function ExplorePage() {
       areGenresEqual(state.genres, selectedGenres) &&
       state.interaction === interactionFilter &&
       state.query === currentQuery,
-    [currentQuery, currentSearchType, interactionFilter, selectedGenres]
+    [currentQuery, currentSearchType, interactionFilter, selectedGenres],
   );
 
   const matchesPopularFilters = useCallback(
@@ -256,7 +257,7 @@ export function ExplorePage() {
       state.type === currentSearchType &&
       areGenresEqual(state.genres, selectedGenres) &&
       state.interaction === interactionFilter,
-    [currentSearchType, interactionFilter, selectedGenres]
+    [currentSearchType, interactionFilter, selectedGenres],
   );
 
   const persistHistoryState = useCallback(() => {
@@ -333,7 +334,7 @@ export function ExplorePage() {
         genres: selectedGenres,
         interaction: interactionFilter,
         q: currentQuery || undefined,
-      })
+      }),
     );
   };
 
@@ -345,7 +346,7 @@ export function ExplorePage() {
         genres,
         interaction: interactionFilter,
         q: currentQuery || undefined,
-      })
+      }),
     );
   };
 
@@ -357,7 +358,7 @@ export function ExplorePage() {
         genres: selectedGenres,
         interaction: value,
         q: currentQuery || undefined,
-      })
+      }),
     );
   };
 
@@ -369,7 +370,7 @@ export function ExplorePage() {
         genres: selectedGenres,
         interaction: interactionFilter,
         q: query,
-      })
+      }),
     );
   };
 
@@ -389,7 +390,7 @@ export function ExplorePage() {
         type: currentSearchType,
         genres: selectedGenres,
         interaction: interactionFilter,
-      })
+      }),
     );
   };
 
@@ -401,7 +402,7 @@ export function ExplorePage() {
   const handleUpdateItem = (updatedItem: Media) => {
     if (!isSearchMode && interactionFilter === 'unvoted') {
       const filtered = results.filter(
-        item => !(item.tmdbId === updatedItem.tmdbId && item.type === updatedItem.type)
+        (item) => !(item.tmdbId === updatedItem.tmdbId && item.type === updatedItem.type),
       );
       setResults(filtered);
 
@@ -429,18 +430,18 @@ export function ExplorePage() {
     }
 
     // Keep optimistic in-place update and preserve the existing feed ordering.
-    setResults(prev =>
-      prev.map(item =>
-        item.tmdbId === updatedItem.tmdbId && item.type === updatedItem.type ? updatedItem : item
-      )
+    setResults((prev) =>
+      prev.map((item) =>
+        item.tmdbId === updatedItem.tmdbId && item.type === updatedItem.type ? updatedItem : item,
+      ),
     );
   };
   return (
     <>
-      <div className="sticky top-0 z-30 border-b border-gray-700/50 bg-gray-800/90 backdrop-blur-md shadow-2xl">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">
+      <div className="sticky top-0 z-30 border-b border-gray-700/50 bg-gray-800/90 shadow-2xl backdrop-blur-md">
+        <div className="mx-auto max-w-7xl px-4 py-3 md:px-8">
           <div className="flex flex-wrap items-center gap-3">
-            <div className="w-full md:flex-1 md:w-auto">
+            <div className="w-full md:w-auto md:flex-1">
               <SearchBar
                 onSearch={handleSearch}
                 onClear={handleClearSearch}
@@ -466,11 +467,11 @@ export function ExplorePage() {
       </div>
 
       {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-4 pb-20 md:px-8 py-4 md:py-8 md:pb-20">
+      <div className="mx-auto max-w-7xl px-4 py-4 pb-20 md:px-8 md:py-8 md:pb-20">
         {results.length > 0 && (
           <div id="results-section">
-            <div className="flex justify-between items-center gap-3 mb-6">
-              <h2 className="text-xl md:text-3xl font-bold text-white">
+            <div className="mb-6 flex items-center justify-between gap-3">
+              <h2 className="text-xl font-bold text-white md:text-3xl">
                 {isSearchMode
                   ? currentSearchType === 'movie'
                     ? 'Movies'
@@ -479,7 +480,7 @@ export function ExplorePage() {
                       : 'Movies & TV Shows'
                   : 'Trending & Popular'}
               </h2>
-              <span className="text-gray-400 text-xs md:text-sm">
+              <span className="text-xs text-gray-400 md:text-sm">
                 {results.length.toLocaleString()}
                 {currentPage < totalPages ? '+' : ''} results loaded
               </span>
@@ -492,7 +493,7 @@ export function ExplorePage() {
             />
 
             {currentPage < totalPages && (
-              <div className="text-center mt-6 md:mt-8 pt-4 md:pt-6 md:pb-0 border-t border-gray-700">
+              <div className="mt-6 border-t border-gray-700 pt-4 text-center md:mt-8 md:pt-6 md:pb-0">
                 <Button
                   onClick={() => {
                     if (currentPage < totalPages) {
@@ -513,10 +514,10 @@ export function ExplorePage() {
         )}
 
         {results.length === 0 && !loading && (
-          <div className="text-center p-8 md:p-16 text-gray-500">
+          <div className="p-8 text-center text-gray-500 md:p-16">
             <div className="flex flex-col items-center gap-4">
               <svg
-                className="w-12 h-12 text-gray-600"
+                className="h-12 w-12 text-gray-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

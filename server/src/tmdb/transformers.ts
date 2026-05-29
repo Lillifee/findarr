@@ -13,6 +13,7 @@ import type {
   CastMember,
   Video,
 } from '@findarr/shared';
+
 import type {
   TMDBMovie,
   TMDBTVShow,
@@ -35,7 +36,7 @@ interface CustomFields {
 export function transformMedia(
   item: TMDBMovie | TMDBTVShow,
   genreMap: Map<number, Genre>,
-  customState?: CustomFields
+  customState?: CustomFields,
 ): Media {
   return item.type === 'movie'
     ? transformMovie(item as TMDBMovie, genreMap, customState)
@@ -48,11 +49,11 @@ export function transformMedia(
 function transformMovie(
   tmdbMovie: TMDBMovie,
   genreMap: Map<number, Genre>,
-  customFields?: CustomFields
+  customFields?: CustomFields,
 ): Movie {
   // Map genre_ids to full genre objects
   const genres = tmdbMovie.genre_ids
-    ? tmdbMovie.genre_ids.map(id => genreMap.get(id)).filter((g): g is Genre => g !== undefined)
+    ? tmdbMovie.genre_ids.map((id) => genreMap.get(id)).filter((g): g is Genre => g !== undefined)
     : [];
 
   return {
@@ -79,11 +80,11 @@ function transformMovie(
 function transformTVShow(
   tmdbTV: TMDBTVShow,
   genreMap: Map<number, Genre>,
-  customFields?: CustomFields
+  customFields?: CustomFields,
 ): TVShow {
   // Map genre_ids to full genre objects
   const genres = tmdbTV.genre_ids
-    ? tmdbTV.genre_ids.map(id => genreMap.get(id)).filter((g): g is Genre => g !== undefined)
+    ? tmdbTV.genre_ids.map((id) => genreMap.get(id)).filter((g): g is Genre => g !== undefined)
     : [];
 
   return {
@@ -118,7 +119,7 @@ export function transformDetails(item: TMDBMovieDetails | TMDBTVDetails) {
 function extractCast(credits: TMDBCredits | undefined): CastMember[] | undefined {
   if (!credits?.cast || credits.cast.length === 0) return undefined;
 
-  return credits.cast.slice(0, 6).map(member => ({
+  return credits.cast.slice(0, 6).map((member) => ({
     id: member.id,
     name: member.name,
     character: member.character,
@@ -136,12 +137,12 @@ function extractVideos(videos: TMDBVideos | undefined): Video[] | undefined {
 
   const trailerVideos = videos.results
     .filter(
-      video =>
+      (video) =>
         video.site === 'YouTube' &&
         (video.type === 'Trailer' || video.type === 'Teaser') &&
-        video.official === true
+        video.official === true,
     )
-    .map(video => ({
+    .map((video) => ({
       id: video.id,
       key: video.key,
       name: video.name,
@@ -200,7 +201,7 @@ function transformTVDetails(tmdbTV: TMDBTVDetails): TVDetails {
   const keywords: Keyword[] = tmdbTV.keywords?.results ?? [];
 
   // Transform seasons array
-  const seasons = tmdbTV.seasons.map(season => ({
+  const seasons = tmdbTV.seasons.map((season) => ({
     seasonNumber: season.season_number,
     name: season.name,
     episodeCount: season.episode_count,

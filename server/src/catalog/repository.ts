@@ -1,6 +1,7 @@
 import type { Media, Genre, Keyword, DbCatalogCache, MediaType } from '@findarr/shared';
 import { catalogCache } from '@findarr/shared';
 import { eq, and, isNull, sql } from 'drizzle-orm';
+
 import type { Database } from '../db/service.js';
 import type { MediaStats } from '../media/scoring.js';
 
@@ -85,7 +86,7 @@ export const upsertCatalogCache = async (db: Database, items: Media[]): Promise<
  */
 export const getCatalogCacheBatch = async (
   db: Database,
-  mediaKeys: Array<{ tmdbId: number; type: MediaType }>
+  mediaKeys: Array<{ tmdbId: number; type: MediaType }>,
 ): Promise<Media[]> => {
   if (mediaKeys.length === 0) return [];
 
@@ -99,7 +100,7 @@ export const getCatalogCacheBatch = async (
     if (row) catalogCacheRows.push(row as DbCatalogCache);
   }
 
-  return catalogCacheRows.map(row => mapCatalogCacheRowToMedia(row));
+  return catalogCacheRows.map((row) => mapCatalogCacheRowToMedia(row));
 };
 
 /**
@@ -107,7 +108,7 @@ export const getCatalogCacheBatch = async (
  */
 export const getAllCatalogCache = async (db: Database): Promise<Media[]> => {
   const catalogCacheRows = (await db.query.catalogCache.findMany()) as DbCatalogCache[];
-  return catalogCacheRows.map(row => mapCatalogCacheRowToMedia(row));
+  return catalogCacheRows.map((row) => mapCatalogCacheRowToMedia(row));
 };
 
 /**
@@ -116,7 +117,7 @@ export const getAllCatalogCache = async (db: Database): Promise<Media[]> => {
  */
 export const cleanupCatalogCache = async (
   db: Database,
-  activeMediaKeys: Array<{ tmdbId: number; type: MediaType }>
+  activeMediaKeys: Array<{ tmdbId: number; type: MediaType }>,
 ): Promise<number> => {
   if (activeMediaKeys.length === 0) {
     // Delete all if no current IDs provided
@@ -130,10 +131,10 @@ export const cleanupCatalogCache = async (
 
   // Find entries to delete (those not in the active catalog set)
   const entriesToDelete = allEntries.filter(
-    entry =>
+    (entry) =>
       !activeMediaKeys.some(
-        mediaKey => mediaKey.tmdbId === entry.tmdbId && mediaKey.type === entry.type
-      )
+        (mediaKey) => mediaKey.tmdbId === entry.tmdbId && mediaKey.type === entry.type,
+      ),
   );
 
   // Delete each entry
@@ -153,7 +154,7 @@ export const cleanupCatalogCache = async (
  * Used by keyword enrichment to find items that need detailed fetching
  */
 export const listCatalogItemsMissingKeywords = async (
-  db: Database
+  db: Database,
 ): Promise<Array<{ tmdbId: number; type: MediaType }>> => {
   const catalogItems = await db.query.catalogCache.findMany({
     columns: {
@@ -163,7 +164,7 @@ export const listCatalogItemsMissingKeywords = async (
     where: isNull(catalogCache.keywords),
   });
 
-  return catalogItems.map(row => ({
+  return catalogItems.map((row) => ({
     tmdbId: row.tmdbId,
     type: row.type as MediaType,
   }));
@@ -177,7 +178,7 @@ export const updateCatalogKeywords = async (
   db: Database,
   tmdbId: number,
   type: MediaType,
-  keywords: Keyword[]
+  keywords: Keyword[],
 ): Promise<void> => {
   await db
     .update(catalogCache)
@@ -191,7 +192,7 @@ export const updateCatalogKeywords = async (
  */
 export const computeCatalogMediaStats = async (
   db: Database,
-  mediaType: MediaType
+  mediaType: MediaType,
 ): Promise<Omit<MediaStats, 'mediaType' | 'updatedAt'>> => {
   const result = await db
     .select({

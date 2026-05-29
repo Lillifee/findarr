@@ -13,7 +13,7 @@ type LifecycleState<TSettings, TClient> = {
 };
 
 export function createClientLifecycle<TSettings, TClient>(
-  options: ServiceLifecycleOptions<TSettings, TClient>
+  options: ServiceLifecycleOptions<TSettings, TClient>,
 ) {
   let state: LifecycleState<TSettings, TClient> = {};
   let reloadPromise: Promise<void> | undefined;
@@ -22,13 +22,14 @@ export function createClientLifecycle<TSettings, TClient>(
     if (reloadPromise) return reloadPromise;
 
     reloadPromise = (async () => {
-      const settings = await options.loadSettings();
-      const client = options.createClient(settings);
+      const newSettings = await options.loadSettings();
+      const newClient = options.createClient(newSettings);
+      const newState = { settings: newSettings, client: newClient };
 
-      state = { settings, client };
+      state = newState;
 
       if (options.onReloaded) {
-        await options.onReloaded({ settings, client });
+        await options.onReloaded(newState);
       }
     })();
 

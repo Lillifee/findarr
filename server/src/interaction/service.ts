@@ -7,6 +7,7 @@ import type {
   UserInteractionsResponse,
   MediaStatus,
 } from '@findarr/shared';
+
 import type { AnyArrService } from '../arr/service.js';
 import { getCatalogCacheBatch } from '../catalog/repository.js';
 import type { CatalogService } from '../catalog/service.js';
@@ -45,7 +46,7 @@ export const createInteraction = async (
   catalogService: CatalogService,
   db: Database,
   data: CreateMediaInteraction,
-  user?: User
+  user?: User,
 ): Promise<Media | undefined> => {
   if (!user?.id) return;
 
@@ -107,7 +108,7 @@ async function updateUserPreferences(
   db: Database,
   data: CreateMediaInteraction,
   userId: number,
-  isToggle: boolean
+  isToggle: boolean,
 ): Promise<void> {
   const [cachedItem] = await getCatalogCacheBatch(db, [
     { tmdbId: data.tmdbId, type: data.mediaType },
@@ -126,7 +127,7 @@ async function updateUserPreferences(
     source.genres,
     source.keywords,
     data.action,
-    isToggle
+    isToggle,
   );
 }
 
@@ -144,7 +145,7 @@ async function requestMediaToArr(
   radarrService: AnyArrService,
   sonarrService: AnyArrService,
   mediaRecord: DbMedia,
-  data: CreateMediaInteraction
+  data: CreateMediaInteraction,
 ): Promise<void> {
   const details = await tmdbService.details({ id: data.tmdbId, type: data.mediaType });
 
@@ -156,7 +157,7 @@ async function requestMediaToArr(
     externalId,
     details.name,
     mediaRecord.arrId,
-    data.seasons
+    data.seasons,
   );
 }
 
@@ -168,7 +169,7 @@ export async function getUserInteractionsEnriched(
   tmdbService: TMDBService,
   db: Database,
   userId: number,
-  params?: InteractionsQuery
+  params?: InteractionsQuery,
 ): Promise<UserInteractionsResponse> {
   const { action = 'all', page = 1, type = 'both' } = params ?? {};
   const limit = 20;
@@ -188,7 +189,7 @@ export async function getUserActivityAttentionEnriched(
   tmdbService: TMDBService,
   db: Database,
   user: User,
-  params?: InteractionsQuery
+  params?: InteractionsQuery,
 ): Promise<UserInteractionsResponse> {
   const { page = 1, type = 'both' } = params ?? {};
   const limit = 20;
@@ -210,7 +211,7 @@ async function enrichInteractionPage(
   userId: number,
   items: { results: DbMedia[]; totalCount: number },
   page: number,
-  limit: number
+  limit: number,
 ): Promise<UserInteractionsResponse> {
   // Calculate pagination metadata
   const totalPages = Math.ceil(items.totalCount / limit);

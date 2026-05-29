@@ -1,8 +1,10 @@
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+
 import Fastify, { type FastifyInstance } from 'fastify';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import authPlugin from '../auth/plugin.js';
 import { authRoutes, protectedAuthRoutes } from '../auth/routes.js';
 import databasePlugin from '../db/plugin.js';
@@ -19,7 +21,7 @@ function getSessionCookie(reply: Awaited<ReturnType<FastifyInstance['inject']>>)
   }
 
   const cookies = Array.isArray(header) ? header : [header];
-  return cookies.map(cookie => cookie.split(';', 1)[0]).join('; ');
+  return cookies.map((cookie) => cookie.split(';', 1)[0]).join('; ');
 }
 
 describe('auth routes - integration tests', () => {
@@ -41,16 +43,20 @@ describe('auth routes - integration tests', () => {
     });
 
     const tmdbServiceMock: TMDBService = {
-      getSettings: vi.fn().mockReturnValue({ tmdbAccessTokenSet: true }),
-      setSettings: vi.fn().mockResolvedValue({ tmdbAccessTokenSet: true }),
-      isConfigured: vi.fn().mockResolvedValue(true),
-      testConnection: vi.fn().mockResolvedValue(true),
-      search: vi.fn(),
-      discover: vi.fn(),
-      trending: vi.fn(),
-      details: vi.fn(),
-      genres: vi.fn(),
-      findByExternalId: vi.fn(),
+      getSettings: vi
+        .fn<TMDBService['getSettings']>()
+        .mockReturnValue({ tmdbAccessTokenSet: true }),
+      setSettings: vi
+        .fn<TMDBService['setSettings']>()
+        .mockResolvedValue({ tmdbAccessTokenSet: true }),
+      isConfigured: vi.fn<TMDBService['isConfigured']>().mockResolvedValue(true),
+      testConnection: vi.fn<TMDBService['testConnection']>().mockResolvedValue(true),
+      search: vi.fn<TMDBService['search']>(),
+      discover: vi.fn<TMDBService['discover']>(),
+      trending: vi.fn<TMDBService['trending']>(),
+      details: vi.fn<TMDBService['details']>(),
+      genres: vi.fn<TMDBService['genres']>(),
+      findByExternalId: vi.fn<TMDBService['findByExternalId']>(),
     } as unknown as TMDBService;
 
     app.decorate('tmdb', tmdbServiceMock);

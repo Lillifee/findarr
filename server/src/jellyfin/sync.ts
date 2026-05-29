@@ -1,4 +1,5 @@
 import { isDefined } from '@findarr/shared';
+
 import type { SchedulerContext } from '../scheduler/types.js';
 import {
   clearRemovedJellyfinItems,
@@ -32,11 +33,11 @@ export async function syncJellyfinLibrary(context: SchedulerContext): Promise<vo
   const affectedRows = await upsertMediaFromJellyfin(context.db, jellyfinItems);
 
   const mediaWithJellyfinIds = await getMediaWithJellyfinIds(context.db);
-  const currentJellyfinIds = new Set(jellyfinItems.map(item => item.jellyfinId));
+  const currentJellyfinIds = new Set(jellyfinItems.map((item) => item.jellyfinId));
   const removedJellyfinIds = mediaWithJellyfinIds
-    .map(mediaRecord => mediaRecord.jellyfinId)
-    .filter(jellyfinId => isDefined(jellyfinId))
-    .filter(jellyfinId => !currentJellyfinIds.has(jellyfinId));
+    .map((mediaRecord) => mediaRecord.jellyfinId)
+    .filter((jellyfinId) => isDefined(jellyfinId))
+    .filter((jellyfinId) => !currentJellyfinIds.has(jellyfinId));
 
   if (removedJellyfinIds.length > 0) {
     const clearedCount = await clearRemovedJellyfinItems(context.db, removedJellyfinIds);
@@ -52,6 +53,6 @@ export async function syncJellyfinLibrary(context: SchedulerContext): Promise<vo
       affectedRows,
       durationMs,
     },
-    'Library sync completed'
+    'Library sync completed',
   );
 }

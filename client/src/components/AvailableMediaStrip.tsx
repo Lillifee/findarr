@@ -27,7 +27,7 @@ export function AvailableMediaStrip({
 
   if (loading && results.length === 0) {
     return (
-      <div className="overflow-x-auto overflow-y-hidden scrollbar-hidden">
+      <div className="scrollbar-hidden overflow-x-auto overflow-y-hidden">
         <div className="flex gap-3">
           {Array.from({ length: 6 }).map((_, index) => (
             <div
@@ -59,13 +59,13 @@ export function AvailableMediaStrip({
     <div className="relative overflow-hidden">
       <div className="scrollbar-hidden overflow-x-auto overflow-y-hidden" style={fadeStyle}>
         <div className="flex gap-3 md:gap-4">
-          {results.map(item => (
+          {results.map((item) => (
             <div
               key={keyOf(item)}
               role="button"
               tabIndex={0}
               onClick={() => onSelectItem(item)}
-              onKeyDown={event => handleCardKeyDown(event, item)}
+              onKeyDown={(event) => handleCardKeyDown(event, item)}
               className="group w-32 shrink-0 cursor-pointer transition-transform duration-300 sm:w-36 md:w-40"
             >
               <div className="relative overflow-hidden rounded-xl border border-gray-700/60 bg-gray-800/75 shadow-lg transition-all duration-300 group-hover:border-gray-500/90 group-hover:shadow-2xl">
@@ -81,11 +81,11 @@ export function AvailableMediaStrip({
                   </div>
                 )}
 
-                <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/92 via-black/58 to-transparent px-2 pb-2 pt-7">
-                  <p className="line-clamp-2 text-[11px] font-semibold leading-tight text-white md:text-xs">
+                <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/92 via-black/58 to-transparent px-2 pt-7 pb-2">
+                  <p className="line-clamp-2 text-[11px] leading-tight font-semibold text-white md:text-xs">
                     {item.name}
                   </p>
-                  <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-gray-300">
+                  <p className="mt-1 text-[10px] tracking-[0.16em] text-gray-300 uppercase">
                     {item.date ? new Date(item.date).getFullYear() : 'N/A'}
                   </p>
                 </div>

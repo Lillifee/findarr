@@ -1,4 +1,5 @@
 import type { Genre, Keyword, InteractionType } from '@findarr/shared';
+
 import type { Database } from '../db/service.js';
 import { updateGenrePreference, updateKeywordPreference } from './repository.js';
 
@@ -18,14 +19,14 @@ export async function updateGenreFromInteraction(
   userId: number,
   genres: Genre[],
   action: InteractionType,
-  isToggle: boolean
+  isToggle: boolean,
 ) {
   // Calculate score delta based on action and toggle state
   const baseScore = action === 'liked' ? LIKE_SCORE : DISLIKE_SCORE;
   const scoreDelta = isToggle ? -baseScore : baseScore;
 
   // Update preferences for all genres in the media item
-  await Promise.all(genres.map(genre => updateGenrePreference(db, userId, genre, scoreDelta)));
+  await Promise.all(genres.map((genre) => updateGenrePreference(db, userId, genre, scoreDelta)));
 }
 
 /**
@@ -36,7 +37,7 @@ export async function updateKeywordFromInteraction(
   userId: number,
   keywords: Keyword[],
   action: InteractionType,
-  isToggle: boolean
+  isToggle: boolean,
 ) {
   // Calculate score delta based on action and toggle state
   const baseScore = action === 'liked' ? LIKE_SCORE : DISLIKE_SCORE;
@@ -44,7 +45,7 @@ export async function updateKeywordFromInteraction(
 
   // Update preferences for all keywords in the media item
   await Promise.all(
-    keywords.map(keyword => updateKeywordPreference(db, userId, keyword, scoreDelta))
+    keywords.map((keyword) => updateKeywordPreference(db, userId, keyword, scoreDelta)),
   );
 }
 
@@ -57,7 +58,7 @@ export async function updatePreferencesForInteraction(
   genres: Genre[],
   keywords: Keyword[] | undefined,
   action: InteractionType,
-  isToggle: boolean
+  isToggle: boolean,
 ) {
   // Update genre preferences
   await updateGenreFromInteraction(db, userId, genres, action, isToggle);

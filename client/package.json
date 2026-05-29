@@ -9,7 +9,7 @@
     "test": "vitest",
     "test:run": "vitest run --passWithNoTests",
     "test:coverage": "vitest run --coverage --passWithNoTests",
-    "type-check": "tsc --noEmit",
+    "type:check": "tsc --noEmit",
     "clean": "rimraf dist *.tsbuildinfo"
   },
   "dependencies": {

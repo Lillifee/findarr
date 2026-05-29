@@ -1,5 +1,6 @@
 import SqlDatabase from 'better-sqlite3';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+
 import {
   upsertCatalogCache,
   getAllCatalogCache,
@@ -141,7 +142,7 @@ describe('catalog repository - integration tests', () => {
 
       const remaining = await getAllCatalogCache(db);
       expect(remaining).toHaveLength(2);
-      expect(remaining.find(m => m.tmdbId === 3)).toBeUndefined();
+      expect(remaining.find((m) => m.tmdbId === 3)).toBeUndefined();
     });
 
     it('should delete all items when empty list provided', async () => {
@@ -186,7 +187,7 @@ describe('catalog repository - integration tests', () => {
       const result = await listCatalogItemsMissingKeywords(db);
 
       expect(result).toHaveLength(2);
-      expect(result.map(r => r.tmdbId).sort()).toEqual([1, 2]);
+      expect(result.map((r) => r.tmdbId).sort()).toEqual([1, 2]);
     });
 
     it('should return empty array when all items have keywords', async () => {
@@ -227,8 +228,8 @@ describe('catalog repository - integration tests', () => {
       await updateCatalogKeywords(db, 1, 'movie', keywords);
 
       const cached = await getAllCatalogCache(db);
-      const updated = cached.find(m => m.tmdbId === 1);
-      const unchanged = cached.find(m => m.tmdbId === 2);
+      const updated = cached.find((m) => m.tmdbId === 1);
+      const unchanged = cached.find((m) => m.tmdbId === 2);
 
       expect(updated?.keywords).toEqual(keywords);
       expect(unchanged?.keywords).toBeUndefined();

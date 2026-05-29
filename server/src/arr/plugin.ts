@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
+
 import { arrConfig } from './config.js';
 import { createArrService, type ArrService } from './service.js';
 
@@ -10,7 +11,7 @@ declare module 'fastify' {
   }
 }
 
-const arrPlugin: FastifyPluginAsync = async fastify => {
+const arrPlugin: FastifyPluginAsync = async (fastify) => {
   fastify.decorate('radarr', await createArrService(arrConfig.radarr, fastify));
   fastify.decorate('sonarr', await createArrService(arrConfig.sonarr, fastify));
   fastify.log.info({ name: 'arr' }, 'Arr plugin registered (Radarr + Sonarr)');

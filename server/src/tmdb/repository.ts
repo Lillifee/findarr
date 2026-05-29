@@ -1,5 +1,6 @@
 import type { TmdbSettings, TmdbSettingsQuery } from '@findarr/shared';
 import { TmdbSettingsQuerySchema } from '@findarr/shared';
+
 import type { Database } from '../db/service.js';
 import { readSettings, writeSettings } from '../settings/repository.js';
 

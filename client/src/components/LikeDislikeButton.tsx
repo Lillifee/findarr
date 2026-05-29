@@ -1,5 +1,6 @@
 import type { Media, MediaType, TVDetails } from '@findarr/shared';
 import { useState } from 'react';
+
 import { interactionService, searchService } from '../services/api';
 import { asVoid } from '../utils/asyncHandlers';
 import SeasonSelectorModal from './SeasonSelectorModal';
@@ -34,7 +35,7 @@ export function LikeDislikeButton({
         tmdbId,
         mediaType,
         action,
-        selectedSeasons
+        selectedSeasons,
       );
 
       // Determine new action based on context:
@@ -119,7 +120,9 @@ export function LikeDislikeButton({
   // Only include seasons with actual status (not 'none')
   const alreadyRequestedSeasons =
     existingMedia?.type === 'tv' && existingMedia.state?.record?.seasons
-      ? existingMedia.state.record.seasons.filter(s => s.status !== 'none').map(s => s.seasonNumber)
+      ? existingMedia.state.record.seasons
+          .filter((s) => s.status !== 'none')
+          .map((s) => s.seasonNumber)
       : [];
 
   return (
@@ -127,7 +130,7 @@ export function LikeDislikeButton({
       <div className="flex items-center gap-2">
         {/* Like Button */}
         <button
-          onClick={e => {
+          onClick={(e) => {
             e.stopPropagation();
             void handleAction('liked');
           }}
@@ -136,7 +139,7 @@ export function LikeDislikeButton({
             currentAction === 'liked'
               ? 'border border-emerald-500 bg-emerald-900/40 text-emerald-100'
               : 'border border-gray-700/50 bg-gray-800/70 text-gray-300 hover:border-emerald-500/60 hover:bg-gray-700/80 hover:text-emerald-200'
-          } disabled:opacity-50 disabled:cursor-not-allowed`}
+          } disabled:cursor-not-allowed disabled:opacity-50`}
           title="Like"
         >
           <svg className={iconClass} fill="currentColor" viewBox="0 0 24 24">
@@ -147,7 +150,7 @@ export function LikeDislikeButton({
 
         {/* Dislike Button */}
         <button
-          onClick={e => {
+          onClick={(e) => {
             e.stopPropagation();
             void handleAction('disliked');
           }}
@@ -156,7 +159,7 @@ export function LikeDislikeButton({
             currentAction === 'disliked'
               ? 'border border-red-500 bg-red-900/40 text-red-100'
               : 'border border-gray-700/50 bg-gray-800/70 text-gray-300 hover:border-red-500/60 hover:bg-gray-700/80 hover:text-red-200'
-          } disabled:opacity-50 disabled:cursor-not-allowed`}
+          } disabled:cursor-not-allowed disabled:opacity-50`}
           title="Dislike"
         >
           <svg className={iconClass} fill="currentColor" viewBox="0 0 24 24">

@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
+
 import { createCatalogService, type CatalogService } from './service.js';
 
 // Extend Fastify instance with catalog service
@@ -9,7 +10,7 @@ declare module 'fastify' {
   }
 }
 
-const catalogPlugin: FastifyPluginAsync = async fastify => {
+const catalogPlugin: FastifyPluginAsync = async (fastify) => {
   // Create catalog service using existing db and tmdb services
   const catalogService = createCatalogService(fastify);
 

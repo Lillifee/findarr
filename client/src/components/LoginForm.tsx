@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import { useAuth } from '../contexts/AuthContext';
 import { asVoid } from '../utils/asyncHandlers';
 import { Button } from './ui/Button';
@@ -27,11 +28,11 @@ export function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 px-4">
       <div className="w-full max-w-md">
         <Card variant="solid" padding="lg">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Findarr</h1>
+          <div className="mb-8 text-center">
+            <h1 className="mb-2 text-3xl font-bold text-white">Findarr</h1>
             <p className="text-gray-400">Sign in to your account</p>
           </div>
 
@@ -41,7 +42,7 @@ export function LoginForm() {
               type="email"
               label="Email"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="you@example.com"
             />
@@ -51,13 +52,13 @@ export function LoginForm() {
               type="password"
               label="Password"
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="••••••••"
             />
 
             {error && (
-              <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
+              <div className="rounded-lg border border-red-700 bg-red-900/50 px-4 py-3 text-red-200">
                 {error}
               </div>
             )}

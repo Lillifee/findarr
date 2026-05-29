@@ -1,5 +1,6 @@
-import type { Genre } from '@findarr/shared';
+import type { Genre, MovieDetails, TVDetails } from '@findarr/shared';
 import { describe, it, expect } from 'vitest';
+
 import {
   TMDBSearchResponseSchema,
   TMDBMovieDetailsSchema,
@@ -56,11 +57,11 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
       const firstResult = parsed.results[0];
       expect(firstResult).toBeDefined();
       expect(firstResult?.id).toBeDefined();
-      if (firstResult?.type === 'movie') {
-        expect(firstResult.title).toBeDefined();
-      }
-      expect(firstResult?.vote_average).toBeDefined();
-      expect(firstResult?.popularity).toBeDefined();
+
+      const movieDetails = firstResult as TMDBMovieDetails;
+      expect(movieDetails.title).toBeDefined();
+      expect(movieDetails.vote_average).toBeDefined();
+      expect(movieDetails.popularity).toBeDefined();
     });
 
     it('should parse popular TV shows search response', () => {
@@ -74,10 +75,10 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
       const firstResult = parsed.results[0];
       expect(firstResult).toBeDefined();
       expect(firstResult?.id).toBeDefined();
-      if (firstResult?.type === 'tv') {
-        expect(firstResult.name).toBeDefined();
-      }
-      expect(firstResult?.vote_average).toBeDefined();
+
+      const tvDetail = firstResult as TMDBTVDetails;
+      expect(tvDetail.name).toBeDefined();
+      expect(tvDetail.vote_average).toBeDefined();
     });
 
     it('should parse trending daily response', () => {
@@ -106,9 +107,9 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
 
       // Verify Batman movies are in results
       const hasBatman = parsed.results.some(
-        r =>
+        (r) =>
           (r.type === 'movie' && r.title?.toLowerCase().includes('batman')) ||
-          (r.type === 'movie' && r.original_title?.toLowerCase().includes('batman'))
+          (r.type === 'movie' && r.original_title?.toLowerCase().includes('batman')),
       );
       expect(hasBatman).toBe(true);
     });
@@ -145,9 +146,7 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
 
         // Keywords (with append_to_response)
         expect(parsed.keywords).toBeDefined();
-        if (parsed.keywords) {
-          expect(Array.isArray(parsed.keywords.keywords)).toBe(true);
-        }
+        expect(Array.isArray(parsed.keywords?.keywords)).toBe(true);
       });
     }
 
@@ -179,11 +178,10 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
       const parsed = TMDBMovieDetailsSchema.parse(fixture);
       const media = transformDetails(parsed);
 
-      expect(media.type).toBe('movie');
-      if (media.type === 'movie') {
-        expect(media.imdbId).toBeDefined();
-        expect(media.imdbId).toMatch(/^tt\d+$/);
-      }
+      const movieDetail = media as MovieDetails;
+      expect(movieDetail.type).toBe('movie');
+      expect(movieDetail.imdbId).toBeDefined();
+      expect(movieDetail.imdbId).toMatch(/^tt\d+$/);
     });
   });
 
@@ -215,9 +213,7 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
 
         // Keywords
         expect(parsed.keywords).toBeDefined();
-        if (parsed.keywords) {
-          expect(Array.isArray(parsed.keywords.results)).toBe(true);
-        }
+        expect(Array.isArray(parsed.keywords?.results)).toBe(true);
       });
     }
 
@@ -232,11 +228,10 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
       expect(media.genres.length).toBeGreaterThan(0);
       expect(media.voteAverage).toBeGreaterThan(0);
 
-      if (media.type === 'tv') {
-        expect(media.numberOfSeasons).toBeGreaterThan(0);
-        expect(media.numberOfEpisodes).toBeGreaterThan(0);
-        expect(media.tvdbId).toBeDefined();
-      }
+      const tvDetail = media as TVDetails;
+      expect(tvDetail.numberOfSeasons).toBeGreaterThan(0);
+      expect(tvDetail.numberOfEpisodes).toBeGreaterThan(0);
+      expect(tvDetail.tvdbId).toBeDefined();
     });
 
     it('should include TVDB ID when present', () => {
@@ -244,11 +239,10 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
       const parsed = TMDBTVDetailsSchema.parse(fixture);
       const media = transformDetails(parsed);
 
-      expect(media.type).toBe('tv');
-      if (media.type === 'tv') {
-        expect(media.tvdbId).toBeDefined();
-        expect(typeof media.tvdbId).toBe('number');
-      }
+      const tvDetail = media as TVDetails;
+      expect(tvDetail.type).toBe('tv');
+      expect(tvDetail.tvdbId).toBeDefined();
+      expect(typeof tvDetail.tvdbId).toBe('number');
     });
   });
 
@@ -261,7 +255,7 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
       expect(parsed.results.length).toBeGreaterThan(0);
 
       // Verify vote counts are low
-      const allLowVotes = parsed.results.every(r => r.vote_count <= 50);
+      const allLowVotes = parsed.results.every((r) => r.vote_count <= 50);
       expect(allLowVotes).toBe(true);
     });
 
@@ -274,7 +268,7 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
 
       // Verify ratings are high but vote counts are low
       const allHighRated = parsed.results.every(
-        r => r.vote_average >= 7 && r.vote_count >= 10 && r.vote_count <= 100
+        (r) => r.vote_average >= 7 && r.vote_count >= 10 && r.vote_count <= 100,
       );
       expect(allHighRated).toBe(true);
     });
@@ -285,7 +279,7 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
       const fixture = loadFixture('tmdb/popular-movies.json');
       const parsed = TMDBSearchResponseSchema.parse(fixture);
 
-      const mediaArray = parsed.results.map(item => transformMedia(item, genreMap));
+      const mediaArray = parsed.results.map((item) => transformMedia(item, genreMap));
 
       expect(mediaArray.length).toBeGreaterThan(0);
       for (const media of mediaArray) {
@@ -301,7 +295,7 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
       const fixture = loadFixture('tmdb/popular-tv.json');
       const parsed = TMDBSearchResponseSchema.parse(fixture);
 
-      const mediaArray = parsed.results.map(item => transformMedia(item, genreMap));
+      const mediaArray = parsed.results.map((item) => transformMedia(item, genreMap));
 
       expect(mediaArray.length).toBeGreaterThan(0);
       for (const media of mediaArray) {
@@ -357,10 +351,9 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
         expect(Array.isArray(media.keywords)).toBe(true);
 
         // TV-specific fields
-        if (media.type === 'tv') {
-          expect(media.numberOfSeasons).toBeGreaterThanOrEqual(0);
-          expect(media.numberOfEpisodes).toBeGreaterThanOrEqual(0);
-        }
+        const tvDetail = media as TVDetails;
+        expect(tvDetail.numberOfSeasons).toBeGreaterThanOrEqual(0);
+        expect(tvDetail.numberOfEpisodes).toBeGreaterThanOrEqual(0);
       }
     });
   });

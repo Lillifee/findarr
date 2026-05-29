@@ -15,7 +15,7 @@ findarr/
 ├── shared/      # @findarr/shared — Zod schemas, DB schema, types, helpers
 ├── server/      # @findarr/server — Fastify backend, SQLite via Drizzle ORM
 ├── client/      # @findarr/client — React + Vite frontend
-└── package.json # Root scripts, ESLint, Prettier, TypeScript
+└── package.json # Root scripts, oxfmt, oxlint, vitest TypeScript
 ```
 
 ---
@@ -120,5 +120,5 @@ Domain modules define their own tasks in `schedulers.ts` and register them in th
 - **TypeScript ESM**: `"type": "module"` in all packages. Use `.js` extension in all local imports.
 - **Zod**: validate all external data — API responses, env vars, request bodies.
 - **Comments**: only where logic is non-obvious. No redundant comments.
-- **Linting**: ESLint 9 flat config at root (`eslint.config.js`).
-- **Formatting**: Prettier (`.prettierrc` at root).
+- **Linting**: oxlint config at root (`oxlint.config.ts`).
+- **Formatting**: oxfmt config at root (`oxfmt.config.ts`).

@@ -13,6 +13,7 @@ import type {
   TmdbSettingsQuery,
 } from '@findarr/shared';
 import type { FastifyBaseLogger } from 'fastify';
+
 import type { Database } from '../db/service.js';
 import type { SchedulerService } from '../scheduler/service.js';
 import { createClientLifecycle } from '../utils/clientLifecycleHepler.js';
@@ -40,11 +41,11 @@ export async function createTMDBService(context: TmdbServiceContext) {
   const lifecycle = createClientLifecycle<TmdbSettingsFull, TMDBClient>({
     name: 'TMDB',
     loadSettings: () => getTmdbSettingsFull(context.db),
-    createClient: settings =>
+    createClient: (settings) =>
       settings.tmdbAccessToken ? createTMDBClient(settings.tmdbAccessToken) : undefined,
   });
 
-  await reloadService().catch(error => {
+  await reloadService().catch((error) => {
     context.log.error({ name: 'tmdb', error }, 'Failed to initialize TMDB service');
   });
 
@@ -110,18 +111,18 @@ export async function createTMDBService(context: TmdbServiceContext) {
     const client = lifecycle.client();
 
     const searchTypes = type === 'both' ? MEDIA_TYPES : [type];
-    const promises = searchTypes.map(searchType =>
-      client.search(searchType, { query, page, language, region })
+    const promises = searchTypes.map((searchType) =>
+      client.search(searchType, { query, page, language, region }),
     );
 
     const searchResponses = await Promise.all(promises);
 
-    const allResults = searchResponses.flatMap(response =>
-      response.results.map(item => transformMedia(item, genreMap))
+    const allResults = searchResponses.flatMap((response) =>
+      response.results.map((item) => transformMedia(item, genreMap)),
     );
 
     const sortedResults = allResults.sort((a, b) => b.popularity - a.popularity);
-    const totalPages = Math.max(...searchResponses.map(response => response.total_pages));
+    const totalPages = Math.max(...searchResponses.map((response) => response.total_pages));
 
     return {
       page,
@@ -136,7 +137,7 @@ export async function createTMDBService(context: TmdbServiceContext) {
    */
   async function discover(
     params: DiscoverQuery & UserSettingsQuery,
-    pages?: number[]
+    pages?: number[],
   ): Promise<DiscoverResponse> {
     const { type = 'both', page = 1 } = params;
     const client = lifecycle.client();
@@ -145,20 +146,20 @@ export async function createTMDBService(context: TmdbServiceContext) {
     const pagesToFetch = pages ?? [page];
 
     const discoverParams = buildDiscoverParams(params);
-    const discoverPromises = discoverTypes.flatMap(discoverType =>
-      pagesToFetch.map(pageNum =>
-        client.discover(discoverType, { ...discoverParams, page: pageNum })
-      )
+    const discoverPromises = discoverTypes.flatMap((discoverType) =>
+      pagesToFetch.map((pageNum) =>
+        client.discover(discoverType, { ...discoverParams, page: pageNum }),
+      ),
     );
 
     const responses = await Promise.all(discoverPromises);
 
-    const results = responses.flatMap(response =>
-      response.results.map(item => transformMedia(item, genreMap))
+    const results = responses.flatMap((response) =>
+      response.results.map((item) => transformMedia(item, genreMap)),
     );
 
     // Aggregate pagination metadata (max of both types)
-    const totalPages = Math.max(...responses.map(r => r.total_pages));
+    const totalPages = Math.max(...responses.map((r) => r.total_pages));
 
     return { results, page, totalPages };
   }
@@ -169,7 +170,7 @@ export async function createTMDBService(context: TmdbServiceContext) {
    */
   async function trending(
     params: TMDBTrendingParams = {},
-    pages?: number[]
+    pages?: number[],
   ): Promise<DiscoverResponse> {
     const { language = 'en-US', time_window = 'week' } = params;
     const client = lifecycle.client();
@@ -178,21 +179,21 @@ export async function createTMDBService(context: TmdbServiceContext) {
     const ranks: Record<MediaType, number> = { movie: 0, tv: 0 };
 
     const responses = await Promise.all(
-      MEDIA_TYPES.flatMap(type =>
-        pagesToFetch.map(page => client.trending(type, { language, time_window, page }))
-      )
+      MEDIA_TYPES.flatMap((type) =>
+        pagesToFetch.map((page) => client.trending(type, { language, time_window, page })),
+      ),
     );
 
-    const results = responses.flatMap(({ results }) =>
-      results.map(item => {
+    const results = responses.flatMap(({ results: res }) =>
+      res.map((item) => {
         const type = item.type as MediaType;
         const trendingRank = ++ranks[type];
 
         return transformMedia(item, genreMap, { trendingRank });
-      })
+      }),
     );
 
-    const totalPages = Math.max(...responses.map(r => r.total_pages));
+    const totalPages = Math.max(...responses.map((r) => r.total_pages));
 
     return { results, page: 1, totalPages };
   }

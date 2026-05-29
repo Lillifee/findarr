@@ -1,5 +1,6 @@
 import type { SchedulerConfig, SchedulerState } from '@findarr/shared';
 import type { FastifyBaseLogger } from 'fastify';
+
 import type { Database } from '../db/service.js';
 import type { JellyfinService } from '../jellyfin/service.js';
 import type { TMDBService } from '../tmdb/service.js';
@@ -32,7 +33,7 @@ export interface Scheduler {
  */
 export function createScheduler(
   config: SchedulerConfig,
-  runFn: (context: SchedulerContext) => Promise<boolean>
+  runFn: (context: SchedulerContext) => Promise<boolean>,
 ): Scheduler {
   const state: SchedulerState = {
     enabled: config.enabled,

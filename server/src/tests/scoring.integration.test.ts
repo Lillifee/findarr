@@ -3,6 +3,7 @@ import { isDefined, unifiedGenres } from '@findarr/shared';
 import type SqlDatabase from 'better-sqlite3';
 import type { FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 import * as authService from '../auth/service.js';
 import { computeCatalogMediaStats } from '../catalog/repository.js';
 import { createCatalogService } from '../catalog/service.js';
@@ -58,30 +59,29 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
 
     // Transform fixture responses to Media[] (like the real service does)
     const trendingItems = trendingWeekly.results.map((item, index) =>
-      transformMedia(item, genreMap, { trendingRank: index + 1 })
+      transformMedia(item, genreMap, { trendingRank: index + 1 }),
     );
-    const movieItems = popularMovies.results.map(item => transformMedia(item, genreMap));
-    const tvItems = popularTV.results.map(item => transformMedia(item, genreMap));
+    const movieItems = popularMovies.results.map((item) => transformMedia(item, genreMap));
+    const tvItems = popularTV.results.map((item) => transformMedia(item, genreMap));
 
     // Mock TMDB service with fixture data (already transformed)
     const tmdbServiceMock: TMDBService = {
-      configure: vi.fn().mockResolvedValue(undefined),
-      isConfigured: vi.fn().mockResolvedValue(true),
-      testConnection: vi.fn().mockResolvedValue(undefined),
-      search: vi.fn(),
-      discover: vi.fn().mockResolvedValue({
+      isConfigured: vi.fn<TMDBService['isConfigured']>().mockResolvedValue(true),
+      testConnection: vi.fn<TMDBService['testConnection']>().mockResolvedValue(true),
+      search: vi.fn<TMDBService['search']>(),
+      discover: vi.fn<TMDBService['discover']>().mockResolvedValue({
         results: [...movieItems, ...tvItems],
         page: 1,
         totalPages: 1,
       }),
-      trending: vi.fn().mockResolvedValue({
+      trending: vi.fn<TMDBService['trending']>().mockResolvedValue({
         results: trendingItems,
         page: 1,
         totalPages: 1,
       }),
-      details: vi.fn(),
-      genres: vi.fn().mockResolvedValue({ genres: [...genreMap.values()] }),
-      findByExternalId: vi.fn(),
+      details: vi.fn<TMDBService['details']>(),
+      genres: vi.fn<TMDBService['genres']>().mockResolvedValue({ genres: [...genreMap.values()] }),
+      findByExternalId: vi.fn<TMDBService['findByExternalId']>(),
     } as unknown as TMDBService;
 
     // Create mock Fastify instance for sync function
@@ -89,10 +89,10 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
       db,
       tmdb: tmdbServiceMock,
       log: {
-        info: vi.fn(),
-        error: vi.fn(),
-        warn: vi.fn(),
-        debug: vi.fn(),
+        info: vi.fn<() => void>(),
+        error: vi.fn<() => void>(),
+        warn: vi.fn<() => void>(),
+        debug: vi.fn<() => void>(),
       },
     } as unknown as FastifyInstance;
 
@@ -119,7 +119,7 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     const page1 = await catalogService.getPopularMedia({ type: 'both' }, user.id);
 
     // Extract relevant scoring data for snapshot (round to avoid floating-point precision issues)
-    const scoringSnapshot = page1.results.map(item => ({
+    const scoringSnapshot = page1.results.map((item) => ({
       name: item.name,
       type: item.type,
       tmdbId: item.tmdbId,
@@ -167,7 +167,7 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     const page1 = await catalogService.getPopularMedia({ type: 'both' }, user.id);
 
     // Extract relevant scoring data for snapshot (round to avoid floating-point precision issues)
-    const scoringSnapshot = page1.results.map(item => ({
+    const scoringSnapshot = page1.results.map((item) => ({
       name: item.name,
       type: item.type,
       tmdbId: item.tmdbId,
@@ -198,20 +198,20 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     // Get popular filtered by Action genre from query filter
     const page1 = await catalogService.getPopularMedia(
       { type: 'both', genres: ['Action'] },
-      user.id
+      user.id,
     );
 
     // All results should have Action genre (ID 28 for movies, 10759 for TV)
     for (const item of page1.results) {
-      const hasAction = item.genres.some(g => g.id === 28 || g.id === 10_759);
+      const hasAction = item.genres.some((g) => g.id === 28 || g.id === 10_759);
       expect(hasAction).toBe(true);
     }
 
     // Extract for snapshot
-    const filterSnapshot = page1.results.map(item => ({
+    const filterSnapshot = page1.results.map((item) => ({
       name: item.name,
       type: item.type,
-      genres: item.genres.map(g => g.name),
+      genres: item.genres.map((g) => g.name),
     }));
 
     expect(filterSnapshot).toMatchSnapshot('popular-action-genre-filter');
@@ -222,20 +222,20 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     const page1 = await catalogService.getPopularMedia({ type: 'both' }, user.id);
 
     // Extract types
-    const types = page1.results.map(item => ({
+    const types = page1.results.map((item) => ({
       name: item.name,
       type: item.type,
       tmdbId: item.tmdbId,
     }));
 
     // Should have movies in trending/popular fixtures
-    const hasMovies = types.some(t => t.type === 'movie');
+    const hasMovies = types.some((t) => t.type === 'movie');
     expect(hasMovies).toBe(true);
 
     // Type distribution snapshot
     const typeDistribution = {
-      movies: types.filter(t => t.type === 'movie').length,
-      tvShows: types.filter(t => t.type === 'tv').length,
+      movies: types.filter((t) => t.type === 'movie').length,
+      tvShows: types.filter((t) => t.type === 'tv').length,
       total: types.length,
       items: types,
     };

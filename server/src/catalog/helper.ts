@@ -14,7 +14,7 @@ export function createFeedSnapshotStore<T>(ttlMs: number = 5 * 60 * 1000) {
 
   async function getOrCreateSnapshot(
     feedId: string | undefined,
-    createItems: () => Promise<T[]>
+    createItems: () => Promise<T[]>,
   ): Promise<FeedSnapshot<T>> {
     const existingSnapshot = getSnapshot(feedId);
     if (existingSnapshot) {

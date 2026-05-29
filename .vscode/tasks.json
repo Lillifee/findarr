@@ -7,7 +7,7 @@
       "command": "npm run dev",
       "group": {
         "kind": "build",
-        "isDefault": true,
+        "isDefault": true
       },
       "isBackground": true,
       "problemMatcher": [],
@@ -17,8 +17,8 @@
         "focus": false,
         "panel": "new",
         "showReuseMessage": true,
-        "clear": false,
-      },
+        "clear": false
+      }
     },
     {
       "label": "Start Client (Vite)",
@@ -27,13 +27,13 @@
       "isBackground": true,
       "problemMatcher": {
         "pattern": {
-          "regexp": "^$",
+          "regexp": "^$"
         },
         "background": {
           "activeOnStart": true,
           "beginsPattern": "VITE.*ready",
-          "endsPattern": "Local:.*http://localhost:5173",
-        },
+          "endsPattern": "Local:.*http://localhost:5173"
+        }
       },
       "presentation": {
         "echo": true,
@@ -41,42 +41,46 @@
         "focus": false,
         "panel": "dedicated",
         "showReuseMessage": false,
-        "clear": false,
-      },
+        "clear": false
+      }
     },
     {
       "label": "Build",
       "type": "shell",
       "command": "npm run build",
       "group": "build",
-      "problemMatcher": ["$tsc"],
+      "problemMatcher": [
+        "$tsc"
+      ]
     },
     {
       "label": "Clean",
       "type": "shell",
       "command": "npm run clean",
-      "group": "build",
+      "group": "build"
     },
     {
-      "label": "Code Fix",
+      "label": "Fix",
       "type": "shell",
-      "command": "npm run code:fix",
+      "command": "npm run fix",
       "group": "test",
-      "problemMatcher": ["$tsc", "$eslint-stylish"],
+      "problemMatcher": [
+        "$tsc"
+      ]
     },
     {
       "label": "Test",
       "type": "npm",
       "script": "test:update",
       "group": "test",
-      "problemMatcher": [],
+      "problemMatcher": []
     },
     {
       "label": "Test Coverage",
       "type": "npm",
       "script": "test:coverage",
       "group": "test",
-      "problemMatcher": [],
-    },
+      "problemMatcher": []
+    }
   ],
 }

@@ -1,5 +1,6 @@
 import { type RegionGroupId } from '@findarr/shared';
 import React from 'react';
+
 import { Badge } from './ui/Badge';
 import { Button } from './ui/Button';
 
@@ -16,7 +17,7 @@ function getRegionIcon(regionId: RegionGroupId): React.ReactElement {
   switch (regionId) {
     case 'western': {
       return (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -28,7 +29,7 @@ function getRegionIcon(regionId: RegionGroupId): React.ReactElement {
     }
     case 'eastern-europe': {
       return (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -40,7 +41,7 @@ function getRegionIcon(regionId: RegionGroupId): React.ReactElement {
     }
     case 'asian': {
       return (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -52,7 +53,7 @@ function getRegionIcon(regionId: RegionGroupId): React.ReactElement {
     }
     case 'latin-america': {
       return (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -64,7 +65,7 @@ function getRegionIcon(regionId: RegionGroupId): React.ReactElement {
     }
     case 'middle-east-africa': {
       return (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -92,7 +93,7 @@ export function RegionChips({
 
   const handleRegionToggle = (regionId: RegionGroupId) => {
     if (selectedRegions.includes(regionId)) {
-      onRegionsChange(selectedRegions.filter(id => id !== regionId));
+      onRegionsChange(selectedRegions.filter((id) => id !== regionId));
     } else {
       onRegionsChange([...selectedRegions, regionId]);
     }
@@ -104,7 +105,7 @@ export function RegionChips({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <label className="text-sm font-medium text-gray-300">
           Regions {selectedRegions.length > 0 && `(${selectedRegions.length})`}
         </label>
@@ -122,8 +123,8 @@ export function RegionChips({
         )}
       </div>
 
-      <div className="flex gap-2 flex-wrap">
-        {allRegions.map(regionId => {
+      <div className="flex flex-wrap gap-2">
+        {allRegions.map((regionId) => {
           const region = REGION_INFO[regionId];
           const isSelected = selectedRegions.includes(regionId);
 
@@ -138,12 +139,12 @@ export function RegionChips({
                 isSelected
                   ? 'border-gray-300 bg-gray-200 text-gray-950 hover:border-white hover:bg-gray-100 hover:text-gray-950'
                   : 'border-gray-700 bg-gray-800/70 text-gray-300 hover:border-gray-500 hover:bg-gray-700/80 hover:text-white'
-              } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+              } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
             >
               {getRegionIcon(regionId)}
               <span>{region.name}</span>
               {isSelected && (
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"

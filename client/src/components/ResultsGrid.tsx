@@ -1,4 +1,5 @@
 import type { Media } from '@findarr/shared';
+
 import { LikeDislikeButton } from './LikeDislikeButton';
 import { MediaTypeBadge } from './ui/MediaTypeBadge';
 import { StatusBadge } from './ui/StatusBadge';
@@ -14,8 +15,8 @@ const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
 function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
   const title = item.name;
   const year = item.date ? new Date(item.date).getFullYear() : 'N/A';
-  const isLiked = item.state?.interactions?.find(i => i.action === 'liked');
-  const isDisliked = item.state?.interactions?.find(i => i.action === 'disliked');
+  const isLiked = item.state?.interactions?.find((i) => i.action === 'liked');
+  const isDisliked = item.state?.interactions?.find((i) => i.action === 'disliked');
 
   return (
     <div
@@ -37,7 +38,7 @@ function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
             <img
               src={`${TMDB_IMAGE_BASE}${item.posterPath}`}
               alt={title}
-              className={`w-full aspect-2/3 object-cover transition-all duration-500 group-hover:scale-[1.03]`}
+              className={`aspect-2/3 w-full object-cover transition-all duration-500 group-hover:scale-[1.03]`}
             />
             <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-white/6 via-transparent to-transparent opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
           </>
@@ -48,26 +49,26 @@ function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
         )}
 
         {/* Bottom Overlay with Info */}
-        <div className="absolute bottom-0 left-0 right-0 z-10 bg-linear-to-t from-black/88 via-black/55 to-transparent px-3 pb-3 pt-8 md:px-4 md:pb-4 md:pt-10">
-          <h3 className="mb-1.5 line-clamp-2 text-sm font-semibold leading-tight text-white transition-colors group-hover:text-gray-100 md:text-base">
+        <div className="absolute right-0 bottom-0 left-0 z-10 bg-linear-to-t from-black/88 via-black/55 to-transparent px-3 pt-8 pb-3 md:px-4 md:pt-10 md:pb-4">
+          <h3 className="mb-1.5 line-clamp-2 text-sm leading-tight font-semibold text-white transition-colors group-hover:text-gray-100 md:text-base">
             {title}
           </h3>
 
           <div className="mb-2.5 flex items-center justify-between gap-2">
-            <span className="text-xs font-medium uppercase tracking-[0.18em] text-gray-300 md:text-[11px]">
+            <span className="text-xs font-medium tracking-[0.18em] text-gray-300 uppercase md:text-[11px]">
               {year}
             </span>
 
             <div className="flex items-center gap-1.5 rounded-full border border-gray-600/70 bg-gray-900/70 px-2 py-1 text-xs backdrop-blur-sm md:px-2.5">
-              <span className="text-amber-300 text-xs">★</span>
-              <span className="text-white text-xs font-semibold">
+              <span className="text-xs text-amber-300">★</span>
+              <span className="text-xs font-semibold text-white">
                 {item.voteAverage.toFixed(1)}
               </span>
             </div>
           </div>
 
           {/* Like/Dislike Buttons */}
-          <div className="flex justify-center" onClick={e => e.stopPropagation()}>
+          <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
             <LikeDislikeButton
               tmdbId={item.tmdbId}
               mediaType={item.type}
@@ -92,10 +93,10 @@ interface ResultsGridProps {
 export function ResultsGrid({ results, onSelectItem, onUpdateItem }: ResultsGridProps) {
   if (results.length === 0) {
     return (
-      <div className="text-center py-16 text-gray-400">
+      <div className="py-16 text-center text-gray-400">
         <div className="flex flex-col items-center gap-4">
           <svg
-            className="w-16 h-16 text-gray-600"
+            className="h-16 w-16 text-gray-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -115,8 +116,8 @@ export function ResultsGrid({ results, onSelectItem, onUpdateItem }: ResultsGrid
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
-      {results.map(item => (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+      {results.map((item) => (
         <MediaCard
           key={item.tmdbId}
           item={item}

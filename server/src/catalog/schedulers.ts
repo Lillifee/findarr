@@ -23,7 +23,7 @@ export function createCatalogCacheSyncScheduler(): Scheduler {
       context.scheduler.start({ name: 'catalogKeywordEnrichment' });
 
       return true; // Continue
-    }
+    },
   );
 }
 
@@ -47,6 +47,6 @@ export function createCatalogKeywordEnrichmentScheduler(): Scheduler {
 
       // Self-terminate after completion (will be re-triggered by next catalog sync)
       return false; // Stop
-    }
+    },
   );
 }

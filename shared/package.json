@@ -1,8 +1,8 @@
 {
   "name": "@findarr/shared",
   "version": "1.0.0",
-  "type": "module",
   "description": "Shared types and utilities for Findarr",
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -17,7 +17,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "type-check": "tsc -p tsconfig.json --noEmit",
+    "type:check": "tsc -p tsconfig.json --noEmit",
     "clean": "rimraf dist *.tsbuildinfo"
   },
   "dependencies": {

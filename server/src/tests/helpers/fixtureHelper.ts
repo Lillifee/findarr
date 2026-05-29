@@ -2,8 +2,8 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const currentFilename = fileURLToPath(import.meta.url);
+const currentDirname = dirname(currentFilename);
 
 /**
  * Load a JSON fixture file from the fixtures directory
@@ -11,7 +11,7 @@ const __dirname = dirname(__filename);
  * @returns Parsed JSON object
  */
 export function loadFixture<T = unknown>(relativePath: string): T {
-  const fixturesRoot = join(__dirname, '../../../fixtures');
+  const fixturesRoot = join(currentDirname, '../../../fixtures');
   const filePath = join(fixturesRoot, relativePath);
 
   try {
@@ -19,7 +19,8 @@ export function loadFixture<T = unknown>(relativePath: string): T {
     return JSON.parse(content) as T;
   } catch (error) {
     throw new Error(
-      `Failed to load fixture at ${relativePath}: ${error instanceof Error ? error.message : String(error)}`
+      `Failed to load fixture at ${relativePath}: ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error },
     );
   }
 }
@@ -30,7 +31,7 @@ export function loadFixture<T = unknown>(relativePath: string): T {
  * @returns Array of parsed JSON objects
  */
 export function loadAllFixtures<T = unknown>(directoryPath: string): T[] {
-  const fixturesRoot = join(__dirname, '../../../fixtures');
+  const fixturesRoot = join(currentDirname, '../../../fixtures');
   const fullPath = join(fixturesRoot, directoryPath);
 
   try {
@@ -40,7 +41,8 @@ export function loadAllFixtures<T = unknown>(directoryPath: string): T[] {
       .map((file: string) => loadFixture<T>(join(directoryPath, file)));
   } catch (error) {
     throw new Error(
-      `Failed to load fixtures from ${directoryPath}: ${error instanceof Error ? error.message : String(error)}`
+      `Failed to load fixtures from ${directoryPath}: ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error },
     );
   }
 }

@@ -1,12 +1,14 @@
 import SqlDatabase from 'better-sqlite3';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { arrConfig } from '../arr/config.js';
 import {
   batchUpdateMediaStatuses,
   listMediaWithArrIds,
   updateMediaIds,
 } from '../arr/repository.js';
+import type { ArrQueueItem } from '../arr/schemas.js';
 import type { AnyArrService } from '../arr/service.js';
 import { syncQueue } from '../arr/sync.js';
 import { createDatabase, type Database } from '../db/service.js';
@@ -66,13 +68,17 @@ describe('arr sync collision handling - integration tests', () => {
     const fastify = {
       db,
       log: {
-        warn: vi.fn(),
+        warn: vi.fn<() => void>(),
       },
     } as unknown as FastifyInstance;
 
     const radarrService = {
       config: arrConfig.radarr,
-      getQueue: vi.fn().mockResolvedValue([{ arrId: 77, trackedDownloadStatus: 'downloading' }]),
+      getQueue: vi
+        .fn<(pageSize: number) => Promise<ArrQueueItem[]>>()
+        .mockResolvedValue([
+          { arrId: 77, trackedDownloadStatus: 'downloading', id: 1 } as ArrQueueItem,
+        ]),
     } as unknown as AnyArrService;
 
     await syncQueue(fastify, radarrService, new Set());

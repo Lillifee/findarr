@@ -1,5 +1,6 @@
 import { objectEntries, unifiedGenres } from '@findarr/shared';
 import { useState } from 'react';
+
 import type { GenreKey } from '../../../shared/src/constants';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';
@@ -15,7 +16,7 @@ export default function GenreSelector({ selectedGenres, onGenreChange }: Props) 
 
   const handleGenreToggle = (genreKey: GenreKey) => {
     const updatedKeys = selectedGenres.includes(genreKey)
-      ? selectedGenres.filter(k => k !== genreKey)
+      ? selectedGenres.filter((k) => k !== genreKey)
       : [...selectedGenres, genreKey];
 
     onGenreChange(updatedKeys);
@@ -42,7 +43,7 @@ export default function GenreSelector({ selectedGenres, onGenreChange }: Props) 
               : `${selectedGenres.length} genre${selectedGenres.length === 1 ? '' : 's'} selected`}
           </span>
           <span
-            className={`text-xl transition-transform duration-200 text-gray-400 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
+            className={`text-xl text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
           >
             ▼
           </span>
@@ -52,7 +53,7 @@ export default function GenreSelector({ selectedGenres, onGenreChange }: Props) 
           <Card
             variant="solid"
             padding="none"
-            className="absolute top-full left-0 right-0 z-1000 mt-1 max-h-72 overflow-y-auto"
+            className="absolute top-full right-0 left-0 z-1000 mt-1 max-h-72 overflow-y-auto"
           >
             <div className="border-b border-gray-700/50 px-3 py-2">
               <Button

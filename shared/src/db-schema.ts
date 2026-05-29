@@ -35,7 +35,7 @@ export const users = sqliteTable(
       .default(sql`(unixepoch() * 1000)`)
       .$type<number>(),
   },
-  table => [index('idx_users_email').on(table.email)]
+  (table) => [index('idx_users_email').on(table.email)],
 );
 
 // ============================================================================
@@ -71,7 +71,7 @@ export const media = sqliteTable(
       .default(sql`(unixepoch() * 1000)`)
       .$type<number>(),
   },
-  table => [
+  (table) => [
     index('idx_media_tvdb').on(table.tvdbId),
     index('idx_media_tmdb').on(table.tmdbId, table.type),
     index('idx_media_arr').on(table.arrId),
@@ -82,7 +82,7 @@ export const media = sqliteTable(
     // - tvdbId + type: TV show sync identifier (allows efficient batch upsert from Sonarr)
     unique('media_tmdbId_type_unique').on(table.tmdbId, table.type),
     unique('media_tvdbId_type_unique').on(table.tvdbId, table.type),
-  ]
+  ],
 );
 
 // ============================================================================
@@ -105,15 +105,15 @@ export const userMediaInteractions = sqliteTable(
       .default(sql`(unixepoch() * 1000)`)
       .$type<number>(),
   },
-  table => [
+  (table) => [
     index('idx_user_media_interactions_user').on(table.userId, table.action),
     index('idx_user_media_interactions_media').on(table.mediaId, table.action),
     unique('user_media_interactions_mediaId_userId_action_unique').on(
       table.mediaId,
       table.userId,
-      table.action
+      table.action,
     ),
-  ]
+  ],
 );
 
 // ============================================================================
@@ -131,10 +131,10 @@ export const userGenrePreferences = sqliteTable(
     score: integer('score').notNull().default(0),
     count: integer('count').notNull().default(1), // Track number of ratings for Bayesian normalization
   },
-  table => [
+  (table) => [
     primaryKey({ columns: [table.userId, table.genreId] }),
     index('idx_user_genre_preferences_user').on(table.userId),
-  ]
+  ],
 );
 
 // ============================================================================
@@ -160,7 +160,7 @@ export const catalogCache = sqliteTable(
     keywords: text('keywords'), // JSON array of {id, name} - null = not fetched, '[]' = fetched but none
     trendingRank: integer('trendingRank'), // Trending position (null = not trending)
   },
-  table => [primaryKey({ columns: [table.tmdbId, table.type] })]
+  (table) => [primaryKey({ columns: [table.tmdbId, table.type] })],
 );
 
 // ============================================================================
@@ -193,10 +193,10 @@ export const userKeywordPreferences = sqliteTable(
     score: integer('score').notNull().default(0),
     count: integer('count').notNull().default(1), // Track number of ratings for Bayesian normalization
   },
-  table => [
+  (table) => [
     primaryKey({ columns: [table.userId, table.keywordId] }),
     index('idx_user_keyword_preferences_user').on(table.userId),
-  ]
+  ],
 );
 
 // ============================================================================
@@ -226,7 +226,7 @@ export const userSettings = sqliteTable(
       .default(sql`(unixepoch() * 1000)`)
       .$type<number>(),
   },
-  table => [index('idx_user_settings_user').on(table.userId)]
+  (table) => [index('idx_user_settings_user').on(table.userId)],
 );
 
 // ============================================================================

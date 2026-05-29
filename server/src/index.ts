@@ -1,9 +1,11 @@
-import 'dotenv/config';
 import path from 'node:path';
+
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import { ServerEnvSchema } from '@findarr/shared';
+import dotenv from 'dotenv';
 import Fastify from 'fastify';
+
 import { adminRoutes } from './admin/routes.js';
 import arrPlugin from './arr/plugin.js';
 import { arrRoutes } from './arr/routes.js';
@@ -21,6 +23,8 @@ import tmdbPlugin from './tmdb/plugin.js';
 import { settingsRoutes } from './user/routes.js';
 import { registerErrorHandler } from './utils/errors.js';
 import { registerStatic } from './web/static.js';
+
+dotenv.config();
 
 // Validate environment variables
 const env = ServerEnvSchema.parse(process.env);

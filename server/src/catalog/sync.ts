@@ -1,4 +1,5 @@
 import type { Media } from '@findarr/shared';
+
 import { seedMediaStats, upsertMediaStats } from '../media/repository.js';
 import type { SchedulerContext } from '../scheduler/types.js';
 import { processWithWorkerPool } from '../tmdb/helpers.js';
@@ -29,7 +30,7 @@ export async function syncCatalogCache(context: SchedulerContext): Promise<void>
   // Fetch both trending and recent releases (already includes basic metadata)
   context.log.info(
     { name: 'catalog', phase: 'cache-sync' },
-    'Fetching trending and discover results from TMDB'
+    'Fetching trending and discover results from TMDB',
   );
   const [trendingResult, discoverResult] = await Promise.all([
     context.tmdb.trending({ language, time_window: 'week' }, createPageRange(5)),
@@ -42,14 +43,14 @@ export async function syncCatalogCache(context: SchedulerContext): Promise<void>
 
   context.log.info(
     { name: 'catalog', phase: 'cache-sync', totalItems: deduplicatedMedia.length },
-    'Fetched unique items, storing to database'
+    'Fetched unique items, storing to database',
   );
 
   // Store basic media immediately (keywords will be empty arrays)
   await upsertCatalogCache(context.db, deduplicatedMedia);
 
   // Cleanup old entries (items not in current popular list)
-  const activeMediaKeys = deduplicatedMedia.map(item => ({
+  const activeMediaKeys = deduplicatedMedia.map((item) => ({
     tmdbId: item.tmdbId,
     type: item.type,
   }));
@@ -61,7 +62,7 @@ export async function syncCatalogCache(context: SchedulerContext): Promise<void>
 
   context.log.info(
     { name: 'catalog', phase: 'cache-sync' },
-    'Computing catalog stats from current cache'
+    'Computing catalog stats from current cache',
   );
   const [movieStats, tvStats] = await Promise.all([
     computeCatalogMediaStats(context.db, 'movie'),
@@ -88,7 +89,7 @@ export async function syncCatalogCache(context: SchedulerContext): Promise<void>
         avgRating: tvStats.avgRating.toFixed(2),
       },
     },
-    'Catalog stats updated'
+    'Catalog stats updated',
   );
 
   const durationMs = Date.now() - startTime;
@@ -103,7 +104,7 @@ export async function syncCatalogCache(context: SchedulerContext): Promise<void>
       durationSec,
       language,
     },
-    'Catalog cache sync completed'
+    'Catalog cache sync completed',
   );
 }
 
@@ -123,7 +124,7 @@ export async function enrichCatalogKeywords(context: SchedulerContext): Promise<
     if (mediaItemsMissingKeywords.length === 0) {
       context.log.info(
         { name: 'catalog', phase: 'keyword-enrichment' },
-        'No items need keyword enrichment'
+        'No items need keyword enrichment',
       );
       return;
     }
@@ -134,12 +135,12 @@ export async function enrichCatalogKeywords(context: SchedulerContext): Promise<
         phase: 'keyword-enrichment',
         totalItems: mediaItemsMissingKeywords.length,
       },
-      'Enriching items with keywords'
+      'Enriching items with keywords',
     );
 
     const { successCount } = await processWithWorkerPool({
       items: mediaItemsMissingKeywords,
-      processFn: async item => {
+      processFn: async (item) => {
         const details = await context.tmdb.details({ id: item.tmdbId, type: item.type });
         await updateCatalogKeywords(context.db, item.tmdbId, item.type, details.keywords ?? []);
         return item.tmdbId;
@@ -160,12 +161,12 @@ export async function enrichCatalogKeywords(context: SchedulerContext): Promise<
         totalItems: mediaItemsMissingKeywords.length,
         durationSec,
       },
-      'Keyword enrichment completed'
+      'Keyword enrichment completed',
     );
   } catch (error) {
     context.log.error(
       { name: 'catalog', phase: 'keyword-enrichment', err: error },
-      'Keyword enrichment failed'
+      'Keyword enrichment failed',
     );
     throw error;
   }

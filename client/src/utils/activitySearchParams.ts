@@ -17,7 +17,7 @@ interface ActivitySearchParamInput {
 
 export const readActivitySearchParams = (
   searchParams: URLSearchParams,
-  defaults: ActivitySearchParamDefaults = {}
+  defaults: ActivitySearchParamDefaults = {},
 ): ActivitySearchParamState => ({
   action:
     (searchParams.get('action') as InteractionsQuery['action'] | null) ??

@@ -1,6 +1,7 @@
 import type { MediaDetails, GenreKey, SearchType } from '@findarr/shared';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+
 import { FiltersToolbar } from '../components/FiltersToolbar';
 import { MediaView } from '../components/MediaView';
 import { SearchBar } from '../components/SearchBar';
@@ -29,8 +30,8 @@ export function VotePage() {
     const loadUserSettings = async () => {
       try {
         await userSettingsService.get();
-      } catch (error) {
-        console.error('Failed to load user settings:', error);
+      } catch (e) {
+        console.error('Failed to load user settings:', e);
       } finally {
         setSettingsLoaded(true);
       }
@@ -49,7 +50,7 @@ export function VotePage() {
     if (JSON.stringify(nextSearchParams.genres) !== JSON.stringify(selectedGenres)) {
       setSelectedGenres(nextSearchParams.genres);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   useEffect(() => {
@@ -108,7 +109,7 @@ export function VotePage() {
       buildCatalogSearchParams({
         type,
         genres: selectedGenres,
-      })
+      }),
     );
   };
 
@@ -121,7 +122,7 @@ export function VotePage() {
       buildCatalogSearchParams({
         type: currentSearchType,
         genres,
-      })
+      }),
     );
   };
 
@@ -132,12 +133,12 @@ export function VotePage() {
 
   return (
     <div className="pb-20 md:pb-8">
-      <div className="sticky top-0 z-30 border-b border-gray-700/50 bg-gray-800/90 backdrop-blur-md shadow-2xl">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">
+      <div className="sticky top-0 z-30 border-b border-gray-700/50 bg-gray-800/90 shadow-2xl backdrop-blur-md">
+        <div className="mx-auto max-w-7xl px-4 py-3 md:px-8">
           <div className="flex flex-wrap items-center gap-3">
-            <div className="w-full md:flex-1 md:w-auto">
+            <div className="w-full md:w-auto md:flex-1">
               <SearchBar
-                onSearch={query =>
+                onSearch={(query) =>
                   void navigate(`/explore?${buildCatalogSearchParams({ q: query }).toString()}`)
                 }
                 loading={false}
@@ -157,9 +158,9 @@ export function VotePage() {
 
       {/* Loading state */}
       {isLoading && (
-        <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-8 py-32 text-center text-gray-400">
+        <div className="relative z-10 mx-auto max-w-6xl px-4 py-32 text-center text-gray-400 md:px-8">
           <div className="flex flex-col items-center gap-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500"></div>
+            <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-amber-500"></div>
             <p>Loading next item...</p>
           </div>
         </div>
@@ -167,10 +168,10 @@ export function VotePage() {
 
       {/* Error state */}
       {error && !isLoading && (
-        <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-8 py-32 text-center">
+        <div className="relative z-10 mx-auto max-w-6xl px-4 py-32 text-center md:px-8">
           <div className="flex flex-col items-center gap-4">
             <svg
-              className="w-16 h-16 text-red-500"
+              className="h-16 w-16 text-red-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -182,7 +183,7 @@ export function VotePage() {
                 d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <p className="text-red-400 text-lg font-medium">{error}</p>
+            <p className="text-lg font-medium text-red-400">{error}</p>
             <Button onClick={asVoid(fetchNextItem)} className="mt-4">
               Try Again
             </Button>
@@ -192,11 +193,11 @@ export function VotePage() {
 
       {/* Completion state */}
       {isComplete && !isLoading && (
-        <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-8 py-32 text-center">
+        <div className="relative z-10 mx-auto max-w-6xl px-4 py-32 text-center md:px-8">
           <div className="flex flex-col items-center gap-4">
-            <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-2xl font-bold text-white mb-2">All Done!</h2>
-            <p className="text-gray-400 text-lg mb-6">
+            <div className="mb-4 text-6xl">🎉</div>
+            <h2 className="mb-2 text-2xl font-bold text-white">All Done!</h2>
+            <p className="mb-6 text-lg text-gray-400">
               You've voted on the top 100 items. Check back later for more!
             </p>
             <Button onClick={asVoid(() => navigate('/explore'))}>Explore</Button>

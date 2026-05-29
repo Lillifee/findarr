@@ -19,7 +19,7 @@ export function createArrLibrarySyncScheduler(arrService: AnyArrService): Schedu
     async (context: SchedulerContext) => {
       await syncComplete(context, arrService);
       return true; // Continue
-    }
+    },
   );
 }
 
@@ -51,13 +51,13 @@ export function createArrQueueMonitorScheduler(arrService: AnyArrService): Sched
             service: arrService.config.service,
             activeDownloads: queueItems.length,
           },
-          'Active downloads detected - starting fast sync'
+          'Active downloads detected - starting fast sync',
         );
         context.scheduler.start({ name: fastSyncName });
       }
 
       return true; // Continue
-    }
+    },
   );
 }
 
@@ -85,7 +85,7 @@ export function createArrQueueFastSyncScheduler(arrService: AnyArrService): Sche
       const { currentDownloadingIds, completedIds, hasActiveDownloads } = await syncQueue(
         context,
         arrService,
-        previousDownloadingIds
+        previousDownloadingIds,
       );
 
       // Handle completions
@@ -96,7 +96,7 @@ export function createArrQueueFastSyncScheduler(arrService: AnyArrService): Sche
             service: arrService.config.service,
             completedDownloads: completedIds.length,
           },
-          'Downloads completed - triggering library sync'
+          'Downloads completed - triggering library sync',
         );
 
         // Trigger library sync to upgrade completed items to 'downloaded' status
@@ -111,6 +111,6 @@ export function createArrQueueFastSyncScheduler(arrService: AnyArrService): Sche
 
       // Self-terminate if no active downloads (service enforces minRuntime)
       return hasActiveDownloads;
-    }
+    },
   );
 }

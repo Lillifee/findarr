@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
 import { LoginForm } from './components/LoginForm';
 import { Navigation } from './components/Navigation';
 import { TmdbSetupScreen } from './components/TmdbSetupScreen';
@@ -30,9 +31,9 @@ function MainApp() {
   // Show loading state while checking authentication
   if (authLoading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-linear-to-br from-gray-900 via-gray-900 to-amber-900/20">
+      <div className="flex h-screen items-center justify-center bg-linear-to-br from-gray-900 via-gray-900 to-amber-900/20">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-amber-500"></div>
           <p className="text-gray-400">Loading...</p>
         </div>
       </div>
@@ -60,7 +61,7 @@ function MainApp() {
       />
 
       {/* Main Content - Adjust padding for sidebar on desktop, bottom bar on mobile */}
-      <main className="md:ml-64 mb-16 md:mb-0">
+      <main className="mb-16 md:mb-0 md:ml-64">
         <Routes>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/vote" element={<VotePage />} />

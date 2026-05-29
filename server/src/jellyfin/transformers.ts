@@ -1,4 +1,5 @@
 import type { MediaType } from '@findarr/shared';
+
 import type { JellyfinItem } from './schemas.js';
 
 export interface JellyfinMedia {
@@ -24,7 +25,7 @@ function toTimestamp(value: string | undefined): number | undefined {
  */
 export function jellyfinItemToMedia(
   item: JellyfinItem,
-  availableSeasons?: number[]
+  availableSeasons?: number[],
 ): JellyfinMedia | undefined {
   // Must have TMDB ID to match with our media database
   const tmdbId = item.ProviderIds?.Tmdb;

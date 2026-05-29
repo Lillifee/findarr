@@ -7,6 +7,7 @@ import type {
 } from '@findarr/shared';
 import { isDefined, media } from '@findarr/shared';
 import { and, eq, isNotNull, isNull, sql } from 'drizzle-orm';
+
 import type { Database } from '../db/service.js';
 import { readSettings, writeSettings } from '../settings/repository.js';
 import type { ArrServiceConfig, ArrServiceType } from './config.js';
@@ -22,13 +23,13 @@ export async function updateMediaIds(
     tvdbId?: number | undefined;
     arrId?: number | undefined;
     arrUrl?: string | undefined;
-  }
+  },
 ): Promise<void> {
   const updateData: Record<string, unknown> = { ...ids, updatedAt: Date.now() };
 
   // Filter out undefined values
   const filteredData = Object.fromEntries(
-    Object.entries(updateData).filter(([, value]) => isDefined(value))
+    Object.entries(updateData).filter(([, value]) => isDefined(value)),
   );
 
   // Only update if we actually have fields besides updatedAt
@@ -42,7 +43,7 @@ export async function updateMediaIds(
  * These shows have tvdbId but need TMDB ID for display/search
  */
 export async function getMediaWithoutTmdbId(
-  db: Database
+  db: Database,
 ): Promise<Array<Pick<DbMedia, 'id' | 'tvdbId' | 'type'>>> {
   return db
     .select({
@@ -64,7 +65,7 @@ export async function getExistingTvdbIdSet(db: Database): Promise<Set<number>> {
     .from(media)
     .where(and(eq(media.type, 'tv'), isNotNull(media.tvdbId)));
 
-  return new Set(results.map(r => r.tvdbId).filter(x => isDefined(x)));
+  return new Set(results.map((r) => r.tvdbId).filter((x) => isDefined(x)));
 }
 
 /**
@@ -76,7 +77,7 @@ export async function upsertMediaFromArr(
   db: Database,
   items: Array<
     Pick<DbMedia, 'type' | 'tvdbId' | 'tmdbId' | 'arrId' | 'arrUrl' | 'status' | 'seasons'>
-  >
+  >,
 ): Promise<void> {
   if (items.length === 0) return;
 
@@ -84,16 +85,16 @@ export async function upsertMediaFromArr(
 
   // Items with valid tmdbId (> 0) - use tmdbId constraint
   // This merges Sonarr + Jellyfin records when they share the same tmdbId
-  const itemsWithTmdbId = items.filter(item => item.tmdbId && item.tmdbId > 0);
+  const itemsWithTmdbId = items.filter((item) => item.tmdbId && item.tmdbId > 0);
   if (itemsWithTmdbId.length > 0) {
     await db
       .insert(media)
       .values(
-        itemsWithTmdbId.map(item => ({
+        itemsWithTmdbId.map((item) => ({
           ...item,
           createdAt: now,
           updatedAt: now,
-        }))
+        })),
       )
       .onConflictDoUpdate({
         target: [media.tmdbId, media.type],
@@ -111,17 +112,17 @@ export async function upsertMediaFromArr(
   // TV shows without valid tmdbId (null, undefined, or -1) - use tvdbId constraint
   // These are shows enrichment failed for or shows without tvdbId from Sonarr
   const tvItemsWithoutValidTmdbId = items.filter(
-    item => item.type === 'tv' && (!item.tmdbId || item.tmdbId <= 0) && item.tvdbId
+    (item) => item.type === 'tv' && (!item.tmdbId || item.tmdbId <= 0) && item.tvdbId,
   );
   if (tvItemsWithoutValidTmdbId.length > 0) {
     await db
       .insert(media)
       .values(
-        tvItemsWithoutValidTmdbId.map(item => ({
+        tvItemsWithoutValidTmdbId.map((item) => ({
           ...item,
           createdAt: now,
           updatedAt: now,
-        }))
+        })),
       )
       .onConflictDoUpdate({
         target: [media.tvdbId, media.type],
@@ -144,7 +145,7 @@ export async function updateMediaStatusByArrId(
   db: Database,
   arrId: number,
   type: MediaType,
-  status: MediaStatus
+  status: MediaStatus,
 ): Promise<void> {
   await db
     .update(media)
@@ -161,7 +162,7 @@ export async function batchUpdateMediaStatuses(
     arrId: number;
     type: MediaType;
     status: MediaStatus;
-  }>
+  }>,
 ): Promise<void> {
   for (const { arrId, type, status } of updates) {
     await updateMediaStatusByArrId(db, arrId, type, status);
@@ -173,7 +174,7 @@ export async function batchUpdateMediaStatuses(
  */
 export async function listMediaWithArrIds(
   db: Database,
-  type: MediaType
+  type: MediaType,
 ): Promise<Array<Omit<DbMedia, 'createdAt' | 'updatedAt'>>> {
   return db
     .select({
@@ -198,7 +199,7 @@ export async function listMediaWithArrIds(
 export async function clearRemovedArrItems(
   db: Database,
   ids: number[],
-  type: MediaType
+  type: MediaType,
 ): Promise<number> {
   if (ids.length === 0) return 0;
 
@@ -245,7 +246,7 @@ function createArrSettingsFieldMap(service: ArrServiceType) {
 }
 export async function getArrSettings(
   db: Database,
-  config: ArrServiceConfig
+  config: ArrServiceConfig,
 ): Promise<ArrSettingsFull> {
   const fields = createArrSettingsFieldMap(config.service);
   const storedSettings = await readSettings(db, Object.values(fields));
@@ -268,7 +269,7 @@ export async function setArrSettings(
     apiKey?: ArrSettingsQuery['apiKey'] | undefined;
     qualityProfileId?: ArrSettingsQuery['qualityProfileId'] | undefined;
     rootFolderPath?: ArrSettingsQuery['rootFolderPath'] | undefined;
-  }
+  },
 ): Promise<void> {
   const fields = createArrSettingsFieldMap(config.service);
 

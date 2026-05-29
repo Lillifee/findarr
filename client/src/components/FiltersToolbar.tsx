@@ -2,6 +2,7 @@ import type { GenreKey, InteractionFilter, SearchType } from '@findarr/shared';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+
 import { GenreChips } from './GenreChips';
 import { MediaTypeChips } from './MediaTypeChips';
 import { OptionButton } from './ui/OptionButton';
@@ -71,10 +72,10 @@ export function FiltersToolbar({
 
   const filterButton = showFiltersButton ? (
     <button
-      onClick={() => setFiltersExpanded(current => !current)}
-      className="ml-auto inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-gray-700/50 bg-gray-800/70 px-3.5 py-2 text-sm font-medium text-gray-200 backdrop-blur-sm transition-colors hover:border-gray-500 hover:bg-gray-700/80 hover:text-white cursor-pointer whitespace-nowrap"
+      onClick={() => setFiltersExpanded((current) => !current)}
+      className="ml-auto inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-700/50 bg-gray-800/70 px-3.5 py-2 text-sm font-medium whitespace-nowrap text-gray-200 backdrop-blur-sm transition-colors hover:border-gray-500 hover:bg-gray-700/80 hover:text-white"
     >
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -98,11 +99,11 @@ export function FiltersToolbar({
     showFiltersButton && filtersExpanded ? (
       <>
         <div
-          className="fixed inset-0 z-40 cursor-pointer bg-black/60 animate-in fade-in duration-200"
+          className="animate-in fade-in fixed inset-0 z-40 cursor-pointer bg-black/60 duration-200"
           onClick={() => setFiltersExpanded(false)}
         />
 
-        <div className="fixed top-16 left-0 right-0 md:left-64 md:right-0 z-50 mx-4 md:mx-8 max-w-7xl md:ml-auto md:mr-auto animate-in slide-in-from-top-4 duration-200">
+        <div className="animate-in slide-in-from-top-4 fixed top-16 right-0 left-0 z-50 mx-4 max-w-7xl duration-200 md:right-0 md:left-64 md:mx-8 md:mr-auto md:ml-auto">
           <div className="overflow-hidden rounded-xl border border-gray-700/50 bg-gray-800/92 shadow-2xl backdrop-blur-md">
             <div className="border-b border-gray-700/50 px-4 py-4 md:px-5">
               <div className="flex items-center justify-between gap-4">
@@ -112,10 +113,10 @@ export function FiltersToolbar({
                 </div>
                 <button
                   onClick={() => setFiltersExpanded(false)}
-                  className="flex items-center gap-1.5 self-start rounded-lg border border-gray-700/50 bg-gray-800/70 px-3 py-1.5 text-xs font-medium text-gray-400 hover:border-gray-500 hover:bg-gray-700/80 hover:text-white transition-colors cursor-pointer"
+                  className="flex cursor-pointer items-center gap-1.5 self-start rounded-lg border border-gray-700/50 bg-gray-800/70 px-3 py-1.5 text-xs font-medium text-gray-400 transition-colors hover:border-gray-500 hover:bg-gray-700/80 hover:text-white"
                 >
                   <span>Close</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -136,7 +137,7 @@ export function FiltersToolbar({
                     </div>
 
                     <div className="grid gap-2.5 md:grid-cols-3">
-                      {interactionOptions.map(option => {
+                      {interactionOptions.map((option) => {
                         const isSelected = interactionFilter === option.value;
 
                         return (
@@ -198,8 +199,8 @@ export function FiltersToolbar({
 
   return (
     <>
-      <div className="sticky top-0 z-30 border-b border-gray-700/50 bg-gray-800/90 backdrop-blur-md shadow-2xl">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">
+      <div className="sticky top-0 z-30 border-b border-gray-700/50 bg-gray-800/90 shadow-2xl backdrop-blur-md">
+        <div className="mx-auto max-w-7xl px-4 py-3 md:px-8">
           <div className="flex w-full shrink-0 items-center gap-3 md:w-auto">
             <MediaTypeChips
               selectedType={selectedType}

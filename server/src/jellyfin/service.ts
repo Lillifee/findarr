@@ -1,5 +1,6 @@
 import { isDefined, type JellyfinSettingsQuery } from '@findarr/shared';
 import type { FastifyBaseLogger } from 'fastify';
+
 import type { Database } from '../db/service.js';
 import { getMediaById } from '../media/repository.js';
 import type { SchedulerService } from '../scheduler/service.js';
@@ -24,7 +25,7 @@ export async function createJellyfinService(context: JellyfinContext) {
   const lifecycle = createClientLifecycle<JellyfinSettingsFull, JellyfinClient>({
     name: 'Jellyfin',
     loadSettings: () => getJellyfinSettingsFull(context.db),
-    createClient: settings =>
+    createClient: (settings) =>
       settings.jellyfinUrl && settings.jellyfinApiKey
         ? createJellyfinClient(settings.jellyfinUrl, settings.jellyfinApiKey)
         : undefined,
@@ -76,8 +77,8 @@ export async function createJellyfinService(context: JellyfinContext) {
         limit,
       });
 
-      const transformed = response.Items.map(item => jellyfinItemToMedia(item)).filter(item =>
-        isDefined(item)
+      const transformed = response.Items.map((item) => jellyfinItemToMedia(item)).filter((item) =>
+        isDefined(item),
       );
 
       allItems.push(...transformed);
@@ -85,10 +86,10 @@ export async function createJellyfinService(context: JellyfinContext) {
       hasMore = startIndex < response.TotalRecordCount;
     }
 
-    const tvSeries = allItems.filter(item => item.type === 'tv');
+    const tvSeries = allItems.filter((item) => item.type === 'tv');
 
     await Promise.all(
-      tvSeries.map(async item => {
+      tvSeries.map(async (item) => {
         try {
           const seasonsResponse = await currentClient.getItems({
             itemTypes: ['Season'],
@@ -96,9 +97,9 @@ export async function createJellyfinService(context: JellyfinContext) {
           });
 
           const seasonNumbers = seasonsResponse.Items.filter(
-            season =>
-              season.Type === 'Season' && isDefined(season.IndexNumber) && season.IndexNumber > 0
-          ).map(season => season.IndexNumber as number);
+            (season) =>
+              season.Type === 'Season' && isDefined(season.IndexNumber) && season.IndexNumber > 0,
+          ).map((season) => season.IndexNumber as number);
 
           if (seasonNumbers.length > 0) {
             item.availableSeasons = seasonNumbers;
@@ -106,7 +107,7 @@ export async function createJellyfinService(context: JellyfinContext) {
         } catch {
           // Ignore per-series season lookup failures and keep the rest of the sync moving.
         }
-      })
+      }),
     );
 
     return allItems;

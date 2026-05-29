@@ -1,5 +1,6 @@
 import type { RegionGroupId } from '@findarr/shared';
 import { useEffect, useRef, useState } from 'react';
+
 import { RegionSelector } from '../components/RegionSelector';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -67,7 +68,7 @@ export function SettingsPage() {
         language,
         regions,
       })
-      .catch(saveError => {
+      .catch((saveError) => {
         console.error('Failed to save user settings:', saveError);
         setSettingsError('Failed to save settings.');
       });
@@ -102,7 +103,7 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 pb-20 md:py-10">
+    <div className="mx-auto max-w-7xl px-4 py-6 pb-20 md:px-8 md:py-10">
       <div className="mb-8">
         <PageHeader
           title="Settings"
@@ -125,9 +126,9 @@ export function SettingsPage() {
                   <SelectInput
                     label="Language"
                     value={language}
-                    onChange={event => setLanguage(event.target.value)}
+                    onChange={(event) => setLanguage(event.target.value)}
                   >
-                    {LANGUAGE_OPTIONS.map(option => (
+                    {LANGUAGE_OPTIONS.map((option) => (
                       <option key={option.value} value={option.value}>
                         {option.label}
                       </option>
@@ -161,7 +162,7 @@ export function SettingsPage() {
               type="password"
               label="Current Password"
               value={currentPassword}
-              onChange={event => setCurrentPassword(event.target.value)}
+              onChange={(event) => setCurrentPassword(event.target.value)}
               autoComplete="current-password"
               required
             />
@@ -170,7 +171,7 @@ export function SettingsPage() {
               type="password"
               label="New Password"
               value={newPassword}
-              onChange={event => setNewPassword(event.target.value)}
+              onChange={(event) => setNewPassword(event.target.value)}
               autoComplete="new-password"
               minLength={8}
               required
@@ -180,7 +181,7 @@ export function SettingsPage() {
               type="password"
               label="Confirm New Password"
               value={confirmPassword}
-              onChange={event => setConfirmPassword(event.target.value)}
+              onChange={(event) => setConfirmPassword(event.target.value)}
               autoComplete="new-password"
               minLength={8}
               required

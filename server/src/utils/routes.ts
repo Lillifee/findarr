@@ -1,5 +1,6 @@
 import type { User } from '@findarr/shared';
 import type { FastifyRequest } from 'fastify';
+
 import { Unauthorized } from './errors.js';
 
 type MaybePromise<T> = T | Promise<T>;

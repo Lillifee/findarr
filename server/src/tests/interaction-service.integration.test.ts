@@ -1,6 +1,7 @@
-import type { CreateMediaInteraction } from '@findarr/shared';
+import type { CreateMediaInteraction, TmdbSettings } from '@findarr/shared';
 import SqlDatabase from 'better-sqlite3';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+
 import { arrConfig } from '../arr/config.js';
 import type { ArrService } from '../arr/service.js';
 import type { CatalogService } from '../catalog/service.js';
@@ -16,7 +17,6 @@ import { createMedia, getMediaByTmdbId, updateMediaStatus } from '../media/repos
 import type { TMDBService } from '../tmdb/service.js';
 import {
   assertDefined as expectDefined,
-  createTestMedia as createMediaTestHelper,
   createTestUserInDb,
   createTestMovieDetail,
   createTestTVDetail,
@@ -30,88 +30,152 @@ const interaction: CreateMediaInteraction = {
 
 const radarrService: ArrService<typeof arrConfig.radarr> = {
   config: arrConfig.radarr,
-  getSettings: vi.fn().mockResolvedValue({
+  getSettings: vi.fn<ArrService<typeof arrConfig.radarr>['getSettings']>().mockResolvedValue({
     url: 'http://radarr',
     apiKeySet: true,
     qualityProfileId: 1,
     rootFolderPath: '/movies',
   }),
-  setSettings: vi.fn().mockResolvedValue({
+  setSettings: vi.fn<ArrService<typeof arrConfig.radarr>['setSettings']>().mockResolvedValue({
     url: 'http://radarr',
     apiKeySet: true,
     qualityProfileId: 1,
     rootFolderPath: '/movies',
   }),
-  requestMedia: vi.fn().mockResolvedValue({ id: 1, tmdbId: 123, title: 'Test Movie' }),
-  isConfigured: vi.fn().mockResolvedValue(true),
-  testConnection: vi.fn().mockResolvedValue(false),
-  testAndSync: vi.fn().mockResolvedValue(true),
-  listQualityProfiles: vi.fn().mockResolvedValue([]),
-  listRootFolders: vi.fn().mockResolvedValue([]),
-  listLibraryItems: vi.fn().mockResolvedValue([]),
-  getQueue: vi.fn().mockResolvedValue({ records: [] }),
-  resolveMediaUrl: vi.fn().mockResolvedValue(null),
+  requestMedia: vi.fn<ArrService<typeof arrConfig.radarr>['requestMedia']>().mockResolvedValue({
+    id: 1,
+    type: 'movie',
+    tmdbId: 123,
+    title: 'Test Movie',
+    monitored: true,
+    hasFile: false,
+  }),
+  isConfigured: vi
+    .fn<ArrService<typeof arrConfig.radarr>['isConfigured']>()
+    .mockResolvedValue(true),
+  testConnection: vi
+    .fn<ArrService<typeof arrConfig.radarr>['testConnection']>()
+    .mockResolvedValue(false),
+  testAndSync: vi.fn<ArrService<typeof arrConfig.radarr>['testAndSync']>().mockResolvedValue(true),
+  listQualityProfiles: vi
+    .fn<ArrService<typeof arrConfig.radarr>['listQualityProfiles']>()
+    .mockResolvedValue([]),
+  listRootFolders: vi
+    .fn<ArrService<typeof arrConfig.radarr>['listRootFolders']>()
+    .mockResolvedValue([]),
+  listLibraryItems: vi
+    .fn<ArrService<typeof arrConfig.radarr>['listLibraryItems']>()
+    .mockResolvedValue([]),
+  getQueue: vi.fn<ArrService<typeof arrConfig.radarr>['getQueue']>().mockResolvedValue([]),
+  resolveMediaUrl: vi
+    .fn<ArrService<typeof arrConfig.radarr>['resolveMediaUrl']>()
+    .mockResolvedValue(null),
 };
 
 const sonarrService: ArrService<typeof arrConfig.sonarr> = {
   config: arrConfig.sonarr,
-  getSettings: vi.fn().mockResolvedValue({
+  getSettings: vi.fn<ArrService<typeof arrConfig.sonarr>['getSettings']>().mockResolvedValue({
     url: 'http://sonarr',
     apiKeySet: true,
     qualityProfileId: 1,
     rootFolderPath: '/tv',
   }),
-  setSettings: vi.fn().mockResolvedValue({
+  setSettings: vi.fn<ArrService<typeof arrConfig.sonarr>['setSettings']>().mockResolvedValue({
     url: 'http://sonarr',
     apiKeySet: true,
     qualityProfileId: 1,
     rootFolderPath: '/tv',
   }),
-  requestMedia: vi.fn().mockResolvedValue({ id: 1, tvdbId: 81_189, title: 'Test Show' }),
-  isConfigured: vi.fn().mockResolvedValue(true),
-  testConnection: vi.fn().mockResolvedValue(false),
-  testAndSync: vi.fn().mockResolvedValue(true),
-  listQualityProfiles: vi.fn().mockResolvedValue([]),
-  listRootFolders: vi.fn().mockResolvedValue([]),
-  listLibraryItems: vi.fn().mockResolvedValue([]),
-  getQueue: vi.fn().mockResolvedValue({ records: [] }),
-  resolveMediaUrl: vi.fn().mockResolvedValue(null),
+  requestMedia: vi.fn<ArrService<typeof arrConfig.sonarr>['requestMedia']>().mockResolvedValue({
+    id: 1,
+    type: 'tv',
+    tvdbId: 81_189,
+    title: 'Test Show',
+    seasons: [],
+    monitored: true,
+    hasFile: false,
+  }),
+  isConfigured: vi
+    .fn<ArrService<typeof arrConfig.sonarr>['isConfigured']>()
+    .mockResolvedValue(true),
+  testConnection: vi
+    .fn<ArrService<typeof arrConfig.sonarr>['testConnection']>()
+    .mockResolvedValue(false),
+  testAndSync: vi.fn<ArrService<typeof arrConfig.sonarr>['testAndSync']>().mockResolvedValue(true),
+  listQualityProfiles: vi
+    .fn<ArrService<typeof arrConfig.sonarr>['listQualityProfiles']>()
+    .mockResolvedValue([]),
+  listRootFolders: vi
+    .fn<ArrService<typeof arrConfig.sonarr>['listRootFolders']>()
+    .mockResolvedValue([]),
+  listLibraryItems: vi
+    .fn<ArrService<typeof arrConfig.sonarr>['listLibraryItems']>()
+    .mockResolvedValue([]),
+  getQueue: vi.fn<ArrService<typeof arrConfig.sonarr>['getQueue']>().mockResolvedValue([]),
+  resolveMediaUrl: vi
+    .fn<ArrService<typeof arrConfig.sonarr>['resolveMediaUrl']>()
+    .mockResolvedValue(null),
 };
 
 const catalogService: CatalogService = {
-  searchMedia: vi.fn().mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
-  getPopularMedia: vi.fn().mockResolvedValue({
+  searchMedia: vi
+    .fn<CatalogService['searchMedia']>()
+    .mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
+  getPopularMedia: vi.fn<CatalogService['getPopularMedia']>().mockResolvedValue({
     results: [],
     page: 1,
     totalPages: 0,
     feedId: '00000000-0000-0000-0000-000000000000',
   }),
-  discoverMedia: vi.fn().mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
-  getMediaDetails: vi.fn().mockImplementation(params =>
+  discoverMedia: vi
+    .fn<CatalogService['discoverMedia']>()
+    .mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
+  getMediaDetails: vi.fn<CatalogService['getMediaDetails']>().mockImplementation((params) =>
     Promise.resolve(
-      createMediaTestHelper({
-        tmdbId: params.id,
-        type: params.type,
-        state: {
-          record: {
-            id: 1,
-            status: 'pending',
-            jellyfinId: null,
-            jellyfinAddedAt: null,
-            tvdbId: null,
-            arrId: null,
-            arrUrl: null,
-            seasons: null,
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
-          },
-        },
-      })
-    )
+      params.type === 'movie'
+        ? createTestMovieDetail({
+            tmdbId: params.id,
+            state: {
+              record: {
+                id: 1,
+                status: 'pending',
+                jellyfinId: null,
+                jellyfinAddedAt: null,
+                tvdbId: null,
+                arrId: null,
+                arrUrl: null,
+                seasons: null,
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+              },
+            },
+          })
+        : createTestTVDetail({
+            tmdbId: params.id,
+            state: {
+              record: {
+                id: 1,
+                status: 'pending',
+                jellyfinId: null,
+                jellyfinAddedAt: null,
+                tvdbId: null,
+                arrId: null,
+                arrUrl: null,
+                seasons: null,
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+              },
+            },
+          }),
+    ),
   ),
-  listGenres: vi.fn().mockResolvedValue({ genres: [] }),
-  getAvailableMedia: vi.fn().mockResolvedValue({ results: [] }),
-  getNextUnvotedMedia: vi.fn().mockResolvedValue({ media: null, feedId: 'feed-1' }),
+  listGenres: vi.fn<CatalogService['listGenres']>().mockResolvedValue({ genres: [] }),
+  getAvailableMedia: vi
+    .fn<CatalogService['getAvailableMedia']>()
+    .mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
+  getNextUnvotedMedia: vi
+    .fn<CatalogService['getNextUnvotedMedia']>()
+    .mockResolvedValue({ media: null, feedId: 'feed-1' }),
 };
 
 describe('interaction service - integration tests', () => {
@@ -127,27 +191,29 @@ describe('interaction service - integration tests', () => {
 
     // Mock TMDB service that returns movie/TV details with genres
     tmdb = {
-      configure: vi.fn().mockResolvedValue(undefined),
-      isConfigured: vi.fn().mockResolvedValue(true),
-      testConnection: vi.fn().mockResolvedValue(true),
-      testAndSync: vi.fn().mockResolvedValue(true),
-      connectionInfo: vi.fn().mockResolvedValue({ connected: true }),
-      getSettings: vi.fn().mockResolvedValue({ tmdbAccessTokenSet: true }),
-      setSettings: vi.fn().mockResolvedValue({ tmdbAccessTokenSet: true }),
-      search: vi.fn(),
-      discover: vi.fn(),
-      trending: vi.fn(),
-      genres: vi.fn(),
-      details: vi.fn().mockResolvedValue(
+      isConfigured: vi.fn<TMDBService['isConfigured']>().mockReturnValue(true),
+      testConnection: vi.fn<TMDBService['testConnection']>().mockResolvedValue(true),
+      testAndSync: vi.fn<TMDBService['testAndSync']>().mockResolvedValue(true),
+      getSettings: vi
+        .fn<TMDBService['getSettings']>()
+        .mockReturnValue({ tmdbAccessTokenSet: true }),
+      setSettings: vi
+        .fn<TMDBService['setSettings']>()
+        .mockResolvedValue({ tmdbAccessTokenSet: true }),
+      search: vi.fn<TMDBService['search']>(),
+      discover: vi.fn<TMDBService['discover']>(),
+      trending: vi.fn<TMDBService['trending']>(),
+      genres: vi.fn<TMDBService['genres']>(),
+      details: vi.fn<TMDBService['details']>().mockResolvedValue(
         createTestMovieDetail({
           tmdbId: 123,
           genres: [
             { id: 28, name: 'Action' },
             { id: 12, name: 'Adventure' },
           ],
-        })
+        }),
       ),
-      findByExternalId: vi.fn(),
+      findByExternalId: vi.fn<TMDBService['findByExternalId']>(),
     } as TMDBService;
   });
 
@@ -167,7 +233,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         interaction,
-        user
+        user,
       );
 
       // Verify media was created
@@ -195,7 +261,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         interaction,
-        undefined
+        undefined,
       );
       expect(result).toBeUndefined();
 
@@ -216,7 +282,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         interaction,
-        user
+        user,
       );
 
       const media = await getMediaByTmdbId(db, 123, 'movie');
@@ -233,7 +299,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         interaction,
-        user
+        user,
       );
 
       // Verify interaction was removed
@@ -252,7 +318,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         { ...interaction, action: 'disliked' },
-        user
+        user,
       );
 
       const media = await getMediaByTmdbId(db, 123, 'movie');
@@ -270,7 +336,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         interaction,
-        user
+        user,
       );
 
       // Verify only like exists now
@@ -293,7 +359,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         interaction,
-        admin
+        admin,
       );
 
       const media = await getMediaByTmdbId(db, 123, 'movie');
@@ -327,7 +393,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         { ...interaction, action: 'disliked' },
-        user1
+        user1,
       );
       await createInteraction(
         tmdb,
@@ -336,7 +402,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         { ...interaction, action: 'disliked' },
-        user2
+        user2,
       );
       await createInteraction(
         tmdb,
@@ -345,7 +411,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         { ...interaction, action: 'disliked' },
-        user3
+        user3,
       );
 
       const media = await getMediaByTmdbId(db, 123, 'movie');
@@ -371,7 +437,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         interaction,
-        user
+        user,
       );
       await createInteraction(
         tmdb,
@@ -380,26 +446,27 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         { mediaType: 'tv', tmdbId: 456, action: 'liked' },
-        user
+        user,
       );
 
-      const mockMedia1 = createMediaTestHelper({ tmdbId: 123, type: 'movie', name: 'Test Movie' });
-      const mockMedia2 = createMediaTestHelper({ tmdbId: 456, type: 'tv', name: 'Test Show' });
+      const mockMedia1 = createTestMovieDetail({ tmdbId: 123, type: 'movie', name: 'Test Movie' });
+      const mockMedia2 = createTestTVDetail({ tmdbId: 456, type: 'tv', name: 'Test Show' });
 
-      const tmdbServiceForTest = {
-        details: vi.fn().mockResolvedValueOnce(mockMedia1).mockResolvedValueOnce(mockMedia2),
-      } as unknown as TMDBService;
+      tmdb.details = vi
+        .fn<TMDBService['details']>()
+        .mockResolvedValueOnce(mockMedia1)
+        .mockResolvedValueOnce(mockMedia2);
 
-      const result = await getUserInteractionsEnriched(tmdbServiceForTest, db, user.id);
+      const result = await getUserInteractionsEnriched(tmdb, db, user.id);
 
       expect(result.results).toHaveLength(2);
       expect(result.page).toBe(1);
       expect(result.totalPages).toBe(1);
       // Verify both items are present (order may vary)
-      const ids = result.results.map(r => r.tmdbId);
+      const ids = result.results.map((r) => r.tmdbId);
       expect(ids).toContain(123);
       expect(ids).toContain(456);
-      expect(tmdbServiceForTest.details).toHaveBeenCalledTimes(2);
+      expect(tmdb.details).toHaveBeenCalledTimes(2);
     });
 
     it('should return empty results for userId with no interactions', async () => {
@@ -422,7 +489,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         interaction,
-        user
+        user,
       );
 
       const olderMedia = await getMediaByTmdbId(db, 123, 'movie');
@@ -434,7 +501,7 @@ describe('interaction service - integration tests', () => {
           tmdbId: 456,
           name: 'Newest Show',
           genres: [{ id: 18, name: 'Drama' }],
-        })
+        }),
       );
 
       await createInteraction(
@@ -444,23 +511,19 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         { mediaType: 'tv', tmdbId: 456, action: 'liked' },
-        user
+        user,
       );
 
-      const tmdbServiceForTest = {
-        details: vi
-          .fn()
-          .mockResolvedValueOnce(
-            createMediaTestHelper({ tmdbId: 456, type: 'tv', name: 'Newest Show' })
-          )
-          .mockResolvedValueOnce(
-            createMediaTestHelper({ tmdbId: 123, type: 'movie', name: 'Older Download' })
-          ),
-      } as unknown as TMDBService;
+      tmdb.details = vi
+        .fn<TMDBService['details']>()
+        .mockResolvedValueOnce(createTestTVDetail({ tmdbId: 456, type: 'tv', name: 'Newest Show' }))
+        .mockResolvedValueOnce(
+          createTestMovieDetail({ tmdbId: 123, type: 'movie', name: 'Older Download' }),
+        );
 
-      const result = await getUserInteractionsEnriched(tmdbServiceForTest, db, user.id);
+      const result = await getUserInteractionsEnriched(tmdb, db, user.id);
 
-      expect(result.results.map(item => item.tmdbId)).toEqual([456, 123]);
+      expect(result.results.map((item) => item.tmdbId)).toEqual([456, 123]);
     });
   });
 
@@ -476,7 +539,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         interaction,
-        user
+        user,
       );
 
       vi.mocked(tmdb.details).mockResolvedValueOnce(
@@ -484,7 +547,7 @@ describe('interaction service - integration tests', () => {
           tmdbId: 456,
           name: 'Warning Show',
           genres: [{ id: 80, name: 'Crime' }],
-        })
+        }),
       );
 
       await createInteraction(
@@ -494,7 +557,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         { mediaType: 'tv', tmdbId: 456, action: 'liked' },
-        user
+        user,
       );
 
       const movieMedia = await getMediaByTmdbId(db, 123, 'movie');
@@ -505,25 +568,23 @@ describe('interaction service - integration tests', () => {
       await updateMediaStatus(db, movieMedia.id, 'downloading');
       await updateMediaStatus(db, showMedia.id, 'warning');
 
-      const tmdbServiceForTest = {
-        details: vi
-          .fn()
-          .mockResolvedValueOnce(
-            createMediaTestHelper({ tmdbId: 456, type: 'tv', name: 'Warning Show' })
-          )
-          .mockResolvedValueOnce(
-            createMediaTestHelper({ tmdbId: 123, type: 'movie', name: 'Downloading Movie' })
-          ),
-      } as unknown as TMDBService;
+      tmdb.details = vi
+        .fn<TMDBService['details']>()
+        .mockResolvedValueOnce(
+          createTestTVDetail({ tmdbId: 456, type: 'tv', name: 'Warning Show' }),
+        )
+        .mockResolvedValueOnce(
+          createTestMovieDetail({ tmdbId: 123, type: 'movie', name: 'Downloading Movie' }),
+        );
 
-      const result = await getUserActivityAttentionEnriched(tmdbServiceForTest, db, user);
+      const result = await getUserActivityAttentionEnriched(tmdb, db, user);
 
       expect(result.page).toBe(1);
       expect(result.totalPages).toBe(1);
       expect(result.results).toHaveLength(2);
-      expect(result.results.map(item => item.tmdbId)).toEqual(expect.arrayContaining([123, 456]));
-      expect(result.results.map(item => item.state?.record?.status)).toEqual(
-        expect.arrayContaining(['warning', 'downloading'])
+      expect(result.results.map((item) => item.tmdbId)).toEqual(expect.arrayContaining([123, 456]));
+      expect(result.results.map((item) => item.state?.record?.status)).toEqual(
+        expect.arrayContaining(['warning', 'downloading']),
       );
     });
 
@@ -536,15 +597,13 @@ describe('interaction service - integration tests', () => {
 
       await createMedia(db, 777, 'movie', 'warning');
 
-      const tmdbServiceForTest = {
-        details: vi
-          .fn()
-          .mockResolvedValue(
-            createMediaTestHelper({ tmdbId: 777, type: 'movie', name: 'Needs Attention' })
-          ),
-      } as unknown as TMDBService;
+      tmdb.details = vi
+        .fn<TMDBService['details']>()
+        .mockResolvedValueOnce(
+          createTestMovieDetail({ tmdbId: 777, type: 'movie', name: 'Needs Attention' }),
+        );
 
-      const result = await getUserActivityAttentionEnriched(tmdbServiceForTest, db, admin);
+      const result = await getUserActivityAttentionEnriched(tmdb, db, admin);
 
       expect(result.page).toBe(1);
       expect(result.totalPages).toBe(1);
@@ -556,19 +615,23 @@ describe('interaction service - integration tests', () => {
 
   describe('requestMediaToArr', () => {
     const tmdbWithTvdb: TMDBService = {
-      configure: vi.fn().mockResolvedValue(undefined),
-      isConfigured: vi.fn().mockResolvedValue(true),
-      testConnection: vi.fn().mockResolvedValue(true),
-      testAndSync: vi.fn().mockResolvedValue(true),
-      connectionInfo: vi.fn().mockResolvedValue({ connected: true }),
-      getSettings: vi.fn().mockResolvedValue({ tmdbAccessTokenSet: true }),
-      setSettings: vi.fn().mockResolvedValue({ tmdbAccessTokenSet: true }),
-      search: vi.fn(),
-      discover: vi.fn(),
-      trending: vi.fn(),
-      genres: vi.fn(),
-      details: vi.fn().mockResolvedValue(createTestMovieDetail({ tmdbId: 123 })),
-      findByExternalId: vi.fn(),
+      isConfigured: vi.fn<TMDBService['isConfigured']>().mockReturnValue(true),
+      testConnection: vi.fn<TMDBService['testConnection']>().mockResolvedValue(true),
+      testAndSync: vi.fn<TMDBService['testAndSync']>().mockResolvedValue(true),
+      getSettings: vi
+        .fn<TMDBService['getSettings']>()
+        .mockReturnValue({ tmdbAccessTokenSet: true } as TmdbSettings),
+      setSettings: vi
+        .fn<TMDBService['setSettings']>()
+        .mockResolvedValue({ tmdbAccessTokenSet: true } as TmdbSettings),
+      search: vi.fn<TMDBService['search']>(),
+      discover: vi.fn<TMDBService['discover']>(),
+      trending: vi.fn<TMDBService['trending']>(),
+      genres: vi.fn<TMDBService['genres']>(),
+      details: vi
+        .fn<TMDBService['details']>()
+        .mockResolvedValue(createTestMovieDetail({ tmdbId: 123 })),
+      findByExternalId: vi.fn<TMDBService['findByExternalId']>(),
     } as TMDBService;
 
     beforeEach(() => {
@@ -610,7 +673,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         interaction,
-        user1
+        user1,
       );
       await createInteraction(
         tmdbWithTvdb,
@@ -619,7 +682,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         interaction,
-        user2
+        user2,
       );
       await createInteraction(
         tmdbWithTvdb,
@@ -628,7 +691,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         interaction,
-        user3
+        user3,
       );
 
       // Allow fire-and-forget to complete
@@ -638,8 +701,8 @@ describe('interaction service - integration tests', () => {
           123,
           'Test Movie',
           null,
-          undefined
-        )
+          undefined,
+        ),
       );
     });
 
@@ -651,7 +714,7 @@ describe('interaction service - integration tests', () => {
         seasons: [1, 2],
       };
       vi.mocked(tmdbWithTvdb.details).mockResolvedValue(
-        createTestTVDetail({ tmdbId: 456, name: 'Test Show', tvdbId: 81_189 }) as never
+        createTestTVDetail({ tmdbId: 456, name: 'Test Show', tvdbId: 81_189 }) as never,
       );
 
       const user1 = await createTestUserInDb(db, { email: 'tv1@test.com', displayName: 'U1' });
@@ -668,7 +731,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         tvInteraction,
-        user1
+        user1,
       );
       await createInteraction(
         tmdbWithTvdb,
@@ -677,7 +740,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         tvInteraction,
-        user2
+        user2,
       );
       await createInteraction(
         tmdbWithTvdb,
@@ -686,7 +749,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         tvInteraction,
-        user3
+        user3,
       );
 
       await vi.waitFor(() =>
@@ -695,8 +758,8 @@ describe('interaction service - integration tests', () => {
           81_189,
           'Test Show',
           null,
-          [1, 2]
-        )
+          [1, 2],
+        ),
       );
     });
 
@@ -718,7 +781,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         interaction,
-        user1
+        user1,
       );
       await createInteraction(
         tmdbWithTvdb,
@@ -727,7 +790,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         interaction,
-        user2
+        user2,
       );
       await createInteraction(
         tmdbWithTvdb,
@@ -736,7 +799,7 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         interaction,
-        user3
+        user3,
       );
 
       const media = await getMediaByTmdbId(db, 123, 'movie');
