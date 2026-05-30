@@ -16,7 +16,7 @@ export const JellyfinItemSchema = z.object({
   DateCreated: z.string().optional(),
   ProductionYear: z.number().optional(),
   Overview: z.string().optional(),
-  IndexNumber: z.number().optional(), // Season number for Season type
+  IndexNumber: z.number().optional(),
   ImageTags: z
     .object({
       Primary: z.string().optional(),

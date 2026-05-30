@@ -42,7 +42,7 @@ export async function updateMediaIds(
  * Get all TV shows without TMDB ID for enrichment (from Sonarr)
  * These shows have tvdbId but need TMDB ID for display/search
  */
-export async function getMediaWithoutTmdbId(
+export function getMediaWithoutTmdbId(
   db: Database,
 ): Promise<Array<Pick<DbMedia, 'id' | 'tvdbId' | 'type'>>> {
   return db
@@ -129,7 +129,7 @@ export async function upsertMediaFromArr(
         set: {
           arrId: sql`excluded.arrId`,
           arrUrl: sql`excluded.arrUrl`,
-          tmdbId: sql`COALESCE(media.tmdbId, excluded.tmdbId)`, // Preserve -1 if already set
+          tmdbId: sql`COALESCE(media.tmdbId, excluded.tmdbId)`,
           seasons: sql`excluded.seasons`,
           status: sql`CASE WHEN media.status = 'available' THEN 'available' ELSE excluded.status END`,
           updatedAt: now,
@@ -172,7 +172,7 @@ export async function batchUpdateMediaStatuses(
 /**
  * Get all media with arr IDs for sync matching
  */
-export async function listMediaWithArrIds(
+export function listMediaWithArrIds(
   db: Database,
   type: MediaType,
 ): Promise<Array<Omit<DbMedia, 'createdAt' | 'updatedAt'>>> {

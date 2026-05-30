@@ -198,7 +198,7 @@ export function VotePage() {
             <div className="mb-4 text-6xl">🎉</div>
             <h2 className="mb-2 text-2xl font-bold text-white">All Done!</h2>
             <p className="mb-6 text-lg text-gray-400">
-              You've voted on the top 100 items. Check back later for more!
+              You&apos;ve voted on the top 100 items. Check back later for more!
             </p>
             <Button onClick={asVoid(() => navigate('/explore'))}>Explore</Button>
           </div>

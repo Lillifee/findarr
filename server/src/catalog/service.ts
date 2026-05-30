@@ -176,7 +176,7 @@ export function createCatalogService(context: CatalogContext) {
     };
   }
 
-  async function getPopularFeedSnapshot(params: PopularQuery, userId: number) {
+  function getPopularFeedSnapshot(params: PopularQuery, userId: number) {
     const { type = 'both', interaction, genres = [] } = params;
 
     return popularFeedSnapshotStore.getOrCreateSnapshot(params.feedId, async () => {

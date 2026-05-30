@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom/client';
 
 import App from './App.tsx';
 
-// @ts-ignore
 // oxlint-disable-next-line import/no-unassigned-import
 import './index.css';
 

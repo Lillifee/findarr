@@ -5,12 +5,12 @@ import {
   JellyfinSettingsQuerySchema,
   TmdbSettingsQuerySchema,
 } from '@findarr/shared';
-import type { FastifyPluginAsync } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 
 import { createUser, deleteUser, listAllUsers } from '../auth/repository.js';
 import { protectedRoute } from '../utils/routes.js';
 
-const adminRoutes: FastifyPluginAsync = async (fastify) => {
+const adminRoutes = (fastify: FastifyInstance) => {
   fastify.addHook('preHandler', fastify.requireAdmin);
 
   fastify.get('/users', () => listAllUsers(fastify.db));

@@ -12,13 +12,13 @@ export function createArrLibrarySyncScheduler(arrService: AnyArrService): Schedu
     {
       name: `${arrService.config.service}LibrarySync`,
       description: `${arrService.config.service} library sync every 30 minutes`,
-      interval: 30 * 60 * 1000, // 30 minutes
+      interval: 30 * 60 * 1000,
       enabled: true,
       runOnStartup: true,
     },
     async (context: SchedulerContext) => {
       await syncComplete(context, arrService);
-      return true; // Continue
+      return true;
     },
   );
 }
@@ -35,7 +35,7 @@ export function createArrQueueMonitorScheduler(arrService: AnyArrService): Sched
     {
       name: `${arrService.config.service}QueueMonitor`,
       description: `Check for active ${arrService.config.service} downloads every 2 minutes`,
-      interval: 2 * 60 * 1000, // 2 minutes
+      interval: 2 * 60 * 1000,
       enabled: true,
       runOnStartup: true,
     },
@@ -56,7 +56,7 @@ export function createArrQueueMonitorScheduler(arrService: AnyArrService): Sched
         context.scheduler.start({ name: fastSyncName });
       }
 
-      return true; // Continue
+      return true;
     },
   );
 }
@@ -75,10 +75,12 @@ export function createArrQueueFastSyncScheduler(arrService: AnyArrService): Sche
     {
       name: `${arrService.config.service}QueueFastSync`,
       description: `Fast polling (10s) while ${arrService.config.service} downloads active`,
-      interval: 10 * 1000, // 10 seconds
-      enabled: false, // Triggered by monitor
+      interval: 10 * 1000,
+      enabled: false,
       runOnStartup: false,
-      minRuntime: 60 * 1000, // Don't self-terminate for 60 seconds (handles delayed downloads)
+
+      // Don't self-terminate for 60 seconds (handles delayed downloads)
+      minRuntime: 60 * 1000,
     },
     async (context: SchedulerContext) => {
       // Sync queue and get current state

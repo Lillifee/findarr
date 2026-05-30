@@ -104,14 +104,17 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
 
       expect(parsed.results).toBeDefined();
       expect(parsed.results.length).toBeGreaterThan(0);
+    });
 
-      // Verify Batman movies are in results
-      const hasBatman = parsed.results.some(
-        (r) =>
-          (r.type === 'movie' && r.title?.toLowerCase().includes('batman')) ||
-          (r.type === 'movie' && r.original_title?.toLowerCase().includes('batman')),
-      );
-      expect(hasBatman).toBe(true);
+    it('should contain at least one Batman movie in Batman search results', () => {
+      const fixture = loadFixture('tmdb/search-batman.json');
+      const parsed = TMDBSearchResponseSchema.parse(fixture);
+
+      const batmanMovies = parsed.results
+        .filter((r) => r.type === 'movie')
+        .filter((r) => r.title?.toLowerCase().includes('batman'));
+
+      expect(batmanMovies.length).toBeGreaterThan(0);
     });
 
     it('should parse Office TV search results', () => {
@@ -181,7 +184,7 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
       const movieDetail = media as MovieDetails;
       expect(movieDetail.type).toBe('movie');
       expect(movieDetail.imdbId).toBeDefined();
-      expect(movieDetail.imdbId).toMatch(/^tt\d+$/);
+      expect(movieDetail.imdbId).toMatch(/^tt\d+$/u);
     });
   });
 
@@ -267,10 +270,9 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
       expect(parsed.results.length).toBeGreaterThan(0);
 
       // Verify ratings are high but vote counts are low
-      const allHighRated = parsed.results.every(
-        (r) => r.vote_average >= 7 && r.vote_count >= 10 && r.vote_count <= 100,
-      );
-      expect(allHighRated).toBe(true);
+      expect(parsed.results.every((r) => r.vote_average >= 7)).toBe(true);
+      expect(parsed.results.every((r) => r.vote_count >= 10)).toBe(true);
+      expect(parsed.results.every((r) => r.vote_count <= 100)).toBe(true);
     });
   });
 

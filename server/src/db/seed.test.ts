@@ -55,7 +55,7 @@ describe('seed', () => {
   });
 
   it('should throw on database errors', async () => {
-    sqliteDb.close(); // Close DB to trigger error
+    sqliteDb.close();
     await expect(seed(app, db)).rejects.toThrow('The database connection is not open');
   });
 });

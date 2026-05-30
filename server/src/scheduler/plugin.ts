@@ -1,4 +1,4 @@
-import type { FastifyPluginAsync } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import fp from 'fastify-plugin';
 
 import { createSchedulers } from './registry.js';
@@ -10,7 +10,7 @@ declare module 'fastify' {
   }
 }
 
-const schedulerPlugin: FastifyPluginAsync = async (fastify) => {
+const schedulerPlugin = (fastify: FastifyInstance) => {
   // Create scheduler service with registry (pass service instances)
   const schedulers = createSchedulers(fastify);
   const schedulerService = createSchedulerService(fastify, schedulers);
@@ -21,7 +21,7 @@ const schedulerPlugin: FastifyPluginAsync = async (fastify) => {
   fastify.log.info({ name: 'scheduler' }, 'Scheduler plugin registered');
 
   // Cleanup on server close
-  fastify.addHook('onClose', async () => {
+  fastify.addHook('onClose', () => {
     schedulerService.stopOrchestration();
     fastify.log.info({ name: 'scheduler' }, 'Scheduler service stopped');
   });

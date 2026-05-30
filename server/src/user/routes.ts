@@ -1,10 +1,10 @@
 import { UserSettingsQuerySchema } from '@findarr/shared';
-import type { FastifyPluginAsync } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 
 import { protectedRoute } from '../utils/routes.js';
 import { getUserSettings, saveUserSettings } from './service.js';
 
-export const settingsRoutes: FastifyPluginAsync = async (fastify) => {
+export const settingsRoutes = (fastify: FastifyInstance) => {
   fastify.addHook('preHandler', fastify.requireAuth);
 
   fastify.get(

@@ -5,13 +5,13 @@ import {
   unifiedGenres,
   regionGroupKeys,
   type DiscoverQuery,
-  sleep,
   type UserSettingsQuery,
   type MediaType,
 } from '@findarr/shared';
 import type { FastifyBaseLogger } from 'fastify';
 
 import { HttpError } from '../utils/errors.js';
+import { sleep } from '../utils/helper.js';
 import type { TMDBDiscoverParams } from './schemas.js';
 
 /**
@@ -43,7 +43,7 @@ export const buildGenreFilter = (genres: GenreKey[] | undefined) =>
  */
 export const getDateRangeFromDays = (days: number) => {
   const today = new Date();
-  const futureDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000); // today + 1 week
+  const futureDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
   const pastDate = new Date(today.getTime() - days * 24 * 60 * 60 * 1000);
 
   return { pastDate, futureDate };

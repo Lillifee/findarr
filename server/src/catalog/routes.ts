@@ -10,7 +10,7 @@ import type { FastifyInstance } from 'fastify';
 
 import { protectedRoute } from '../utils/routes.js';
 
-export async function catalogRoutes(fastify: FastifyInstance) {
+export const catalogRoutes = (fastify: FastifyInstance) => {
   // Protect all catalog routes - require authentication
   fastify.addHook('preHandler', fastify.requireAuth);
 
@@ -72,4 +72,4 @@ export async function catalogRoutes(fastify: FastifyInstance) {
       fastify.catalog.getNextUnvotedMedia(PopularQuerySchema.parse(request.query), request.user.id),
     ),
   );
-}
+};

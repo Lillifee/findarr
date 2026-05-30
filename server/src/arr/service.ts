@@ -40,7 +40,7 @@ export async function createArrService<T extends ArrServiceConfig>(
     context.log.error({ name: config.service, error }, 'Failed to initialize Arr service');
   });
 
-  async function getSettings(): Promise<ArrSettings> {
+  function getSettings(): ArrSettings {
     const { apiKey: _apiKey, ...settings } = lifecycle.settings();
     return settings;
   }
@@ -63,7 +63,7 @@ export async function createArrService<T extends ArrServiceConfig>(
     );
   }
 
-  async function isConfigured(): Promise<boolean> {
+  function isConfigured(): boolean {
     return lifecycle.isConfigured();
   }
 
@@ -113,11 +113,11 @@ export async function createArrService<T extends ArrServiceConfig>(
     return libraryItem;
   }
 
-  async function listQualityProfiles(): Promise<ArrQualityProfile[]> {
+  function listQualityProfiles(): Promise<ArrQualityProfile[]> {
     return lifecycle.client().listQualityProfiles();
   }
 
-  async function listRootFolders(): Promise<ArrRootFolder[]> {
+  function listRootFolders(): Promise<ArrRootFolder[]> {
     return lifecycle.client().listRootFolders();
   }
 
@@ -126,7 +126,7 @@ export async function createArrService<T extends ArrServiceConfig>(
     return items.map((x) => transformArrMedia(x));
   }
 
-  async function getQueue(pageSize: number): Promise<ArrQueueItem[]> {
+  function getQueue(pageSize: number): Promise<ArrQueueItem[]> {
     return lifecycle.client().getQueue(pageSize);
   }
 

@@ -34,10 +34,11 @@ import type {
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api', // Vite proxy will redirect to backend
-  withCredentials: true, // Include session cookie
+  baseURL: '/api',
+  withCredentials: true,
   paramsSerializer: {
-    indexes: null, // Use ?region_groups=western&region_groups=asian instead of region_groups[0]=western
+    // Use ?region_groups=western&region_groups=asian instead of region_groups[0]=western
+    indexes: null,
   },
 });
 

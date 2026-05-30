@@ -7,7 +7,7 @@ export default {
       spacing: {
         75: '300px',
         45: '180px',
-        15: '60px', // For poster heights
+        15: '60px',
         18: '72px',
       },
       zIndex: {

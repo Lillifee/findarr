@@ -1,7 +1,7 @@
 import { ArrLinkQuerySchema } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
 
-export async function arrRoutes(fastify: FastifyInstance) {
+export function arrRoutes(fastify: FastifyInstance) {
   // Protect ARR routes - require authentication
   fastify.addHook('preHandler', fastify.requireAuth);
 

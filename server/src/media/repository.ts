@@ -46,7 +46,7 @@ export const createMedia = async (
   tmdbId: number,
   type: MediaType,
   status: MediaStatus = 'pending',
-  seasonNumbers?: number[], // For initial request: convert to SeasonRecord[]
+  seasonNumbers?: number[],
 ) => {
   // Check if media already exists (prevent duplicates since we removed the unique constraint)
   const existing = await getMediaByTmdbId(db, tmdbId, type);

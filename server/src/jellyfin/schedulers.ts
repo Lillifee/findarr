@@ -11,7 +11,7 @@ export function createJellyfinLibrarySyncScheduler(): Scheduler {
     {
       name: 'jellyfinLibrarySync',
       description: 'Full Jellyfin library sync every 30 minutes',
-      interval: 30 * 60 * 1000, // 30 minutes
+      interval: 30 * 60 * 1000,
       enabled: true,
       runOnStartup: true,
     },
@@ -23,8 +23,8 @@ export function createJellyfinLibrarySyncScheduler(): Scheduler {
         return false;
       }
 
-      await syncJellyfinLibrary(context); // Full sync
-      return true; // Continue
+      await syncJellyfinLibrary(context);
+      return true;
     },
   );
 }
@@ -39,10 +39,10 @@ export function createJellyfinQueueSyncScheduler(): Scheduler {
     {
       name: 'jellyfinQueueSync',
       description: 'Partial sync (10s) for recent downloads, self-terminates when done',
-      interval: 10 * 1000, // 10 seconds
-      enabled: false, // Disabled by default, triggered manually
+      interval: 10 * 1000,
+      enabled: false,
       runOnStartup: false,
-      maxRuntime: 120 * 1000, // Maximum 2 minutes runtime.
+      maxRuntime: 120 * 1000,
     },
     async (context: SchedulerContext) => {
       const isConfigured = context.jellyfin.isConfigured();
@@ -70,10 +70,10 @@ export function createJellyfinQueueSyncScheduler(): Scheduler {
           { name: 'jellyfin', schedulerName: 'jellyfinQueueSync' },
           'All downloaded items are now available - stopping queue sync',
         );
-        return false; // Self-terminate
+        return false;
       }
 
-      return true; // Continue
+      return true;
     },
   );
 }

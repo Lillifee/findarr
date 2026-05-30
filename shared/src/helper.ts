@@ -9,6 +9,3 @@ export const objectKeys = <T extends object, K extends keyof T>(object: T) =>
 
 export const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
-
-export const sleep = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));

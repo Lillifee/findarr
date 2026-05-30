@@ -8,7 +8,8 @@ import type { FastifyInstance } from 'fastify';
 
 import type { Scheduler } from './types.js';
 
-const TICK_INTERVAL_MS = 10 * 1000; // 10 seconds
+// 10 seconds
+const TICK_INTERVAL_MS = 10 * 1000;
 
 /**
  * Central scheduler orchestration service
@@ -166,7 +167,9 @@ export function createSchedulerService(
     timer = setTimeout(() => {
       tick();
     }, TICK_INTERVAL_MS);
-    timer.unref(); // Don't keep Node.js process alive
+
+    // Don't keep Node.js process alive
+    timer.unref();
   }
 
   return {

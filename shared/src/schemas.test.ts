@@ -63,7 +63,7 @@ describe('schemas', () => {
       const result = ServerEnvSchema.parse(fullConfig);
 
       expect(result).toMatchObject({
-        PORT: 8080, // Should be coerced to number
+        PORT: 8080,
         NODE_ENV: 'development',
         DATA_PATH: './data/dev',
       });
@@ -107,9 +107,9 @@ describe('schemas', () => {
   describe('DiscoverQuerySchema', () => {
     it('should accept empty object and apply defaults', () => {
       const result = DiscoverQuerySchema.parse({});
-      expect(result.page).toBeUndefined(); // optional
-      expect(result.type).toBeUndefined(); // optional
-      expect(result.recentDays).toBeUndefined(); // optional
+      expect(result.page).toBeUndefined();
+      expect(result.type).toBeUndefined();
+      expect(result.recentDays).toBeUndefined();
     });
 
     it('should coerce string numbers to numbers for page and recentDays', () => {

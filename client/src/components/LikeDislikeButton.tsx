@@ -11,7 +11,7 @@ interface LikeDislikeButtonProps {
   initialAction?: 'liked' | 'disliked' | null;
   onUpdate?: (updatedMedia: Media) => void;
   compact?: boolean;
-  existingMedia?: Media; // Pass full media if available for optimization
+  existingMedia?: Media;
 }
 
 export function LikeDislikeButton({

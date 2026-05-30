@@ -66,7 +66,7 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
 
     // Mock TMDB service with fixture data (already transformed)
     const tmdbServiceMock: TMDBService = {
-      isConfigured: vi.fn<TMDBService['isConfigured']>().mockResolvedValue(true),
+      isConfigured: vi.fn<TMDBService['isConfigured']>().mockReturnValue(true),
       testConnection: vi.fn<TMDBService['testConnection']>().mockResolvedValue(true),
       search: vi.fn<TMDBService['search']>(),
       discover: vi.fn<TMDBService['discover']>().mockResolvedValue({

@@ -1,5 +1,5 @@
 import { CreateInteractionSchema, InteractionsQuerySchema } from '@findarr/shared';
-import type { FastifyPluginAsync } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 
 import { protectedRoute } from '../utils/routes.js';
 import {
@@ -8,7 +8,7 @@ import {
   getUserInteractionsEnriched,
 } from './service.js';
 
-const interactionRoutes: FastifyPluginAsync = async (fastify) => {
+export const interactionRoutes = (fastify: FastifyInstance) => {
   // All interaction routes require authentication
   fastify.addHook('preHandler', fastify.requireAuth);
 
@@ -51,5 +51,3 @@ const interactionRoutes: FastifyPluginAsync = async (fastify) => {
     ),
   );
 };
-
-export { interactionRoutes };

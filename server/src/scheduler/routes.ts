@@ -1,12 +1,12 @@
 import { SchedulerParamsSchema } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
 
-export async function schedulerRoutes(fastify: FastifyInstance): Promise<void> {
+export const schedulerRoutes = (fastify: FastifyInstance) => {
   // Public: Get all scheduler states
-  fastify.get('/schedulers', async () => fastify.scheduler.getState());
-}
+  fastify.get('/schedulers', () => fastify.scheduler.getState());
+};
 
-export async function adminSchedulerRoutes(fastify: FastifyInstance): Promise<void> {
+export const adminSchedulerRoutes = (fastify: FastifyInstance) => {
   fastify.addHook('preHandler', fastify.requireAdmin);
 
   // Admin only: Manually trigger scheduler
@@ -15,12 +15,12 @@ export async function adminSchedulerRoutes(fastify: FastifyInstance): Promise<vo
   });
 
   // Admin only: Start/enable scheduler
-  fastify.post('/schedulers/:name/start', async (request) => {
+  fastify.post('/schedulers/:name/start', (request) => {
     fastify.scheduler.start(SchedulerParamsSchema.parse(request.params));
   });
 
   // Admin only: Stop/disable scheduler
-  fastify.post('/schedulers/:name/stop', async (request) => {
+  fastify.post('/schedulers/:name/stop', (request) => {
     fastify.scheduler.stop(SchedulerParamsSchema.parse(request.params));
   });
-}
+};

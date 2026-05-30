@@ -68,7 +68,7 @@ function transformMovie(
     voteCount: tmdbMovie.vote_count,
     popularity: tmdbMovie.popularity,
     originalLanguage: tmdbMovie.original_language,
-    originCountry: undefined, // Movies don't have origin_country
+    originCountry: undefined,
     genres,
     ...customFields,
   };

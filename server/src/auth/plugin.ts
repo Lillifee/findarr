@@ -36,6 +36,12 @@ interface AuthPluginOptions extends FastifyPluginOptions {
   secretPath: string;
 }
 
+// 7 days in seconds
+const SESSION_COOKIE_MAX_AGE = 7 * 24 * 60 * 60;
+
+// Exactly 16 characters
+const SESSION_SALT = 'findarr-salt-016';
+
 function loadOrCreateSecret(secretPath: string) {
   if (existsSync(secretPath)) {
     return readFileSync(secretPath, 'utf8');
@@ -53,13 +59,13 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, option
   // Register secure session
   await fastify.register(secureSession, {
     secret: loadOrCreateSecret(options.secretPath),
-    salt: 'findarr-salt-016', // Exactly 16 characters
+    salt: SESSION_SALT,
     cookie: {
       path: '/',
       httpOnly: true,
       secure: 'auto',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
+      maxAge: SESSION_COOKIE_MAX_AGE,
     },
   });
 
@@ -87,7 +93,7 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, option
   fastify.decorate('requireAdmin', async (request: FastifyRequest, reply: FastifyReply) => {
     await fastify.requireAuth(request, reply);
 
-    if (reply.sent) return; // Already sent 401
+    if (reply.sent) return;
     if (request.user?.role !== 'admin') {
       return reply.code(403).send({ error: 'Admin access required' });
     }

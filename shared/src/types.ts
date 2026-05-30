@@ -137,13 +137,12 @@ export interface Media {
   voteCount: number;
   popularity: number;
   originalLanguage: string;
-  originCountry: string[] | undefined; // TV-specific field - empty array for movies
+  originCountry: string[] | undefined;
   genres: Genre[];
 
   // Optional fields
-  trendingRank?: number | undefined; // added for trending items
-  keywords?: Keyword[]; // populated from catalog_cache for popular items
-
+  trendingRank?: number | undefined;
+  keywords?: Keyword[];
   // Server-added state (computed scores, database records, user interactions)
   state?: MediaState;
 }

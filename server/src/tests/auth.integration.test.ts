@@ -49,7 +49,7 @@ describe('auth routes - integration tests', () => {
       setSettings: vi
         .fn<TMDBService['setSettings']>()
         .mockResolvedValue({ tmdbAccessTokenSet: true }),
-      isConfigured: vi.fn<TMDBService['isConfigured']>().mockResolvedValue(true),
+      isConfigured: vi.fn<TMDBService['isConfigured']>().mockReturnValue(true),
       testConnection: vi.fn<TMDBService['testConnection']>().mockResolvedValue(true),
       search: vi.fn<TMDBService['search']>(),
       discover: vi.fn<TMDBService['discover']>(),

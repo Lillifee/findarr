@@ -125,7 +125,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
               </h1>
               {media.type === 'movie' && media.tagline && (
                 <p className="text-xl text-gray-300 italic drop-shadow-md md:text-2xl">
-                  "{media.tagline}"
+                  &quot;{media.tagline}&quot;
                 </p>
               )}
               {media.type === 'tv' && media.originalName !== media.name && (

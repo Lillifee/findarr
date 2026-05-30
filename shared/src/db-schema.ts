@@ -47,21 +47,24 @@ export const media = sqliteTable(
   {
     id: integer('id').primaryKey({ autoIncrement: true }),
     type: text('type', { enum: ['movie', 'tv'] }).notNull(),
-    tmdbId: integer('tmdbId'), // TMDB ID - canonical identifier for both movies and TV
-    tvdbId: integer('tvdbId'), // TVDB ID - only for TV shows, used for Sonarr sync
-    arrId: integer('arrId'), // Radarr movie ID or Sonarr series ID (determined by type)
-    arrUrl: text('arrUrl'), // Radarr/Sonarr UI path (e.g. /movie/:tmdbId, /series/:titleSlug)
+    // TMDB ID - canonical identifier for both movies and TV
+    tmdbId: integer('tmdbId'),
+    // TVDB ID - only for TV shows, used for Sonarr sync
+    tvdbId: integer('tvdbId'),
+    arrId: integer('arrId'),
+    arrUrl: text('arrUrl'),
     jellyfinId: text('jellyfinId'),
     jellyfinAddedAt: integer('jellyfinAddedAt').$type<number | null>(),
-    seasons: text('seasons', { mode: 'json' }).$type<Array<{
-      seasonNumber: number;
-      status: 'none' | 'requested' | 'monitored' | 'downloaded' | 'available';
-    }> | null>(), // TV only: season tracking synced from Sonarr/Jellyfin (none=not in Sonarr, requested=user wants it, monitored=in Sonarr, downloaded=complete in Sonarr, available=in Jellyfin)
     status: text('status', {
       enum: ['pending', 'requested', 'downloading', 'downloaded', 'available', 'warning'],
     })
       .notNull()
       .default('pending'),
+    // TV only: season tracking synced from Sonarr/Jellyfin (none=not in Sonarr, requested=user wants it, monitored=in Sonarr, downloaded=complete in Sonarr, available=in Jellyfin)
+    seasons: text('seasons', { mode: 'json' }).$type<Array<{
+      seasonNumber: number;
+      status: 'none' | 'requested' | 'monitored' | 'downloaded' | 'available';
+    }> | null>(),
     createdAt: integer('createdAt')
       .notNull()
       .default(sql`(unixepoch() * 1000)`)
@@ -127,9 +130,9 @@ export const userGenrePreferences = sqliteTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     genreId: integer('genreId').notNull(),
-    genreName: text('genreName').notNull(), // Denormalized for easier analysis
+    genreName: text('genreName').notNull(),
     score: integer('score').notNull().default(0),
-    count: integer('count').notNull().default(1), // Track number of ratings for Bayesian normalization
+    count: integer('count').notNull().default(1),
   },
   (table) => [
     primaryKey({ columns: [table.userId, table.genreId] }),
@@ -155,10 +158,10 @@ export const catalogCache = sqliteTable(
     voteCount: integer('voteCount').notNull(),
     popularity: integer('popularity').notNull(),
     originalLanguage: text('originalLanguage').notNull(),
-    originCountry: text('originCountry'), // JSON array
-    genres: text('genres').notNull(), // JSON array of {id, name}
-    keywords: text('keywords'), // JSON array of {id, name} - null = not fetched, '[]' = fetched but none
-    trendingRank: integer('trendingRank'), // Trending position (null = not trending)
+    originCountry: text('originCountry'),
+    genres: text('genres').notNull(),
+    keywords: text('keywords'),
+    trendingRank: integer('trendingRank'),
   },
   (table) => [primaryKey({ columns: [table.tmdbId, table.type] })],
 );
@@ -189,9 +192,9 @@ export const userKeywordPreferences = sqliteTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     keywordId: integer('keywordId').notNull(),
-    keywordName: text('keywordName').notNull(), // Denormalized for easier analysis
+    keywordName: text('keywordName').notNull(),
     score: integer('score').notNull().default(0),
-    count: integer('count').notNull().default(1), // Track number of ratings for Bayesian normalization
+    count: integer('count').notNull().default(1),
   },
   (table) => [
     primaryKey({ columns: [table.userId, table.keywordId] }),

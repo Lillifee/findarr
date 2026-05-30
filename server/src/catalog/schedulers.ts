@@ -11,7 +11,7 @@ export function createCatalogCacheSyncScheduler(): Scheduler {
     {
       name: 'catalogCacheSync',
       description: 'Sync catalog cache with TMDB (trending + recent releases)',
-      interval: 6 * 60 * 60 * 1000, // 6 hours
+      interval: 6 * 60 * 60 * 1000,
       enabled: true,
       runOnStartup: true,
     },
@@ -22,7 +22,7 @@ export function createCatalogCacheSyncScheduler(): Scheduler {
       // Trigger keyword enrichment after sync
       context.scheduler.start({ name: 'catalogKeywordEnrichment' });
 
-      return true; // Continue
+      return true;
     },
   );
 }
@@ -37,8 +37,8 @@ export function createCatalogKeywordEnrichmentScheduler(): Scheduler {
     {
       name: 'catalogKeywordEnrichment',
       description: 'Enrich catalog with keywords (triggered after cache sync)',
-      interval: 0, // 30 seconds (doesn't matter, triggered manually)
-      enabled: false, // Triggered by catalogCacheSync
+      interval: 0,
+      enabled: false,
       runOnStartup: false,
     },
     async (context: SchedulerContext) => {
@@ -46,7 +46,7 @@ export function createCatalogKeywordEnrichmentScheduler(): Scheduler {
       await enrichCatalogKeywords(context);
 
       // Self-terminate after completion (will be re-triggered by next catalog sync)
-      return false; // Stop
+      return false;
     },
   );
 }

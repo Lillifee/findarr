@@ -16,7 +16,7 @@ const TMDBBaseFieldsSchema = z.object({
   popularity: z.number(),
   genre_ids: z.array(z.number()).optional(),
   original_language: z.string(),
-  origin_country: z.array(z.string()).optional(), // Only in TV shows
+  origin_country: z.array(z.string()).optional(),
 });
 
 // TMDB Movie schema (search/discover results)
@@ -337,8 +337,11 @@ export interface TMDBDiscoverParams {
   // TV-specific filters
   with_networks?: string;
   screened_theatrically?: boolean;
-  with_status?: number; // 0=Returning, 1=Planned, 2=Production, 3=Ended, 4=Cancelled, 5=Pilot
-  with_type?: number; // 0=Documentary, 1=News, 2=Miniseries, 3=Reality, 4=Scripted, 5=Talk Show, 6=Video
+
+  // 0=Returning, 1=Planned, 2=Production, 3=Ended, 4=Cancelled, 5=Pilot
+  with_status?: number;
+  // 0=Documentary, 1=News, 2=Miniseries, 3=Reality, 4=Scripted, 5=Talk Show, 6=Video
+  with_type?: number;
   include_null_first_air_dates?: boolean;
 
   // Release type filter (pipe-separated: 1=Premiere, 2=Theatrical Limited, 3=Theatrical, 4=Digital, 5=Physical, 6=TV)
@@ -362,8 +365,8 @@ export const APPEND_TO_RESPONSE_VALUES = [
   'keywords',
   'watch/providers',
   'translations',
-  'release_dates', // Movies only
-  'content_ratings', // TV only
+  'release_dates',
+  'content_ratings',
   'external_ids',
   'alternative_titles',
 ] as const;

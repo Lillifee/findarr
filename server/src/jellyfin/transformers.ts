@@ -7,7 +7,7 @@ export interface JellyfinMedia {
   jellyfinAddedAt?: number;
   tmdbId: number;
   type: MediaType;
-  availableSeasons?: number[]; // For TV shows - which seasons are available in Jellyfin
+  availableSeasons?: number[];
 }
 
 function toTimestamp(value: string | undefined): number | undefined {

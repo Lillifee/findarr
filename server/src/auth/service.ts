@@ -43,7 +43,7 @@ export const isPasswordSetupRequired = async (db: Database, userId: number) => {
   return await isAdminPasswordSetupRequired(user);
 };
 
-export const isAdminPasswordSetupRequired = async (user: UserWithPassword) =>
+export const isAdminPasswordSetupRequired = (user: UserWithPassword) =>
   user.role === 'admin' && verifyPassword(user.passwordHash, 'changeme');
 
 export const changePassword = async (

@@ -15,6 +15,11 @@ import { fileURLToPath } from 'node:url';
 import axios from 'axios';
 import * as dotenv from 'dotenv';
 
+const sleep = (ms: number) =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+
 // Load environment variables from .env file
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirName = dirname(currentFilePath);
@@ -93,14 +98,22 @@ async function captureFixtures(): Promise<void> {
     // 5. Movie details with diverse characteristics
     console.log('🎬 Fetching movie details...');
     const movieIds = [
-      550, // Fight Club (popular, high votes, keywords)
-      13, // Forrest Gump (classic, high rating)
-      603, // The Matrix (sci-fi, action, popular)
-      27_205, // Inception (recent blockbuster)
-      157_336, // Interstellar (sci-fi, high rating)
-      299_536, // Avengers: Infinity War (superhero, highest grossing)
-      155, // The Dark Knight (superhero, critically acclaimed)
-      122, // The Lord of the Rings: Return of the King (fantasy, epic)
+      // Fight Club (popular, high votes, keywords)
+      550,
+      // Forrest Gump (classic, high rating)
+      13,
+      // The Matrix (sci-fi, action, popular)
+      603,
+      // Inception (recent blockbuster)
+      27_205,
+      // Interstellar (sci-fi, high rating)
+      157_336,
+      // Avengers: Infinity War (superhero, highest grossing)
+      299_536,
+      // The Dark Knight (superhero, critically acclaimed)
+      155,
+      // The Lord of the Rings: Return of the King (fantasy, epic)
+      122,
     ];
 
     for (const id of movieIds) {
@@ -109,20 +122,28 @@ async function captureFixtures(): Promise<void> {
       });
       saveFixture(`movie-${id}.json`, details.data);
       // Rate limit: wait 250ms between requests
-      await new Promise((resolve) => setTimeout(resolve, 250));
+      await sleep(250);
     }
 
     // 6. TV show details with diverse characteristics
     console.log('📺 Fetching TV show details...');
     const tvIds = [
-      1396, // Breaking Bad (critically acclaimed)
-      1399, // Game of Thrones (popular fantasy)
-      46_952, // The Witcher (fantasy, recent)
-      60_735, // The Flash (superhero)
-      94_605, // Arcane (animation, high rating)
-      2316, // The Office (comedy, long-running)
-      1668, // Friends (classic sitcom)
-      85_271, // WandaVision (superhero, limited series)
+      // Breaking Bad (critically acclaimed)
+      1396,
+      // Game of Thrones (popular fantasy)
+      1399,
+      // The Witcher (fantasy, recent)
+      46_952,
+      // The Flash (superhero)
+      60_735,
+      // Arcane (animation, high rating)
+      94_605,
+      // The Office (comedy, long-running)
+      2316,
+      // Friends (classic sitcom)
+      1668,
+      // WandaVision (superhero, limited series)
+      85_271,
     ];
 
     for (const id of tvIds) {
@@ -130,7 +151,7 @@ async function captureFixtures(): Promise<void> {
         params: { append_to_response: 'credits,keywords,external_ids' },
       });
       saveFixture(`tv-${id}.json`, details.data);
-      await new Promise((resolve) => setTimeout(resolve, 250));
+      await sleep(250);
     }
 
     // 7. Search results (mixed quality/popularity)
@@ -140,7 +161,7 @@ async function captureFixtures(): Promise<void> {
     });
     saveFixture('search-batman.json', searchBatman.data);
 
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    await sleep(250);
 
     const searchOffice = await client.get('/search/tv', { params: { query: 'office', page: 1 } });
     saveFixture('search-office.json', searchOffice.data);
@@ -159,7 +180,10 @@ async function captureFixtures(): Promise<void> {
     });
     saveFixture('edge-case-low-votes.json', lowVotes.data);
 
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    await sleep(250);
+    await new Promise((resolve) => {
+      setTimeout(resolve, 250);
+    });
 
     // Obscure but highly rated
     const obscureHighRated = await client.get('/discover/movie', {

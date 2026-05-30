@@ -16,13 +16,15 @@ export const regionGroups = {
     name: 'Western',
     languages: ['en', 'de', 'fr', 'es', 'it', 'nl', 'pt', 'da', 'sv', 'no', 'fi', 'is'],
     countries: [
+      // English-speaking
       'US',
       'GB',
       'CA',
       'AU',
       'NZ',
       'IE',
-      'ZA', // English-speaking
+      'ZA',
+      // Western Europe
       'DE',
       'FR',
       'ES',
@@ -32,12 +34,13 @@ export const regionGroups = {
       'BE',
       'AT',
       'CH',
-      'LU', // Western Europe
+      'LU',
+      // Nordic
       'DK',
       'SE',
       'NO',
       'FI',
-      'IS', // Nordic
+      'IS',
     ],
     description:
       'English-speaking countries, Western Europe, and Nordic countries (US, UK, Germany, France, etc.)',
@@ -46,6 +49,7 @@ export const regionGroups = {
     name: 'Eastern Europe',
     languages: ['pl', 'cs', 'sk', 'hu', 'ro', 'bg', 'hr', 'sl', 'ru', 'uk', 'lv', 'lt', 'et'],
     countries: [
+      // Eastern Europe
       'PL',
       'CZ',
       'SK',
@@ -57,10 +61,11 @@ export const regionGroups = {
       'RU',
       'UA',
       'BY',
-      'MD', // Eastern Europe
+      'MD',
+      // Baltic
       'LV',
       'LT',
-      'EE', // Baltic
+      'EE',
     ],
     description:
       'Eastern European countries including Russia, Poland, Czech Republic, and Baltic states',
@@ -68,10 +73,12 @@ export const regionGroups = {
   asian: {
     name: 'Asian',
     languages: [
+      // East Asia
       'ja',
       'ko',
       'zh',
-      'cn', // East Asia
+      'cn',
+      // South Asia
       'hi',
       'ta',
       'te',
@@ -81,7 +88,8 @@ export const regionGroups = {
       'gu',
       'ml',
       'kn',
-      'or', // South Asia
+      'or',
+      // Southeast Asia
       'th',
       'vi',
       'id',
@@ -90,15 +98,17 @@ export const regionGroups = {
       'km',
       'lo',
       'fil',
-      'tl', // Southeast Asia
+      'tl',
     ],
     countries: [
+      // East Asia
       'JP',
       'KR',
       'CN',
       'HK',
       'TW',
-      'MO', // East Asia
+      'MO',
+      // South Asia
       'IN',
       'PK',
       'BD',
@@ -106,7 +116,8 @@ export const regionGroups = {
       'NP',
       'BT',
       'MV',
-      'AF', // South Asia
+      'AF',
+      // Southeast Asia
       'TH',
       'VN',
       'ID',
@@ -116,7 +127,7 @@ export const regionGroups = {
       'KH',
       'LA',
       'MM',
-      'BN', // Southeast Asia
+      'BN',
     ],
     description:
       'All Asian countries including Japan, Korea, China, India, Thailand, Indonesia, Philippines, etc.',
@@ -152,6 +163,7 @@ export const regionGroups = {
     name: 'Middle East & Africa',
     languages: ['ar', 'fa', 'tr', 'he', 'sw', 'am'],
     countries: [
+      // Middle East
       'SA',
       'AE',
       'IR',
@@ -166,7 +178,8 @@ export const regionGroups = {
       'QA',
       'BH',
       'OM',
-      'YE', // Middle East
+      'YE',
+      // Africa
       'NG',
       'KE',
       'ET',
@@ -191,7 +204,7 @@ export const regionGroups = {
       'MZ',
       'MG',
       'MU',
-      'SC', // Africa
+      'SC',
     ],
     description:
       'Middle Eastern and African countries including Saudi Arabia, Turkey, Egypt, Nigeria, Kenya, etc.',
@@ -208,15 +221,15 @@ export interface UnifiedGenre {
 
 export const unifiedGenres = {
   // --- Core (movie + tv) ---
-  Action: { name: 'Action', ids: [28, 10_759] }, // Action / Action & Adventure
-  Adventure: { name: 'Adventure', ids: [12, 10_759] }, // Adventure / Action & Adventure
+  Action: { name: 'Action', ids: [28, 10_759] },
+  Adventure: { name: 'Adventure', ids: [12, 10_759] },
   Animation: { name: 'Animation', ids: [16] },
   Comedy: { name: 'Comedy', ids: [35] },
   Crime: { name: 'Crime', ids: [80] },
   Documentary: { name: 'Documentary', ids: [99] },
   Drama: { name: 'Drama', ids: [18] },
-  Family: { name: 'Family', ids: [10_751, 10_762] }, // Family / Kids
-  Fantasy: { name: 'Fantasy', ids: [14, 10_765] }, // Fantasy / Sci-Fi & Fantasy
+  Family: { name: 'Family', ids: [10_751, 10_762] },
+  Fantasy: { name: 'Fantasy', ids: [14, 10_765] },
   ScienceFiction: { name: 'Science Fiction', ids: [878, 10_765] },
   Mystery: { name: 'Mystery', ids: [9648] },
   Romance: { name: 'Romance', ids: [10_749] },

@@ -85,7 +85,7 @@ async function start() {
     await server.register(schedulerPlugin);
 
     // Health check endpoint
-    server.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
+    server.get('/health', () => ({ status: 'ok', timestamp: new Date().toISOString() }));
 
     // Register API routes
     await server.register(authRoutes, { prefix: '/api/auth' });

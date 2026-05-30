@@ -69,7 +69,7 @@ export const upsertCatalogCache = async (db: Database, items: Media[]): Promise<
   // SQLite doesn't support batch upsert, so we need to do individual upserts
   for (const item of items) {
     const values = mapMediaToCatalogCacheValues(item);
-    const { keywords: _keywords, ...updateValues } = values; // Exclude keywords from updates
+    const { keywords: _keywords, ...updateValues } = values;
 
     await db
       .insert(catalogCache)

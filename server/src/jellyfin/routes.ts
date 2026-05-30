@@ -1,7 +1,7 @@
 import { JellyfinLinkQuerySchema } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
 
-export async function jellyfinRoutes(fastify: FastifyInstance) {
+export const jellyfinRoutes = (fastify: FastifyInstance) => {
   // Protect Jellyfin routes - require authentication
   fastify.addHook('preHandler', fastify.requireAuth);
 
@@ -17,4 +17,4 @@ export async function jellyfinRoutes(fastify: FastifyInstance) {
 
     return reply.redirect(url);
   });
-}
+};

@@ -27,7 +27,7 @@ const databasePlugin: FastifyPluginAsync<DatabasePluginOptions> = async (fastify
   fastify.log.info({ name: 'db' }, 'Database plugin registered');
 
   // Close database connection on shutdown
-  fastify.addHook('onClose', async () => {
+  fastify.addHook('onClose', () => {
     sqliteDb.close();
     fastify.log.info({ name: 'db' }, 'Database connection closed');
   });

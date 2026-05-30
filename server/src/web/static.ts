@@ -16,10 +16,10 @@ export async function registerStatic(server: FastifyInstance) {
   await server.register(fastifyStatic, { root: clientAssetsDir, prefix: '/assets/' });
 
   // Root document
-  server.get('/', async (_request, reply) => reply.sendFile('index.html', clientDistDir));
+  server.get('/', (_request, reply) => reply.sendFile('index.html', clientDistDir));
 
   // SPA fallback
-  server.get('/*', async (request, reply) => {
+  server.get('/*', (request, reply) => {
     const requestPath = request.url.split('?')[0];
 
     if (

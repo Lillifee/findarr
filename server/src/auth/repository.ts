@@ -38,7 +38,7 @@ export const getUserById = async (
   return user;
 };
 
-export const listAllUsers = async (db: Database) =>
+export const listAllUsers = (db: Database) =>
   db.query.users.findMany({
     columns: {
       id: true,

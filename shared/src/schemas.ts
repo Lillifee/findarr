@@ -47,7 +47,7 @@ export const SearchQuerySchema = BaseQuerySchema.extend({
 // Application-level discover query (clean, minimal)
 export const DiscoverQuerySchema = CatalogQuerySchema.extend({
   // Recent content filter - number of days to look back
-  recentDays: z.coerce.number().int().min(1).max(3650).optional(), // Max 10 years
+  recentDays: z.coerce.number().int().min(1).max(3650).optional(),
 });
 
 // Snapshot-backed popular query for infinite scrolling/load-more

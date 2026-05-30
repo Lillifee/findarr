@@ -1,4 +1,9 @@
-import type { ArrSettings, ArrQualityProfile, ArrRootFolder } from '@findarr/shared';
+import {
+  type ArrSettings,
+  type ArrQualityProfile,
+  type ArrRootFolder,
+  isDefined,
+} from '@findarr/shared';
 import { useState, useEffect, useCallback } from 'react';
 
 import { useAuth } from '../../contexts/AuthContext';
@@ -327,7 +332,7 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
                   {rootFolders.map((f) => (
                     <option key={f.id} value={f.path}>
                       {f.path}
-                      {f.freeSpace == null ? '' : ` (${formatBytes(f.freeSpace)})`}
+                      {isDefined(f.freeSpace) ? ` (${formatBytes(f.freeSpace)})` : ''}
                     </option>
                   ))}
                 </SelectInput>

@@ -11,7 +11,7 @@ interface SeasonSelectorModalProps {
   onClose: () => void;
   onConfirm: (selectedSeasons: number[]) => void;
   seasons: Season[];
-  alreadyRequestedSeasons?: number[]; // Seasons already requested (grayed out)
+  alreadyRequestedSeasons?: number[];
   showName: string;
 }
 

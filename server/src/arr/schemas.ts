@@ -141,17 +141,17 @@ export type ArrQueueItem =
  * No Zod schema needed - created via transformers from validated RadarrMovie/SonarrSeries
  */
 export interface ArrLibraryItem {
-  id: number; // Radarr movie ID or Sonarr series ID
-  type: MediaType; // Discriminator for type-safe unions
+  id: number;
+  type: MediaType;
   title: string;
-  tmdbId?: number; // TMDB ID (always present for movies, added via enrichment for TV)
-  tvdbId?: number; // TVDB ID (only for TV shows)
-  arrUrl?: string; // Relative UI path (e.g. /movie/:tmdbId, /series/:titleSlug)
+  tmdbId?: number;
+  tvdbId?: number;
+  arrUrl?: string;
   year?: number | undefined;
   monitored: boolean;
-  hasFile: boolean; // Computed from hasFile (Radarr) or statistics.episodeFileCount > 0 (Sonarr)
+  hasFile: boolean;
+  // Only for TV shows - season tracking from Sonarr
   seasons?: Array<{
-    // Only for TV shows - season tracking from Sonarr
     seasonNumber: number;
     status: 'none' | 'monitored' | 'downloaded';
   }>;

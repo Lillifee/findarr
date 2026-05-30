@@ -216,7 +216,7 @@ describe('catalog service - integration tests', () => {
       createTestMedia({
         tmdbId: 2,
         genres: [{ id: 35, name: 'Comedy' }],
-        popularity: 200, // Higher base popularity
+        popularity: 200,
       }),
     ];
     await upsertCatalogCache(db, items);

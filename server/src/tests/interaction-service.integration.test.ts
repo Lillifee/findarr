@@ -416,7 +416,7 @@ describe('interaction service - integration tests', () => {
 
       const media = await getMediaByTmdbId(db, 123, 'movie');
       expectDefined(media);
-      expect(media.status).toBe('pending'); // Should still be pending
+      expect(media.status).toBe('pending');
 
       const votes = await getVoteCounts(db, media.id);
       expect(votes.likes).toBe(0);
