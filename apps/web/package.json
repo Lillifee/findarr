@@ -4,14 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "test": "vitest --passWithNoTests",
-    "test:run": "vitest run --passWithNoTests",
-    "test:coverage": "vitest run --coverage --passWithNoTests",
-    "type:check": "tsc --noEmit",
-    "clean": "rimraf dist *.tsbuildinfo"
+    "dev": "vp dev",
+    "build": "vp build",
+    "preview": "vp preview",
+    "test": "vp test --passWithNoTests",
+    "test:run": "vp test run --passWithNoTests",
+    "test:coverage": "vp test run --coverage --passWithNoTests",
+    "type:check": "tsc --noEmit"
   },
   "dependencies": {
     "@findarr/shared": "workspace:*",
@@ -29,10 +28,10 @@
     "autoprefixer": "^10.4.24",
     "jsdom": "^28.0.0",
     "postcss": "^8.5.6",
-    "rimraf": "^6.1.2",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
-    "vite": "^7.3.1",
-    "vitest": "^4.0.18"
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   }
 }

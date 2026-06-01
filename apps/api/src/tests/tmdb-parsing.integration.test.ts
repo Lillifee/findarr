@@ -1,5 +1,5 @@
 import type { Genre, MovieDetails, TVDetails } from '@findarr/shared';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vite-plus/test';
 
 import {
   TMDBSearchResponseSchema,

@@ -6,30 +6,25 @@
   "scripts": {
     "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
-    "check": "pnpm run format:check && pnpm run lint:check && pnpm run type:check",
-    "fix": "pnpm run format:fix && pnpm run lint:fix",
-    "type:check": "pnpm -r type:check",
-    "format:fix": "oxfmt",
-    "format:check": "oxfmt --check",
-    "lint:check": "oxlint",
-    "lint:fix": "oxlint --fix",
-    "test": "pnpm -r test",
-    "test:update": "pnpm run test:run --workspaces --if-present -- -u",
-    "test:coverage": "pnpm run test:coverage --workspaces --if-present",
-    "test:fixtures": "pnpm run test:fixtures --workspace=@findarr/api",
+    "preview": "pnpm -r preview",
+    "lint": "vp lint",
+    "lint:fix": "vp lint --fix",
+    "format": "vp fmt",
+    "format:check": "vp fmt --check",
+    "test": "vp test",
+    "check": "pnpm format:check && pnpm lint",
+    "fix": "pnpm format && pnpm lint",
     "ci": "pnpm run check && pnpm run build && pnpm run test",
-    "db:generate": "pnpm run db:generate --workspace=@findarr/api",
-    "db:studio": "pnpm run db:studio --workspace=@findarr/api",
+    "db:generate": "pnpm -r db:generate ",
+    "db:studio": "pnpm -r db:studio",
     "clean": "del-cli **/node_modules **/dist **/*.tsbuildinfo",
     "docker:build": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build",
     "docker:run": "docker compose up"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1",
     "del-cli": "^7.0.0",
-    "globals": "^17.3.0",
-    "oxfmt": "^0.52.0",
-    "oxlint": "^1.67.0",
-    "typescript": "^5.9.3"
-  }
+    "typescript": "^5.9.3",
+    "vite-plus": "catalog:"
+  },
+  "packageManager": "pnpm@11.5.0"
 }

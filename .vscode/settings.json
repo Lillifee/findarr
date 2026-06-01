@@ -2,6 +2,8 @@
   "prettier.enable": false,
   "eslint.format.enable": false,
 
+  "oxc.fmt.configPath": "./vite.config.ts",
+
   "editor.formatOnSave": true,
   "editor.formatOnSaveMode": "file",
   "editor.defaultFormatter": "oxc.oxc-vscode",

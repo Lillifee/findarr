@@ -1,6 +1,6 @@
 import type { DiscoverResponse, MediaDetails, SearchResponse } from '@findarr/shared';
 import SqlDatabase from 'better-sqlite3';
-import { describe, it, expect, vi, beforeEach, afterEach, type Mocked } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mocked } from 'vite-plus/test';
 
 import * as authService from '../auth/service.js';
 import { upsertCatalogCache } from '../catalog/repository.js';

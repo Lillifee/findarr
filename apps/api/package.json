@@ -7,10 +7,10 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.build.json",
-    "start": "node dist/index.js",
-    "test": "vitest",
-    "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage",
+    "preview": "node dist/index.js",
+    "test": "vp test",
+    "test:run": "vp test run",
+    "test:coverage": "vp test run --coverage",
     "test:fixtures": "tsx scripts/capture-tmdb-fixtures.ts",
     "type:check": "tsc -p tsconfig.json --noEmit",
     "db:generate": "drizzle-kit generate",
@@ -42,6 +42,7 @@
     "drizzle-kit": "^0.31.9",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.18"
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   }
 }

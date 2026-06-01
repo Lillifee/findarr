@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vite-plus/test';
 
 import { getErrorMessage, isDefined, objectEntries, objectKeys } from './helper.js';
 
