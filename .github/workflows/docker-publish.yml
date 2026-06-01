@@ -15,6 +15,7 @@ env:
 jobs:
   publish:
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
       packages: write
@@ -37,14 +38,13 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=tag
             type=sha
+            type=ref,event=tag
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build and push image
+      - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: .
