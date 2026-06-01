@@ -18,10 +18,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: pnpm
+
+      - name: Enable corepack (pnpm)
+        run: corepack enable
 
       - name: Install dependencies
-        run: pnpm ci
+        run: pnpm install --frozen-lockfile
 
-      - name: Validate and test repository
+      - name: Run CI checks
         run: pnpm run ci
