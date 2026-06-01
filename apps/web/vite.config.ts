@@ -13,13 +13,4 @@ export default defineConfig({
       },
     },
   },
-  optimizeDeps: {
-    include: ['react', 'react-dom'],
-    force: true,
-  },
-  build: {
-    commonjsOptions: {
-      include: [/node_modules/u],
-    },
-  },
 });

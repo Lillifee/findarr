@@ -10,6 +10,7 @@ import type {
   DiscoverResponse,
   PopularResponse,
   Genre,
+  GenreKey,
   Media,
   SwipeNextResponse,
   MediaDetails,
@@ -190,8 +191,11 @@ export function createCatalogService(context: CatalogContext) {
 
       let filteredMedia = cachedCatalogMedia.filter(
         (item) =>
-          filterByCriteria(item, { type, regions, genres }) &&
-          filterByInteraction(item, interactionKeys, interaction),
+          filterByCriteria(item, {
+            type,
+            regions,
+            genres: (genres ?? []) as GenreKey[],
+          }) && filterByInteraction(item, interactionKeys, interaction),
       );
 
       filteredMedia = await enrichWithScoring(db, filteredMedia, userId);

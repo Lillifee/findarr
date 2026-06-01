@@ -5,6 +5,11 @@ FROM node:24-bookworm-slim AS build
 
 WORKDIR /app
 
+# Install CA certificates (required by vp pack, ~400KB)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
 # Enable pnpm
 RUN corepack enable
 
@@ -19,7 +24,7 @@ COPY apps/web/package.json ./apps/web/package.json
 RUN pnpm install --frozen-lockfile
 
 # Copy source code
-COPY tsconfig.base.json ./
+COPY vite.config.ts ./
 COPY packages/shared ./packages/shared
 COPY apps/api ./apps/api
 COPY apps/web ./apps/web

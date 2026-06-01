@@ -8,11 +8,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.build.json",
     "preview": "node dist/index.js",
-    "test": "vp test",
-    "test:run": "vp test run",
-    "test:coverage": "vp test run --coverage",
     "test:fixtures": "tsx scripts/capture-tmdb-fixtures.ts",
-    "type:check": "tsc -p tsconfig.json --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"

@@ -2,10 +2,10 @@ import { z } from 'zod';
 
 import { genreKeys, regionGroupKeys } from './constants.js';
 
-const arrayParam = <T extends z.ZodTypeAny>(schema: T) =>
+const arrayParam = (schema: z.ZodType) =>
   z.preprocess((val) => {
     if (typeof val === 'string') return val ? [val] : [];
-    if (Array.isArray(val)) return val;
+    if (Array.isArray(val)) return val as unknown[];
     return [];
   }, schema);
 
