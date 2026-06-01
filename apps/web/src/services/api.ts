@@ -31,9 +31,9 @@ import type {
   MediaType,
   SchedulerInfo,
 } from '@findarr/shared';
-import axios from 'axios';
+import { create } from 'axios';
 
-const api = axios.create({
+const api = create({
   baseURL: '/api',
   withCredentials: true,
   paramsSerializer: {

@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-mkdir -p /app/server/data
-chown -R node:node /app/server/data
+mkdir -p /app/apps/api/data
+chown -R node:node /app/apps/api/data
 
-exec runuser -u node -- node server/dist/index.js
+exec runuser -u node -- node apps/api/dist/index.js

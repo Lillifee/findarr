@@ -2,8 +2,8 @@ import { type MovieDetails, type TVDetails, type Media } from '@findarr/shared';
 import { useState } from 'react';
 
 import { linkService } from '../services/api.js';
-import { LikeDislikeButton } from './LikeDislikeButton';
-import { StatusBadge, type StatusType } from './ui/StatusBadge';
+import { LikeDislikeButton } from './LikeDislikeButton.js';
+import { StatusBadge, type StatusType } from './ui/StatusBadge.js';
 
 interface MediaDetailsProps {
   media: MovieDetails | TVDetails;

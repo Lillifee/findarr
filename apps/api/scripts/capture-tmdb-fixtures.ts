@@ -12,7 +12,7 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import axios from 'axios';
+import { create } from 'axios';
 import * as dotenv from 'dotenv';
 
 const sleep = (ms: number) =>
@@ -29,7 +29,7 @@ const TMDB_ACCESS_TOKEN = process.env.TMDB_ACCESS_TOKEN;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
 // Create axios client
-const client = axios.create({
+const client = create({
   baseURL: TMDB_BASE_URL,
   headers: {
     Authorization: `Bearer ${TMDB_ACCESS_TOKEN}`,

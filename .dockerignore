@@ -16,7 +16,7 @@
 **/data
 
 # Logs
-npm-debug.log*
+pnpm-debug.log*
 
 # Misc
 TODO.txt

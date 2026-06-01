@@ -1,5 +1,5 @@
 {
-  "extends": "../shared/tsconfig.base.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2022"],
     "module": "NodeNext",
@@ -11,7 +11,7 @@
     "composite": true,
     "incremental": true
   },
-  "references": [{ "path": "../shared/tsconfig.build.json" }],
+  "references": [{ "path": "../../packages/shared/tsconfig.build.json" }],
   "include": ["src/**/*"],
   "exclude": ["src/**/*.test.ts", "dist", "node_modules"]
 }

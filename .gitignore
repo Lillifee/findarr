@@ -13,11 +13,13 @@ coverage/
 
 # Logs
 *.log
-npm-debug.log*
+pnpm-debug.log*
 
 # IDE / editor
 .vscode/
-.idea/
+!.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
 
 # Temporary files
 *.tmp

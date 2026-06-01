@@ -18,10 +18,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm ci
 
       - name: Validate and test repository
-        run: npm run ci
+        run: pnpm run ci

@@ -4,11 +4,11 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug Server (Backend)",
-      "program": "${workspaceFolder}/server/src/index.ts",
+      "name": "Debug API (Backend)",
+      "program": "${workspaceFolder}/api/src/index.ts",
       "runtimeArgs": ["--import", "tsx"],
-      "cwd": "${workspaceFolder}/server",
-      "envFile": "${workspaceFolder}/server/.env",
+      "cwd": "${workspaceFolder}/api",
+      "envFile": "${workspaceFolder}/api/.env",
       "console": "integratedTerminal",
       "restart": true,
       "skipFiles": ["<node_internals>/**"],
@@ -20,14 +20,14 @@
     {
       "type": "chrome",
       "request": "launch",
-      "name": "Debug Client (Frontend)",
+      "name": "Debug Web (Frontend)",
       "url": "http://localhost:5173",
-      "webRoot": "${workspaceFolder}/client",
+      "webRoot": "${workspaceFolder}/web",
       "sourceMaps": true,
       "sourceMapPathOverrides": {
-        "webpack:///./src/*": "${workspaceFolder}/client/src/*"
+        "webpack:///./src/*": "${workspaceFolder}/web/src/*"
       },
-      "preLaunchTask": "Start Client (Vite)",
+      "preLaunchTask": "Start Web (Vite)",
       "serverReadyAction": {
         "pattern": "Local:.*http://localhost:5173",
         "uriFormat": "http://localhost:5173",
@@ -52,8 +52,8 @@
   ],
   "compounds": [
     {
-      "name": "Debug Full Stack (Client + Server)",
-      "configurations": ["Debug Server (Backend)", "Debug Client (Frontend)"],
+      "name": "Debug Full Stack (Web + API)",
+      "configurations": ["Debug API (Backend)", "Debug Web (Frontend)"],
       "stopAll": true,
       "presentation": {
         "hidden": false,
