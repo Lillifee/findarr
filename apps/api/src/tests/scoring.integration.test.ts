@@ -2,7 +2,7 @@ import type { Genre } from '@findarr/shared';
 import { isDefined, unifiedGenres } from '@findarr/shared';
 import type SqlDatabase from 'better-sqlite3';
 import type { FastifyInstance } from 'fastify';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vite-plus/test';
 
 import * as authService from '../auth/service.js';
 import { computeCatalogMediaStats } from '../catalog/repository.js';

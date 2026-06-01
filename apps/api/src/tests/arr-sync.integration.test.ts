@@ -1,6 +1,6 @@
 import SqlDatabase from 'better-sqlite3';
 import type { FastifyInstance } from 'fastify';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 import { arrConfig } from '../arr/config.js';
 import {

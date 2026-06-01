@@ -14,11 +14,10 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsc -p tsconfig.build.json --watch",
-    "test": "vitest",
-    "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "type:check": "tsc -p tsconfig.json --noEmit",
-    "clean": "rimraf dist *.tsbuildinfo"
+    "test": "vp test",
+    "test:run": "vp test run",
+    "test:coverage": "vp test run --coverage",
+    "type:check": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.1",
@@ -26,8 +25,8 @@
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.0.18",
-    "rimraf": "^6.1.2",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.18"
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   }
 }

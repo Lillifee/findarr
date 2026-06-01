@@ -1,6 +1,6 @@
 import type { CreateMediaInteraction, TmdbSettings } from '@findarr/shared';
 import SqlDatabase from 'better-sqlite3';
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vite-plus/test';
 
 import { arrConfig } from '../arr/config.js';
 import type { ArrService } from '../arr/service.js';
