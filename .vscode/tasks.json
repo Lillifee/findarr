@@ -4,7 +4,7 @@
     {
       "label": "Start",
       "type": "shell",
-      "command": "npm run dev",
+      "command": "pnpm run dev",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -23,7 +23,7 @@
     {
       "label": "Start Client (Vite)",
       "type": "shell",
-      "command": "npm run dev:client",
+      "command": "pnpm run dev:client",
       "isBackground": true,
       "problemMatcher": {
         "pattern": {
@@ -47,40 +47,36 @@
     {
       "label": "Build",
       "type": "shell",
-      "command": "npm run build",
+      "command": "pnpm -r build",
       "group": "build",
-      "problemMatcher": [
-        "$tsc"
-      ]
+      "problemMatcher": ["$tsc"]
     },
     {
       "label": "Clean",
       "type": "shell",
-      "command": "npm run clean",
+      "command": "pnpm run clean",
       "group": "build"
     },
     {
       "label": "Fix",
       "type": "shell",
-      "command": "npm run fix",
+      "command": "pnpm run fix",
       "group": "test",
-      "problemMatcher": [
-        "$tsc"
-      ]
+      "problemMatcher": ["$tsc"]
     },
     {
       "label": "Test",
-      "type": "npm",
-      "script": "test:update",
+      "type": "shell",
+      "command": "pnpm run test:update",
       "group": "test",
       "problemMatcher": []
     },
     {
       "label": "Test Coverage",
-      "type": "npm",
-      "script": "test:coverage",
+      "type": "shell",
+      "command": "pnpm run test:coverage",
       "group": "test",
       "problemMatcher": []
     }
-  ],
+  ]
 }

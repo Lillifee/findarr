@@ -1,5 +1,5 @@
 import { isDefined } from '@findarr/shared';
-import axios, { type AxiosInstance } from 'axios';
+import { create, type AxiosInstance } from 'axios';
 import { z } from 'zod';
 
 import type { ArrServiceConfig } from './config.js';
@@ -18,7 +18,7 @@ import {
 } from './schemas.js';
 
 function createHttpClient(baseUrl: string, apiKey: string): AxiosInstance {
-  return axios.create({
+  return create({
     baseURL: `${baseUrl}/api/v3`,
     headers: {
       'X-Api-Key': apiKey,

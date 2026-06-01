@@ -1,7 +1,6 @@
-import { objectEntries, unifiedGenres } from '@findarr/shared';
+import { objectEntries, unifiedGenres, type GenreKey } from '@findarr/shared';
 import { useState } from 'react';
 
-import type { GenreKey } from '../../../shared/src/constants';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';
 import { OptionButton } from './ui/OptionButton';

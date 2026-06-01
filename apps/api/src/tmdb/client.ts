@@ -1,5 +1,5 @@
 import type { MediaType } from '@findarr/shared';
-import axios, { type AxiosInstance } from 'axios';
+import { create, type AxiosInstance } from 'axios';
 
 import {
   type TMDBSearchParams,
@@ -16,7 +16,7 @@ import {
 } from './schemas.js';
 
 function createHttpClient(accessToken: string): AxiosInstance {
-  return axios.create({
+  return create({
     baseURL: 'https://api.themoviedb.org/3',
     headers: {
       Authorization: `Bearer ${accessToken}`,

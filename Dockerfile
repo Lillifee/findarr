@@ -5,24 +5,27 @@ FROM node:24-bookworm-slim AS build
 
 WORKDIR /app
 
-# Install dependencies first (better caching)
-COPY package.json package-lock.json ./
-COPY shared/package.json ./shared/package.json
-COPY server/package.json ./server/package.json
-COPY client/package.json ./client/package.json
+# Enable pnpm
+RUN corepack enable
 
-RUN npm ci
+# Copy workspace metadata for dependency installation
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-# Copy full source
-COPY shared ./shared
-COPY server ./server
-COPY client ./client
+COPY packages/shared/package.json ./packages/shared/package.json
+COPY apps/api/package.json ./apps/api/package.json
+COPY apps/web/package.json ./apps/web/package.json
+
+# Install all deps (including dev deps needed for build)
+RUN pnpm install --frozen-lockfile
+
+# Copy source code
+COPY tsconfig.base.json ./
+COPY packages/shared ./packages/shared
+COPY apps/api ./apps/api
+COPY apps/web ./apps/web
 
 # Build all workspaces
-RUN npm run build
-
-# Remove dev dependencies AFTER build
-RUN npm prune --omit=dev
+RUN pnpm build
 
 
 # =========================
@@ -33,7 +36,7 @@ FROM node:24-bookworm-slim AS runtime
 WORKDIR /app
 
 # -------------------------
-# 📦 Image metadata
+# 📦 Metadata
 # -------------------------
 LABEL org.opencontainers.image.title="Findarr"
 LABEL org.opencontainers.image.description="Findarr media discovery platform"
@@ -44,26 +47,28 @@ LABEL org.opencontainers.image.licenses="MIT"
 # ⚙️ Environment
 # -------------------------
 ENV NODE_ENV=production
-ENV DATA_PATH=/app/server/data
+ENV DATA_PATH=/app/apps/api/data
+
+RUN corepack enable
 
 # -------------------------
 # 📁 App files (only what is needed at runtime)
 # -------------------------
 
-# Workspace metadata (IMPORTANT for Node resolution)
-COPY package.json package-lock.json ./
-COPY shared/package.json ./shared/package.json
-COPY server/package.json ./server/package.json
-COPY client/package.json ./client/package.json
+# Workspace metadata
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/shared/package.json ./packages/shared/package.json
+COPY apps/api/package.json ./apps/api/package.json
+COPY apps/web/package.json ./apps/web/package.json
 
-# Production dependencies from build stage
-COPY --from=build /app/node_modules ./node_modules
+# Install production deps
+RUN pnpm install --prod --frozen-lockfile
 
-# Built artifacts only
-COPY --from=build /app/shared/dist ./shared/dist
-COPY --from=build /app/server/dist ./server/dist
-COPY --from=build /app/client/dist ./client/dist
-COPY --from=build /app/server/drizzle ./server/drizzle
+# Built artifacts
+COPY --from=build /app/packages/shared/dist ./packages/shared/dist
+COPY --from=build /app/apps/api/dist ./apps/api/dist
+COPY --from=build /app/apps/api/drizzle ./apps/api/drizzle
+COPY --from=build /app/apps/web/dist ./apps/web/dist
 
 # Entrypoint
 COPY --chmod=755 docker/entrypoint.sh /app/docker/entrypoint.sh

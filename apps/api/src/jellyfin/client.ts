@@ -1,4 +1,4 @@
-import axios, { type AxiosInstance } from 'axios';
+import { create, type AxiosInstance } from 'axios';
 
 import { JellyfinItemsResponseSchema, type JellyfinItemsResponse } from './schemas.js';
 
@@ -11,7 +11,7 @@ export interface GetItemsParams {
 }
 
 function createHttpClient(baseUrl: string, apiKey: string): AxiosInstance {
-  return axios.create({
+  return create({
     baseURL: baseUrl,
     headers: {
       'X-Emby-Token': apiKey,

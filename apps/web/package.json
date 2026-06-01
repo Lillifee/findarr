@@ -1,19 +1,20 @@
 {
-  "name": "@findarr/client",
+  "name": "@findarr/web",
   "version": "1.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest",
+    "test": "vitest --passWithNoTests",
     "test:run": "vitest run --passWithNoTests",
     "test:coverage": "vitest run --coverage --passWithNoTests",
     "type:check": "tsc --noEmit",
     "clean": "rimraf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@findarr/shared": "*",
+    "@findarr/shared": "workspace:*",
     "axios": "^1.13.5",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

@@ -8,23 +8,23 @@ Findarr is a full-stack TypeScript monorepo for discovering movies and TV shows.
 
 ## Monorepo Structure
 
-npm workspaces monorepo. Build order: `shared` → `client` + `server`.
+pnpm workspaces monorepo. Build order: `shared` → `web` + `api`.
 
 ```
 findarr/
-├── shared/      # @findarr/shared — Zod schemas, DB schema, types, helpers
-├── server/      # @findarr/server — Fastify backend, SQLite via Drizzle ORM
-├── client/      # @findarr/client — React + Vite frontend
-└── package.json # Root scripts, oxfmt, oxlint, vitest TypeScript
+├── packages/shared/      # @findarr/shared — Zod schemas, DB schema, types, helpers
+├── apps/api/             # @findarr/api — Fastify backend, SQLite via Drizzle ORM
+├── apps/web/             # @findarr/web — React + Vite frontend
+└── package.json          # Root scripts, oxfmt, oxlint, vitest TypeScript
 ```
 
 ---
 
 ## Shared Package (`@findarr/shared`)
 
-Single source of truth for types shared across server and client.
+Single source of truth for types shared across api and web.
 
-- **`src/db-schema.ts`** — Drizzle ORM table definitions (SQLite). When modifying the DB schema, update this file then run `npm run db:generate` from root.
+- **`src/db-schema.ts`** — Drizzle ORM table definitions (SQLite). When modifying the DB schema, update this file then run `pnpm run db:generate` from root.
 - **`src/db-types.ts`** — TypeScript types inferred from the Drizzle schema.
 - **`src/schemas.ts`** — Zod schemas for API request/response shapes.
 - **`src/types.ts`** — Shared TypeScript types.
@@ -35,7 +35,7 @@ Timestamps are stored as **unix epoch milliseconds** (integer in SQLite).
 
 ---
 
-## Server Package (`@findarr/server`)
+## API Package (`@findarr/api`)
 
 **Stack**: Fastify 5 · Drizzle ORM + better-sqlite3 · Zod · argon2 · axios · vitest
 
@@ -80,7 +80,7 @@ Every feature module under `server/src/` follows this file layout. Add only the 
 
 ### Scheduler System
 
-Background tasks in `server/src/scheduler/`:
+Background tasks in `api/src/scheduler/`:
 
 - **`registry.ts`** — creates all scheduler instances, pulling in domain schedulers.
 - **`service.ts`** — orchestrates start/stop, exposes `fastify.scheduler`.
@@ -90,7 +90,7 @@ Domain modules define their own tasks in `schedulers.ts` and register them in th
 
 ---
 
-## Client Package (`@findarr/client`)
+## Web Package (`@findarr/web`)
 
 **Stack**: React 19 · React Router DOM 7 · Vite · Tailwind CSS v4 · axios · vitest
 
