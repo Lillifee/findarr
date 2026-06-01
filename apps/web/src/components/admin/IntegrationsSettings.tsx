@@ -192,10 +192,10 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
     try {
       const changedConnectionSettings = connectionDirty;
       const body: Record<string, unknown> = {};
-      if (urlInput) body.url = urlInput;
-      if (apiKeyInput) body.apiKey = apiKeyInput;
-      if (selectedProfileId) body.qualityProfileId = Number.parseInt(selectedProfileId, 10);
-      if (selectedRootFolder) body.rootFolderPath = selectedRootFolder;
+      if (urlInput) body['url'] = urlInput;
+      if (apiKeyInput) body['apiKey'] = apiKeyInput;
+      if (selectedProfileId) body['qualityProfileId'] = Number.parseInt(selectedProfileId, 10);
+      if (selectedRootFolder) body['rootFolderPath'] = selectedRootFolder;
       const savedSettings = await svc.saveSettings(body as never);
       const saved = savedSettings;
 

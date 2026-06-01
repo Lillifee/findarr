@@ -77,14 +77,13 @@ export const buildDateParams = (recentDays: number | undefined, type: MediaType 
 export const buildDiscoverParams = (
   params: DiscoverQuery & UserSettingsQuery,
 ): TMDBDiscoverParams => {
-  const {
-    type = 'both',
-    language = 'en-US',
-    recentDays,
-    page = 1,
-    genres = [],
-    regions = [],
-  } = params;
+  // Extract with defaults to ensure proper types
+  const type = params.type ?? 'both';
+  const language = params.language ?? 'en-US';
+  const recentDays = params.recentDays;
+  const page = params.page ?? 1;
+  const genres = (params.genres ?? []) as GenreKey[];
+  const regions = (params.regions ?? []) as RegionGroupId[];
 
   const region = language.split('-')[1] || 'US';
   const { languageFilter, countryFilter } = buildRegionFilters(regions);

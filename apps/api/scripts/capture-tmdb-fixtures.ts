@@ -12,6 +12,7 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { isDefined } from '@findarr/shared';
 import { create } from 'axios';
 import * as dotenv from 'dotenv';
 
@@ -37,7 +38,7 @@ const client = create({
   },
 });
 
-if (!TMDB_ACCESS_TOKEN) {
+if (!isDefined(TMDB_ACCESS_TOKEN)) {
   console.error('❌ TMDB_ACCESS_TOKEN environment variable is required');
   process.exit(1);
 }
@@ -205,4 +206,4 @@ async function captureFixtures(): Promise<void> {
 }
 
 // Run the script
-captureFixtures();
+await captureFixtures();

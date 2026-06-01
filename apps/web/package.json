@@ -6,11 +6,7 @@
   "scripts": {
     "dev": "vp dev",
     "build": "vp build",
-    "preview": "vp preview",
-    "test": "vp test --passWithNoTests",
-    "test:run": "vp test run --passWithNoTests",
-    "test:coverage": "vp test run --coverage --passWithNoTests",
-    "type:check": "tsc --noEmit"
+    "preview": "vp preview"
   },
   "dependencies": {
     "@findarr/shared": "workspace:*",

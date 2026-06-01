@@ -11,6 +11,9 @@ export default defineConfig({
   },
   lint: {
     jsPlugins: [{ name: 'vite-plus', specifier: 'vite-plus/oxlint-plugin' }],
+    plugins: ['eslint', 'typescript', 'react', 'react-perf', 'oxc', 'import', 'promise', 'vitest'],
+    // Todo add more jsx-a11y
+
     // options: { typeAware: true, typeCheck: true },
 
     env: {
@@ -18,13 +21,11 @@ export default defineConfig({
       es2024: true,
       node: true,
     },
-    plugins: ['eslint', 'typescript', 'react', 'react-perf', 'oxc', 'import', 'promise', 'vitest'],
-    // Todo add more jsx-a11y
 
     categories: {
       correctness: 'error',
       suspicious: 'error',
-      pedantic: 'warn',
+      pedantic: 'error',
       // perf: 'warn',
       // style: 'warn'
     },
@@ -43,6 +44,12 @@ export default defineConfig({
       'import/max-dependencies': 'off',
       'vitest/no-conditional-in-test': 'off',
       'no-warning-comments': 'off',
+
+      // typeAware. TODO check which category
+      'typescript/prefer-readonly-parameter-types': 'off',
     },
+  },
+  run: {
+    cache: true,
   },
 });

@@ -473,8 +473,7 @@ describe('interaction service - integration tests', () => {
       const user = await createTestUserInDb(db, { email: 'no-interactions@test.com' });
       expectDefined(user);
 
-      const tmdbServiceForTest = {} as TMDBService;
-      const result = await getUserInteractionsEnriched(tmdbServiceForTest, db, user.id);
+      const result = await getUserInteractionsEnriched(tmdb, db, user.id);
       expect(result).toEqual({ results: [], page: 1, totalPages: 0 });
     });
 
@@ -695,15 +694,15 @@ describe('interaction service - integration tests', () => {
       );
 
       // Allow fire-and-forget to complete
-      await vi.waitFor(() =>
+      await vi.waitFor(() => {
         expect(radarrService.requestMedia).toHaveBeenCalledWith(
           1,
           123,
           'Test Movie',
           null,
           undefined,
-        ),
-      );
+        );
+      });
     });
 
     it('should call sonarr request with TVDB ID when a TV show reaches the threshold', async () => {
@@ -714,7 +713,7 @@ describe('interaction service - integration tests', () => {
         seasons: [1, 2],
       };
       vi.mocked(tmdbWithTvdb.details).mockResolvedValue(
-        createTestTVDetail({ tmdbId: 456, name: 'Test Show', tvdbId: 81_189 }) as never,
+        createTestTVDetail({ tmdbId: 456, name: 'Test Show', tvdbId: 81_189 }),
       );
 
       const user1 = await createTestUserInDb(db, { email: 'tv1@test.com', displayName: 'U1' });
@@ -752,15 +751,15 @@ describe('interaction service - integration tests', () => {
         user3,
       );
 
-      await vi.waitFor(() =>
+      await vi.waitFor(() => {
         expect(sonarrService.requestMedia).toHaveBeenCalledWith(
           1,
           81_189,
           'Test Show',
           null,
           [1, 2],
-        ),
-      );
+        );
+      });
     });
 
     it('should not forward when arr service is not configured', async () => {
@@ -807,7 +806,9 @@ describe('interaction service - integration tests', () => {
       // Status is still marked requested (arr forwarding is best-effort, non-fatal)
       expect(media.status).toBe('requested');
       // request was attempted but returned empty object (not configured)
-      await vi.waitFor(() => expect(radarrService.requestMedia).toHaveBeenCalled());
+      await vi.waitFor(() => {
+        expect(radarrService.requestMedia).toHaveBeenCalled();
+      });
     });
   });
 });

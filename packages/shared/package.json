@@ -3,21 +3,17 @@
   "version": "1.0.0",
   "description": "Shared types and utilities for Findarr",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/index.mjs",
+  "types": "dist/index.d.mts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "dev": "tsc -p tsconfig.build.json --watch",
-    "test": "vp test",
-    "test:run": "vp test run",
-    "test:coverage": "vp test run --coverage",
-    "type:check": "tsc -p tsconfig.json --noEmit"
+    "build": "vp pack",
+    "dev": "vp pack --watch"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.1",

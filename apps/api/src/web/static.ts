@@ -8,7 +8,7 @@ import { type FastifyInstance } from 'fastify';
 dotenv.config();
 
 const currentDirectory = dirname(fileURLToPath(import.meta.url));
-const clientDistDir = join(currentDirectory, '..', '..', '..', 'client', 'dist');
+const clientDistDir = join(currentDirectory, '..', '..', '..', 'web', 'dist');
 const clientAssetsDir = join(clientDistDir, 'assets');
 
 export async function registerStatic(server: FastifyInstance) {
