@@ -51,7 +51,9 @@ export function SearchBar({
     <button
       type="button"
       onClick={handleClear}
-      onMouseDown={(event) => event.preventDefault()}
+      onMouseDown={(event) => {
+        event.preventDefault();
+      }}
       disabled={!canClear}
       className={`rounded-full p-1.5 transition-all ${
         canClear
@@ -110,7 +112,9 @@ export function SearchBar({
           <Input
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+            }}
             placeholder="Search movies or TV shows..."
             disabled={loading}
             variant="search"

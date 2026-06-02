@@ -1,16 +1,16 @@
-import { type RegionGroupId } from '@findarr/shared';
+import { objectKeys, type RegionGroupId } from '@findarr/shared';
 import React from 'react';
 
 import { Badge } from './ui/Badge';
 import { Button } from './ui/Button';
 
 // Region metadata for UI display (TMDB mapping handled server-side)
-const REGION_INFO: Record<RegionGroupId, { name: string }> = {
-  western: { name: 'Western' },
-  'eastern-europe': { name: 'E. Europe' },
-  asian: { name: 'Asian' },
-  'latin-america': { name: 'Latin America' },
-  'middle-east-africa': { name: 'ME & Africa' },
+const REGION_INFO: Record<RegionGroupId, string> = {
+  western: 'Western',
+  'eastern-europe': 'E. Europe',
+  asian: 'Asian',
+  'latin-america': 'Latin America',
+  'middle-east-africa': 'ME & Africa',
 };
 
 function getRegionIcon(regionId: RegionGroupId): React.ReactElement {
@@ -75,6 +75,9 @@ function getRegionIcon(regionId: RegionGroupId): React.ReactElement {
         </svg>
       );
     }
+    default: {
+      return <svg />;
+    }
   }
 }
 
@@ -89,7 +92,7 @@ export function RegionChips({
   onRegionsChange,
   disabled = false,
 }: RegionChipsProps) {
-  const allRegions = Object.keys(REGION_INFO) as RegionGroupId[];
+  const allRegions = objectKeys(REGION_INFO);
 
   const handleRegionToggle = (regionId: RegionGroupId) => {
     if (selectedRegions.includes(regionId)) {
@@ -125,7 +128,7 @@ export function RegionChips({
 
       <div className="flex flex-wrap gap-2">
         {allRegions.map((regionId) => {
-          const region = REGION_INFO[regionId];
+          const regionName = REGION_INFO[regionId];
           const isSelected = selectedRegions.includes(regionId);
 
           return (
@@ -134,7 +137,9 @@ export function RegionChips({
               variant="secondary"
               selected={isSelected}
               interactive
-              onClick={() => !disabled && handleRegionToggle(regionId)}
+              onClick={() => {
+                if (!disabled) handleRegionToggle(regionId);
+              }}
               className={`px-3 py-1.5 text-xs shadow-none backdrop-blur-none ${
                 isSelected
                   ? 'border-gray-300 bg-gray-200 text-gray-950 hover:border-white hover:bg-gray-100 hover:text-gray-950'
@@ -142,7 +147,7 @@ export function RegionChips({
               } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
             >
               {getRegionIcon(regionId)}
-              <span>{region.name}</span>
+              <span>{regionName}</span>
               {isSelected && (
                 <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path

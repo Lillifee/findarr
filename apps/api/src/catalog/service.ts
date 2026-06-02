@@ -10,7 +10,6 @@ import type {
   DiscoverResponse,
   PopularResponse,
   Genre,
-  GenreKey,
   Media,
   SwipeNextResponse,
   MediaDetails,
@@ -74,15 +73,17 @@ export function createCatalogService(context: CatalogContext) {
   async function getMediaDetails(params: DetailsQuery, userId: number) {
     const mediaItem = await tmdb.details(params);
     const [enriched] = await enrichMediaResults([mediaItem], userId);
-    return (enriched || mediaItem) as MediaDetails;
+    // TODO fix typings
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+    return (enriched ?? mediaItem) as MediaDetails;
   }
 
   /**
    * Get all available genres
    * Currently delegates to TMDB
    */
-  async function listGenres(params: GenresQuery): Promise<{ genres: Genre[] }> {
-    return await tmdb.genres(params);
+  function listGenres(params: GenresQuery): Promise<Genre[]> {
+    return tmdb.genres(params);
   }
 
   /**
@@ -138,7 +139,7 @@ export function createCatalogService(context: CatalogContext) {
     );
 
     const unvotedItem =
-      swipeWindow.items.find((item) => filterByInteraction(item, interactionKeys, 'unvoted')) ||
+      swipeWindow.items.find((item) => filterByInteraction(item, interactionKeys, 'unvoted')) ??
       null;
 
     const media =
@@ -187,14 +188,14 @@ export function createCatalogService(context: CatalogContext) {
         getUserInteractionMediaKeys(db, userId),
       ]);
 
-      const { regions = [] } = settings;
+      const { regions } = settings;
 
       let filteredMedia = cachedCatalogMedia.filter(
         (item) =>
           filterByCriteria(item, {
             type,
             regions,
-            genres: (genres ?? []) as GenreKey[],
+            genres: genres ?? [],
           }) && filterByInteraction(item, interactionKeys, interaction),
       );
 
@@ -202,7 +203,7 @@ export function createCatalogService(context: CatalogContext) {
 
       filteredMedia.sort(
         (a, b) =>
-          (b.state?.score?.finalTrendingScore || 0) - (a.state?.score?.finalTrendingScore || 0),
+          (b.state?.score?.finalTrendingScore ?? 0) - (a.state?.score?.finalTrendingScore ?? 0),
       );
 
       return filteredMedia;

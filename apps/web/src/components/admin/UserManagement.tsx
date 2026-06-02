@@ -73,7 +73,9 @@ export function UserManagement() {
             type="button"
             variant={showCreateForm ? 'secondary' : 'success'}
             size="sm"
-            onClick={() => setShowCreateForm(!showCreateForm)}
+            onClick={() => {
+              setShowCreateForm(!showCreateForm);
+            }}
             className="w-full sm:w-auto"
           >
             {showCreateForm ? 'Cancel' : 'Create user'}
@@ -91,7 +93,9 @@ export function UserManagement() {
                 <Input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, email: e.target.value });
+                  }}
                   required
                 />
               </div>
@@ -100,7 +104,9 @@ export function UserManagement() {
                 <Input
                   type="text"
                   value={formData.displayName}
-                  onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, displayName: e.target.value });
+                  }}
                   required
                 />
               </div>
@@ -112,7 +118,9 @@ export function UserManagement() {
                 <Input
                   type="password"
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, password: e.target.value });
+                  }}
                   required
                   minLength={8}
                 />
@@ -121,9 +129,11 @@ export function UserManagement() {
                 <SelectInput
                   label="Role"
                   value={formData.role}
-                  onChange={(e) =>
-                    setFormData({ ...formData, role: e.target.value as 'user' | 'admin' })
-                  }
+                  onChange={(e) => {
+                    // TODO fix typings
+                    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+                    setFormData({ ...formData, role: e.target.value as 'user' | 'admin' });
+                  }}
                 >
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
@@ -145,7 +155,9 @@ export function UserManagement() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowCreateForm(false)}
+                onClick={() => {
+                  setShowCreateForm(false);
+                }}
               >
                 Close
               </Button>

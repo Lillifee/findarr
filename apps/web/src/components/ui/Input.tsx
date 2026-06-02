@@ -1,3 +1,4 @@
+import { isDefined } from '@findarr/shared';
 import type { InputHTMLAttributes, ReactNode } from 'react';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -31,19 +32,23 @@ export function Input({
 
   const containerStyles = 'relative flex items-center';
 
-  if (prefixIcon || suffixIcon) {
+  if (isDefined(prefixIcon) || isDefined(suffixIcon)) {
     return (
       <div className="w-full">
-        {label && <label className="mb-2 block text-sm font-medium text-gray-300">{label}</label>}
+        {isDefined(label) && (
+          <label className="mb-2 block text-sm font-medium text-gray-300">{label}</label>
+        )}
         <div className={containerStyles}>
-          {prefixIcon && (
+          {isDefined(prefixIcon) && (
             <div className="pointer-events-none absolute left-3 text-gray-400">{prefixIcon}</div>
           )}
           <input
-            className={`${baseStyles} ${variantStyles[variant]} ${errorStyles} ${prefixIcon ? 'pl-10' : ''} ${suffixIcon ? 'pr-10' : ''} ${className}`}
+            className={`${baseStyles} ${variantStyles[variant]} ${errorStyles} ${isDefined(prefixIcon) ? 'pl-10' : ''} ${isDefined(suffixIcon) ? 'pr-10' : ''} ${className}`}
             {...props}
           />
-          {suffixIcon && <div className="absolute right-3 text-gray-400">{suffixIcon}</div>}
+          {isDefined(suffixIcon) && (
+            <div className="absolute right-3 text-gray-400">{suffixIcon}</div>
+          )}
         </div>
       </div>
     );
@@ -51,7 +56,9 @@ export function Input({
 
   return (
     <div className="w-full">
-      {label && <label className="mb-2 block text-sm font-medium text-gray-300">{label}</label>}
+      {isDefined(label) && (
+        <label className="mb-2 block text-sm font-medium text-gray-300">{label}</label>
+      )}
       <input
         className={`${baseStyles} ${variantStyles[variant]} ${errorStyles} ${className}`}
         {...props}

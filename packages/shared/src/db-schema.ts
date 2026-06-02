@@ -9,6 +9,8 @@ import {
   primaryKey,
 } from 'drizzle-orm/sqlite-core';
 
+import type { RegionGroupId } from './constants';
+
 // ============================================================================
 // Settings Table
 // ============================================================================
@@ -218,7 +220,7 @@ export const userSettings = sqliteTable(
     regions: text('regionGroups', { mode: 'json' })
       .notNull()
       .default('["western"]')
-      .$type<string[]>(),
+      .$type<RegionGroupId[]>(),
     withGenres: text('withGenres', { mode: 'json' }).notNull().default('[]').$type<string[]>(),
     createdAt: integer('createdAt')
       .notNull()

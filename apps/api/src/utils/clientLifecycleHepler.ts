@@ -1,3 +1,5 @@
+import { isDefined } from '@findarr/shared';
+
 type MaybePromise<T> = T | Promise<T>;
 
 interface ServiceLifecycleOptions<TSettings, TClient> {
@@ -41,17 +43,17 @@ export function createClientLifecycle<TSettings, TClient>(
   }
 
   function client(): TClient {
-    if (!state.client) throw new Error(`${options.name} client is not configured`);
+    if (!isDefined(state.client)) throw new Error(`${options.name} client is not configured`);
     return state.client;
   }
 
   function settings(): TSettings {
-    if (!state.settings) throw new Error(`${options.name} settings are unavailable`);
+    if (!isDefined(state.settings)) throw new Error(`${options.name} settings are unavailable`);
     return state.settings;
   }
 
   function isConfigured(): boolean {
-    return !!state.client;
+    return isDefined(state.client);
   }
 
   return {

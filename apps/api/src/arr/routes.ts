@@ -1,4 +1,4 @@
-import { ArrLinkQuerySchema } from '@findarr/shared';
+import { ArrLinkQuerySchema, isDefined } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
 
 export function arrRoutes(fastify: FastifyInstance) {
@@ -10,7 +10,7 @@ export function arrRoutes(fastify: FastifyInstance) {
     const query = ArrLinkQuerySchema.parse(request.query);
     const url = await fastify.radarr.resolveMediaUrl(query.mediaId);
 
-    if (!url) {
+    if (!isDefined(url)) {
       return reply.code(404).send({ error: 'Radarr link not available' });
     }
 
@@ -22,7 +22,7 @@ export function arrRoutes(fastify: FastifyInstance) {
     const query = ArrLinkQuerySchema.parse(request.query);
     const url = await fastify.sonarr.resolveMediaUrl(query.mediaId);
 
-    if (!url) {
+    if (!isDefined(url)) {
       return reply.code(404).send({ error: 'Sonarr link not available' });
     }
 

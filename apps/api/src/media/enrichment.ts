@@ -45,7 +45,7 @@ export async function enrichWithInteractions(
 
   return mediaItems.map((item) => {
     const mediaId = item.state?.record?.id;
-    if (!mediaId) return item;
+    if (!isDefined(mediaId)) return item;
 
     const interactions = interactionsMap.get(mediaId);
     const votes = votesMap.get(mediaId);
@@ -87,7 +87,7 @@ export async function enrichWithScoring(
   let scoredItems: Media[] = scoreMediaItems(mediaItems, movieStats, tvStats);
 
   // Apply user preference scoring if authenticated
-  if (userId) {
+  if (isDefined(userId)) {
     const [genrePreferences, keywordPreferences] = await Promise.all([
       getUserGenrePreferences(db, userId),
       getUserKeywordPreferences(db, userId),

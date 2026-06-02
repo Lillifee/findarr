@@ -1,16 +1,17 @@
-import type {
-  SearchQuery,
-  DetailsQuery,
-  GenresQuery,
-  SearchResponse,
-  Genre,
-  DiscoverResponse,
-  MediaDetails,
-  DiscoverQuery,
-  UserSettingsQuery,
-  MediaType,
-  TmdbSettings,
-  TmdbSettingsQuery,
+import {
+  type SearchQuery,
+  type DetailsQuery,
+  type GenresQuery,
+  type SearchResponse,
+  type Genre,
+  type DiscoverResponse,
+  type MediaDetails,
+  type DiscoverQuery,
+  type UserSettingsQuery,
+  type MediaType,
+  type TmdbSettings,
+  type TmdbSettingsQuery,
+  isDefined,
 } from '@findarr/shared';
 import type { FastifyBaseLogger } from 'fastify';
 
@@ -42,7 +43,7 @@ export async function createTMDBService(context: TmdbServiceContext) {
     name: 'TMDB',
     loadSettings: () => getTmdbSettingsFull(context.db),
     createClient: (settings) =>
-      settings.tmdbAccessToken ? createTMDBClient(settings.tmdbAccessToken) : undefined,
+      isDefined(settings.tmdbAccessToken) ? createTMDBClient(settings.tmdbAccessToken) : undefined,
   });
 
   await reloadService().catch((error) => {
@@ -106,8 +107,8 @@ export async function createTMDBService(context: TmdbServiceContext) {
    * Search for movies and TV shows
    */
   async function search(params: SearchQuery): Promise<SearchResponse> {
-    const { query, type = 'both', page = 1, language = 'en-US' } = params;
-    const region = language.split('-')[1] || 'US';
+    const { query, type, page, language = 'en-US' } = params;
+    const region = language.split('-')[1] ?? 'US';
     const client = lifecycle.client();
 
     const searchTypes = type === 'both' ? MEDIA_TYPES : [type];
@@ -212,10 +213,10 @@ export async function createTMDBService(context: TmdbServiceContext) {
    * Get all genres.
    * Returns from the in-memory map populated during configure — params are not used.
    */
-  async function genres(_params: GenresQuery): Promise<{ genres: Genre[] }> {
+  async function genres(_params: GenresQuery): Promise<Genre[]> {
     await ensureGenresLoaded();
     const allGenres = [...genreMap.values()];
-    return { genres: allGenres };
+    return allGenres;
   }
 
   /**

@@ -1,4 +1,4 @@
-import type { Media } from '@findarr/shared';
+import { isDefined, type Media } from '@findarr/shared';
 import type { KeyboardEvent } from 'react';
 
 function keyOf(item: Media) {
@@ -64,12 +64,16 @@ export function AvailableMediaStrip({
               key={keyOf(item)}
               role="button"
               tabIndex={0}
-              onClick={() => onSelectItem(item)}
-              onKeyDown={(event) => handleCardKeyDown(event, item)}
+              onClick={() => {
+                onSelectItem(item);
+              }}
+              onKeyDown={(event) => {
+                handleCardKeyDown(event, item);
+              }}
               className="group w-32 shrink-0 cursor-pointer transition-transform duration-300 sm:w-36 md:w-40"
             >
               <div className="relative overflow-hidden rounded-xl border border-gray-700/60 bg-gray-800/75 shadow-lg transition-all duration-300 group-hover:border-gray-500/90 group-hover:shadow-2xl">
-                {item.posterPath ? (
+                {isDefined(item.posterPath) ? (
                   <img
                     src={`https://image.tmdb.org/t/p/w342${item.posterPath}`}
                     alt={item.name}
@@ -86,7 +90,7 @@ export function AvailableMediaStrip({
                     {item.name}
                   </p>
                   <p className="mt-1 text-[10px] tracking-[0.16em] text-gray-300 uppercase">
-                    {item.date ? new Date(item.date).getFullYear() : 'N/A'}
+                    {isDefined(item.date) ? new Date(item.date).getFullYear() : 'N/A'}
                   </p>
                 </div>
               </div>

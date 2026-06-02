@@ -100,7 +100,7 @@ async function start() {
     await server.register(adminSchedulerRoutes, { prefix: '/api/admin' });
 
     // Start scheduler orchestration
-    await server.scheduler.startOrchestration();
+    server.scheduler.startOrchestration();
 
     // Serve static files in production
     if (env.NODE_ENV === 'production') {

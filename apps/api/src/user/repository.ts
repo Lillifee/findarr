@@ -15,7 +15,7 @@ export async function getOrCreateUserSettings(db: Database, userId: number): Pro
   });
 
   if (existing) {
-    return existing as UserSettings;
+    return existing;
   }
 
   await db.insert(userSettings).values({

@@ -132,7 +132,7 @@ export default function SeasonSelectorModal({
             {regularSeasons.map((season) => {
               const isAlreadyRequested = alreadyRequestedSeasons.includes(season.seasonNumber);
               const isSelected = selectedSeasons.has(season.seasonNumber);
-              const status = season.status || 'none';
+              const status = season.status ?? 'none';
 
               return (
                 <label
@@ -148,7 +148,9 @@ export default function SeasonSelectorModal({
                   <input
                     type="checkbox"
                     checked={isSelected}
-                    onChange={() => handleToggleSeason(season.seasonNumber)}
+                    onChange={() => {
+                      handleToggleSeason(season.seasonNumber);
+                    }}
                     className={`mr-3 h-4 w-4 rounded focus:ring-blue-500 ${
                       isAlreadyRequested
                         ? 'cursor-pointer text-green-600'

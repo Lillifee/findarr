@@ -60,7 +60,9 @@ export function MediaTypeChips({ selectedType, onChange, disabled = false }: Med
           variant="secondary"
           selected={selectedType === type.value}
           interactive={!disabled}
-          onClick={() => !disabled && onChange(type.value)}
+          onClick={() => {
+            if (!disabled) onChange(type.value);
+          }}
           className={`min-h-8 rounded-none px-3 py-1.5 text-sm ${
             selectedType === type.value
               ? 'border-gray-200 bg-gray-200 text-gray-950 shadow-none hover:bg-gray-100 hover:text-gray-950'

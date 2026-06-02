@@ -32,7 +32,9 @@ export default function GenreSelector({ selectedGenres, onGenreChange }: Props) 
       </label>
       <div className="relative min-w-45">
         <Button
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => {
+            setIsOpen(!isOpen);
+          }}
           variant="secondary"
           className="w-full justify-between px-3.5 py-2 text-left text-sm"
         >
@@ -70,7 +72,9 @@ export default function GenreSelector({ selectedGenres, onGenreChange }: Props) 
               return (
                 <OptionButton
                   key={key}
-                  onClick={() => handleGenreToggle(key)}
+                  onClick={() => {
+                    handleGenreToggle(key);
+                  }}
                   selected={isSelected}
                   title={genre.name}
                   icon={isSelected ? <span className="text-base text-gray-900">✓</span> : undefined}

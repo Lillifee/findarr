@@ -7,9 +7,10 @@ import {
   type DiscoverQuery,
   type UserSettingsQuery,
   type MediaType,
+  isDefined,
 } from '@findarr/shared';
-import type { FastifyBaseLogger } from 'fastify';
 
+import type { LoggerService } from '../scheduler/types.js';
 import { HttpError } from '../utils/errors.js';
 import { sleep } from '../utils/helper.js';
 import type { TMDBDiscoverParams } from './schemas.js';
@@ -36,7 +37,7 @@ export const buildRegionFilters = (regions: RegionGroupId[]) => {
  * Build genre filter string for TMDB API from selected genre keys
  */
 export const buildGenreFilter = (genres: GenreKey[] | undefined) =>
-  genres?.length ? genres.flatMap((g) => unifiedGenres[g]?.ids ?? []).join('|') : '';
+  isDefined(genres) ? genres.flatMap((g) => unifiedGenres[g]?.ids ?? []).join('|') : '';
 
 /**
  * Calculate date range from days back
@@ -53,11 +54,11 @@ export const getDateRangeFromDays = (days: number) => {
  * Build date parameters for discover queries
  */
 export const buildDateParams = (recentDays: number | undefined, type: MediaType | 'both') => {
-  if (!recentDays) return {};
+  if (!isDefined(recentDays)) return {};
 
   const { pastDate, futureDate } = getDateRangeFromDays(recentDays);
 
-  const formatDate = (date: Date) => date.toISOString().split('T')[0] || '';
+  const formatDate = (date: Date) => date.toISOString().split('T')[0] ?? '';
 
   const dateParams: Record<string, string> = {};
 
@@ -82,10 +83,10 @@ export const buildDiscoverParams = (
   const language = params.language ?? 'en-US';
   const recentDays = params.recentDays;
   const page = params.page ?? 1;
-  const genres = (params.genres ?? []) as GenreKey[];
-  const regions = (params.regions ?? []) as RegionGroupId[];
+  const genres = params.genres ?? [];
+  const regions = params.regions ?? [];
 
-  const region = language.split('-')[1] || 'US';
+  const region = language.split('-')[1] ?? 'US';
   const { languageFilter, countryFilter } = buildRegionFilters(regions);
   const genreFilter = buildGenreFilter(genres);
   const dateParams = buildDateParams(recentDays, type);
@@ -133,7 +134,7 @@ export async function processWithWorkerPool<TItem, TResult>(options: {
   /** Function to process each item (should return null on failure) */
   processFn: (item: TItem) => Promise<TResult | null>;
   /** Logger instance */
-  log: FastifyBaseLogger;
+  log: LoggerService;
 }): Promise<{ successCount: number; results: TResult[] }> {
   const { items, processFn, log } = options;
 
@@ -169,7 +170,7 @@ export async function processWithWorkerPool<TItem, TResult>(options: {
       if (index >= items.length) break;
 
       const item = items[index];
-      if (!item) continue;
+      if (!isDefined(item)) continue;
 
       try {
         const result = await processWithRetry(item);

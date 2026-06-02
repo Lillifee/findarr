@@ -1,4 +1,4 @@
-import type { User } from '@findarr/shared';
+import { isDefined, type User } from '@findarr/shared';
 import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 
@@ -208,7 +208,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
             <button
               onClick={onLogout}
               className={navLinkClass({ isActive: false })}
-              aria-label={user?.displayName ? `Logout ${user.displayName}` : 'Logout'}
+              aria-label={isDefined(user?.displayName) ? `Logout ${user.displayName}` : 'Logout'}
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -280,7 +280,9 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
           </NavLink>
 
           <button
-            onClick={() => setMobileAdvancedOpen(!mobileAdvancedOpen)}
+            onClick={() => {
+              setMobileAdvancedOpen(!mobileAdvancedOpen);
+            }}
             className={`flex h-full flex-1 cursor-pointer flex-col items-center justify-center transition-colors ${
               mobileAdvancedOpen || isAdminRoute ? 'text-white' : 'text-gray-500'
             }`}
@@ -307,7 +309,9 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
 
               <NavLink
                 to="/settings"
-                onClick={() => setMobileAdvancedOpen(false)}
+                onClick={() => {
+                  setMobileAdvancedOpen(false);
+                }}
                 className={navLinkClass}
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -331,7 +335,9 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                 <>
                   <NavLink
                     to="/admin/users"
-                    onClick={() => setMobileAdvancedOpen(false)}
+                    onClick={() => {
+                      setMobileAdvancedOpen(false);
+                    }}
                     className={navLinkClass}
                   >
                     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -347,7 +353,9 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
 
                   <NavLink
                     to="/admin/integrations"
-                    onClick={() => setMobileAdvancedOpen(false)}
+                    onClick={() => {
+                      setMobileAdvancedOpen(false);
+                    }}
                     className={navLinkClass}
                   >
                     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -363,7 +371,9 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
 
                   <NavLink
                     to="/admin/schedulers"
-                    onClick={() => setMobileAdvancedOpen(false)}
+                    onClick={() => {
+                      setMobileAdvancedOpen(false);
+                    }}
                     className={navLinkClass}
                   >
                     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

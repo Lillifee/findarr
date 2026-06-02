@@ -85,7 +85,7 @@ export async function upsertMediaFromArr(
 
   // Items with valid tmdbId (> 0) - use tmdbId constraint
   // This merges Sonarr + Jellyfin records when they share the same tmdbId
-  const itemsWithTmdbId = items.filter((item) => item.tmdbId && item.tmdbId > 0);
+  const itemsWithTmdbId = items.filter((item) => isDefined(item.tmdbId) && item.tmdbId > 0);
   if (itemsWithTmdbId.length > 0) {
     await db
       .insert(media)
@@ -112,7 +112,8 @@ export async function upsertMediaFromArr(
   // TV shows without valid tmdbId (null, undefined, or -1) - use tvdbId constraint
   // These are shows enrichment failed for or shows without tvdbId from Sonarr
   const tvItemsWithoutValidTmdbId = items.filter(
-    (item) => item.type === 'tv' && (!item.tmdbId || item.tmdbId <= 0) && item.tvdbId,
+    (item) =>
+      item.type === 'tv' && (!isDefined(item.tmdbId) || item.tmdbId <= 0) && isDefined(item.tvdbId),
   );
   if (tvItemsWithoutValidTmdbId.length > 0) {
     await db
@@ -255,8 +256,10 @@ export async function getArrSettings(
   return {
     url: storedSettings[fields.url] ?? null,
     apiKey: storedSettings[fields.apiKey] ?? null,
-    apiKeySet: !!storedSettings[fields.apiKey],
-    qualityProfileId: qualityProfileIdValue ? Number.parseInt(qualityProfileIdValue, 10) : null,
+    apiKeySet: isDefined(storedSettings[fields.apiKey]),
+    qualityProfileId: isDefined(qualityProfileIdValue)
+      ? Number.parseInt(qualityProfileIdValue, 10)
+      : null,
     rootFolderPath: storedSettings[fields.rootFolderPath] ?? null,
   };
 }

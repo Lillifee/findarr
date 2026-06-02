@@ -1,4 +1,4 @@
-import type { ArrSettings, ArrSettingsQuery } from '@findarr/shared';
+import { isDefined, type ArrSettings, type ArrSettingsQuery } from '@findarr/shared';
 import type { FastifyBaseLogger } from 'fastify';
 
 import type { Database } from '../db/service.js';
@@ -31,7 +31,7 @@ export async function createArrService<T extends ArrServiceConfig>(
     name: config.service,
     loadSettings: () => getArrSettings(context.db, config),
     createClient: (settings) =>
-      settings.url && settings.apiKey
+      isDefined(settings.url) && isDefined(settings.apiKey)
         ? createArrClient(config, settings.url, settings.apiKey)
         : undefined,
   });
@@ -79,7 +79,7 @@ export async function createArrService<T extends ArrServiceConfig>(
     }
 
     // Only sonarr needs multiple requests to update shows.
-    if (config.service === 'radarr' && arrId) {
+    if (config.service === 'radarr' && isDefined(arrId)) {
       return undefined;
     }
 
@@ -88,7 +88,7 @@ export async function createArrService<T extends ArrServiceConfig>(
 
     const { qualityProfileId, rootFolderPath } = settings;
 
-    if (!qualityProfileId || !rootFolderPath) return undefined;
+    if (!isDefined(qualityProfileId) || !isDefined(rootFolderPath)) return undefined;
 
     const response = await client.requestOrUpdateMedia(
       { id, title, arrId },
@@ -133,10 +133,10 @@ export async function createArrService<T extends ArrServiceConfig>(
   async function resolveMediaUrl(mediaId: number): Promise<string | null> {
     const mediaRecord = await getMediaById(context.db, mediaId);
 
-    if (!mediaRecord?.arrUrl) return null;
+    if (!isDefined(mediaRecord?.arrUrl)) return null;
 
     const { url } = lifecycle.settings();
-    if (!url) return null;
+    if (!isDefined(url)) return null;
 
     return `${trimTrailingSlash(url)}${mediaRecord.arrUrl}`;
   }

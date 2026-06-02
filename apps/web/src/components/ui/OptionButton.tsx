@@ -1,3 +1,4 @@
+import { isDefined } from '@findarr/shared';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
 interface OptionButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'title'> {
@@ -28,7 +29,7 @@ export function OptionButton({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="text-sm font-semibold">{title}</div>
-          {description && (
+          {isDefined(description) && (
             <div
               className={`mt-1.5 text-sm leading-5 ${selected ? 'text-gray-800' : 'text-gray-300'}`}
             >
@@ -36,7 +37,7 @@ export function OptionButton({
             </div>
           )}
         </div>
-        {icon && <div className="shrink-0">{icon}</div>}
+        {isDefined(icon) && <div className="shrink-0">{icon}</div>}
       </div>
     </button>
   );

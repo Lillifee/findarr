@@ -3,7 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 import cookie from '@fastify/cookie';
 import secureSession from '@fastify/secure-session';
-import type { User } from '@findarr/shared';
+import { isDefined, type User } from '@findarr/shared';
 import type {
   FastifyPluginAsync,
   FastifyRequest,
@@ -73,8 +73,9 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, option
   fastify.decorate('requireAuth', async (request: FastifyRequest, reply: FastifyReply) => {
     const userId = request.session.get('userId');
 
-    if (!userId) {
-      return reply.code(401).send({ error: 'Authentication required' });
+    if (!isDefined(userId)) {
+      reply.code(401).send({ error: 'Authentication required' });
+      return;
     }
 
     const user = await getUserById(fastify.db, userId);
@@ -82,7 +83,8 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, option
     if (!user) {
       // User was deleted, clear session
       request.session.delete();
-      return reply.code(401).send({ error: 'Authentication required' });
+      reply.code(401).send({ error: 'Authentication required' });
+      return;
     }
 
     // Attach user to request
@@ -95,7 +97,7 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, option
 
     if (reply.sent) return;
     if (request.user?.role !== 'admin') {
-      return reply.code(403).send({ error: 'Admin access required' });
+      reply.code(403).send({ error: 'Admin access required' });
     }
   });
 

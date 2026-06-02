@@ -1,7 +1,6 @@
 import type { Genre } from '@findarr/shared';
 import { isDefined, unifiedGenres } from '@findarr/shared';
 import type SqlDatabase from 'better-sqlite3';
-import type { FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vite-plus/test';
 
 import * as authService from '../auth/service.js';
@@ -10,7 +9,10 @@ import { createCatalogService } from '../catalog/service.js';
 import { syncCatalogCache } from '../catalog/sync.js';
 import { createDatabase } from '../db/service.js';
 import type { Database } from '../db/service.js';
+import type { JellyfinService } from '../jellyfin/service.js';
 import { updateGenrePreference, updateKeywordPreference } from '../preferences/repository.js';
+import type { SchedulerService } from '../scheduler/service.js';
+import type { LoggerService, SchedulerContext } from '../scheduler/types.js';
 import { TMDBSearchResponseSchema } from '../tmdb/schemas.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { transformMedia } from '../tmdb/transformers.js';
@@ -68,6 +70,9 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     const tmdbServiceMock: TMDBService = {
       isConfigured: vi.fn<TMDBService['isConfigured']>().mockReturnValue(true),
       testConnection: vi.fn<TMDBService['testConnection']>().mockResolvedValue(true),
+      getSettings: vi.fn<TMDBService['getSettings']>(),
+      setSettings: vi.fn<TMDBService['setSettings']>(),
+      testAndSync: vi.fn<TMDBService['testAndSync']>(),
       search: vi.fn<TMDBService['search']>(),
       discover: vi.fn<TMDBService['discover']>().mockResolvedValue({
         results: [...movieItems, ...tvItems],
@@ -80,21 +85,43 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
         totalPages: 1,
       }),
       details: vi.fn<TMDBService['details']>(),
-      genres: vi.fn<TMDBService['genres']>().mockResolvedValue({ genres: [...genreMap.values()] }),
+      genres: vi.fn<TMDBService['genres']>().mockResolvedValue([...genreMap.values()]),
       findByExternalId: vi.fn<TMDBService['findByExternalId']>(),
-    } as unknown as TMDBService;
+    };
 
+    const loggerMock: LoggerService = {
+      debug: vi.fn<LoggerService['debug']>(),
+      info: vi.fn<LoggerService['info']>(),
+      error: vi.fn<LoggerService['error']>(),
+      warn: vi.fn<LoggerService['warn']>(),
+    };
+
+    const jellyfinMock: JellyfinService = {
+      isConfigured: vi.fn<JellyfinService['isConfigured']>().mockReturnValue(false),
+      testConnection: vi.fn<JellyfinService['testConnection']>().mockResolvedValue(false),
+      testAndSync: vi.fn<JellyfinService['testAndSync']>(),
+      getSettings: vi.fn<JellyfinService['getSettings']>(),
+      setSettings: vi.fn<JellyfinService['setSettings']>(),
+      listLibraryItems: vi.fn<JellyfinService['listLibraryItems']>(),
+      resolveMediaUrl: vi.fn<JellyfinService['resolveMediaUrl']>(),
+    };
+
+    const schedulerMock: SchedulerService = {
+      start: vi.fn<SchedulerService['start']>(),
+      stop: vi.fn<SchedulerService['stop']>(),
+      getState: vi.fn<SchedulerService['getState']>(),
+      startOrchestration: vi.fn<SchedulerService['startOrchestration']>(),
+      stopOrchestration: vi.fn<SchedulerService['stopOrchestration']>(),
+      trigger: vi.fn<SchedulerService['trigger']>(),
+    };
     // Create mock Fastify instance for sync function
-    const mockFastify = {
+    const mockFastify: SchedulerContext = {
       db,
       tmdb: tmdbServiceMock,
-      log: {
-        info: vi.fn<() => void>(),
-        error: vi.fn<() => void>(),
-        warn: vi.fn<() => void>(),
-        debug: vi.fn<() => void>(),
-      },
-    } as unknown as FastifyInstance;
+      log: loggerMock,
+      jellyfin: jellyfinMock,
+      scheduler: schedulerMock,
+    };
 
     // Use the actual sync logic with mocked TMDB responses
     await syncCatalogCache(mockFastify);
@@ -108,9 +135,9 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     vi.useRealTimers();
   });
 
-  async function createCatalogUser(email: string) {
+  function createCatalogUser(email: string) {
     vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
-    return await createTestUserInDb(db, { email });
+    return createTestUserInDb(db, { email });
   }
 
   it('should score and sort popular media consistently - no user', async () => {

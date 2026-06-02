@@ -1,4 +1,10 @@
-import type { GenreKey, InteractionFilter, SearchType, Media } from '@findarr/shared';
+import {
+  type GenreKey,
+  type InteractionFilter,
+  type SearchType,
+  type Media,
+  isDefined,
+} from '@findarr/shared';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -273,7 +279,7 @@ export function ExplorePage() {
       results,
       currentPage,
       totalPages,
-      ...(feedId ? { feedId } : {}),
+      ...(isDefined(feedId) ? { feedId } : {}),
       scrollY: window.scrollY,
     });
   }, [
@@ -421,7 +427,7 @@ export function ExplorePage() {
           results: filtered,
           currentPage,
           totalPages,
-          ...(feedId ? { feedId } : {}),
+          ...(isDefined(feedId) ? { feedId } : {}),
           scrollY: window.scrollY,
         });
       }
@@ -500,7 +506,7 @@ export function ExplorePage() {
                       void loadFeed({
                         page: currentPage + 1,
                         append: true,
-                        ...(feedId ? { currentFeedId: feedId } : {}),
+                        ...(isDefined(feedId) ? { currentFeedId: feedId } : {}),
                       });
                     }
                   }}

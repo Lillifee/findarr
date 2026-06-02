@@ -1,14 +1,12 @@
 import type { TmdbSettings, TmdbSettingsQuery } from '@findarr/shared';
-import { TmdbSettingsQuerySchema } from '@findarr/shared';
+import { isDefined, objectKeys, TmdbSettingsQuerySchema } from '@findarr/shared';
 
 import type { Database } from '../db/service.js';
 import { readSettings, writeSettings } from '../settings/repository.js';
 
 export type TmdbSettingsFull = TmdbSettings & { tmdbAccessToken: string | null };
 
-type TmdbSettingKeys = Extract<keyof typeof TmdbSettingsQuerySchema.shape, string>;
-
-const tmdbKeys = Object.keys(TmdbSettingsQuerySchema.shape) as TmdbSettingKeys[];
+const tmdbKeys = objectKeys(TmdbSettingsQuerySchema.shape);
 
 export async function setTmdbSettings(db: Database, settings: TmdbSettingsQuery): Promise<void> {
   await writeSettings(db, settings);
@@ -17,7 +15,7 @@ export async function setTmdbSettings(db: Database, settings: TmdbSettingsQuery)
 export async function getTmdbSettingsFull(db: Database): Promise<TmdbSettingsFull> {
   const settingsValues = await readSettings(db, tmdbKeys);
   return {
-    tmdbAccessTokenSet: !!settingsValues.tmdbAccessToken,
+    tmdbAccessTokenSet: isDefined(settingsValues.tmdbAccessToken),
     tmdbAccessToken: settingsValues.tmdbAccessToken,
   };
 }

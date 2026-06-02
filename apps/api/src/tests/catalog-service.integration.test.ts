@@ -1,4 +1,4 @@
-import type { DiscoverResponse, MediaDetails, SearchResponse } from '@findarr/shared';
+import type { DiscoverResponse, Genre, MediaDetails, SearchResponse } from '@findarr/shared';
 import SqlDatabase from 'better-sqlite3';
 import { describe, it, expect, vi, beforeEach, afterEach, type Mocked } from 'vite-plus/test';
 
@@ -76,7 +76,7 @@ describe('catalog service - integration tests', () => {
       page: 1,
     };
     const detailsResult: MediaDetails = createTestMovieDetail({ tmdbId: 1 });
-    const genresResult = { genres: [] };
+    const genresResult: Genre[] = [];
 
     tmdbServiceMock.search.mockResolvedValue(searchResult);
     tmdbServiceMock.discover.mockResolvedValue(fetchResult);

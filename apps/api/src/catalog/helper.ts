@@ -1,3 +1,5 @@
+import { isDefined } from '@findarr/shared';
+
 export interface FeedSnapshot<T> {
   id: string;
   items: T[];
@@ -26,7 +28,7 @@ export function createFeedSnapshotStore<T>(ttlMs: number = 5 * 60 * 1000) {
   }
 
   function getSnapshot(feedId: string | undefined): FeedSnapshot<T> | null {
-    if (!feedId) {
+    if (!isDefined(feedId)) {
       return null;
     }
 

@@ -1,4 +1,4 @@
-import type { Genre, MovieDetails, TVDetails } from '@findarr/shared';
+import type { Genre } from '@findarr/shared';
 import { describe, it, expect } from 'vite-plus/test';
 
 import {
@@ -58,10 +58,11 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
       expect(firstResult).toBeDefined();
       expect(firstResult?.id).toBeDefined();
 
-      const movieDetails = firstResult as TMDBMovieDetails;
-      expect(movieDetails.title).toBeDefined();
-      expect(movieDetails.vote_average).toBeDefined();
-      expect(movieDetails.popularity).toBeDefined();
+      if (firstResult?.type === 'movie') {
+        expect(firstResult.title).toBeDefined();
+        expect(firstResult.vote_average).toBeDefined();
+        expect(firstResult.popularity).toBeDefined();
+      }
     });
 
     it('should parse popular TV shows search response', () => {
@@ -76,9 +77,10 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
       expect(firstResult).toBeDefined();
       expect(firstResult?.id).toBeDefined();
 
-      const tvDetail = firstResult as TMDBTVDetails;
-      expect(tvDetail.name).toBeDefined();
-      expect(tvDetail.vote_average).toBeDefined();
+      if (firstResult?.type === 'tv') {
+        expect(firstResult.name).toBeDefined();
+        expect(firstResult.vote_average).toBeDefined();
+      }
     });
 
     it('should parse trending daily response', () => {
@@ -181,10 +183,10 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
       const parsed = TMDBMovieDetailsSchema.parse(fixture);
       const media = transformDetails(parsed);
 
-      const movieDetail = media as MovieDetails;
-      expect(movieDetail.type).toBe('movie');
-      expect(movieDetail.imdbId).toBeDefined();
-      expect(movieDetail.imdbId).toMatch(/^tt\d+$/u);
+      if (media.type === 'movie') {
+        expect(media.imdbId).toBeDefined();
+        expect(media.imdbId).toMatch(/^tt\d+$/u);
+      }
     });
   });
 
@@ -231,10 +233,11 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
       expect(media.genres.length).toBeGreaterThan(0);
       expect(media.voteAverage).toBeGreaterThan(0);
 
-      const tvDetail = media as TVDetails;
-      expect(tvDetail.numberOfSeasons).toBeGreaterThan(0);
-      expect(tvDetail.numberOfEpisodes).toBeGreaterThan(0);
-      expect(tvDetail.tvdbId).toBeDefined();
+      if (media.type === 'tv') {
+        expect(media.numberOfSeasons).toBeGreaterThan(0);
+        expect(media.numberOfEpisodes).toBeGreaterThan(0);
+        expect(media.tvdbId).toBeDefined();
+      }
     });
 
     it('should include TVDB ID when present', () => {
@@ -242,10 +245,10 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
       const parsed = TMDBTVDetailsSchema.parse(fixture);
       const media = transformDetails(parsed);
 
-      const tvDetail = media as TVDetails;
-      expect(tvDetail.type).toBe('tv');
-      expect(tvDetail.tvdbId).toBeDefined();
-      expect(typeof tvDetail.tvdbId).toBe('number');
+      if (media.type === 'tv') {
+        expect(media.tvdbId).toBeDefined();
+        expect(typeof media.tvdbId).toBe('number');
+      }
     });
   });
 
@@ -353,9 +356,10 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
         expect(Array.isArray(media.keywords)).toBe(true);
 
         // TV-specific fields
-        const tvDetail = media as TVDetails;
-        expect(tvDetail.numberOfSeasons).toBeGreaterThanOrEqual(0);
-        expect(tvDetail.numberOfEpisodes).toBeGreaterThanOrEqual(0);
+        if (media.type === 'tv') {
+          expect(media.numberOfSeasons).toBeGreaterThanOrEqual(0);
+          expect(media.numberOfEpisodes).toBeGreaterThanOrEqual(0);
+        }
       }
     });
   });

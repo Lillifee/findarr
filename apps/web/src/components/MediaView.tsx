@@ -1,4 +1,4 @@
-import { type MovieDetails, type TVDetails, type Media } from '@findarr/shared';
+import { type MovieDetails, type TVDetails, type Media, isDefined } from '@findarr/shared';
 import { useState } from 'react';
 
 import { linkService } from '../services/api.js';
@@ -17,11 +17,11 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
   // Common data extraction
   const title = media.name;
   const releaseDate = media.date;
-  const releaseYear = (releaseDate && new Date(releaseDate).getFullYear()) || '';
-  const posterUrl = media.posterPath
+  const releaseYear = (isDefined(releaseDate) && new Date(releaseDate).getFullYear()) || '';
+  const posterUrl = isDefined(media.posterPath)
     ? `https://image.tmdb.org/t/p/w500${media.posterPath}`
     : undefined;
-  const backdropUrl = media.backdropPath
+  const backdropUrl = isDefined(media.backdropPath)
     ? `https://image.tmdb.org/t/p/original${media.backdropPath}`
     : undefined;
 
@@ -41,7 +41,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
 
   // Format helpers
   const formatRuntime = (value: number | number[] | undefined) => {
-    if (!value) return 'Unknown';
+    if (!isDefined(value)) return 'Unknown';
     if (Array.isArray(value)) {
       if (value.length === 0) return 'Unknown';
       if (value.length === 1) return `${value[0]}m`;
@@ -58,7 +58,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
   const infoLabelClass = 'text-[10px] uppercase tracking-[0.14em] text-gray-400 font-semibold';
 
   // Build Radarr/Sonarr link
-  const arrLink = media.state?.record?.arrUrl
+  const arrLink = isDefined(media.state?.record?.arrUrl)
     ? {
         url:
           media.type === 'movie'
@@ -69,7 +69,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
     : null;
 
   // Build Jellyfin link
-  const jellyfinLink = media.state?.record?.jellyfinId
+  const jellyfinLink = isDefined(media.state?.record?.jellyfinId)
     ? {
         url: linkService.jellyfin({ mediaId: media.state.record.id }),
         label: 'Jellyfin',
@@ -77,17 +77,23 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
     : null;
 
   const actionLinks = [
-    trailerUrl ? { key: 'trailer', url: trailerUrl, label: 'Trailer' } : null,
-    altTrailerUrl ? { key: 'altTrailer', url: altTrailerUrl, label: 'Search Trailer' } : null,
-    media.homepage ? { key: 'website', url: media.homepage, label: 'Website' } : null,
-    arrLink ? { key: arrLink.label.toLowerCase(), url: arrLink.url, label: arrLink.label } : null,
-    jellyfinLink ? { key: 'jellyfin', url: jellyfinLink.url, label: jellyfinLink.label } : null,
+    isDefined(trailerUrl) ? { key: 'trailer', url: trailerUrl, label: 'Trailer' } : null,
+    isDefined(altTrailerUrl)
+      ? { key: 'altTrailer', url: altTrailerUrl, label: 'Search Trailer' }
+      : null,
+    isDefined(media.homepage) ? { key: 'website', url: media.homepage, label: 'Website' } : null,
+    isDefined(arrLink)
+      ? { key: arrLink.label.toLowerCase(), url: arrLink.url, label: arrLink.label }
+      : null,
+    isDefined(jellyfinLink)
+      ? { key: 'jellyfin', url: jellyfinLink.url, label: jellyfinLink.label }
+      : null,
   ].filter((link): link is { key: string; url: string; label: string } => !!link);
 
   return (
     <div className="relative min-h-screen bg-gray-900">
       {/* Full-page backdrop background */}
-      {backdropUrl && (
+      {isDefined(backdropUrl) && (
         <div className="fixed inset-0 z-0">
           <img
             src={backdropUrl}
@@ -106,7 +112,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
         {/* Main content grid: poster left, details right */}
         <div className="mb-12 flex flex-col gap-6 md:flex-row md:gap-8">
           {/* Poster */}
-          {posterUrl && (
+          {isDefined(posterUrl) && (
             <div className="shrink-0">
               <img
                 src={posterUrl}
@@ -123,7 +129,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
               <h1 className="mb-3 text-4xl font-bold text-white drop-shadow-lg md:text-5xl lg:text-6xl">
                 {title}
               </h1>
-              {media.type === 'movie' && media.tagline && (
+              {media.type === 'movie' && isDefined(media.tagline) && (
                 <p className="text-xl text-gray-300 italic drop-shadow-md md:text-2xl">
                   &quot;{media.tagline}&quot;
                 </p>
@@ -250,7 +256,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                   </div>
                 </div>
 
-                {releaseDate && (
+                {isDefined(releaseDate) && (
                   <div className={infoTileClass}>
                     <p className={infoLabelClass}>Release Date</p>
                     <div className="mt-1.5 flex items-center gap-2 text-sm font-semibold text-gray-100">
@@ -309,7 +315,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                 </div>
               </div>
 
-              {media.genres && media.genres.length > 0 && (
+              {isDefined(media.genres) && media.genres.length > 0 && (
                 <div className="mt-2 pt-2">
                   <div className="flex flex-wrap gap-2">
                     {media.genres.map((genre) => (
@@ -326,7 +332,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
             </div>
 
             {/* Overview */}
-            {media.overview && (
+            {isDefined(media.overview) && (
               <div className="mb-8">
                 <h2 className="mb-3 text-2xl font-semibold text-white drop-shadow-md">Overview</h2>
                 <p className="text-lg leading-relaxed text-gray-200 drop-shadow-sm">
@@ -342,7 +348,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                 <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
                   {topCast.map((actor) => (
                     <div key={actor.id} className="flex flex-col items-center">
-                      {actor.profilePath ? (
+                      {isDefined(actor.profilePath) ? (
                         <img
                           src={`https://image.tmdb.org/t/p/w185${actor.profilePath}`}
                           alt={actor.name}
@@ -415,6 +421,8 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
             }
             existingMedia={localMedia}
             onUpdate={(updatedMedia: Media) => {
+              // TODO fix media details
+              // oxlint-disable-next-line typescript/no-unsafe-type-assertion
               setLocalMedia(updatedMedia as MovieDetails | TVDetails);
               onVoteComplete?.();
             }}

@@ -21,7 +21,7 @@ export async function syncComplete(
   arrService: AnyArrService,
 ): Promise<void> {
   // Check if service is configured
-  const isConfigured = await arrService.isConfigured();
+  const isConfigured = arrService.isConfigured();
 
   if (!isConfigured) {
     context.log.debug(
@@ -89,7 +89,7 @@ export async function syncLibrary(
   if (mediaType === 'tv') {
     const existingTvdbIdSet = await getExistingTvdbIdSet(db);
     const queue = libraryItems.filter(
-      (item) => item?.tvdbId && !existingTvdbIdSet.has(item.tvdbId),
+      (item) => isDefined(item.tvdbId) && !existingTvdbIdSet.has(item.tvdbId),
     );
 
     if (queue.length > 0) {
@@ -160,12 +160,12 @@ export async function enrichTvShows(
   const { successCount } = await processWithWorkerPool({
     items: queue,
     processFn: async (item) => {
-      if (!item?.tvdbId) return null;
+      if (!isDefined(item.tvdbId)) return null;
 
       const tmdbId = await context.tmdb.findByExternalId('tv', item.tvdbId);
+      if (isDefined(tmdbId)) item.tmdbId = tmdbId;
 
-      if (tmdbId) item.tmdbId = tmdbId;
-      return tmdbId || null;
+      return tmdbId ?? null;
     },
     log,
   });
@@ -201,7 +201,7 @@ export async function syncQueue(
   const statusMap = new Map<number, MediaStatus>();
 
   for (const item of queueItems) {
-    if (!item.arrId) continue;
+    if (!isDefined(item.arrId)) continue;
 
     if (item.trackedDownloadStatus === 'warning') {
       statusMap.set(item.arrId, 'warning');

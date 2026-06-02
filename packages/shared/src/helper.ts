@@ -5,6 +5,12 @@ export const objectEntries = <T extends object, K extends keyof T>(object: T) =>
   // oxlint-disable-next-line typescript/no-unsafe-type-assertion
   Object.entries(object) as [keyof T, NonNullable<T[K]>][];
 
+export const objectFromEntries = <K extends PropertyKey, V>(
+  entries: Iterable<readonly [K, V]>,
+): Record<K, V> =>
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+  Object.fromEntries(entries) as Record<K, V>;
+
 export const objectKeys = <T extends object, K extends keyof T>(object: T) =>
   // oxlint-disable-next-line typescript/no-unsafe-type-assertion
   Object.keys(object) as K[];

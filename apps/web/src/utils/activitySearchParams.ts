@@ -19,10 +19,13 @@ export const readActivitySearchParams = (
   searchParams: URLSearchParams,
   defaults: ActivitySearchParamDefaults = {},
 ): ActivitySearchParamState => ({
+  // TODO fix types
   action:
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     (searchParams.get('action') as InteractionsQuery['action'] | null) ??
     defaults.action ??
     'liked',
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
   type: (searchParams.get('type') as SearchType | null) ?? defaults.type ?? 'both',
 });
 

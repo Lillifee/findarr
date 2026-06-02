@@ -1,4 +1,4 @@
-import { type RegionGroupId } from '@findarr/shared';
+import { objectKeys, type RegionGroupId } from '@findarr/shared';
 import React from 'react';
 
 import { OptionButton } from './ui/OptionButton';
@@ -43,7 +43,7 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
   onRegionsChange,
   disabled = false,
 }) => {
-  const allRegions = Object.keys(REGION_INFO) as RegionGroupId[];
+  const allRegions = objectKeys(REGION_INFO);
 
   const handleRegionToggle = (regionId: RegionGroupId) => {
     if (selectedRegions.includes(regionId)) {
@@ -107,7 +107,9 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
           return (
             <OptionButton
               key={regionId}
-              onClick={() => handleRegionToggle(regionId)}
+              onClick={() => {
+                handleRegionToggle(regionId);
+              }}
               disabled={disabled}
               selected={isSelected}
               title={

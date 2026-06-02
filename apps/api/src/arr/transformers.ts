@@ -2,6 +2,8 @@
  * Transformers to convert Radarr/Sonarr API responses to unified ArrLibraryItem type
  * These functions map the raw API data structure to our unified internal structure
  */
+import { isDefined } from '@findarr/shared';
+
 import type { ArrLibraryItem, RadarrMovie, SonarrSeries } from './schemas.js';
 
 /**
@@ -43,8 +45,8 @@ export function transformSonarrSeries(series: SonarrSeries): ArrLibraryItem {
     year: series.year,
     monitored: series.monitored,
     hasFile: (series.statistics?.episodeFileCount ?? 0) > 0,
-    ...(series.titleSlug && { arrUrl: `/series/${series.titleSlug}` }),
-    ...(seasons && { seasons }),
+    ...(isDefined(series.titleSlug) && { arrUrl: `/series/${series.titleSlug}` }),
+    ...(isDefined(seasons) && { seasons }),
   };
 }
 

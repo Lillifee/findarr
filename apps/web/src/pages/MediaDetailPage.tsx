@@ -1,4 +1,4 @@
-import type { MediaDetails } from '@findarr/shared';
+import { isDefined, type MediaDetails } from '@findarr/shared';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 
@@ -23,7 +23,7 @@ export function MediaDetailPage() {
     window.scrollTo(0, 0);
 
     const loadDetails = async () => {
-      if (!id) {
+      if (!isDefined(id)) {
         setError('Invalid media ID');
         setLoading(false);
         return;
@@ -81,7 +81,7 @@ export function MediaDetailPage() {
         </div>
       )}
 
-      {error && !loading && (
+      {isDefined(error) && !loading && (
         <div className="relative z-10 mx-auto max-w-6xl px-4 py-32 text-center md:px-8">
           <div className="flex flex-col items-center gap-4">
             <svg

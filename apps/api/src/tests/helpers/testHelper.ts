@@ -10,6 +10,8 @@ import {
 import { createUser } from '../../auth/repository.js';
 import type { Database } from '../../db/service.js';
 
+// TODO mock type
+// oxlint-disable-next-line typescript/no-unsafe-type-assertion
 export const mockDb = {} as unknown as Database;
 
 // Utility functions to assert
@@ -17,7 +19,7 @@ export const mockDb = {} as unknown as Database;
 export function assertDefined<T>(value: T): asserts value is NonNullable<T> {
   /* v8 ignore start */
   if (!isDefined(value)) {
-    throw new Error(`Expected value to be defined, but got ${value}`);
+    throw new Error(`Expected value to be defined`);
   }
   /* v8 ignore end */
 }
@@ -95,8 +97,8 @@ export const createTestMovieDetail = (props?: Partial<MovieDetails>): MovieDetai
 
 // Factory function to create data in the database for testing
 
-export const createTestUserInDb = async (db: Database, props?: Partial<CreateUser>) =>
-  await createUser(db, {
+export const createTestUserInDb = (db: Database, props?: Partial<CreateUser>) =>
+  createUser(db, {
     email: 'user@test.com',
     password: 'password',
     displayName: 'Test User',

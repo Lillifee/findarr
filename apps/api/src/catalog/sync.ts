@@ -1,4 +1,4 @@
-import type { Media } from '@findarr/shared';
+import { isDefined, type Media } from '@findarr/shared';
 
 import { seedMediaStats, upsertMediaStats } from '../media/repository.js';
 import type { SchedulerContext } from '../scheduler/types.js';
@@ -17,7 +17,7 @@ import {
  * Keywords are enriched separately by enrichCatalogKeywords()
  */
 export async function syncCatalogCache(context: SchedulerContext): Promise<void> {
-  if (!(await context.tmdb.isConfigured())) return;
+  if (!context.tmdb.isConfigured()) return;
 
   const startTime = Date.now();
   context.log.info({ name: 'catalog', phase: 'cache-sync' }, 'Starting cache sync');
@@ -183,7 +183,7 @@ function deduplicateMediaByTmdbKey(items: Media[]): Media[] {
     const key = `${item.tmdbId}_${item.type}`;
     const existingItem = mediaByTmdbKey.get(key);
     // Prefer items with trendingRank (from trending) over discover results
-    if (!existingItem || item.trendingRank) {
+    if (!existingItem || isDefined(item.trendingRank)) {
       mediaByTmdbKey.set(key, item);
     }
   }

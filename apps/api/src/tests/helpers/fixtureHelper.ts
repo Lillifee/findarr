@@ -10,12 +10,14 @@ const currentDirname = dirname(currentFilename);
  * @param relativePath - Path relative to server/fixtures/ (e.g., 'tmdb/movie-550.json')
  * @returns Parsed JSON object
  */
-export function loadFixture<T = unknown>(relativePath: string): T {
+// oxlint-disable-next-line typescript/no-unnecessary-type-parameters
+export function loadFixture<T>(relativePath: string): T {
   const fixturesRoot = join(currentDirname, '../../../fixtures');
   const filePath = join(fixturesRoot, relativePath);
 
   try {
     const content = readFileSync(filePath, 'utf8');
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     return JSON.parse(content) as T;
   } catch (error) {
     throw new Error(
@@ -30,7 +32,7 @@ export function loadFixture<T = unknown>(relativePath: string): T {
  * @param directoryPath - Path relative to server/fixtures/ (e.g., 'tmdb/movies')
  * @returns Array of parsed JSON objects
  */
-export function loadAllFixtures<T = unknown>(directoryPath: string): T[] {
+export function loadAllFixtures<T>(directoryPath: string): T[] {
   const fixturesRoot = join(currentDirname, '../../../fixtures');
   const fullPath = join(fixturesRoot, directoryPath);
 
@@ -38,7 +40,7 @@ export function loadAllFixtures<T = unknown>(directoryPath: string): T[] {
     const files = readdirSync(fullPath);
     return files
       .filter((file: string) => file.endsWith('.json'))
-      .map((file: string) => loadFixture<T>(join(directoryPath, file)));
+      .map((file: string) => loadFixture(join(directoryPath, file)));
   } catch (error) {
     throw new Error(
       `Failed to load fixtures from ${directoryPath}: ${error instanceof Error ? error.message : String(error)}`,

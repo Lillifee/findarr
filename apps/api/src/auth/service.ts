@@ -40,7 +40,8 @@ export const isPasswordSetupRequired = async (db: Database, userId: number) => {
     throw Unauthorized('Authentication required');
   }
 
-  return await isAdminPasswordSetupRequired(user);
+  const setupRequired = await isAdminPasswordSetupRequired(user);
+  return setupRequired;
 };
 
 export const isAdminPasswordSetupRequired = (user: UserWithPassword) =>

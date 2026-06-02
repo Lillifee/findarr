@@ -14,8 +14,7 @@ export default defineConfig({
     plugins: ['eslint', 'typescript', 'react', 'react-perf', 'oxc', 'import', 'promise', 'vitest'],
     // Todo add more jsx-a11y
 
-    // options: { typeAware: true, typeCheck: true },
-    // options: { typeAware: true },
+    options: { typeAware: true, typeCheck: true },
 
     env: {
       browser: true,

@@ -1,5 +1,4 @@
 import SqlDatabase from 'better-sqlite3';
-import type { FastifyInstance } from 'fastify';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 import { arrConfig } from '../arr/config.js';
@@ -13,6 +12,7 @@ import type { AnyArrService } from '../arr/service.js';
 import { syncQueue } from '../arr/sync.js';
 import { createDatabase, type Database } from '../db/service.js';
 import { createMedia, getMediaByTmdbId } from '../media/repository.js';
+import type { SchedulerContext } from '../scheduler/types.js';
 
 describe('arr sync collision handling - integration tests', () => {
   let db: Database;
@@ -65,21 +65,44 @@ describe('arr sync collision handling - integration tests', () => {
     await updateMediaIds(db, movie.id, { arrId: 77, arrUrl: '/movie/123' });
     await updateMediaIds(db, show.id, { arrId: 77, arrUrl: '/series/test-show' });
 
-    const fastify = {
+    // TODO create a shared test helper to create mocks
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+    const fastify: SchedulerContext = {
       db,
       log: {
         warn: vi.fn<() => void>(),
       },
-    } as unknown as FastifyInstance;
+    } as unknown as SchedulerContext;
 
-    const radarrService = {
+    const radarrService: AnyArrService = {
       config: arrConfig.radarr,
-      getQueue: vi
-        .fn<(pageSize: number) => Promise<ArrQueueItem[]>>()
-        .mockResolvedValue([
-          { arrId: 77, trackedDownloadStatus: 'downloading', id: 1 } as ArrQueueItem,
-        ]),
-    } as unknown as AnyArrService;
+      getQueue: vi.fn<(pageSize: number) => Promise<ArrQueueItem[]>>().mockResolvedValue([
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+        { arrId: 77, trackedDownloadStatus: 'downloading', id: 1 } as ArrQueueItem,
+      ]),
+      getSettings: vi.fn<AnyArrService['getSettings']>().mockResolvedValue({
+        apiKeySet: true,
+        qualityProfileId: 1,
+        rootFolderPath: 'path',
+        url: '192.168.1.14:7878',
+      }),
+      testConnection: vi.fn<AnyArrService['testConnection']>().mockResolvedValue(true),
+      testAndSync: vi.fn<AnyArrService['testAndSync']>().mockResolvedValue(true),
+      isConfigured: vi.fn<AnyArrService['isConfigured']>().mockReturnValue(true),
+      listLibraryItems: vi.fn<AnyArrService['listLibraryItems']>().mockResolvedValue([]),
+      listQualityProfiles: vi.fn<AnyArrService['listQualityProfiles']>().mockResolvedValue([]),
+      listRootFolders: vi.fn<AnyArrService['listRootFolders']>().mockResolvedValue([]),
+      requestMedia: vi.fn<AnyArrService['requestMedia']>().mockResolvedValue(undefined),
+      resolveMediaUrl: vi
+        .fn<AnyArrService['resolveMediaUrl']>()
+        .mockResolvedValue('http://example.com/media'),
+      setSettings: vi.fn<AnyArrService['setSettings']>().mockResolvedValue({
+        apiKeySet: true,
+        qualityProfileId: 1,
+        rootFolderPath: 'path',
+        url: '192.168.1.14:7878',
+      }),
+    };
 
     await syncQueue(fastify, radarrService, new Set());
 

@@ -169,7 +169,7 @@ const catalogService: CatalogService = {
           }),
     ),
   ),
-  listGenres: vi.fn<CatalogService['listGenres']>().mockResolvedValue({ genres: [] }),
+  listGenres: vi.fn<CatalogService['listGenres']>().mockResolvedValue([]),
   getAvailableMedia: vi
     .fn<CatalogService['getAvailableMedia']>()
     .mockResolvedValue({ results: [], page: 1, totalPages: 0 }),

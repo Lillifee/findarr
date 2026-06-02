@@ -24,11 +24,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "skipLibCheck": true,
-    "verbatimModuleSyntax": true,
-
-    "paths": {
-      "@findarr/shared": ["../../packages/shared/src/index.ts"]
-    }
+    "verbatimModuleSyntax": true
   },
   "include": ["src"]
 }

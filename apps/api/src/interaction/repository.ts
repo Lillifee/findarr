@@ -104,7 +104,7 @@ export async function getInteractionsBatch(
   });
 
   for (const { mediaId, id, action, createdAt } of rows) {
-    const interactions = interactionsMap.get(mediaId) || [];
+    const interactions = interactionsMap.get(mediaId) ?? [];
     interactions.push({ id, action, createdAt });
     interactionsMap.set(mediaId, interactions);
   }
@@ -179,7 +179,7 @@ export async function getMediaByUserInteractions(
     .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
     .where(whereClause);
 
-  const totalCount = Number(countResult[0]?.count ?? 0);
+  const totalCount = countResult[0]?.count ?? 0;
 
   let query = db
     .selectDistinct(getTableColumns(media))
@@ -188,10 +188,13 @@ export async function getMediaByUserInteractions(
     .where(whereClause)
     .orderBy(desc(userMediaInteractions.createdAt), desc(media.updatedAt));
 
+  // TODO fix typings
   if (options.limit !== undefined) {
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     query = query.limit(options.limit) as typeof query;
   }
   if (options.offset !== undefined) {
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     query = query.offset(options.offset) as typeof query;
   }
 
@@ -230,7 +233,7 @@ export async function getMediaByUserAttention(
     .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
     .where(whereClause);
 
-  const totalCount = Number(countResult[0]?.count ?? 0);
+  const totalCount = countResult[0]?.count ?? 0;
 
   let query = db
     .selectDistinct(getTableColumns(media))
@@ -239,10 +242,13 @@ export async function getMediaByUserAttention(
     .where(whereClause)
     .orderBy(desc(userMediaInteractions.createdAt), desc(media.updatedAt));
 
+  // TODO fix typings
   if (options.limit !== undefined) {
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     query = query.limit(options.limit) as typeof query;
   }
   if (options.offset !== undefined) {
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     query = query.offset(options.offset) as typeof query;
   }
 
@@ -284,8 +290,8 @@ export async function getVoteCounts(
     .from(userMediaInteractions)
     .where(eq(userMediaInteractions.mediaId, mediaId));
 
-  const likes = result[0]?.likes || 0;
-  const dislikes = result[0]?.dislikes || 0;
+  const likes = result[0]?.likes ?? 0;
+  const dislikes = result[0]?.dislikes ?? 0;
 
   return { likes, dislikes };
 }

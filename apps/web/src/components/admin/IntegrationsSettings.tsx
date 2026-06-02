@@ -121,9 +121,8 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
     connectionDirty ||
     selectedProfileId !== (normalizedSettings.qualityProfileId?.toString() ?? '') ||
     selectedRootFolder !== (normalizedSettings.rootFolderPath ?? '');
-  const hasSavedConnectionSettings = Boolean(
-    normalizedSettings.url && normalizedSettings.apiKeySet,
-  );
+  const hasSavedConnectionSettings =
+    isDefined(normalizedSettings.url) && normalizedSettings.apiKeySet;
   const canTestConnection = hasSavedConnectionSettings && !connectionDirty;
   const connectionEstablished = canTestConnection && Boolean(testResult);
   const feedback = error
@@ -196,7 +195,7 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
       if (apiKeyInput) body['apiKey'] = apiKeyInput;
       if (selectedProfileId) body['qualityProfileId'] = Number.parseInt(selectedProfileId, 10);
       if (selectedRootFolder) body['rootFolderPath'] = selectedRootFolder;
-      const savedSettings = await svc.saveSettings(body as never);
+      const savedSettings = await svc.saveSettings(body);
       const saved = savedSettings;
 
       setSettings(savedSettings);
@@ -230,7 +229,7 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
     );
   } else if (!hasSavedConnectionSettings) {
     statusBadge = <span className={`${badgeBase} bg-gray-700 text-gray-400`}>Not configured</span>;
-  } else if (!testResult) {
+  } else if (!isDefined(testResult)) {
     statusBadge = (
       <span className={`${badgeBase} border border-blue-700/70 bg-blue-900/40 text-blue-300`}>
         Ready to test
@@ -270,7 +269,9 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
               <Input
                 type="url"
                 value={urlInput}
-                onChange={(e) => handleUrlChange(e.target.value)}
+                onChange={(e) => {
+                  handleUrlChange(e.target.value);
+                }}
                 placeholder="http://localhost:7878"
               />
             </div>
@@ -287,7 +288,9 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
               <Input
                 type="password"
                 value={apiKeyInput}
-                onChange={(e) => handleApiKeyChange(e.target.value)}
+                onChange={(e) => {
+                  handleApiKeyChange(e.target.value);
+                }}
                 placeholder={normalizedSettings.apiKeySet ? '••••••••••••••••' : 'Enter API key'}
                 autoComplete="new-password"
               />
@@ -304,7 +307,9 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
               {connectionEstablished && profiles.length > 0 ? (
                 <SelectInput
                   value={selectedProfileId}
-                  onChange={(e) => handleProfileChange(e.target.value)}
+                  onChange={(e) => {
+                    handleProfileChange(e.target.value);
+                  }}
                 >
                   <option value="">— Select quality profile —</option>
                   {profiles.map((p) => (
@@ -326,7 +331,9 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
               {connectionEstablished && rootFolders.length > 0 ? (
                 <SelectInput
                   value={selectedRootFolder}
-                  onChange={(e) => handleRootFolderChange(e.target.value)}
+                  onChange={(e) => {
+                    handleRootFolderChange(e.target.value);
+                  }}
                 >
                   <option value="">— Select root folder —</option>
                   {rootFolders.map((f) => (
@@ -358,7 +365,11 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
                 variant="secondary"
                 size="sm"
               >
-                {isTesting ? 'Testing…' : testResult ? 'Synchronize' : 'Test & Synchronize'}
+                {isTesting
+                  ? 'Testing…'
+                  : isDefined(testResult)
+                    ? 'Synchronize'
+                    : 'Test & Synchronize'}
               </Button>
             )}
           </div>
@@ -401,7 +412,7 @@ function JellyfinSection() {
   }
 
   const isDirty = urlInput !== (savedUrl ?? '') || apiKeyInput !== '';
-  const hasSavedSettings = Boolean(savedUrl && savedApiKeySet);
+  const hasSavedSettings = isDefined(savedUrl) && savedApiKeySet;
   const canTestConnection = hasSavedSettings && !isDirty;
   const feedback = error
     ? { tone: 'error' as const, message: error }
@@ -487,7 +498,7 @@ function JellyfinSection() {
     );
   } else if (!hasSavedSettings) {
     statusBadge = <span className={`${badgeBase} bg-gray-700 text-gray-400`}>Not configured</span>;
-  } else if (!testResult) {
+  } else if (!isDefined(testResult)) {
     statusBadge = (
       <span className={`${badgeBase} border border-blue-700/70 bg-blue-900/40 text-blue-300`}>
         Ready to test
@@ -527,7 +538,9 @@ function JellyfinSection() {
             <Input
               type="url"
               value={urlInput}
-              onChange={(e) => handleUrlChange(e.target.value)}
+              onChange={(e) => {
+                handleUrlChange(e.target.value);
+              }}
               placeholder="http://localhost:8096"
             />
           </div>
@@ -543,7 +556,9 @@ function JellyfinSection() {
             <Input
               type="password"
               value={apiKeyInput}
-              onChange={(e) => handleApiKeyChange(e.target.value)}
+              onChange={(e) => {
+                handleApiKeyChange(e.target.value);
+              }}
               placeholder={savedApiKeySet ? '••••••••••••••••' : 'Enter API key'}
               autoComplete="new-password"
             />
@@ -563,7 +578,11 @@ function JellyfinSection() {
                 variant="secondary"
                 size="sm"
               >
-                {isTesting ? 'Testing…' : testResult ? 'Synchronize' : 'Test & Synchronize'}
+                {isTesting
+                  ? 'Testing…'
+                  : isDefined(testResult)
+                    ? 'Synchronize'
+                    : 'Test & Synchronize'}
               </Button>
             )}
           </div>
@@ -692,7 +711,7 @@ export function TmdbSection() {
     );
   } else if (!hasSavedSettings) {
     statusBadge = <span className={`${badgeBase} bg-gray-700 text-gray-400`}>Not configured</span>;
-  } else if (!testResult) {
+  } else if (!isDefined(testResult)) {
     statusBadge = (
       <span className={`${badgeBase} border border-blue-700/70 bg-blue-900/40 text-blue-300`}>
         Ready to test
@@ -739,7 +758,9 @@ export function TmdbSection() {
             <Input
               type="password"
               value={tokenInput}
-              onChange={(e) => handleTokenChange(e.target.value)}
+              onChange={(e) => {
+                handleTokenChange(e.target.value);
+              }}
               placeholder={savedTokenSet ? '••••••••••••••••' : 'Enter TMDB access token'}
               autoComplete="new-password"
             />
@@ -759,7 +780,11 @@ export function TmdbSection() {
                 variant="secondary"
                 size="sm"
               >
-                {isTesting ? 'Testing…' : testResult ? 'Synchronize' : 'Test & Synchronize'}
+                {isTesting
+                  ? 'Testing…'
+                  : isDefined(testResult)
+                    ? 'Synchronize'
+                    : 'Test & Synchronize'}
               </Button>
             )}
           </div>

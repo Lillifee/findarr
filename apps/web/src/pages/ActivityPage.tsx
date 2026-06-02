@@ -315,7 +315,9 @@ export function ActivityPage() {
     <>
       <FiltersToolbar
         selectedType={selectedType}
-        onTypeChange={(type) => reloadActivityWith({ type })}
+        onTypeChange={(type) => {
+          reloadActivityWith({ type });
+        }}
         selectedGenres={[]}
         onGenresChange={() => undefined}
         showFiltersButton
@@ -329,7 +331,9 @@ export function ActivityPage() {
             <div className="grid gap-2.5 md:grid-cols-3">
               <OptionButton
                 selected={actionFilter === 'all'}
-                onClick={() => reloadActivityWith({ action: 'all' })}
+                onClick={() => {
+                  reloadActivityWith({ action: 'all' });
+                }}
                 title="All activity"
                 description="Show everything you have voted on."
                 icon={
@@ -346,7 +350,9 @@ export function ActivityPage() {
               />
               <OptionButton
                 selected={actionFilter === 'liked'}
-                onClick={() => reloadActivityWith({ action: 'liked' })}
+                onClick={() => {
+                  reloadActivityWith({ action: 'liked' });
+                }}
                 title="Upvotes"
                 description="Focus on titles you liked."
                 icon={
@@ -363,7 +369,9 @@ export function ActivityPage() {
               />
               <OptionButton
                 selected={actionFilter === 'disliked'}
-                onClick={() => reloadActivityWith({ action: 'disliked' })}
+                onClick={() => {
+                  reloadActivityWith({ action: 'disliked' });
+                }}
                 title="Downvotes"
                 description="Focus on titles you disliked."
                 icon={
