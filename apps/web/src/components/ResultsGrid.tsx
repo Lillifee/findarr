@@ -1,4 +1,4 @@
-import type { Media } from '@findarr/shared';
+import { isDefined, type Media } from '@findarr/shared';
 
 import { LikeDislikeButton } from './LikeDislikeButton';
 import { MediaTypeBadge } from './ui/MediaTypeBadge';
@@ -14,7 +14,7 @@ const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
 
 function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
   const title = item.name;
-  const year = item.date ? new Date(item.date).getFullYear() : 'N/A';
+  const year = isDefined(item.date) ? new Date(item.date).getFullYear() : 'N/A';
   const isLiked = item.state?.interactions?.find((i) => i.action === 'liked');
   const isDisliked = item.state?.interactions?.find((i) => i.action === 'disliked');
 
@@ -33,7 +33,7 @@ function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
         <MediaTypeBadge type={item.type} />
 
         {/* Poster Image */}
-        {item.posterPath ? (
+        {isDefined(item.posterPath) ? (
           <>
             <img
               src={`${TMDB_IMAGE_BASE}${item.posterPath}`}
@@ -68,7 +68,12 @@ function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
           </div>
 
           {/* Like/Dislike Buttons */}
-          <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="flex justify-center"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
             <LikeDislikeButton
               tmdbId={item.tmdbId}
               mediaType={item.type}
@@ -121,7 +126,9 @@ export function ResultsGrid({ results, onSelectItem, onUpdateItem }: ResultsGrid
         <MediaCard
           key={item.tmdbId}
           item={item}
-          onSelect={() => onSelectItem(item)}
+          onSelect={() => {
+            onSelectItem(item);
+          }}
           {...(onUpdateItem ? { onUpdate: onUpdateItem } : {})}
         />
       ))}

@@ -1,4 +1,4 @@
-import type { GenreKey, InteractionFilter, SearchType } from '@findarr/shared';
+import { isDefined, type GenreKey, type InteractionFilter, type SearchType } from '@findarr/shared';
 
 interface CatalogSearchParamDefaults {
   interaction?: InteractionFilter;
@@ -26,14 +26,18 @@ export const readCatalogSearchParams = (
   searchParams: URLSearchParams,
   defaults: CatalogSearchParamDefaults = {},
 ): CatalogSearchParamState => {
+  // TODO fix typings
   const interaction =
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     (searchParams.get('interaction') as InteractionFilter | null) ?? defaults.interaction;
 
   return {
-    type: (searchParams.get('type') as SearchType | null) ?? defaults.type ?? 'both',
-    page: Number.parseInt(searchParams.get('page') || String(defaults.page ?? 1), 10),
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+    type: (searchParams.get('type') as SearchType | undefined) ?? defaults.type ?? 'both',
+    page: Number.parseInt(searchParams.get('page') ?? String(defaults.page ?? 1), 10),
     ...(interaction === undefined ? {} : { interaction }),
-    q: searchParams.get('q') || '',
+    q: searchParams.get('q') ?? '',
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     genres: searchParams.getAll('genres') as GenreKey[],
   };
 };
@@ -50,7 +54,7 @@ export const buildCatalogSearchParams = (next: CatalogSearchParamInput) => {
   if (next.interaction) {
     params.set('interaction', next.interaction);
   }
-  if (next.q) {
+  if (isDefined(next.q)) {
     params.set('q', next.q);
   }
 

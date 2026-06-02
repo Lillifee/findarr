@@ -1,3 +1,4 @@
+import { isDefined } from '@findarr/shared';
 import type { ReactNode, SelectHTMLAttributes } from 'react';
 
 export interface SelectInputProps extends SelectHTMLAttributes<HTMLSelectElement> {
@@ -21,7 +22,9 @@ export function SelectInput({
 
   return (
     <div className="w-full">
-      {label && <label className="mb-2 block text-sm font-medium text-gray-300">{label}</label>}
+      {isDefined(label) && (
+        <label className="mb-2 block text-sm font-medium text-gray-300">{label}</label>
+      )}
       <div className="relative">
         <select className={`${baseStyles} ${stateStyles} ${className}`} {...props}>
           {children}

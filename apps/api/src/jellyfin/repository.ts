@@ -1,6 +1,8 @@
 import {
+  isDefined,
   JellyfinSettingsQuerySchema,
   media,
+  objectKeys,
   type JellyfinSettings,
   type JellyfinSettingsQuery,
   type MediaType,
@@ -48,12 +50,7 @@ export async function upsertMediaFromJellyfin(
         existingSeasons.length > 0
           ? existingSeasons.map((season) => ({
               seasonNumber: season.seasonNumber,
-              status: (availableSet.has(season.seasonNumber) ? 'available' : season.status) as
-                | 'none'
-                | 'requested'
-                | 'monitored'
-                | 'downloaded'
-                | 'available',
+              status: availableSet.has(season.seasonNumber) ? 'available' : season.status,
             }))
           : null;
     }
@@ -157,9 +154,7 @@ export interface JellyfinSettingsFull extends JellyfinSettings {
   jellyfinApiKey: string | null;
 }
 
-type JellyfinSettingKeys = Extract<keyof typeof JellyfinSettingsQuerySchema.shape, string>;
-
-const jellyfinKeys = Object.keys(JellyfinSettingsQuerySchema.shape) as JellyfinSettingKeys[];
+const jellyfinKeys = objectKeys(JellyfinSettingsQuerySchema.shape);
 
 export async function setJellyfinSettings(
   db: Database,
@@ -172,7 +167,7 @@ export async function getJellyfinSettingsFull(db: Database): Promise<JellyfinSet
   const settingsValues = await readSettings(db, jellyfinKeys);
   return {
     jellyfinUrl: settingsValues.jellyfinUrl,
-    jellyfinApiKeySet: !!settingsValues.jellyfinApiKey,
+    jellyfinApiKeySet: isDefined(settingsValues.jellyfinApiKey),
     jellyfinApiKey: settingsValues.jellyfinApiKey,
   };
 }

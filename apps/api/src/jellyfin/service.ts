@@ -26,7 +26,7 @@ export async function createJellyfinService(context: JellyfinContext) {
     name: 'Jellyfin',
     loadSettings: () => getJellyfinSettingsFull(context.db),
     createClient: (settings) =>
-      settings.jellyfinUrl && settings.jellyfinApiKey
+      isDefined(settings.jellyfinUrl) && isDefined(settings.jellyfinApiKey)
         ? createJellyfinClient(settings.jellyfinUrl, settings.jellyfinApiKey)
         : undefined,
   });
@@ -99,7 +99,7 @@ export async function createJellyfinService(context: JellyfinContext) {
           const seasonNumbers = seasonsResponse.Items.filter(
             (season) =>
               season.Type === 'Season' && isDefined(season.IndexNumber) && season.IndexNumber > 0,
-          ).map((season) => season.IndexNumber as number);
+          ).map((season) => season.IndexNumber ?? 0);
 
           if (seasonNumbers.length > 0) {
             item.availableSeasons = seasonNumbers;
@@ -115,10 +115,10 @@ export async function createJellyfinService(context: JellyfinContext) {
 
   async function resolveMediaUrl(mediaId: number): Promise<string | null> {
     const mediaRecord = await getMediaById(context.db, mediaId);
-    if (!mediaRecord?.jellyfinId) return null;
+    if (!isDefined(mediaRecord?.jellyfinId)) return null;
 
     const { jellyfinUrl } = getSettings();
-    if (!jellyfinUrl) return null;
+    if (!isDefined(jellyfinUrl)) return null;
 
     return `${trimTrailingSlash(jellyfinUrl)}/web/index.html?#/details?id=${mediaRecord.jellyfinId}`;
   }

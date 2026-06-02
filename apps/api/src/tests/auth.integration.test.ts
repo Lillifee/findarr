@@ -2,6 +2,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
+import { isDefined } from '@findarr/shared';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
@@ -16,7 +17,7 @@ import { createTestUserInDb } from './helpers/testHelper.js';
 function getSessionCookie(reply: Awaited<ReturnType<FastifyInstance['inject']>>) {
   const header = reply.headers['set-cookie'];
 
-  if (!header) {
+  if (!isDefined(header)) {
     throw new Error('Expected set-cookie header');
   }
 
@@ -51,13 +52,14 @@ describe('auth routes - integration tests', () => {
         .mockResolvedValue({ tmdbAccessTokenSet: true }),
       isConfigured: vi.fn<TMDBService['isConfigured']>().mockReturnValue(true),
       testConnection: vi.fn<TMDBService['testConnection']>().mockResolvedValue(true),
+      testAndSync: vi.fn<TMDBService['testAndSync']>().mockResolvedValue(true),
       search: vi.fn<TMDBService['search']>(),
       discover: vi.fn<TMDBService['discover']>(),
       trending: vi.fn<TMDBService['trending']>(),
       details: vi.fn<TMDBService['details']>(),
       genres: vi.fn<TMDBService['genres']>(),
       findByExternalId: vi.fn<TMDBService['findByExternalId']>(),
-    } as unknown as TMDBService;
+    };
 
     app.decorate('tmdb', tmdbServiceMock);
 

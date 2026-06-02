@@ -1,3 +1,4 @@
+import { isDefined } from '@findarr/shared';
 import { create, type AxiosInstance } from 'axios';
 
 import { JellyfinItemsResponseSchema, type JellyfinItemsResponse } from './schemas.js';
@@ -40,7 +41,7 @@ export function createJellyfinClient(baseUrl: string, apiKey: string) {
       const response = await client.get('/Items', {
         params: {
           IncludeItemTypes: itemTypes.join(','),
-          ...(parentId && { ParentId: parentId }),
+          ...(isDefined(parentId) && { ParentId: parentId }),
           StartIndex: startIndex,
           Limit: limit,
           Recursive: recursive,

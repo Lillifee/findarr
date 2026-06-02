@@ -1,4 +1,4 @@
-import type { SchedulerInfo } from '@findarr/shared';
+import { isDefined, type SchedulerInfo } from '@findarr/shared';
 import { useState, useEffect } from 'react';
 
 import { schedulerService, adminSchedulerService } from '../../services/api';
@@ -79,7 +79,9 @@ export function Schedulers() {
     void loadSchedulers();
     // Refresh every 5 seconds
     const interval = setInterval(asVoid(loadSchedulers), 5000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
   async function loadSchedulers() {
@@ -250,7 +252,7 @@ export function Schedulers() {
               </div>
             </div>
 
-            {scheduler.lastError && (
+            {isDefined(scheduler.lastError) && (
               <div className="mb-3 rounded border border-red-700 bg-red-900/30 p-2 text-xs text-red-300">
                 {scheduler.lastError}
               </div>

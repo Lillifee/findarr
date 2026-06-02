@@ -23,9 +23,6 @@
     "skipLibCheck": true,
     "verbatimModuleSyntax": true,
 
-    "paths": {
-      "@findarr/shared": ["../../packages/shared/src/index.ts"]
-    },
     "types": ["node", "vitest/globals"]
   },
   "include": ["src", "**/*.test.ts"]

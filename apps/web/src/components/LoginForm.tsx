@@ -42,7 +42,9 @@ export function LoginForm() {
               type="email"
               label="Email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+              }}
               required
               placeholder="you@example.com"
             />
@@ -52,7 +54,9 @@ export function LoginForm() {
               type="password"
               label="Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+              }}
               required
               placeholder="••••••••"
             />

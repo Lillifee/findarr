@@ -1,5 +1,6 @@
 import {
   getErrorMessage,
+  isDefined,
   type SchedulerInfo,
   type SchedulerName,
   type SchedulerParams,
@@ -50,17 +51,21 @@ export function createSchedulerService(
       const shouldContinue = await scheduler.run(fastify);
 
       const duration = Date.now() - now;
-      const totalRuntime = scheduler.state.startedAt ? Date.now() - scheduler.state.startedAt : 0;
+      const totalRuntime = isDefined(scheduler.state.startedAt)
+        ? Date.now() - scheduler.state.startedAt
+        : 0;
 
       scheduler.state.lastRun = now;
       scheduler.state.lastDuration = duration;
 
       const exceededMaxRuntime =
-        shouldContinue && scheduler.config.maxRuntime && totalRuntime > scheduler.config.maxRuntime;
+        shouldContinue &&
+        isDefined(scheduler.config.maxRuntime) &&
+        totalRuntime > scheduler.config.maxRuntime;
 
       const belowMinRuntime =
         !shouldContinue &&
-        scheduler.config.minRuntime &&
+        isDefined(scheduler.config.minRuntime) &&
         totalRuntime < scheduler.config.minRuntime;
 
       if (exceededMaxRuntime) {
@@ -90,11 +95,11 @@ export function createSchedulerService(
             duration,
             totalRuntime,
             nextRunIn: Math.round(interval / 1000),
-            ...(belowMinRuntime && {
+            ...(isDefined(scheduler.config.minRuntime) && {
               minRuntime: scheduler.config.minRuntime,
             }),
           },
-          belowMinRuntime
+          isDefined(scheduler.config.minRuntime)
             ? 'Scheduler requested termination but within minimum runtime - rescheduling'
             : 'Scheduler completed',
         );
@@ -182,7 +187,7 @@ export function createSchedulerService(
       scheduler.state.enabled = true;
 
       // Initialize startedAt if first start
-      if (scheduler.state.startedAt === null) {
+      if (!isDefined(scheduler.state.startedAt)) {
         scheduler.state.startedAt = Date.now();
       }
 
@@ -236,7 +241,7 @@ export function createSchedulerService(
     /**
      * Start the orchestration loop
      */
-    async startOrchestration() {
+    startOrchestration() {
       fastify.log.info(
         { name: 'scheduler', tickIntervalSec: TICK_INTERVAL_MS / 1000 },
         'Starting scheduler orchestration',
@@ -244,7 +249,7 @@ export function createSchedulerService(
 
       // Initialize schedulers that should run on startup
       for (const scheduler of Object.values(schedulers)) {
-        if (scheduler.config.runOnStartup && scheduler.config.enabled) {
+        if (Boolean(scheduler.config.runOnStartup) && scheduler.config.enabled) {
           scheduler.state.nextRun = Date.now();
         } else if (scheduler.config.enabled) {
           // Schedule first run at interval
@@ -253,7 +258,7 @@ export function createSchedulerService(
       }
 
       // Start tick loop
-      await tick();
+      tick();
     },
 
     /**

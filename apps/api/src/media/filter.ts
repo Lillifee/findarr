@@ -1,6 +1,7 @@
 import {
   type GenreKey,
   type InteractionFilter,
+  isDefined,
   type Media,
   type MediaType,
   type RegionGroupId,
@@ -65,7 +66,9 @@ const genreMatches = (item: Media, genres: GenreKey[]): boolean => {
   const allowedGenreIds = new Set(genres.flatMap<number>((g) => unifiedGenres[g].ids));
 
   return (
-    allowedGenreIds.size === 0 || !item.genres || item.genres.some((g) => allowedGenreIds.has(g.id))
+    allowedGenreIds.size === 0 ||
+    !isDefined(item.genres) ||
+    item.genres.some((g) => allowedGenreIds.has(g.id))
   );
 };
 

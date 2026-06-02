@@ -1,5 +1,5 @@
-import type { Media, Genre, Keyword, DbCatalogCache, MediaType } from '@findarr/shared';
-import { catalogCache } from '@findarr/shared';
+import type { Media, Keyword, DbCatalogCache, MediaType } from '@findarr/shared';
+import { catalogCache, isDefined } from '@findarr/shared';
 import { eq, and, isNull, sql } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';
@@ -25,15 +25,14 @@ const mapCatalogCacheRowToMedia = (row: DbCatalogCache): Media => {
     voteCount: row.voteCount,
     popularity: row.popularity,
     originalLanguage: row.originalLanguage,
-    originCountry: row.originCountry ? JSON.parse(row.originCountry) : undefined,
-    genres: JSON.parse(row.genres) as Genre[],
+    // oxlint-disable-next-line typescript/no-unsafe-assignment
+    originCountry: isDefined(row.originCountry) ? JSON.parse(row.originCountry) : undefined,
+    // oxlint-disable-next-line typescript/no-unsafe-assignment
+    genres: JSON.parse(row.genres),
+    // oxlint-disable-next-line typescript/no-unsafe-assignment
+    keywords: isDefined(row.keywords) ? JSON.parse(row.keywords) : undefined,
     trendingRank: row.trendingRank ?? undefined,
   };
-
-  // Only include keywords if they exist (null = not yet fetched)
-  if (row.keywords) {
-    media.keywords = JSON.parse(row.keywords) as Keyword[];
-  }
 
   return media;
 };

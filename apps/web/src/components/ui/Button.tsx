@@ -40,7 +40,7 @@ export function Button({
   return (
     <button
       className={`${baseStyles} ${variantStyles} ${sizeStyles} ${className}`}
-      disabled={disabled || loading}
+      disabled={Boolean(disabled) || loading}
       {...props}
     >
       {loading && (

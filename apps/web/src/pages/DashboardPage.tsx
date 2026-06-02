@@ -1,4 +1,4 @@
-import type { Media } from '@findarr/shared';
+import { isDefined, type Media } from '@findarr/shared';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,9 +17,9 @@ function getHeroCopy(nextMedia: Media | null, heroError: string | null) {
     return {
       eyebrow: 'Continue voting',
       title: nextMedia.name,
-      description:
-        nextMedia.overview ||
-        'Your next voting pick is ready. Jump back into the stack and keep shaping what lands in your library.',
+      description: isDefined(nextMedia.overview)
+        ? nextMedia.overview
+        : 'Your next voting pick is ready. Jump back into the stack and keep shaping what lands in your library.',
       posterLabel: 'Ready to vote',
       primaryAction: {
         label: 'Continue Voting',
@@ -32,7 +32,7 @@ function getHeroCopy(nextMedia: Media | null, heroError: string | null) {
     };
   }
 
-  if (heroError) {
+  if (isDefined(heroError)) {
     return {
       eyebrow: 'Voting unavailable',
       title: 'Explore while voting catches up.',
@@ -127,7 +127,7 @@ export function DashboardPage() {
     void navigate(`/${item.type}/${item.tmdbId}`);
   };
 
-  const heroBackground = nextMedia?.backdropPath
+  const heroBackground = isDefined(nextMedia?.backdropPath)
     ? `linear-gradient(135deg, rgba(10, 10, 12, 0.92), rgba(17, 24, 39, 0.72)), url(https://image.tmdb.org/t/p/w1280${nextMedia.backdropPath})`
     : 'linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(17, 24, 39, 0.92), rgba(6, 78, 59, 0.36))';
   const heroCopy = getHeroCopy(nextMedia, heroError);
@@ -147,7 +147,7 @@ export function DashboardPage() {
       <div className="mx-auto max-w-7xl px-4 py-6 pb-20 md:px-8 md:py-8 md:pb-20">
         <div className="space-y-8 md:space-y-10">
           <PageHeader
-            title={`Welcome back${user?.displayName ? `, ${user.displayName}` : ''}`}
+            title={`Welcome back${isDefined(user?.displayName) ? `, ${user.displayName}` : ''}`}
             description="Check out what's popular, vote on requests, and discover what's rising."
           />
 
@@ -195,7 +195,7 @@ export function DashboardPage() {
 
               <div className="hidden lg:flex lg:justify-end">
                 <div className="w-52 overflow-hidden rounded-2xl border border-white/10 bg-black/20 shadow-2xl backdrop-blur-sm">
-                  {nextMedia?.posterPath ? (
+                  {isDefined(nextMedia?.posterPath) ? (
                     <img
                       src={`https://image.tmdb.org/t/p/w500${nextMedia.posterPath}`}
                       alt={nextMedia.name}
@@ -218,7 +218,7 @@ export function DashboardPage() {
               </div>
             </div>
 
-            {availableError && !loadingAvailable && (
+            {isDefined(availableError) && !loadingAvailable && (
               <Card className="mb-4 border border-red-500/30 text-sm text-red-200">
                 {availableError}
               </Card>

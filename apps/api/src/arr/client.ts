@@ -58,8 +58,8 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
     },
 
     async getQueue(pageSize: number): Promise<ArrQueueItem[]> {
-      const { data } = await client.get('/queue', { params: { page: 1, pageSize } });
-      return ArrQueueResponseSchema.parse(data).records;
+      const response = await client.get('/queue', { params: { page: 1, pageSize } });
+      return ArrQueueResponseSchema.parse(response.data).records;
     },
 
     async requestOrUpdateMedia(
@@ -78,7 +78,7 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
         (await this.tryGetLibraryItemById(params.arrId)) ??
         (await this.requestMedia(params, profileConfig));
 
-      return await this.updateLibrarySeasons(media, seasonNumbers);
+      return this.updateLibrarySeasons(media, seasonNumbers);
     },
 
     async requestMedia(
@@ -166,7 +166,8 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
       if (!isDefined(arrId)) return undefined;
 
       // In case the item was deleted from the library we want to handle that gracefully.
-      return await this.getLibraryItemById(arrId).catch(() => undefined);
+      const media = await this.getLibraryItemById(arrId).catch(() => undefined);
+      return media;
     },
 
     async updateSeasonPass(

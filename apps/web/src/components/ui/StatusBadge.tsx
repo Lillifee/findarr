@@ -121,7 +121,7 @@ export function StatusBadge({ status, position = 'inline', size = 'md', icon }: 
     <div
       className={`${baseStyles} ${config.bg} ${config.border} ${config.text} ${statusBadgeSizes[size]} ${positionStyles[position]}`}
     >
-      {icon || config.icon}
+      {icon ?? config.icon}
       <span>{config.label}</span>
     </div>
   );

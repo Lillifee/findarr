@@ -223,7 +223,7 @@ export async function getMediaByStatusPaginated(
 
   return {
     results,
-    totalCount: Number(countResult[0]?.count ?? 0),
+    totalCount: countResult[0]?.count ?? 0,
   };
 }
 

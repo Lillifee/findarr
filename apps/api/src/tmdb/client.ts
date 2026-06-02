@@ -30,8 +30,8 @@ export function createTMDBClient(accessToken: string) {
 
   async function test(): Promise<boolean> {
     try {
-      const auth = await client.get('/authentication');
-      return auth.data?.success === true;
+      const auth = await client.get<{ success?: boolean }>('/authentication');
+      return auth.data?.success ?? false;
     } catch {
       return false;
     }

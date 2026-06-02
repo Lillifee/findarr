@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "vp pack",
-    "dev": "vp pack --watch"
+    "dev": "vp pack --watch --no-clean"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.1",

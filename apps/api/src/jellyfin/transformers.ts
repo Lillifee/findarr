@@ -1,4 +1,4 @@
-import type { MediaType } from '@findarr/shared';
+import { isDefined, type MediaType } from '@findarr/shared';
 
 import type { JellyfinItem } from './schemas.js';
 
@@ -11,7 +11,7 @@ export interface JellyfinMedia {
 }
 
 function toTimestamp(value: string | undefined): number | undefined {
-  if (!value) {
+  if (!isDefined(value)) {
     return undefined;
   }
 
@@ -29,7 +29,7 @@ export function jellyfinItemToMedia(
 ): JellyfinMedia | undefined {
   // Must have TMDB ID to match with our media database
   const tmdbId = item.ProviderIds?.Tmdb;
-  if (!tmdbId) {
+  if (!isDefined(tmdbId)) {
     return undefined;
   }
 
@@ -46,7 +46,7 @@ export function jellyfinItemToMedia(
     type,
     jellyfinId: item.Id,
     tmdbId: tmdbIdNum,
-    ...(jellyfinAddedAt ? { jellyfinAddedAt } : {}),
+    ...(isDefined(jellyfinAddedAt) ? { jellyfinAddedAt } : {}),
     ...(type === 'tv' && availableSeasons ? { availableSeasons } : {}),
   };
 }

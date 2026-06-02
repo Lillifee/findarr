@@ -1,9 +1,10 @@
-import type {
-  Media,
-  MediaScore,
-  MediaType,
-  UserGenrePreference,
-  UserKeywordPreference,
+import {
+  isDefined,
+  type Media,
+  type MediaScore,
+  type MediaType,
+  type UserGenrePreference,
+  type UserKeywordPreference,
 } from '@findarr/shared';
 
 /**
@@ -65,12 +66,12 @@ export function scoreMediaItems(
     const weightedRating = bayes / 10;
 
     // Trending score (0 if not trending)
-    const trendingScore = item.trendingRank
+    const trendingScore = isDefined(item.trendingRank)
       ? clamp(1 - (item.trendingRank - 1) / MAX_TRENDING_RANK)
       : 0;
 
     // Recency score
-    const recencyScore = item.date
+    const recencyScore = isDefined(item.date)
       ? Math.exp(-Math.abs(Date.now() - new Date(item.date).getTime()) / MS_PER_DAY / 365)
       : 0;
 
@@ -153,7 +154,7 @@ export function scoreMediaItemsForUser(
     }
 
     // ---------- KEYWORD SCORING ----------
-    if (keywordPreferences.size > 0 && item.keywords?.length) {
+    if (keywordPreferences.size > 0 && isDefined(item.keywords)) {
       let rawScore = 0;
       let matched = false;
 
@@ -170,14 +171,14 @@ export function scoreMediaItemsForUser(
         const signed = Math.tanh(rawScore);
         keywordScore = (signed + 1) / 2;
       }
-    } else if (!item.keywords?.length) {
+    } else if (!isDefined(item.keywords)) {
       // If no keywords exist, copy genre score to avoid penalizing items without keywords
       keywordScore = genreScore;
     }
 
     // ---------- BASE SCORE ----------
-    const baseScore = item.state?.score?.baseScore || 0;
-    const baseTrendingScore = item.state?.score?.baseTrendingScore || 0;
+    const baseScore = item.state?.score?.baseScore ?? 0;
+    const baseTrendingScore = item.state?.score?.baseTrendingScore ?? 0;
 
     // ---------- FINAL SCORES ----------
     const userScore = 0.5 * genreScore + 0.5 * keywordScore;

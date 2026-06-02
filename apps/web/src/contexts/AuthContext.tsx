@@ -52,8 +52,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const interceptor = axios.interceptors.response.use(
       (response) => response,
-      (error) => {
-        if (error.response?.status === 401) {
+      (error: Error) => {
+        // TODO typing
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+        const axiosError = error as unknown as { response?: { status: number } };
+        if (axiosError.response?.status === 401) {
           // Clear user on 401
           setUser(null);
         }
@@ -61,7 +64,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
     );
 
-    return () => axios.interceptors.response.eject(interceptor);
+    return () => {
+      axios.interceptors.response.eject(interceptor);
+    };
   }, []);
 
   async function refreshBootstrapStatus() {

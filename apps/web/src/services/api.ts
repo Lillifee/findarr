@@ -44,39 +44,39 @@ const api = create({
 
 export const searchService = {
   searchMedia: async (params: SearchQuery): Promise<SearchResponse> => {
-    const response = await api.get('/search', { params });
+    const response = await api.get<SearchResponse>('/search', { params });
     return response.data;
   },
 
   getPopularMedia: async (params: PopularQuery): Promise<PopularResponse> => {
-    const response = await api.get('/popular', { params });
+    const response = await api.get<PopularResponse>('/popular', { params });
     return response.data;
   },
 
   getMediaDetails: async (params: DetailsQuery): Promise<MediaDetails> => {
-    const response = await api.get('/details', { params });
+    const response = await api.get<MediaDetails>('/details', { params });
     return response.data;
   },
 
-  listGenres: async (params: GenresQuery): Promise<{ genres: Genre[] }> => {
-    const response = await api.get('/genres', { params });
+  listGenres: async (params: GenresQuery): Promise<Genre[]> => {
+    const response = await api.get<Genre[]>('/genres', { params });
     return response.data;
   },
 
   getNextUnvotedMedia: async (params: PopularQuery = {}): Promise<SwipeNextResponse> => {
-    const response = await api.get('/next', { params });
+    const response = await api.get<SwipeNextResponse>('/next', { params });
     return response.data;
   },
 
   getAvailableMedia: async (params: AvailableMediaQuery = {}): Promise<AvailableMediaResponse> => {
-    const response = await api.get('/available', { params });
+    const response = await api.get<AvailableMediaResponse>('/available', { params });
     return response.data;
   },
 };
 
 export const healthService = {
-  check: async () => {
-    const response = await api.get('/health');
+  check: async (): Promise<boolean> => {
+    const response = await api.get<boolean>('/health');
     return response.data;
   },
 };
@@ -84,7 +84,7 @@ export const healthService = {
 // Authentication service
 export const authService = {
   login: async (credentials: Login): Promise<User> => {
-    const response = await api.post('/auth/login', credentials);
+    const response = await api.post<User>('/auth/login', credentials);
     return response.data;
   },
 
@@ -93,12 +93,12 @@ export const authService = {
   },
 
   me: async (): Promise<User> => {
-    const response = await api.get('/auth/me');
+    const response = await api.get<User>('/auth/me');
     return response.data;
   },
 
   bootstrap: async (): Promise<AppBootstrapStatus> => {
-    const response = await api.get('/auth/bootstrap');
+    const response = await api.get<AppBootstrapStatus>('/auth/bootstrap');
     return response.data;
   },
 
@@ -114,12 +114,12 @@ export const authService = {
 // Admin user management service
 export const adminUserService = {
   listUsers: async (): Promise<User[]> => {
-    const response = await api.get('/admin/users');
+    const response = await api.get<User[]>('/admin/users');
     return response.data;
   },
 
   createUser: async (userData: CreateUser): Promise<User> => {
-    const response = await api.post('/admin/users', userData);
+    const response = await api.post<User>('/admin/users', userData);
     return response.data;
   },
 
@@ -139,7 +139,7 @@ export const interactionService = {
     action: 'liked' | 'disliked',
     seasons?: number[],
   ): Promise<Media | undefined> => {
-    const response = await api.post('/interactions', {
+    const response = await api.post<Media | undefined>('/interactions', {
       tmdbId,
       mediaType,
       action,
@@ -151,26 +151,26 @@ export const interactionService = {
   listActivity: async (
     params: Partial<InteractionsQuery> = {},
   ): Promise<UserInteractionsResponse> => {
-    const response = await api.get('/interactions', { params });
+    const response = await api.get<UserInteractionsResponse>('/interactions', { params });
     return response.data;
   },
 
   listAttention: async (
     params: Partial<InteractionsQuery> = {},
   ): Promise<UserInteractionsResponse> => {
-    const response = await api.get('/interactions/attention', { params });
+    const response = await api.get<UserInteractionsResponse>('/interactions/attention', { params });
     return response.data;
   },
 };
 
 export const userSettingsService = {
   get: async (): Promise<UserSettings> => {
-    const response = await api.get('/settings');
+    const response = await api.get<UserSettings>('/settings');
     return response.data;
   },
 
   update: async (updates: UserSettingsQuery): Promise<UserSettings> => {
-    const response = await api.put('/settings', updates);
+    const response = await api.put<UserSettings>('/settings', updates);
     return response.data;
   },
 };
@@ -178,49 +178,49 @@ export const userSettingsService = {
 export const adminArrService = {
   radarr: {
     getSettings: async (): Promise<ArrSettings> => {
-      const response = await api.get('/admin/radarr/settings');
+      const response = await api.get<ArrSettings>('/admin/radarr/settings');
       return response.data;
     },
     saveSettings: async (
       settings: Partial<ArrSettings & { apiKey?: string }>,
     ): Promise<ArrSettings> => {
-      const response = await api.put('/admin/radarr/settings', settings);
+      const response = await api.put<ArrSettings>('/admin/radarr/settings', settings);
       return response.data;
     },
     listQualityProfiles: async (): Promise<ArrQualityProfile[]> => {
-      const response = await api.get('/admin/radarr/quality-profiles');
+      const response = await api.get<ArrQualityProfile[]>('/admin/radarr/quality-profiles');
       return response.data;
     },
     listRootFolders: async (): Promise<ArrRootFolder[]> => {
-      const response = await api.get('/admin/radarr/root-folders');
+      const response = await api.get<ArrRootFolder[]>('/admin/radarr/root-folders');
       return response.data;
     },
     test: async (): Promise<boolean> => {
-      const response = await api.post('/admin/radarr/test');
+      const response = await api.post<boolean>('/admin/radarr/test');
       return response.data;
     },
   },
   sonarr: {
     getSettings: async (): Promise<ArrSettings> => {
-      const response = await api.get('/admin/sonarr/settings');
+      const response = await api.get<ArrSettings>('/admin/sonarr/settings');
       return response.data;
     },
     saveSettings: async (
       settings: Partial<ArrSettings & { apiKey?: string }>,
     ): Promise<ArrSettings> => {
-      const response = await api.put('/admin/sonarr/settings', settings);
+      const response = await api.put<ArrSettings>('/admin/sonarr/settings', settings);
       return response.data;
     },
     listQualityProfiles: async (): Promise<ArrQualityProfile[]> => {
-      const response = await api.get('/admin/sonarr/quality-profiles');
+      const response = await api.get<ArrQualityProfile[]>('/admin/sonarr/quality-profiles');
       return response.data;
     },
     listRootFolders: async (): Promise<ArrRootFolder[]> => {
-      const response = await api.get('/admin/sonarr/root-folders');
+      const response = await api.get<ArrRootFolder[]>('/admin/sonarr/root-folders');
       return response.data;
     },
     test: async (): Promise<boolean> => {
-      const response = await api.post('/admin/sonarr/test');
+      const response = await api.post<boolean>('/admin/sonarr/test');
       return response.data;
     },
   },
@@ -228,33 +228,33 @@ export const adminArrService = {
 
 export const adminJellyfinService = {
   getSettings: async (): Promise<JellyfinSettings> => {
-    const response = await api.get('/admin/jellyfin/settings');
+    const response = await api.get<JellyfinSettings>('/admin/jellyfin/settings');
     return response.data;
   },
   saveSettings: async (settings: {
     jellyfinUrl?: string;
     jellyfinApiKey?: string;
   }): Promise<JellyfinSettings> => {
-    const response = await api.put('/admin/jellyfin/settings', settings);
+    const response = await api.put<JellyfinSettings>('/admin/jellyfin/settings', settings);
     return response.data;
   },
   test: async (): Promise<boolean> => {
-    const response = await api.post('/admin/jellyfin/test');
+    const response = await api.post<boolean>('/admin/jellyfin/test');
     return response.data;
   },
 };
 
 export const adminTmdbService = {
   getSettings: async (): Promise<TmdbSettings> => {
-    const response = await api.get('/admin/tmdb/settings');
+    const response = await api.get<TmdbSettings>('/admin/tmdb/settings');
     return response.data;
   },
   saveSettings: async (settings: { tmdbAccessToken?: string }): Promise<TmdbSettings> => {
-    const response = await api.put('/admin/tmdb/settings', settings);
+    const response = await api.put<TmdbSettings>('/admin/tmdb/settings', settings);
     return response.data;
   },
   test: async (): Promise<boolean> => {
-    const response = await api.post('/admin/tmdb/test');
+    const response = await api.post<boolean>('/admin/tmdb/test');
     return response.data;
   },
 };
@@ -263,7 +263,7 @@ export const adminTmdbService = {
 export const schedulerService = {
   // Get all scheduler states
   listAll: async (): Promise<SchedulerInfo[]> => {
-    const response = await api.get('/schedulers');
+    const response = await api.get<SchedulerInfo[]>('/schedulers');
     return response.data;
   },
 };

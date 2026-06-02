@@ -72,7 +72,9 @@ export function FiltersToolbar({
 
   const filterButton = showFiltersButton ? (
     <button
-      onClick={() => setFiltersExpanded((current) => !current)}
+      onClick={() => {
+        setFiltersExpanded((current) => !current);
+      }}
       className="ml-auto inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-700/50 bg-gray-800/70 px-3.5 py-2 text-sm font-medium whitespace-nowrap text-gray-200 backdrop-blur-sm transition-colors hover:border-gray-500 hover:bg-gray-700/80 hover:text-white"
     >
       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,7 +102,9 @@ export function FiltersToolbar({
       <>
         <div
           className="animate-in fade-in fixed inset-0 z-40 cursor-pointer bg-black/60 duration-200"
-          onClick={() => setFiltersExpanded(false)}
+          onClick={() => {
+            setFiltersExpanded(false);
+          }}
         />
 
         <div className="animate-in slide-in-from-top-4 fixed top-16 right-0 left-0 z-50 mx-4 max-w-7xl duration-200 md:right-0 md:left-64 md:mx-8 md:mr-auto md:ml-auto">
@@ -112,7 +116,9 @@ export function FiltersToolbar({
                   <p className="mt-1 text-sm text-gray-500">{filterDescription}</p>
                 </div>
                 <button
-                  onClick={() => setFiltersExpanded(false)}
+                  onClick={() => {
+                    setFiltersExpanded(false);
+                  }}
                   className="flex cursor-pointer items-center gap-1.5 self-start rounded-lg border border-gray-700/50 bg-gray-800/70 px-3 py-1.5 text-xs font-medium text-gray-400 transition-colors hover:border-gray-500 hover:bg-gray-700/80 hover:text-white"
                 >
                   <span>Close</span>
@@ -144,7 +150,9 @@ export function FiltersToolbar({
                           <OptionButton
                             key={option.value}
                             disabled={disabled}
-                            onClick={() => onInteractionFilterChange(option.value)}
+                            onClick={() => {
+                              onInteractionFilterChange(option.value);
+                            }}
                             selected={isSelected}
                             title={option.label}
                             description={option.description}

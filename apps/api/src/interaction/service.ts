@@ -1,11 +1,12 @@
-import type {
-  CreateMediaInteraction,
-  Media,
-  User,
-  DbMedia,
-  InteractionsQuery,
-  UserInteractionsResponse,
-  MediaStatus,
+import {
+  type CreateMediaInteraction,
+  type User,
+  type DbMedia,
+  type InteractionsQuery,
+  type UserInteractionsResponse,
+  type MediaStatus,
+  isDefined,
+  type MediaDetails,
 } from '@findarr/shared';
 
 import type { AnyArrService } from '../arr/service.js';
@@ -47,8 +48,8 @@ export const createInteraction = async (
   db: Database,
   data: CreateMediaInteraction,
   user?: User,
-): Promise<Media | undefined> => {
-  if (!user?.id) return;
+): Promise<MediaDetails | undefined> => {
+  if (!isDefined(user?.id)) return undefined;
 
   // Get or create media record
   const existing = await getMediaByTmdbId(db, data.tmdbId, data.mediaType);

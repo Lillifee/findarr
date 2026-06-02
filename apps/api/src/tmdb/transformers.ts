@@ -39,8 +39,8 @@ export function transformMedia(
   customState?: CustomFields,
 ): Media {
   return item.type === 'movie'
-    ? transformMovie(item as TMDBMovie, genreMap, customState)
-    : transformTVShow(item as TMDBTVShow, genreMap, customState);
+    ? transformMovie(item, genreMap, customState)
+    : transformTVShow(item, genreMap, customState);
 }
 
 /**
@@ -140,7 +140,7 @@ function extractVideos(videos: TMDBVideos | undefined): Video[] | undefined {
       (video) =>
         video.site === 'YouTube' &&
         (video.type === 'Trailer' || video.type === 'Teaser') &&
-        video.official === true,
+        video.official,
     )
     .map((video) => ({
       id: video.id,

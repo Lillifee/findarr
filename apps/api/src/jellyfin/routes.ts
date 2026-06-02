@@ -1,4 +1,4 @@
-import { JellyfinLinkQuerySchema } from '@findarr/shared';
+import { isDefined, JellyfinLinkQuerySchema } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
 
 export const jellyfinRoutes = (fastify: FastifyInstance) => {
@@ -11,7 +11,7 @@ export const jellyfinRoutes = (fastify: FastifyInstance) => {
     const query = JellyfinLinkQuerySchema.parse(request.query);
     const url = await fastify.jellyfin.resolveMediaUrl(query.mediaId);
 
-    if (!url) {
+    if (!isDefined(url)) {
       return reply.code(404).send({ error: 'Jellyfin link not available' });
     }
 

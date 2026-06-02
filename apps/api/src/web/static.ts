@@ -2,6 +2,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { fastifyStatic } from '@fastify/static';
+import { isDefined } from '@findarr/shared';
 import dotenv from 'dotenv';
 import { type FastifyInstance } from 'fastify';
 
@@ -23,13 +24,15 @@ export async function registerStatic(server: FastifyInstance) {
     const requestPath = request.url.split('?')[0];
 
     if (
+      !isDefined(requestPath) ||
       requestPath?.startsWith('/api') ||
       requestPath?.startsWith('/health') ||
       requestPath?.startsWith('/assets/')
     ) {
-      return reply.callNotFound();
+      reply.callNotFound();
+      return;
     }
 
-    return reply.sendFile('index.html', clientDistDir);
+    reply.sendFile('index.html', clientDistDir);
   });
 }

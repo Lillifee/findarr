@@ -1,4 +1,4 @@
-import type { MediaDetails, GenreKey, SearchType } from '@findarr/shared';
+import { type MediaDetails, type GenreKey, type SearchType, isDefined } from '@findarr/shared';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -167,7 +167,7 @@ export function VotePage() {
       )}
 
       {/* Error state */}
-      {error && !isLoading && (
+      {isDefined(error) && !isLoading && (
         <div className="relative z-10 mx-auto max-w-6xl px-4 py-32 text-center md:px-8">
           <div className="flex flex-col items-center gap-4">
             <svg
