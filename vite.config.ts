@@ -15,6 +15,7 @@ export default defineConfig({
     // Todo add more jsx-a11y
 
     // options: { typeAware: true, typeCheck: true },
+    // options: { typeAware: true },
 
     env: {
       browser: true,
@@ -31,6 +32,8 @@ export default defineConfig({
     },
     rules: {
       'vite-plus/prefer-vite-plus-imports': 'error',
+
+      'vitest/no-conditional-expect': 'off',
 
       // TODO check if we can remove some of them once the categories are properly set up
       'eslint/no-unused-vars': 'error',
