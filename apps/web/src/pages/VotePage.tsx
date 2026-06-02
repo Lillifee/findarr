@@ -18,8 +18,8 @@ export function VotePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isComplete, setIsComplete] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [feedId, setFeedId] = useState<string | undefined>(undefined);
-  const feedIdRef = useRef<string | undefined>(undefined);
+  const [feedId, setFeedId] = useState<string | null>(null);
+  const feedIdRef = useRef<string | null>(null);
 
   // Filter state (same as PopularPage)
   const [currentSearchType, setCurrentSearchType] = useState<SearchType>(initialSearchParams.type);
@@ -70,7 +70,7 @@ export function VotePage() {
         type: currentSearchType,
         genres: selectedGenres,
         interaction: 'unvoted',
-        feedId: feedIdRef.current,
+        feedId: feedIdRef.current ?? undefined,
       });
 
       feedIdRef.current = response.feedId;
@@ -102,8 +102,8 @@ export function VotePage() {
   // Handle filter changes
   const handleTypeChange = (type: SearchType) => {
     setCurrentSearchType(type);
-    feedIdRef.current = undefined;
-    setFeedId(undefined);
+    feedIdRef.current = null;
+    setFeedId(null);
     setIsComplete(false);
     setSearchParams(
       buildCatalogSearchParams({
@@ -115,8 +115,8 @@ export function VotePage() {
 
   const handleGenreChange = (genres: GenreKey[]) => {
     setSelectedGenres(genres);
-    feedIdRef.current = undefined;
-    setFeedId(undefined);
+    feedIdRef.current = null;
+    setFeedId(null);
     setIsComplete(false);
     setSearchParams(
       buildCatalogSearchParams({

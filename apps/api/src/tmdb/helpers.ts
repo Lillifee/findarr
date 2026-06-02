@@ -50,6 +50,8 @@ export const getDateRangeFromDays = (days: number) => {
   return { pastDate, futureDate };
 };
 
+const formatDate = (date: Date) => date.toISOString().split('T')[0] ?? '';
+
 /**
  * Build date parameters for discover queries
  */
@@ -57,8 +59,6 @@ export const buildDateParams = (recentDays: number | undefined, type: MediaType 
   if (!isDefined(recentDays)) return {};
 
   const { pastDate, futureDate } = getDateRangeFromDays(recentDays);
-
-  const formatDate = (date: Date) => date.toISOString().split('T')[0] ?? '';
 
   const dateParams: Record<string, string> = {};
 

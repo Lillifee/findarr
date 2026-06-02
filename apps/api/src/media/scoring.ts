@@ -105,6 +105,10 @@ export function scoreMediaItems(
 // User Preference Scoring
 // ============================================================================
 
+// Helper: Calculate score contribution with diminishing returns
+const scoreContribution = (normalized: number) =>
+  Math.sqrt(Math.max(0, normalized)) - Math.sqrt(Math.max(0, -normalized));
+
 /**
  * Apply user preference scoring to media items
  * Calculates genre and keyword match scores, combines with base scores
@@ -122,10 +126,6 @@ export function scoreMediaItemsForUser(
   // Bayesian smoothing to prevent small-sample bias (10 pseudo-ratings at 0 score)
   const PRIOR_WEIGHT = 10;
   const PRIOR_SCORE = 0;
-
-  // Helper: Calculate score contribution with diminishing returns
-  const scoreContribution = (normalized: number) =>
-    Math.sqrt(Math.max(0, normalized)) - Math.sqrt(Math.max(0, -normalized));
 
   const scored = items.map<Media>((item) => {
     // Neutral defaults (0.5) so unmatched preferences do not implicitly demote items.

@@ -74,6 +74,7 @@ describe('arr sync collision handling - integration tests', () => {
       },
     } as unknown as SchedulerContext;
 
+    const undefinedArrItem = undefined;
     const radarrService: AnyArrService = {
       config: arrConfig.radarr,
       getQueue: vi.fn<(pageSize: number) => Promise<ArrQueueItem[]>>().mockResolvedValue([
@@ -92,7 +93,7 @@ describe('arr sync collision handling - integration tests', () => {
       listLibraryItems: vi.fn<AnyArrService['listLibraryItems']>().mockResolvedValue([]),
       listQualityProfiles: vi.fn<AnyArrService['listQualityProfiles']>().mockResolvedValue([]),
       listRootFolders: vi.fn<AnyArrService['listRootFolders']>().mockResolvedValue([]),
-      requestMedia: vi.fn<AnyArrService['requestMedia']>().mockResolvedValue(undefined),
+      requestMedia: vi.fn<AnyArrService['requestMedia']>().mockResolvedValue(undefinedArrItem),
       resolveMediaUrl: vi
         .fn<AnyArrService['resolveMediaUrl']>()
         .mockResolvedValue('http://example.com/media'),

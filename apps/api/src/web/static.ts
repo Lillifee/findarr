@@ -1,5 +1,4 @@
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 
 import { fastifyStatic } from '@fastify/static';
 import { isDefined } from '@findarr/shared';
@@ -8,7 +7,7 @@ import { type FastifyInstance } from 'fastify';
 
 dotenv.config();
 
-const currentDirectory = dirname(fileURLToPath(import.meta.url));
+const currentDirectory = import.meta.dirname;
 const clientDistDir = join(currentDirectory, '..', '..', '..', 'web', 'dist');
 const clientAssetsDir = join(clientDistDir, 'assets');
 

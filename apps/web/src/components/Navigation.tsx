@@ -10,6 +10,18 @@ interface NavigationProps {
   isAdmin: boolean;
 }
 
+const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+  `w-full rounded-lg border px-4 py-2.5 flex items-center gap-3 text-left transition-colors ${
+    isActive
+      ? 'border-gray-200 bg-gray-200 text-gray-950'
+      : 'border-transparent text-gray-300 hover:border-gray-700 hover:bg-gray-800 hover:text-white'
+  }`;
+
+const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
+  `flex flex-col items-center justify-center flex-1 h-full transition-colors ${
+    isActive ? 'text-white' : 'text-gray-500'
+  }`;
+
 export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin }) => {
   const [mobileAdvancedOpen, setMobileAdvancedOpen] = useState(false);
   const [hasAttention, setHasAttention] = useState(false);
@@ -43,18 +55,6 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
       globalThis.clearInterval(timer);
     };
   }, []);
-
-  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `w-full rounded-lg border px-4 py-2.5 flex items-center gap-3 text-left transition-colors ${
-      isActive
-        ? 'border-gray-200 bg-gray-200 text-gray-950'
-        : 'border-transparent text-gray-300 hover:border-gray-700 hover:bg-gray-800 hover:text-white'
-    }`;
-
-  const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex flex-col items-center justify-center flex-1 h-full transition-colors ${
-      isActive ? 'text-white' : 'text-gray-500'
-    }`;
 
   const attentionIndicator = hasAttention ? (
     <span className="inline-flex h-2.5 w-2.5 rounded-full bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.8)] ring-1 ring-amber-800 outline-none" />

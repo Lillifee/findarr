@@ -9,8 +9,7 @@
  */
 
 import { writeFileSync, mkdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 
 import { isDefined } from '@findarr/shared';
 import { create } from 'axios';
@@ -22,8 +21,7 @@ const sleep = (ms: number) =>
   });
 
 // Load environment variables from .env file
-const currentFilePath = fileURLToPath(import.meta.url);
-const currentDirName = dirname(currentFilePath);
+const currentDirName = import.meta.dirname;
 dotenv.config({ path: join(currentDirName, '../.env') });
 
 const TMDB_ACCESS_TOKEN = process.env.TMDB_ACCESS_TOKEN;

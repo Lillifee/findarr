@@ -187,7 +187,7 @@ describe('catalog repository - integration tests', () => {
       const result = await listCatalogItemsMissingKeywords(db);
 
       expect(result).toHaveLength(2);
-      expect(result.map((r) => r.tmdbId).sort((a, b) => a - b)).toEqual([1, 2]);
+      expect(result.map((r) => r.tmdbId).toSorted((a, b) => a - b)).toEqual([1, 2]);
     });
 
     it('should return empty array when all items have keywords', async () => {

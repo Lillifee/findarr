@@ -35,15 +35,16 @@ function areGenresEqual(left: GenreKey[], right: GenreKey[]) {
   return left.length === right.length && left.every((genre, index) => genre === right[index]);
 }
 
+const mediaKey = (item: Media) => `${item.type}_${item.tmdbId}`;
+
 function mergeUniqueResults(existing: Media[], incoming: Media[]) {
-  const keyOf = (item: Media) => `${item.type}_${item.tmdbId}`;
-  const seen = new Set(existing.map((item) => keyOf(item)));
+  const seen = new Set(existing.map((item) => mediaKey(item)));
   const merged = [...existing];
 
   for (const item of incoming) {
-    if (!seen.has(keyOf(item))) {
+    if (!seen.has(mediaKey(item))) {
       merged.push(item);
-      seen.add(keyOf(item));
+      seen.add(mediaKey(item));
     }
   }
 
@@ -60,7 +61,7 @@ export function ExplorePage() {
 
   const [results, setResults] = useState<Media[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
-  const [feedId, setFeedId] = useState<string | undefined>(undefined);
+  const [feedId, setFeedId] = useState<string | undefined>();
   const [totalPages, setTotalPages] = useState(0);
   const [currentSearchType, setCurrentSearchType] = useState<SearchType>(initialSearchParams.type);
   const [currentQuery, setCurrentQuery] = useState(initialSearchParams.q);

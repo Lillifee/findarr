@@ -261,7 +261,6 @@ describe('interaction service - integration tests', () => {
         catalogService,
         db,
         interaction,
-        undefined,
       );
       expect(result).toBeUndefined();
 
@@ -770,8 +769,9 @@ describe('interaction service - integration tests', () => {
       expectDefined(user2);
       expectDefined(user3);
 
+      const undefinedArrItem = undefined;
       // Simulate arr not configured — request returns empty object gracefully
-      vi.mocked(radarrService.requestMedia).mockResolvedValue(undefined);
+      vi.mocked(radarrService.requestMedia).mockResolvedValue(undefinedArrItem);
 
       await createInteraction(
         tmdbWithTvdb,

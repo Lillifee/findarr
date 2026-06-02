@@ -11,6 +11,8 @@ import {
   computeCatalogMediaStats,
 } from './repository.js';
 
+const createPageRange = (length: number) => Array.from({ length }).map((_, i) => i + 1);
+
 /**
  * Sync catalog cache with latest popular media from TMDB
  * Phase 1: Quick sync - stores basic media immediately (without keywords)
@@ -24,8 +26,6 @@ export async function syncCatalogCache(context: SchedulerContext): Promise<void>
 
   // TODO - use language setting from config
   const language = 'en-US';
-
-  const createPageRange = (length: number) => Array.from({ length }).map((_, i) => i + 1);
 
   // Fetch both trending and recent releases (already includes basic metadata)
   context.log.info(

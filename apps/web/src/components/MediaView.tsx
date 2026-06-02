@@ -10,6 +10,19 @@ interface MediaDetailsProps {
   onVoteComplete?: () => void;
 }
 
+// Format helpers
+const formatRuntime = (value: number | number[] | undefined) => {
+  if (!isDefined(value)) return 'Unknown';
+  if (Array.isArray(value)) {
+    if (value.length === 0) return 'Unknown';
+    if (value.length === 1) return `${value[0]}m`;
+    return `${Math.min(...value)}-${Math.max(...value)}m per episode`;
+  }
+  const hours = Math.floor(value / 60);
+  const remainingMinutes = value % 60;
+  return hours > 0 ? `${hours}h ${remainingMinutes}m` : `${value}m`;
+};
+
 export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
   // Track local media state for updates
   const [localMedia, setLocalMedia] = useState<MovieDetails | TVDetails>(media);
@@ -38,19 +51,6 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
   // Mobile: 6, Tablet: 8, Desktop: 10
   const availableCast = media.cast ?? [];
   const topCast = availableCast.slice(0, Math.min(10, availableCast.length));
-
-  // Format helpers
-  const formatRuntime = (value: number | number[] | undefined) => {
-    if (!isDefined(value)) return 'Unknown';
-    if (Array.isArray(value)) {
-      if (value.length === 0) return 'Unknown';
-      if (value.length === 1) return `${value[0]}m`;
-      return `${Math.min(...value)}-${Math.max(...value)}m per episode`;
-    }
-    const hours = Math.floor(value / 60);
-    const remainingMinutes = value % 60;
-    return hours > 0 ? `${hours}h ${remainingMinutes}m` : `${value}m`;
-  };
 
   const availabilityStatus = media.state?.record?.status as StatusType | undefined;
   const infoTileClass =
