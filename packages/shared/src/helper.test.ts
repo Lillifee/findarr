@@ -4,8 +4,9 @@ import { getErrorMessage, isDefined, objectEntries, objectKeys } from './helper.
 
 describe('helper', () => {
   it('should return true for defined values and false for undefined or null', () => {
+    const undefinedValue = undefined;
     expect(isDefined('abc')).toEqual(true);
-    expect(isDefined(undefined)).toEqual(false);
+    expect(isDefined(undefinedValue)).toEqual(false);
     expect(isDefined(null)).toEqual(false);
   });
 

@@ -52,7 +52,7 @@ export default function SeasonSelectorModal({
   };
 
   const handleConfirm = () => {
-    const seasonsToRequest = [...selectedSeasons].sort((a, b) => a - b);
+    const seasonsToRequest = [...selectedSeasons].toSorted((a, b) => a - b);
     onConfirm(seasonsToRequest);
   };
 

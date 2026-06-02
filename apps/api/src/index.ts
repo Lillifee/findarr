@@ -118,4 +118,4 @@ async function start() {
   }
 }
 
-void start();
+await start();

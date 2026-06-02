@@ -111,11 +111,11 @@ export async function fetchTMDBDetails(
 ): Promise<Media[]> {
   const results = await Promise.all(
     mediaDbRows.map(async (record) => {
-      if (!isDefined(record.tmdbId)) return undefined;
+      if (!isDefined(record.tmdbId)) return null;
 
       const details = await tmdbService
         .details({ id: record.tmdbId, type: record.type })
-        .catch(() => undefined);
+        .catch(() => null);
 
       // Attach database record to TMDB data
       return details && { ...details, state: { record } };

@@ -122,7 +122,7 @@ export async function createTMDBService(context: TmdbServiceContext) {
       response.results.map((item) => transformMedia(item, genreMap)),
     );
 
-    const sortedResults = allResults.sort((a, b) => b.popularity - a.popularity);
+    const sortedResults = allResults.toSorted((a, b) => b.popularity - a.popularity);
     const totalPages = Math.max(...searchResponses.map((response) => response.total_pages));
 
     return {

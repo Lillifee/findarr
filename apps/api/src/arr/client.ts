@@ -160,13 +160,11 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
       return config.libraryItemSchema.parse(response.data);
     },
 
-    async tryGetLibraryItemById(
-      arrId?: number | null,
-    ): Promise<RadarrMovie | SonarrSeries | undefined> {
-      if (!isDefined(arrId)) return undefined;
+    async tryGetLibraryItemById(arrId?: number | null): Promise<RadarrMovie | SonarrSeries | null> {
+      if (!isDefined(arrId)) return null;
 
       // In case the item was deleted from the library we want to handle that gracefully.
-      const media = await this.getLibraryItemById(arrId).catch(() => undefined);
+      const media = await this.getLibraryItemById(arrId).catch(() => null);
       return media;
     },
 

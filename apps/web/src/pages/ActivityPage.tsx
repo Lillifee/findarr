@@ -319,7 +319,7 @@ export function ActivityPage() {
           reloadActivityWith({ type });
         }}
         selectedGenres={[]}
-        onGenresChange={() => undefined}
+        onGenresChange={() => {}}
         showFiltersButton
         showGenreFilter={false}
         filterDescription="Adjust your activity filters."

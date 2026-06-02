@@ -1,9 +1,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 
-const currentFilename = fileURLToPath(import.meta.url);
-const currentDirname = dirname(currentFilename);
+const currentDirname = import.meta.dirname;
 
 /**
  * Load a JSON fixture file from the fixtures directory

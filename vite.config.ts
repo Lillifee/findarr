@@ -11,7 +11,17 @@ export default defineConfig({
   },
   lint: {
     jsPlugins: [{ name: 'vite-plus', specifier: 'vite-plus/oxlint-plugin' }],
-    plugins: ['eslint', 'typescript', 'react', 'react-perf', 'oxc', 'import', 'promise', 'vitest'],
+    plugins: [
+      'eslint',
+      'typescript',
+      'unicorn',
+      'react',
+      'react-perf',
+      'oxc',
+      'import',
+      'promise',
+      'vitest',
+    ],
     // Todo add more jsx-a11y
 
     options: { typeAware: true, typeCheck: true },

@@ -11,6 +11,15 @@ export interface FeedPage<T> {
   totalPages: number;
 }
 
+// TODO we could make this as a nested function of a feed, then we don't have to pass allItems
+function getSnapshotPage<T>(allItems: T[], page: number, itemsPerPage: number = 20): FeedPage<T> {
+  const startIndex = Math.max(0, (page - 1) * itemsPerPage);
+  const totalPages = Math.ceil(allItems.length / itemsPerPage);
+  const items = allItems.slice(startIndex, startIndex + itemsPerPage);
+
+  return { items, page, totalPages };
+}
+
 export function createFeedSnapshotStore<T>(ttlMs: number = 5 * 60 * 1000) {
   const snapshotEntries = new Map<string, { items: T[]; createdAt: number }>();
 
@@ -50,15 +59,6 @@ export function createFeedSnapshotStore<T>(ttlMs: number = 5 * 60 * 1000) {
     const snapshotId = crypto.randomUUID();
     snapshotEntries.set(snapshotId, { items, createdAt: Date.now() });
     return { id: snapshotId, items };
-  }
-
-  // TODO we could make this as a nested function of a feed, then we don't have to pass allItems
-  function getSnapshotPage(allItems: T[], page: number, itemsPerPage: number = 20): FeedPage<T> {
-    const startIndex = Math.max(0, (page - 1) * itemsPerPage);
-    const totalPages = Math.ceil(allItems.length / itemsPerPage);
-    const items = allItems.slice(startIndex, startIndex + itemsPerPage);
-
-    return { items, page, totalPages };
   }
 
   return { getOrCreateSnapshot, getSnapshotPage };
