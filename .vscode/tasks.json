@@ -4,7 +4,7 @@
     {
       "label": "Start",
       "type": "shell",
-      "command": "pnpm run dev",
+      "command": "vp run dev",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -23,7 +23,7 @@
     {
       "label": "Start Client (Vite)",
       "type": "shell",
-      "command": "pnpm run dev:client",
+      "command": "vp dev apps/web",
       "isBackground": true,
       "problemMatcher": {
         "pattern": {
@@ -47,34 +47,27 @@
     {
       "label": "Build",
       "type": "shell",
-      "command": "pnpm -r build",
+      "command": "vp run -r build",
       "group": "build",
       "problemMatcher": ["$tsc"]
     },
     {
       "label": "Clean",
       "type": "shell",
-      "command": "pnpm run clean",
+      "command": "vp run clean",
       "group": "build"
     },
     {
       "label": "Fix",
       "type": "shell",
-      "command": "pnpm run fix",
+      "command": "vp run fix",
       "group": "test",
       "problemMatcher": ["$tsc"]
     },
     {
       "label": "Test",
       "type": "shell",
-      "command": "pnpm run test:update",
-      "group": "test",
-      "problemMatcher": []
-    },
-    {
-      "label": "Test Coverage",
-      "type": "shell",
-      "command": "pnpm run test:coverage",
+      "command": "vp run test",
       "group": "test",
       "problemMatcher": []
     }
