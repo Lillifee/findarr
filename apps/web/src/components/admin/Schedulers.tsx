@@ -1,4 +1,5 @@
-import { isDefined, type SchedulerInfo } from '@findarr/shared';
+import type { SchedulerInfo } from '@findarr/shared/scheduler';
+import { isDefined } from '@findarr/shared/utils';
 import { useState, useEffect } from 'react';
 
 import { schedulerService, adminSchedulerService } from '../../services/api';

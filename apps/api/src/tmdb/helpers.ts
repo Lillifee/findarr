@@ -1,14 +1,14 @@
+import type { DiscoverQuery } from '@findarr/shared/catalog';
 import {
-  type RegionGroupId,
   regionGroups,
-  type GenreKey,
   unifiedGenres,
   regionGroupKeys,
-  type DiscoverQuery,
-  type UserSettingsQuery,
-  type MediaType,
-  isDefined,
-} from '@findarr/shared';
+  type RegionGroupId,
+  type GenreKey,
+} from '@findarr/shared/constants';
+import type { MediaType } from '@findarr/shared/media';
+import type { UserSettingsQuery } from '@findarr/shared/settings';
+import { isDefined } from '@findarr/shared/utils';
 
 import type { LoggerService } from '../scheduler/types.js';
 import { HttpError } from '../utils/errors.js';

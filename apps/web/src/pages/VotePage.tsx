@@ -1,4 +1,6 @@
-import { type MediaDetails, type GenreKey, type SearchType, isDefined } from '@findarr/shared';
+import type { GenreKey } from '@findarr/shared/constants';
+import type { MediaDetails, SearchType } from '@findarr/shared/media';
+import { isDefined } from '@findarr/shared/utils';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 

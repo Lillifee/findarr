@@ -1,4 +1,5 @@
-import { appSettings, objectEntries, isDefined, objectFromEntries } from '@findarr/shared';
+import { appSettings } from '@findarr/shared/db';
+import { objectEntries, isDefined, objectFromEntries } from '@findarr/shared/utils';
 import { inArray } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';

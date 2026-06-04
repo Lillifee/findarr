@@ -1,4 +1,4 @@
-import { objectKeys } from './helper.js';
+import { objectKeys } from './utils.js';
 
 export interface RegionGroup {
   name: string;

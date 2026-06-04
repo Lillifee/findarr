@@ -1,4 +1,4 @@
-import type { MediaType } from '@findarr/shared';
+import type { MediaType } from '@findarr/shared/media';
 import { create, type AxiosInstance } from 'axios';
 
 import {

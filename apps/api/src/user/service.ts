@@ -1,4 +1,4 @@
-import type { UserSettings, UserSettingsQuery } from '@findarr/shared';
+import type { UserSettings, UserSettingsQuery } from '@findarr/shared/settings';
 
 import type { Database } from '../db/service.js';
 import {

@@ -1,4 +1,5 @@
-import { objectKeys, type RegionGroupId } from '@findarr/shared';
+import type { RegionGroupId } from '@findarr/shared/constants';
+import { objectKeys } from '@findarr/shared/utils';
 import React from 'react';
 
 import { OptionButton } from './ui/OptionButton';

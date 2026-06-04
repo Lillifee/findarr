@@ -62,8 +62,6 @@ export default defineConfig({
       'import/no-relative-parent-imports': 'off',
       'import/unambiguous': 'off',
       'oxc/no-async-await': 'off',
-      // TODO enable
-      'oxc/no-barrel-file': 'off',
       'oxc/no-optional-chaining': 'off',
       'oxc/no-rest-spread-properties': 'off',
       'react/button-has-type': 'off',

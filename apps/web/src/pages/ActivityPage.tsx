@@ -1,9 +1,5 @@
-import type {
-  InteractionsQuery,
-  Media,
-  SearchType,
-  UserInteractionsResponse,
-} from '@findarr/shared';
+import type { InteractionsQuery } from '@findarr/shared/interaction';
+import type { Media, SearchType, UserInteractionsResponse } from '@findarr/shared/media';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 

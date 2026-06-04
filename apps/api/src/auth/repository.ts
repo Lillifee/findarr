@@ -1,4 +1,5 @@
-import { users, type CreateUser, type User } from '@findarr/shared';
+import type { CreateUser, User } from '@findarr/shared/auth';
+import { users } from '@findarr/shared/db';
 import { eq } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';

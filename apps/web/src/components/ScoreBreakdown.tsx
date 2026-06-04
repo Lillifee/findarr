@@ -1,4 +1,4 @@
-import type { MediaScore } from '@findarr/shared';
+import type { MediaScore } from '@findarr/shared/media';
 
 interface ScoreBreakdownProps {
   score: MediaScore;

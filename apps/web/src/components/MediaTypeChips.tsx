@@ -1,4 +1,4 @@
-import type { SearchType } from '@findarr/shared';
+import type { SearchType } from '@findarr/shared/media';
 
 import { Badge } from './ui/Badge';
 

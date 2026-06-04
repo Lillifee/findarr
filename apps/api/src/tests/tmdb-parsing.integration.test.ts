@@ -1,4 +1,4 @@
-import type { Genre } from '@findarr/shared';
+import type { Genre } from '@findarr/shared/media';
 import { describe, it, expect } from 'vite-plus/test';
 
 import {

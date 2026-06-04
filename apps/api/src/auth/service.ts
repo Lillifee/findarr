@@ -1,4 +1,4 @@
-import type { ChangePassword, Login, SetupInitialPassword, User } from '@findarr/shared';
+import type { ChangePassword, Login, SetupInitialPassword, User } from '@findarr/shared/auth';
 
 import type { Database } from '../db/service.js';
 import { forbidden, unauthorized } from '../utils/errors.js';

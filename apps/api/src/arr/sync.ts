@@ -1,4 +1,5 @@
-import { isDefined, type MediaStatus, type MediaType } from '@findarr/shared';
+import type { MediaStatus, MediaType } from '@findarr/shared/media';
+import { isDefined } from '@findarr/shared/utils';
 
 import type { SchedulerContext } from '../scheduler/types.js';
 import { processWithWorkerPool } from '../tmdb/helpers.js';

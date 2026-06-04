@@ -1,11 +1,6 @@
-import {
-  userGenrePreferences,
-  userKeywordPreferences,
-  type Genre,
-  type Keyword,
-  type UserGenrePreference,
-  type UserKeywordPreference,
-} from '@findarr/shared';
+import { userGenrePreferences, userKeywordPreferences } from '@findarr/shared/db';
+import type { Genre, Keyword } from '@findarr/shared/media';
+import type { UserGenrePreference, UserKeywordPreference } from '@findarr/shared/preferences';
 import { eq, sql } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';

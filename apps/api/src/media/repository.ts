@@ -1,13 +1,5 @@
-import {
-  media,
-  mediaStats,
-  type DbMedia,
-  type Media,
-  type MediaRecord,
-  type MediaStatus,
-  type MediaType,
-  type SearchType,
-} from '@findarr/shared';
+import { media, mediaStats, type DbMedia } from '@findarr/shared/db';
+import type { Media, MediaStatus, MediaType, SearchType, MediaRecord } from '@findarr/shared/media';
 import { and, eq, or, sql } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';

@@ -3,7 +3,8 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 import cookie from '@fastify/cookie';
 import secureSession from '@fastify/secure-session';
-import { isDefined, type User } from '@findarr/shared';
+import type { User } from '@findarr/shared/auth';
+import { isDefined } from '@findarr/shared/utils';
 import type {
   FastifyPluginAsync,
   FastifyRequest,

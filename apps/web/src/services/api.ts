@@ -1,36 +1,36 @@
 import type {
-  AvailableMediaQuery,
-  AvailableMediaResponse,
-  InteractionsQuery,
-  SearchQuery,
-  SearchResponse,
-  UserInteractionsResponse,
-  PopularQuery,
-  PopularResponse,
-  DetailsQuery,
-  GenresQuery,
-  Genre,
-  MediaDetails,
-  User,
-  Media,
   Login,
   ChangePassword,
   CreateUser,
+  AppBootstrapStatus,
+  SetupInitialPassword,
+  User,
+} from '@findarr/shared/auth';
+import type { SearchQuery, PopularQuery, DetailsQuery, GenresQuery } from '@findarr/shared/catalog';
+import type { AvailableMediaQuery, InteractionsQuery } from '@findarr/shared/interaction';
+import type {
+  AvailableMediaResponse,
+  SearchResponse,
+  UserInteractionsResponse,
+  PopularResponse,
+  Genre,
+  MediaDetails,
+  Media,
+  SwipeNextResponse,
+  MediaType,
+} from '@findarr/shared/media';
+import type { SchedulerInfo } from '@findarr/shared/scheduler';
+import type {
   ArrSettings,
   ArrQualityProfile,
   ArrRootFolder,
   JellyfinSettings,
-  AppBootstrapStatus,
-  SetupInitialPassword,
   TmdbSettings,
-  SwipeNextResponse,
   ArrLinkQuery,
   JellyfinLinkQuery,
   UserSettings,
   UserSettingsQuery,
-  MediaType,
-  SchedulerInfo,
-} from '@findarr/shared';
+} from '@findarr/shared/settings';
 import { create } from 'axios';
 
 const api = create({

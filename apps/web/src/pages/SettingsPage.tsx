@@ -1,4 +1,5 @@
-import { isDefined, type RegionGroupId } from '@findarr/shared';
+import type { RegionGroupId } from '@findarr/shared/constants';
+import { isDefined } from '@findarr/shared/utils';
 import { useEffect, useRef, useState } from 'react';
 
 import { RegionSelector } from '../components/RegionSelector';

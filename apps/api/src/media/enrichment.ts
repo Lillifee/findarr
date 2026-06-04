@@ -1,4 +1,6 @@
-import { type DbMedia, type Media, isDefined } from '@findarr/shared';
+import type { DbMedia } from '@findarr/shared/db';
+import type { Media } from '@findarr/shared/media';
+import { isDefined } from '@findarr/shared/utils';
 
 import type { Database } from '../db/service.js';
 import { getInteractionsBatch, getVoteCountsBatch } from '../interaction/repository.js';

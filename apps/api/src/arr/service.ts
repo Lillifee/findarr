@@ -1,4 +1,5 @@
-import { isDefined, type ArrSettings, type ArrSettingsQuery } from '@findarr/shared';
+import type { ArrSettings, ArrSettingsQuery } from '@findarr/shared/settings';
+import { isDefined } from '@findarr/shared/utils';
 import type { FastifyBaseLogger } from 'fastify';
 
 import type { Database } from '../db/service.js';

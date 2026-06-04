@@ -1,11 +1,6 @@
-import {
-  isDefined,
-  type Media,
-  type MediaScore,
-  type MediaType,
-  type UserGenrePreference,
-  type UserKeywordPreference,
-} from '@findarr/shared';
+import type { Media, MediaScore, MediaType } from '@findarr/shared/media';
+import type { UserGenrePreference, UserKeywordPreference } from '@findarr/shared/preferences';
+import { isDefined } from '@findarr/shared/utils';
 
 /**
  * Maximum trending rank (5 pages × 20 items per page from TMDB)

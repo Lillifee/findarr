@@ -1,4 +1,5 @@
-import { ArrLinkQuerySchema, isDefined } from '@findarr/shared';
+import { ArrLinkQuerySchema } from '@findarr/shared/settings';
+import { isDefined } from '@findarr/shared/utils';
 import type { FastifyInstance } from 'fastify';
 
 export function arrRoutes(fastify: FastifyInstance) {

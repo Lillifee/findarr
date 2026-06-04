@@ -1,4 +1,4 @@
-import { users } from '@findarr/shared';
+import { users } from '@findarr/shared/db';
 import type SqlDatabase from 'better-sqlite3';
 import { eq } from 'drizzle-orm';
 import fastify, { type FastifyInstance } from 'fastify';

@@ -1,4 +1,5 @@
-import { isDefined, type User } from '@findarr/shared';
+import type { User } from '@findarr/shared/auth';
+import { isDefined } from '@findarr/shared/utils';
 import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 

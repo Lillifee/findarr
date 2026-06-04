@@ -1,4 +1,5 @@
-import { objectEntries, unifiedGenres, type GenreKey } from '@findarr/shared';
+import { unifiedGenres, type GenreKey } from '@findarr/shared/constants';
+import { objectEntries } from '@findarr/shared/utils';
 
 import { Badge } from './ui/Badge';
 

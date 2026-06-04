@@ -1,10 +1,5 @@
-import {
-  getErrorMessage,
-  isDefined,
-  type SchedulerInfo,
-  type SchedulerName,
-  type SchedulerParams,
-} from '@findarr/shared';
+import type { SchedulerInfo, SchedulerName, SchedulerParams } from '@findarr/shared/scheduler';
+import { getErrorMessage, isDefined } from '@findarr/shared/utils';
 import type { FastifyInstance } from 'fastify';
 
 import type { Scheduler } from './types.js';

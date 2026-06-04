@@ -1,4 +1,5 @@
-import type { Genre, Keyword, InteractionType } from '@findarr/shared';
+import type { InteractionType } from '@findarr/shared/interaction';
+import type { Genre, Keyword } from '@findarr/shared/media';
 
 import type { Database } from '../db/service.js';
 import { updateGenrePreference, updateKeywordPreference } from './repository.js';

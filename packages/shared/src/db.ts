@@ -1,4 +1,4 @@
-import { relations, sql } from 'drizzle-orm';
+import { relations, sql, type InferSelectModel } from 'drizzle-orm';
 import {
   integer,
   real,
@@ -9,7 +9,13 @@ import {
   primaryKey,
 } from 'drizzle-orm/sqlite-core';
 
-import type { RegionGroupId } from './constants';
+import type { RegionGroupId } from './constants.js';
+
+// Status progression: none (not in Sonarr) -> requested (user wants it) -> monitored (in Sonarr) -> downloaded (complete) -> available (in Jellyfin)
+export type SeasonRecord = {
+  seasonNumber: number;
+  status: 'none' | 'requested' | 'monitored' | 'downloaded' | 'available';
+};
 
 // ============================================================================
 // Settings Table
@@ -63,13 +69,7 @@ export const media = sqliteTable(
       .notNull()
       .default('pending'),
     // TV only: season tracking synced from Sonarr/Jellyfin (none=not in Sonarr, requested=user wants it, monitored=in Sonarr, downloaded=complete in Sonarr, available=in Jellyfin)
-    seasons: text('seasons', { mode: 'json' }).$type<
-      | {
-          seasonNumber: number;
-          status: 'none' | 'requested' | 'monitored' | 'downloaded' | 'available';
-        }[]
-      | null
-    >(),
+    seasons: text('seasons', { mode: 'json' }).$type<SeasonRecord[] | null>(),
     createdAt: integer('createdAt')
       .notNull()
       .default(sql`(unixepoch() * 1000)`)
@@ -308,3 +308,14 @@ export const relationsSchema = {
   userKeywordPreferencesRelations,
   userSettingsRelations,
 };
+
+// ============================================================================
+// Database Types - Inferred from Drizzle Schema
+// ============================================================================
+
+export type DbUser = InferSelectModel<typeof users>;
+export type DbMedia = InferSelectModel<typeof media>;
+export type DbUserMediaInteraction = InferSelectModel<typeof userMediaInteractions>;
+export type DbUserGenrePreference = InferSelectModel<typeof userGenrePreferences>;
+export type DbUserKeywordPreference = InferSelectModel<typeof userKeywordPreferences>;
+export type DbCatalogCache = InferSelectModel<typeof catalogCache>;

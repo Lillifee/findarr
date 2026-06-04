@@ -1,11 +1,11 @@
 import {
-  AvailableMediaQuerySchema,
   SearchQuerySchema,
   DetailsQuerySchema,
   GenresQuerySchema,
   DiscoverQuerySchema,
   PopularQuerySchema,
-} from '@findarr/shared';
+} from '@findarr/shared/catalog';
+import { AvailableMediaQuerySchema } from '@findarr/shared/interaction';
 import type { FastifyInstance } from 'fastify';
 
 import { protectedRoute } from '../utils/routes.js';

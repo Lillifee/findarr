@@ -1,4 +1,5 @@
-import { getErrorMessage, users } from '@findarr/shared';
+import { users } from '@findarr/shared/db';
+import { getErrorMessage } from '@findarr/shared/utils';
 import type { FastifyInstance } from 'fastify';
 
 import { hashPassword } from '../auth/utils.js';

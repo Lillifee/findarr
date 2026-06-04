@@ -1,10 +1,9 @@
+import { CreateUserSchema, DeleteUserSchema } from '@findarr/shared/auth';
 import {
   ArrSettingsQuerySchema,
-  CreateUserSchema,
-  DeleteUserSchema,
   JellyfinSettingsQuerySchema,
   TmdbSettingsQuerySchema,
-} from '@findarr/shared';
+} from '@findarr/shared/settings';
 import type { FastifyInstance } from 'fastify';
 
 import { createUser, deleteUser, listAllUsers } from '../auth/repository.js';
