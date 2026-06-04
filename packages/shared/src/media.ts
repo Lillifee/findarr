@@ -208,7 +208,7 @@ export type AvailableMediaResponse = PaginatedMediaResponse;
  */
 export interface SwipeNextResponse {
   feedId: string;
-  media: MediaDetails | null;
+  media: MediaDetails | undefined;
 }
 
 export interface PopularResponse {

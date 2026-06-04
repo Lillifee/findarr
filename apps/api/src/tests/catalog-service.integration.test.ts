@@ -309,7 +309,7 @@ describe('catalog service - integration tests', () => {
 
     const result = await catalogService.getNextUnvotedMedia({ type: 'both' }, user.id);
 
-    expect(result.media).toBeNull();
+    expect(result.media).toBeUndefined();
     expect(tmdbServiceMock.details).not.toHaveBeenCalled();
   });
 });

@@ -13,7 +13,7 @@ import { searchService } from '../services/api';
 import { asVoid } from '../utils/asyncHandlers';
 import { buildCatalogSearchParams } from '../utils/catalogSearchParams';
 
-function getHeroCopy(nextMedia: Media | null, heroError: string | null) {
+function getHeroCopy(nextMedia: Media | undefined, heroError: string | undefined) {
   if (nextMedia) {
     return {
       eyebrow: 'Continue voting',
@@ -70,13 +70,13 @@ function getHeroCopy(nextMedia: Media | null, heroError: string | null) {
 export function DashboardPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [nextMedia, setNextMedia] = useState<Media | null>(null);
+  const [nextMedia, setNextMedia] = useState<Media | undefined>();
   const [availableResults, setAvailableResults] = useState<Media[]>([]);
   const [availableHasMore, setAvailableHasMore] = useState(false);
   const [loadingHero, setLoadingHero] = useState(true);
   const [loadingAvailable, setLoadingAvailable] = useState(true);
-  const [heroError, setHeroError] = useState<string | null>(null);
-  const [availableError, setAvailableError] = useState<string | null>(null);
+  const [heroError, setHeroError] = useState<string | undefined>();
+  const [availableError, setAvailableError] = useState<string | undefined>();
   const requestIdRef = useRef(0);
 
   const loadDashboard = useCallback(async () => {
@@ -84,8 +84,8 @@ export function DashboardPage() {
 
     setLoadingHero(true);
     setLoadingAvailable(true);
-    setHeroError(null);
-    setAvailableError(null);
+    setHeroError(undefined);
+    setAvailableError(undefined);
 
     const [nextResult, availableResult] = await Promise.allSettled([
       searchService.getNextUnvotedMedia({ type: 'both', interaction: 'unvoted' }),
@@ -98,10 +98,10 @@ export function DashboardPage() {
 
     if (nextResult.status === 'fulfilled') {
       setNextMedia(nextResult.value.media);
-      setHeroError(null);
+      setHeroError(undefined);
     } else {
       console.error('Failed to load next voting candidate:', nextResult.reason);
-      setNextMedia(null);
+      setNextMedia(undefined);
       setHeroError('Could not load your next voting pick right now.');
     }
     setLoadingHero(false);
@@ -110,7 +110,7 @@ export function DashboardPage() {
       setAvailableResults(availableResult.value.results);
       setAvailableHasMore(availableResult.value.page < availableResult.value.totalPages);
 
-      setAvailableError(null);
+      setAvailableError(undefined);
     } else {
       console.error('Failed to load newly available media:', availableResult.reason);
       setAvailableResults([]);

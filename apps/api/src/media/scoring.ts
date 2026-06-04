@@ -38,18 +38,18 @@ export type MediaStats = {
  * Works on arrays of any size (including single items)
  * Stats are computed during catalog sync and grow over time
  */
-export function scoreMediaItems(
-  items: Media[],
+export function scoreMediaItems<T extends Media>(
+  items: T[],
   movieStats: MediaStats,
   tvStats: MediaStats,
-): Media[] {
+): T[] {
   if (items.length === 0) {
     return items;
   }
 
   const MIN_VOTES = 50;
 
-  const scored = items.map<Media>((item) => {
+  const scored = items.map<T>((item) => {
     const stats = item.type === 'movie' ? movieStats : tvStats;
     const globalAverage = stats.avgRating;
 
@@ -111,11 +111,11 @@ const scoreContribution = (normalized: number) =>
  * Calculates genre and keyword match scores, combines with base scores
  * Note: When keywords are absent, keywordScore copies genreScore (effectively 30% genre weight)
  */
-export function scoreMediaItemsForUser(
-  items: Media[],
+export function scoreMediaItemsForUser<T extends Media>(
+  items: T[],
   genrePreferences: Map<number, UserGenrePreference>,
   keywordPreferences = new Map<number, UserKeywordPreference>(),
-): Media[] {
+): T[] {
   if (genrePreferences.size === 0 && keywordPreferences.size === 0) {
     return items;
   }
@@ -124,7 +124,7 @@ export function scoreMediaItemsForUser(
   const PRIOR_WEIGHT = 10;
   const PRIOR_SCORE = 0;
 
-  const scored = items.map<Media>((item) => {
+  const scored = items.map<T>((item) => {
     // Neutral defaults (0.5) so unmatched preferences do not implicitly demote items.
     let genreScore = 0.5;
     let keywordScore = 0.5;

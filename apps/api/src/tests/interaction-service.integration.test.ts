@@ -173,7 +173,7 @@ const catalogService: CatalogService = {
     .mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
   getNextUnvotedMedia: vi
     .fn<CatalogService['getNextUnvotedMedia']>()
-    .mockResolvedValue({ media: null, feedId: 'feed-1' }),
+    .mockResolvedValue({ media: undefined, feedId: 'feed-1' }),
 };
 
 describe('interaction service - integration tests', () => {

@@ -14,7 +14,6 @@ import type {
   Genre,
   Media,
   SwipeNextResponse,
-  MediaDetails,
 } from '@findarr/shared/media';
 
 import type { Database } from '../db/service.js';
@@ -82,11 +81,11 @@ export function createCatalogService(context: CatalogContext) {
    * Helper: Enrich TMDB items with complete state
    * Adds scoring, media records, and optionally user interactions
    */
-  async function enrichMediaResults(
-    items: Media[],
+  async function enrichMediaResults<T extends Media>(
+    items: T[],
     userId: number,
     options: { scoring?: boolean; records?: boolean; interactions?: boolean } = {},
-  ): Promise<Media[]> {
+  ): Promise<T[]> {
     let enriched = items;
     const { scoring = true, records = true, interactions = true } = options;
 
@@ -137,9 +136,7 @@ export function createCatalogService(context: CatalogContext) {
   async function getMediaDetails(params: DetailsQuery, userId: number) {
     const mediaItem = await tmdb.details(params);
     const [enriched] = await enrichMediaResults([mediaItem], userId);
-    // TODO fix typings
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    return (enriched ?? mediaItem) as MediaDetails;
+    return enriched;
   }
 
   /**
@@ -196,15 +193,11 @@ export function createCatalogService(context: CatalogContext) {
       getUserInteractionMediaKeys(db, userId),
     ]);
 
-    const swipeWindow = popularFeedSnapshotStore.getSnapshotPage(
-      popularFeedSnapshot.items,
-      1,
-      SWIPE_CANDIDATE_LIMIT,
-    );
+    const swipeWindow = popularFeedSnapshot.getSnapshotPage(1, SWIPE_CANDIDATE_LIMIT);
 
-    const unvotedItem =
-      swipeWindow.items.find((item) => filterByInteraction(item, interactionKeys, 'unvoted')) ??
-      null;
+    const unvotedItem = swipeWindow.items.find((item) =>
+      filterByInteraction(item, interactionKeys, 'unvoted'),
+    );
 
     const media =
       unvotedItem &&
@@ -229,7 +222,7 @@ export function createCatalogService(context: CatalogContext) {
     );
 
     // Get the requested page window from the stable snapshot
-    const pageWindow = popularFeedSnapshotStore.getSnapshotPage(popularFeedSnapshot.items, page);
+    const pageWindow = popularFeedSnapshot.getSnapshotPage(page);
 
     // Enrich the items in the current window with full state (scores, records, interactions)
     const results = await enrichMediaResults(pageWindow.items, userId, { scoring: false });

@@ -18,7 +18,10 @@ import { scoreMediaItems, scoreMediaItemsForUser } from './scoring.js';
  * Enrich TMDB media items with database records (status, jellyfinId, arrId, season tracking)
  * Frontend can match season status by seasonNumber from state.record.seasons if needed
  */
-export async function enrichWithRecords(db: Database, mediaItems: Media[]): Promise<Media[]> {
+export async function enrichWithRecords<T extends Media>(
+  db: Database,
+  mediaItems: T[],
+): Promise<T[]> {
   if (mediaItems.length === 0) {
     return mediaItems;
   }
@@ -36,11 +39,11 @@ export async function enrichWithRecords(db: Database, mediaItems: Media[]): Prom
  * Requires items to already have state.record with database IDs
  * Uses separate optimized batch queries for interactions and vote counts
  */
-export async function enrichWithInteractions(
+export async function enrichWithInteractions<T extends Media>(
   db: Database,
-  mediaItems: Media[],
+  mediaItems: T[],
   userId: number,
-): Promise<Media[]> {
+): Promise<T[]> {
   // Fetch interactions (user-specific or all with user info)
   const interactionsMap = await getInteractionsBatch(db, mediaItems, userId);
 
@@ -72,11 +75,11 @@ export async function enrichWithInteractions(
  * Uses precomputed catalog stats from database and applies user preferences if authenticated
  * Returns items with scores attached (does not sort)
  */
-export async function enrichWithScoring(
+export async function enrichWithScoring<T extends Media>(
   db: Database,
-  mediaItems: Media[],
+  mediaItems: T[],
   userId?: number,
-): Promise<Media[]> {
+): Promise<T[]> {
   if (mediaItems.length === 0) {
     return mediaItems;
   }
@@ -92,7 +95,7 @@ export async function enrichWithScoring(
   }
 
   // Apply base scoring (trending, popularity, recency, rating)
-  let scoredItems: Media[] = scoreMediaItems(mediaItems, movieStats, tvStats);
+  let scoredItems: T[] = scoreMediaItems(mediaItems, movieStats, tvStats);
 
   // Apply user preference scoring if authenticated
   if (isDefined(userId)) {
