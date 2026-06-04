@@ -7,7 +7,7 @@ import type { SchedulerService } from '../scheduler/service.js';
 import { createClientLifecycle } from '../utils/clientLifecycleHepler.js';
 import { trimTrailingSlash } from '../utils/links.js';
 import { createArrClient, type ArrClient } from './client.js';
-import { arrConfig, type ArrServiceConfig } from './config.js';
+import type { arrConfig, ArrServiceConfig } from './config.js';
 import {
   getArrSettings,
   setArrSettings,
@@ -29,14 +29,14 @@ export async function createArrService<T extends ArrServiceConfig>(
 ) {
   const lifecycle = createClientLifecycle<ArrSettingsFull, ArrClient>({
     name: config.service,
-    loadSettings: () => getArrSettings(context.db, config),
+    loadSettings: async () => getArrSettings(context.db, config),
     createClient: (settings) =>
       isDefined(settings.url) && isDefined(settings.apiKey)
         ? createArrClient(config, settings.url, settings.apiKey)
         : undefined,
   });
 
-  await lifecycle.reload().catch((error) => {
+  await lifecycle.reload().catch((error: unknown) => {
     context.log.error({ name: config.service, error }, 'Failed to initialize Arr service');
   });
 
@@ -88,7 +88,9 @@ export async function createArrService<T extends ArrServiceConfig>(
 
     const { qualityProfileId, rootFolderPath } = settings;
 
-    if (!isDefined(qualityProfileId) || !isDefined(rootFolderPath)) return undefined;
+    if (!isDefined(qualityProfileId) || !isDefined(rootFolderPath)) {
+      return undefined;
+    }
 
     const response = await client.requestOrUpdateMedia(
       { id, title, arrId },
@@ -113,11 +115,11 @@ export async function createArrService<T extends ArrServiceConfig>(
     return libraryItem;
   }
 
-  function listQualityProfiles(): Promise<ArrQualityProfile[]> {
+  async function listQualityProfiles(): Promise<ArrQualityProfile[]> {
     return lifecycle.client().listQualityProfiles();
   }
 
-  function listRootFolders(): Promise<ArrRootFolder[]> {
+  async function listRootFolders(): Promise<ArrRootFolder[]> {
     return lifecycle.client().listRootFolders();
   }
 
@@ -126,17 +128,21 @@ export async function createArrService<T extends ArrServiceConfig>(
     return items.map((x) => transformArrMedia(x));
   }
 
-  function getQueue(pageSize: number): Promise<ArrQueueItem[]> {
+  async function getQueue(pageSize: number): Promise<ArrQueueItem[]> {
     return lifecycle.client().getQueue(pageSize);
   }
 
   async function resolveMediaUrl(mediaId: number): Promise<string | null> {
     const mediaRecord = await getMediaById(context.db, mediaId);
 
-    if (!isDefined(mediaRecord?.arrUrl)) return null;
+    if (!isDefined(mediaRecord?.arrUrl)) {
+      return null;
+    }
 
     const { url } = lifecycle.settings();
-    if (!isDefined(url)) return null;
+    if (!isDefined(url)) {
+      return null;
+    }
 
     return `${trimTrailingSlash(url)}${mediaRecord.arrUrl}`;
   }

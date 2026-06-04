@@ -95,7 +95,9 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, option
   fastify.decorate('requireAdmin', async (request: FastifyRequest, reply: FastifyReply) => {
     await fastify.requireAuth(request, reply);
 
-    if (reply.sent) return;
+    if (reply.sent) {
+      return;
+    }
     if (request.user?.role !== 'admin') {
       reply.code(403).send({ error: 'Admin access required' });
     }

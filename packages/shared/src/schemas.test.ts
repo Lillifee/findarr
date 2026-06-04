@@ -141,15 +141,15 @@ describe('schemas', () => {
     });
 
     it('should ignore user settings fields that are server-owned', () => {
-      expect(DiscoverQuerySchema.parse({ regions: ['western'] })).toEqual({ genres: [] });
-      expect(DiscoverQuerySchema.parse({ language: 'de-DE' })).toEqual({ genres: [] });
+      expect(DiscoverQuerySchema.parse({ regions: ['western'] })).toStrictEqual({ genres: [] });
+      expect(DiscoverQuerySchema.parse({ language: 'de-DE' })).toStrictEqual({ genres: [] });
     });
 
     it('should accept genre filters from query params', () => {
-      expect(DiscoverQuerySchema.parse({ genres: ['Action'] })).toEqual({
+      expect(DiscoverQuerySchema.parse({ genres: ['Action'] })).toStrictEqual({
         genres: ['Action'],
       });
-      expect(DiscoverQuerySchema.parse({ genres: 'Action' })).toEqual({
+      expect(DiscoverQuerySchema.parse({ genres: 'Action' })).toStrictEqual({
         genres: ['Action'],
       });
     });
@@ -162,7 +162,7 @@ describe('schemas', () => {
         genres: ['Action'],
       };
       const result = DiscoverQuerySchema.parse(input);
-      expect(result).toEqual(input);
+      expect(result).toStrictEqual(input);
     });
   });
   describe('DetailsQuerySchema', () => {

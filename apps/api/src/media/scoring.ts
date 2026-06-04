@@ -48,7 +48,9 @@ export function scoreMediaItems(
   movieStats: MediaStats,
   tvStats: MediaStats,
 ): Media[] {
-  if (items.length === 0) return items;
+  if (items.length === 0) {
+    return items;
+  }
 
   const MIN_VOTES = 50;
 
@@ -117,7 +119,7 @@ const scoreContribution = (normalized: number) =>
 export function scoreMediaItemsForUser(
   items: Media[],
   genrePreferences: Map<number, UserGenrePreference>,
-  keywordPreferences: Map<number, UserKeywordPreference> = new Map(),
+  keywordPreferences = new Map<number, UserKeywordPreference>(),
 ): Media[] {
   if (genrePreferences.size === 0 && keywordPreferences.size === 0) {
     return items;
@@ -160,7 +162,9 @@ export function scoreMediaItemsForUser(
 
       for (const kw of item.keywords) {
         const pref = keywordPreferences.get(kw.id);
-        if (!pref) continue;
+        if (!pref) {
+          continue;
+        }
 
         matched = true;
         const normalized = (pref.score + PRIOR_WEIGHT * PRIOR_SCORE) / (pref.count + PRIOR_WEIGHT);

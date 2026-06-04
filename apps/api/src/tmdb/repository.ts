@@ -1,5 +1,10 @@
-import type { TmdbSettings, TmdbSettingsQuery } from '@findarr/shared';
-import { isDefined, objectKeys, TmdbSettingsQuerySchema } from '@findarr/shared';
+import {
+  isDefined,
+  objectKeys,
+  TmdbSettingsQuerySchema,
+  type TmdbSettings,
+  type TmdbSettingsQuery,
+} from '@findarr/shared';
 
 import type { Database } from '../db/service.js';
 import { readSettings, writeSettings } from '../settings/repository.js';

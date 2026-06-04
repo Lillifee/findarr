@@ -13,7 +13,6 @@ export function MediaDetailPage() {
   const [details, setDetails] = useState<MediaDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [language] = useState<string>('de-DE');
 
   // Extract type from the path (/movie/:id or /tv/:id)
   const type = location.pathname.startsWith('/movie') ? 'movie' : 'tv';
@@ -35,7 +34,6 @@ export function MediaDetailPage() {
         const mediaDetails = await searchService.getMediaDetails({
           id: Number.parseInt(id, 10),
           type,
-          language,
         });
         setDetails(mediaDetails);
       } catch (error_) {
@@ -47,7 +45,7 @@ export function MediaDetailPage() {
     };
 
     void loadDetails();
-  }, [type, id, language]);
+  }, [type, id]);
 
   const handleBack = () => {
     void navigate(-1);
@@ -75,7 +73,7 @@ export function MediaDetailPage() {
       {loading && (
         <div className="relative z-10 mx-auto max-w-6xl px-4 py-32 text-center text-gray-400 md:px-8">
           <div className="flex flex-col items-center gap-4">
-            <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-amber-500"></div>
+            <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-amber-500" />
             <p>Loading details...</p>
           </div>
         </div>

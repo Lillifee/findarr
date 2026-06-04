@@ -12,8 +12,7 @@ import {
   setJellyfinSettings,
   type JellyfinSettingsFull,
 } from './repository.js';
-import type { JellyfinMedia } from './transformers.js';
-import { jellyfinItemToMedia } from './transformers.js';
+import { jellyfinItemToMedia, type JellyfinMedia } from './transformers.js';
 
 export interface JellyfinContext {
   db: Database;
@@ -24,7 +23,7 @@ export interface JellyfinContext {
 export async function createJellyfinService(context: JellyfinContext) {
   const lifecycle = createClientLifecycle<JellyfinSettingsFull, JellyfinClient>({
     name: 'Jellyfin',
-    loadSettings: () => getJellyfinSettingsFull(context.db),
+    loadSettings: async () => getJellyfinSettingsFull(context.db),
     createClient: (settings) =>
       isDefined(settings.jellyfinUrl) && isDefined(settings.jellyfinApiKey)
         ? createJellyfinClient(settings.jellyfinUrl, settings.jellyfinApiKey)
@@ -71,6 +70,8 @@ export async function createJellyfinService(context: JellyfinContext) {
     let hasMore = true;
 
     while (hasMore) {
+      // Sequential by design: cursor pagination.
+      // oxlint-disable-next-line eslint/no-await-in-loop
       const response = await currentClient.getItems({
         itemTypes: ['Movie', 'Series'],
         startIndex,
@@ -115,10 +116,14 @@ export async function createJellyfinService(context: JellyfinContext) {
 
   async function resolveMediaUrl(mediaId: number): Promise<string | null> {
     const mediaRecord = await getMediaById(context.db, mediaId);
-    if (!isDefined(mediaRecord?.jellyfinId)) return null;
+    if (!isDefined(mediaRecord?.jellyfinId)) {
+      return null;
+    }
 
     const { jellyfinUrl } = getSettings();
-    if (!isDefined(jellyfinUrl)) return null;
+    if (!isDefined(jellyfinUrl)) {
+      return null;
+    }
 
     return `${trimTrailingSlash(jellyfinUrl)}/web/index.html?#/details?id=${mediaRecord.jellyfinId}`;
   }

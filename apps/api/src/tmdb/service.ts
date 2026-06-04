@@ -41,14 +41,30 @@ export async function createTMDBService(context: TmdbServiceContext) {
 
   const lifecycle = createClientLifecycle<TmdbSettingsFull, TMDBClient>({
     name: 'TMDB',
-    loadSettings: () => getTmdbSettingsFull(context.db),
+    loadSettings: async () => getTmdbSettingsFull(context.db),
     createClient: (settings) =>
       isDefined(settings.tmdbAccessToken) ? createTMDBClient(settings.tmdbAccessToken) : undefined,
   });
 
-  await reloadService().catch((error) => {
-    context.log.error({ name: 'tmdb', error }, 'Failed to initialize TMDB service');
-  });
+  async function loadGenres(client: TMDBClient): Promise<void> {
+    const [movieGenres, tvGenres] = await Promise.all([
+      client.genres('movie', { language: 'en-US' }),
+      client.genres('tv', { language: 'en-US' }),
+    ]);
+
+    genreMap.clear();
+
+    for (const genre of [...movieGenres.genres, ...tvGenres.genres]) {
+      genreMap.set(genre.id, genre);
+    }
+  }
+
+  async function ensureGenresLoaded(client?: TMDBClient): Promise<void> {
+    if (genreMap.size > 0) {
+      return;
+    }
+    await loadGenres(client ?? lifecycle.client());
+  }
 
   async function reloadService(): Promise<void> {
     await lifecycle.reload();
@@ -57,6 +73,10 @@ export async function createTMDBService(context: TmdbServiceContext) {
       await ensureGenresLoaded();
     }
   }
+
+  await reloadService().catch((error: unknown) => {
+    context.log.error({ name: 'tmdb', error }, 'Failed to initialize TMDB service');
+  });
 
   function getSettings(): TmdbSettings {
     const { tmdbAccessToken: _tmdbAccessToken, ...settings } = lifecycle.settings();
@@ -85,24 +105,6 @@ export async function createTMDBService(context: TmdbServiceContext) {
     return lifecycle.isConfigured();
   }
 
-  async function loadGenres(client: TMDBClient): Promise<void> {
-    const [movieGenres, tvGenres] = await Promise.all([
-      client.genres('movie', { language: 'en-US' }),
-      client.genres('tv', { language: 'en-US' }),
-    ]);
-
-    genreMap.clear();
-
-    for (const genre of [...movieGenres.genres, ...tvGenres.genres]) {
-      genreMap.set(genre.id, genre);
-    }
-  }
-
-  async function ensureGenresLoaded(client?: TMDBClient): Promise<void> {
-    if (genreMap.size > 0) return;
-    await loadGenres(client ?? lifecycle.client());
-  }
-
   /**
    * Search for movies and TV shows
    */
@@ -112,7 +114,7 @@ export async function createTMDBService(context: TmdbServiceContext) {
     const client = lifecycle.client();
 
     const searchTypes = type === 'both' ? MEDIA_TYPES : [type];
-    const promises = searchTypes.map((searchType) =>
+    const promises = searchTypes.map(async (searchType) =>
       client.search(searchType, { query, page, language, region }),
     );
 
@@ -148,7 +150,7 @@ export async function createTMDBService(context: TmdbServiceContext) {
 
     const discoverParams = buildDiscoverParams(params);
     const discoverPromises = discoverTypes.flatMap((discoverType) =>
-      pagesToFetch.map((pageNum) =>
+      pagesToFetch.map(async (pageNum) =>
         client.discover(discoverType, { ...discoverParams, page: pageNum }),
       ),
     );
@@ -181,14 +183,15 @@ export async function createTMDBService(context: TmdbServiceContext) {
 
     const responses = await Promise.all(
       MEDIA_TYPES.flatMap((type) =>
-        pagesToFetch.map((page) => client.trending(type, { language, time_window, page })),
+        pagesToFetch.map(async (page) => client.trending(type, { language, time_window, page })),
       ),
     );
 
     const results = responses.flatMap(({ results: res }) =>
       res.map((item) => {
         const type = item.type as MediaType;
-        const trendingRank = ++ranks[type];
+        const trendingRank = ranks[type] + 1;
+        ranks[type] = trendingRank;
 
         return transformMedia(item, genreMap, { trendingRank });
       }),

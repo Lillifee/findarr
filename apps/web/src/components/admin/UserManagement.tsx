@@ -21,10 +21,6 @@ export function UserManagement() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    void loadUsers();
-  }, []);
-
   async function loadUsers() {
     try {
       setUsers(await adminUserService.listUsers());
@@ -32,6 +28,10 @@ export function UserManagement() {
       console.error('Failed to load users');
     }
   }
+
+  useEffect(() => {
+    void loadUsers();
+  }, []);
 
   async function handleCreateUser(e: React.ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -201,7 +201,7 @@ export function UserManagement() {
                     type="button"
                     variant="danger"
                     size="sm"
-                    onClick={asVoid(() => handleDeleteUser(user.id))}
+                    onClick={asVoid(async () => handleDeleteUser(user.id))}
                   >
                     Delete
                   </Button>
@@ -240,7 +240,7 @@ export function UserManagement() {
               variant="danger"
               size="sm"
               className="w-full"
-              onClick={asVoid(() => handleDeleteUser(user.id))}
+              onClick={asVoid(async () => handleDeleteUser(user.id))}
             >
               Delete User
             </Button>

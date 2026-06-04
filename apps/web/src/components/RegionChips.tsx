@@ -138,7 +138,9 @@ export function RegionChips({
               selected={isSelected}
               interactive
               onClick={() => {
-                if (!disabled) handleRegionToggle(regionId);
+                if (!disabled) {
+                  handleRegionToggle(regionId);
+                }
               }}
               className={`px-3 py-1.5 text-xs shadow-none backdrop-blur-none ${
                 isSelected

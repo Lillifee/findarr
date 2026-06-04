@@ -27,7 +27,7 @@ export function createSchedulerService(
    */
   async function executeScheduler(scheduler: Scheduler): Promise<void> {
     const now = Date.now();
-    const interval = scheduler.config.interval;
+    const { interval } = scheduler.config;
 
     scheduler.state.isRunning = true;
     scheduler.state.lastError = null;
@@ -160,7 +160,7 @@ export function createSchedulerService(
       }
 
       // Execute scheduler (async, don't await to prevent blocking other schedulers)
-      executeScheduler(scheduler).catch((error) => {
+      executeScheduler(scheduler).catch((error: unknown) => {
         fastify.log.error(
           { name: 'scheduler', schedulerName: scheduler.config.name, err: error },
           'Unexpected error in scheduler execution',

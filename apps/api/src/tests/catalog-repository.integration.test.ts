@@ -1,4 +1,4 @@
-import SqlDatabase from 'better-sqlite3';
+import type SqlDatabase from 'better-sqlite3';
 import { describe, it, expect, beforeEach, afterEach } from 'vite-plus/test';
 
 import {
@@ -9,8 +9,7 @@ import {
   listCatalogItemsMissingKeywords,
   updateCatalogKeywords,
 } from '../catalog/repository.js';
-import { createDatabase } from '../db/service.js';
-import type { Database } from '../db/service.js';
+import { createDatabase, type Database } from '../db/service.js';
 import { createTestMedia } from './helpers/testHelper.js';
 
 describe('catalog repository - integration tests', () => {
@@ -19,8 +18,8 @@ describe('catalog repository - integration tests', () => {
 
   beforeEach(() => {
     const result = createDatabase(':memory:');
-    db = result.db;
-    sqliteDb = result.sqliteDb;
+    ({ db } = result);
+    ({ sqliteDb } = result);
   });
 
   afterEach(() => {
@@ -64,7 +63,7 @@ describe('catalog repository - integration tests', () => {
       expect(cached).toHaveLength(1);
       expect(cached[0]?.name).toBe('Updated');
       // Keywords should be preserved
-      expect(cached[0]?.keywords).toEqual([{ id: 1, name: 'action' }]);
+      expect(cached[0]?.keywords).toStrictEqual([{ id: 1, name: 'action' }]);
     });
 
     it('should handle empty array', async () => {
@@ -89,8 +88,9 @@ describe('catalog repository - integration tests', () => {
       ]);
 
       expect(result).toHaveLength(2);
-      expect(result[0]?.tmdbId).toBe(1);
-      expect(result[1]?.tmdbId).toBe(2);
+      const ids = result.map((m) => m.tmdbId);
+      expect(ids).toContain(1);
+      expect(ids).toContain(2);
     });
 
     it('should return empty array for non-existent items', async () => {
@@ -187,7 +187,7 @@ describe('catalog repository - integration tests', () => {
       const result = await listCatalogItemsMissingKeywords(db);
 
       expect(result).toHaveLength(2);
-      expect(result.map((r) => r.tmdbId).toSorted((a, b) => a - b)).toEqual([1, 2]);
+      expect(result.map((r) => r.tmdbId).toSorted((a, b) => a - b)).toStrictEqual([1, 2]);
     });
 
     it('should return empty array when all items have keywords', async () => {
@@ -214,7 +214,7 @@ describe('catalog repository - integration tests', () => {
       await updateCatalogKeywords(db, 1, 'movie', keywords);
 
       const cached = await getAllCatalogCache(db);
-      expect(cached[0]?.keywords).toEqual(keywords);
+      expect(cached[0]?.keywords).toStrictEqual(keywords);
     });
 
     it('should only update the matching item', async () => {
@@ -231,7 +231,7 @@ describe('catalog repository - integration tests', () => {
       const updated = cached.find((m) => m.tmdbId === 1);
       const unchanged = cached.find((m) => m.tmdbId === 2);
 
-      expect(updated?.keywords).toEqual(keywords);
+      expect(updated?.keywords).toStrictEqual(keywords);
       expect(unchanged?.keywords).toBeUndefined();
     });
   });

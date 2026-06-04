@@ -13,7 +13,7 @@ export const interactionRoutes = (fastify: FastifyInstance) => {
   fastify.addHook('preHandler', fastify.requireAuth);
 
   // Create or toggle a media interaction (like/dislike)
-  fastify.post('/', (request) =>
+  fastify.post('/', async (request) =>
     createInteraction(
       fastify.tmdb,
       fastify.radarr,
@@ -29,7 +29,7 @@ export const interactionRoutes = (fastify: FastifyInstance) => {
   // Supports pagination via query parameter
   fastify.get(
     '/',
-    protectedRoute((request) =>
+    protectedRoute(async (request) =>
       getUserInteractionsEnriched(
         fastify.tmdb,
         fastify.db,
@@ -41,7 +41,7 @@ export const interactionRoutes = (fastify: FastifyInstance) => {
 
   fastify.get(
     '/attention',
-    protectedRoute((request) =>
+    protectedRoute(async (request) =>
       getUserActivityAttentionEnriched(
         fastify.tmdb,
         fastify.db,

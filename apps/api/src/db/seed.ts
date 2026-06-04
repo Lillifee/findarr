@@ -1,14 +1,16 @@
 import { getErrorMessage, users } from '@findarr/shared';
 import type { FastifyInstance } from 'fastify';
 
-import { hashPassword } from '../auth/service.js';
+import { hashPassword } from '../auth/utils.js';
 import type { Database } from './service.js';
 
 export async function seed(fastify: FastifyInstance, db: Database) {
   try {
     // Check if users already exist
     const existingUsers = await db.query.users.findMany();
-    if (existingUsers.length > 0) return;
+    if (existingUsers.length > 0) {
+      return;
+    }
 
     fastify.log.info({ name: 'seed' }, 'Seeding database');
 

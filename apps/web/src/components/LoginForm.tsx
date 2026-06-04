@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { asVoid } from '../utils/asyncHandlers';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';

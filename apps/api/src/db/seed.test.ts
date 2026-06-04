@@ -1,12 +1,11 @@
 import { users } from '@findarr/shared';
-import SqlDatabase from 'better-sqlite3';
+import type SqlDatabase from 'better-sqlite3';
 import { eq } from 'drizzle-orm';
-import Fastify, { type FastifyInstance } from 'fastify';
+import fastify, { type FastifyInstance } from 'fastify';
 import { describe, it, expect, beforeEach, afterEach } from 'vite-plus/test';
 
 import { seed } from './seed.js';
-import { createDatabase } from './service.js';
-import type { Database } from './service.js';
+import { createDatabase, type Database } from './service.js';
 
 describe('seed', () => {
   let app: FastifyInstance;
@@ -19,10 +18,10 @@ describe('seed', () => {
   };
 
   beforeEach(() => {
-    app = Fastify();
+    app = fastify();
     const result = createDatabase(':memory:');
-    db = result.db;
-    sqliteDb = result.sqliteDb;
+    ({ db } = result);
+    ({ sqliteDb } = result);
   });
 
   afterEach(() => {

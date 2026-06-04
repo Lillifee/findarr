@@ -1,5 +1,6 @@
 import type { MediaType } from '@findarr/shared';
 import { z } from 'zod';
+
 export {
   ArrQualityProfileSchema,
   ArrRootFolderSchema,
@@ -151,8 +152,8 @@ export interface ArrLibraryItem {
   monitored: boolean;
   hasFile: boolean;
   // Only for TV shows - season tracking from Sonarr
-  seasons?: Array<{
+  seasons?: {
     seasonNumber: number;
     status: 'none' | 'monitored' | 'downloaded';
-  }>;
+  }[];
 }

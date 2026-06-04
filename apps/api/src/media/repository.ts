@@ -1,16 +1,17 @@
-import type {
-  MediaStatus,
-  Media,
-  DbMedia,
-  MediaRecord,
-  SearchType,
-  MediaType,
+import {
+  media,
+  mediaStats,
+  type DbMedia,
+  type Media,
+  type MediaRecord,
+  type MediaStatus,
+  type MediaType,
+  type SearchType,
 } from '@findarr/shared';
-import { media, mediaStats } from '@findarr/shared';
 import { and, eq, or, sql } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';
-import { Conflict, NotFound } from '../utils/errors.js';
+import { conflict, notFound } from '../utils/errors.js';
 import type { MediaStats } from './scoring.js';
 
 // ============================================================================
@@ -50,7 +51,9 @@ export const createMedia = async (
 ) => {
   // Check if media already exists (prevent duplicates since we removed the unique constraint)
   const existing = await getMediaByTmdbId(db, tmdbId, type);
-  if (existing) return existing;
+  if (existing) {
+    return existing;
+  }
 
   // Convert season numbers to SeasonRecord format for storage
   const seasons = seasonNumbers
@@ -69,9 +72,14 @@ export const createMedia = async (
       id: media.id,
     });
 
-  if (!result[0]) throw Conflict('Failed to create media record');
+  if (!result[0]) {
+    throw conflict('Failed to create media record');
+  }
+
   const createdMedia = await getMediaById(db, result[0].id);
-  if (!createdMedia) throw Conflict('Failed to create media record');
+  if (!createdMedia) {
+    throw conflict('Failed to create media record');
+  }
 
   return createdMedia;
 };
@@ -93,7 +101,7 @@ export const updateMediaStatus = async (
     .where(eq(media.id, mediaId));
 
   if (result.changes === 0) {
-    throw NotFound('Media not found');
+    throw notFound('Media not found');
   }
 };
 
@@ -119,7 +127,7 @@ export const updateMediaSeasons = async (
     .where(eq(media.id, mediaId));
 
   if (result.changes === 0) {
-    throw NotFound('Media not found');
+    throw notFound('Media not found');
   }
 };
 
@@ -132,7 +140,9 @@ export async function getMediaRecordsBatch(
   mediaItems: Media[],
 ): Promise<Map<string, MediaRecord>> {
   const mediaRecords = new Map<string, MediaRecord>();
-  if (mediaItems.length === 0) return mediaRecords;
+  if (mediaItems.length === 0) {
+    return mediaRecords;
+  }
 
   // Build OR conditions for batch query
   const conditions = mediaItems.map((item) =>

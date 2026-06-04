@@ -1,9 +1,8 @@
 import { mkdirSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import path from 'node:path';
 
 import { relationsSchema, schema } from '@findarr/shared';
 import BetterSqlite3 from 'better-sqlite3';
-import type SqlDatabase from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 
@@ -16,7 +15,7 @@ export type Database = ReturnType<typeof drizzle<typeof combinedSchema>>;
 
 export type DatabaseConnection = {
   db: Database;
-  sqliteDb: SqlDatabase.Database;
+  sqliteDb: BetterSqlite3.Database;
 };
 
 /**
@@ -25,7 +24,7 @@ export type DatabaseConnection = {
  */
 export function createDatabase(dbPath: string): DatabaseConnection {
   // Ensure data directory exists
-  const dataDir = dirname(dbPath);
+  const dataDir = path.dirname(dbPath);
   mkdirSync(dataDir, { recursive: true });
 
   // Open SQLite database
@@ -36,7 +35,7 @@ export function createDatabase(dbPath: string): DatabaseConnection {
   const db = drizzle(sqliteDb, { schema: combinedSchema });
 
   // Apply migrations (from drizzle-kit generated folder)
-  migrate(db, { migrationsFolder: join(currentDirname, '..', '..', 'drizzle') });
+  migrate(db, { migrationsFolder: path.join(currentDirname, '..', '..', 'drizzle') });
 
   return { db, sqliteDb };
 }

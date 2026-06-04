@@ -9,12 +9,12 @@ export const settingsRoutes = (fastify: FastifyInstance) => {
 
   fastify.get(
     '/',
-    protectedRoute((request) => getUserSettings(fastify.db, request.user.id)),
+    protectedRoute(async (request) => getUserSettings(fastify.db, request.user.id)),
   );
 
   fastify.put(
     '/',
-    protectedRoute((request) =>
+    protectedRoute(async (request) =>
       saveUserSettings(fastify.db, request.user.id, UserSettingsQuerySchema.parse(request.body)),
     ),
   );

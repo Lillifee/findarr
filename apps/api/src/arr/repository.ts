@@ -1,12 +1,13 @@
-import type {
-  ArrSettings,
-  ArrSettingsQuery,
-  DbMedia,
-  MediaStatus,
-  MediaType,
+import {
+  isDefined,
+  media,
+  type ArrSettings,
+  type ArrSettingsQuery,
+  type DbMedia,
+  type MediaStatus,
+  type MediaType,
 } from '@findarr/shared';
-import { isDefined, media } from '@findarr/shared';
-import { and, eq, isNotNull, isNull, sql } from 'drizzle-orm';
+import { and, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';
 import { readSettings, writeSettings } from '../settings/repository.js';
@@ -42,9 +43,9 @@ export async function updateMediaIds(
  * Get all TV shows without TMDB ID for enrichment (from Sonarr)
  * These shows have tvdbId but need TMDB ID for display/search
  */
-export function getMediaWithoutTmdbId(
+export async function getMediaWithoutTmdbId(
   db: Database,
-): Promise<Array<Pick<DbMedia, 'id' | 'tvdbId' | 'type'>>> {
+): Promise<Pick<DbMedia, 'id' | 'tvdbId' | 'type'>[]> {
   return db
     .select({
       id: media.id,
@@ -75,11 +76,11 @@ export async function getExistingTvdbIdSet(db: Database): Promise<Set<number>> {
  */
 export async function upsertMediaFromArr(
   db: Database,
-  items: Array<
-    Pick<DbMedia, 'type' | 'tvdbId' | 'tmdbId' | 'arrId' | 'arrUrl' | 'status' | 'seasons'>
-  >,
+  items: Pick<DbMedia, 'type' | 'tvdbId' | 'tmdbId' | 'arrId' | 'arrUrl' | 'status' | 'seasons'>[],
 ): Promise<void> {
-  if (items.length === 0) return;
+  if (items.length === 0) {
+    return;
+  }
 
   const now = Date.now();
 
@@ -159,13 +160,14 @@ export async function updateMediaStatusByArrId(
  */
 export async function batchUpdateMediaStatuses(
   db: Database,
-  updates: Array<{
+  updates: {
     arrId: number;
     type: MediaType;
     status: MediaStatus;
-  }>,
+  }[],
 ): Promise<void> {
   for (const { arrId, type, status } of updates) {
+    // oxlint-disable-next-line no-await-in-loop
     await updateMediaStatusByArrId(db, arrId, type, status);
   }
 }
@@ -173,10 +175,10 @@ export async function batchUpdateMediaStatuses(
 /**
  * Get all media with arr IDs for sync matching
  */
-export function listMediaWithArrIds(
+export async function listMediaWithArrIds(
   db: Database,
   type: MediaType,
-): Promise<Array<Omit<DbMedia, 'createdAt' | 'updatedAt'>>> {
+): Promise<Omit<DbMedia, 'createdAt' | 'updatedAt'>[]> {
   return db
     .select({
       id: media.id,
@@ -202,35 +204,21 @@ export async function clearRemovedArrItems(
   ids: number[],
   type: MediaType,
 ): Promise<number> {
-  if (ids.length === 0) return 0;
-
-  let cleared = 0;
-
-  for (const arrId of ids) {
-    const currentMediaRecord = (await db.query.media.findFirst({
-      where: and(eq(media.arrId, arrId), eq(media.type, type)),
-      columns: { id: true, status: true },
-    })) as Pick<DbMedia, 'id' | 'status'> | undefined;
-
-    if (!currentMediaRecord) continue;
-
-    const newStatus: MediaStatus =
-      currentMediaRecord.status === 'available' ? 'available' : 'pending';
-
-    await db
-      .update(media)
-      .set({
-        arrId: null,
-        arrUrl: null,
-        status: newStatus,
-        updatedAt: Date.now(),
-      })
-      .where(eq(media.id, currentMediaRecord.id));
-
-    cleared++;
+  if (ids.length === 0) {
+    return 0;
   }
 
-  return cleared;
+  const result = await db
+    .update(media)
+    .set({
+      arrId: null,
+      arrUrl: null,
+      status: sql`CASE WHEN ${media.status} = 'available' THEN 'available' ELSE 'pending' END`,
+      updatedAt: Date.now(),
+    })
+    .where(and(inArray(media.arrId, ids), eq(media.type, type)));
+
+  return result.changes;
 }
 
 export interface ArrSettingsFull extends ArrSettings {

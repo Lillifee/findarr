@@ -1,14 +1,12 @@
-import type { Genre } from '@findarr/shared';
-import { isDefined, unifiedGenres } from '@findarr/shared';
+import { isDefined, unifiedGenres, type Genre } from '@findarr/shared';
 import type SqlDatabase from 'better-sqlite3';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vite-plus/test';
 
-import * as authService from '../auth/service.js';
+import * as authUtils from '../auth/utils.js';
 import { computeCatalogMediaStats } from '../catalog/repository.js';
 import { createCatalogService } from '../catalog/service.js';
 import { syncCatalogCache } from '../catalog/sync.js';
-import { createDatabase } from '../db/service.js';
-import type { Database } from '../db/service.js';
+import { createDatabase, type Database } from '../db/service.js';
 import type { JellyfinService } from '../jellyfin/service.js';
 import { updateGenrePreference, updateKeywordPreference } from '../preferences/repository.js';
 import type { SchedulerService } from '../scheduler/service.js';
@@ -36,8 +34,8 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
 
     // Create fresh in-memory database
     const result = createDatabase(':memory:');
-    db = result.db;
-    sqliteDb = result.sqliteDb;
+    ({ db } = result);
+    ({ sqliteDb } = result);
 
     // Load fixture responses
     const trendingWeeklyRaw = loadFixture('tmdb/trending-weekly.json');
@@ -135,8 +133,8 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     vi.useRealTimers();
   });
 
-  function createCatalogUser(email: string) {
-    vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
+  async function createCatalogUser(email: string) {
+    vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
     return createTestUserInDb(db, { email });
   }
 
@@ -160,7 +158,7 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     }));
 
     // Verify ordering is by finalTrendingScore (descending)
-    for (let i = 1; i < scoringSnapshot.length; i++) {
+    for (let i = 1; i < scoringSnapshot.length; i += 1) {
       const prev = scoringSnapshot[i - 1]?.finalTrendingScore ?? 0;
       const curr = scoringSnapshot[i]?.finalTrendingScore ?? 0;
       expect(prev).toBeGreaterThanOrEqual(curr);
@@ -172,7 +170,7 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
 
   it('should score and sort popular media with user preferences', async () => {
     // Mock password hashing for speed
-    vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
+    vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
 
     // Create a user
     const user = await createTestUserInDb(db);
@@ -207,7 +205,7 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     }));
 
     // Verify ordering is by finalTrendingScore (descending)
-    for (let i = 1; i < scoringSnapshot.length; i++) {
+    for (let i = 1; i < scoringSnapshot.length; i += 1) {
       const prev = scoringSnapshot[i - 1]?.finalTrendingScore ?? 0;
       const curr = scoringSnapshot[i]?.finalTrendingScore ?? 0;
       expect(prev).toBeGreaterThanOrEqual(curr);
@@ -218,7 +216,7 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
   });
 
   it('should apply genre filtering to popular results', async () => {
-    vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
+    vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
 
     const user = await createTestUserInDb(db, { email: 'genre-filter@test.com' });
 

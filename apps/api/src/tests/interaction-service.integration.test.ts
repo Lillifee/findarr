@@ -1,12 +1,11 @@
 import type { CreateMediaInteraction, TmdbSettings } from '@findarr/shared';
-import SqlDatabase from 'better-sqlite3';
+import type SqlDatabase from 'better-sqlite3';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vite-plus/test';
 
 import { arrConfig } from '../arr/config.js';
 import type { ArrService } from '../arr/service.js';
 import type { CatalogService } from '../catalog/service.js';
-import { createDatabase } from '../db/service.js';
-import type { Database } from '../db/service.js';
+import { createDatabase, type Database } from '../db/service.js';
 import { hasInteraction, getVoteCounts } from '../interaction/repository.js';
 import {
   createInteraction,
@@ -130,44 +129,42 @@ const catalogService: CatalogService = {
   discoverMedia: vi
     .fn<CatalogService['discoverMedia']>()
     .mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
-  getMediaDetails: vi.fn<CatalogService['getMediaDetails']>().mockImplementation((params) =>
-    Promise.resolve(
-      params.type === 'movie'
-        ? createTestMovieDetail({
-            tmdbId: params.id,
-            state: {
-              record: {
-                id: 1,
-                status: 'pending',
-                jellyfinId: null,
-                jellyfinAddedAt: null,
-                tvdbId: null,
-                arrId: null,
-                arrUrl: null,
-                seasons: null,
-                createdAt: Date.now(),
-                updatedAt: Date.now(),
-              },
+  getMediaDetails: vi.fn<CatalogService['getMediaDetails']>().mockImplementation(async (params) =>
+    params.type === 'movie'
+      ? createTestMovieDetail({
+          tmdbId: params.id,
+          state: {
+            record: {
+              id: 1,
+              status: 'pending',
+              jellyfinId: null,
+              jellyfinAddedAt: null,
+              tvdbId: null,
+              arrId: null,
+              arrUrl: null,
+              seasons: null,
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
             },
-          })
-        : createTestTVDetail({
-            tmdbId: params.id,
-            state: {
-              record: {
-                id: 1,
-                status: 'pending',
-                jellyfinId: null,
-                jellyfinAddedAt: null,
-                tvdbId: null,
-                arrId: null,
-                arrUrl: null,
-                seasons: null,
-                createdAt: Date.now(),
-                updatedAt: Date.now(),
-              },
+          },
+        })
+      : createTestTVDetail({
+          tmdbId: params.id,
+          state: {
+            record: {
+              id: 1,
+              status: 'pending',
+              jellyfinId: null,
+              jellyfinAddedAt: null,
+              tvdbId: null,
+              arrId: null,
+              arrUrl: null,
+              seasons: null,
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
             },
-          }),
-    ),
+          },
+        }),
   ),
   listGenres: vi.fn<CatalogService['listGenres']>().mockResolvedValue([]),
   getAvailableMedia: vi
@@ -186,8 +183,8 @@ describe('interaction service - integration tests', () => {
   beforeEach(() => {
     // Create fresh in-memory database for each test
     const result = createDatabase(':memory:');
-    db = result.db;
-    sqliteDb = result.sqliteDb;
+    ({ db } = result);
+    ({ sqliteDb } = result);
 
     // Mock TMDB service that returns movie/TV details with genres
     tmdb = {
@@ -473,7 +470,7 @@ describe('interaction service - integration tests', () => {
       expectDefined(user);
 
       const result = await getUserInteractionsEnriched(tmdb, db, user.id);
-      expect(result).toEqual({ results: [], page: 1, totalPages: 0 });
+      expect(result).toStrictEqual({ results: [], page: 1, totalPages: 0 });
     });
 
     it('should keep the main activity list ordered by newest interaction instead of status priority', async () => {
@@ -521,7 +518,7 @@ describe('interaction service - integration tests', () => {
 
       const result = await getUserInteractionsEnriched(tmdb, db, user.id);
 
-      expect(result.results.map((item) => item.tmdbId)).toEqual([456, 123]);
+      expect(result.results.map((item) => item.tmdbId)).toStrictEqual([456, 123]);
     });
   });
 
@@ -580,8 +577,10 @@ describe('interaction service - integration tests', () => {
       expect(result.page).toBe(1);
       expect(result.totalPages).toBe(1);
       expect(result.results).toHaveLength(2);
-      expect(result.results.map((item) => item.tmdbId)).toEqual(expect.arrayContaining([123, 456]));
-      expect(result.results.map((item) => item.state?.record?.status)).toEqual(
+      expect(result.results.map((item) => item.tmdbId)).toStrictEqual(
+        expect.arrayContaining([123, 456]),
+      );
+      expect(result.results.map((item) => item.state?.record?.status)).toStrictEqual(
         expect.arrayContaining(['warning', 'downloading']),
       );
     });

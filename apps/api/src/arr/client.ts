@@ -146,11 +146,13 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
     },
 
     async updateEpisodeMonitoring(episodeIds: number[], monitored: boolean): Promise<void> {
-      if (episodeIds.length === 0) return;
+      if (episodeIds.length === 0) {
+        return;
+      }
       await client.put('/episode/monitor', { episodeIds, monitored });
     },
 
-    async listLibraryItems(): Promise<Array<RadarrMovie | SonarrSeries>> {
+    async listLibraryItems(): Promise<(RadarrMovie | SonarrSeries)[]> {
       const response = await client.get(config.mediaEndpoint);
       return z.array(config.libraryItemSchema).parse(response.data);
     },
@@ -161,7 +163,9 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
     },
 
     async tryGetLibraryItemById(arrId?: number | null): Promise<RadarrMovie | SonarrSeries | null> {
-      if (!isDefined(arrId)) return null;
+      if (!isDefined(arrId)) {
+        return null;
+      }
 
       // In case the item was deleted from the library we want to handle that gracefully.
       const media = await this.getLibraryItemById(arrId).catch(() => null);

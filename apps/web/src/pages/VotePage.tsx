@@ -160,7 +160,7 @@ export function VotePage() {
       {isLoading && (
         <div className="relative z-10 mx-auto max-w-6xl px-4 py-32 text-center text-gray-400 md:px-8">
           <div className="flex flex-col items-center gap-4">
-            <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-amber-500"></div>
+            <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-amber-500" />
             <p>Loading next item...</p>
           </div>
         </div>
@@ -200,7 +200,7 @@ export function VotePage() {
             <p className="mb-6 text-lg text-gray-400">
               You&apos;ve voted on the top 100 items. Check back later for more!
             </p>
-            <Button onClick={asVoid(() => navigate('/explore'))}>Explore</Button>
+            <Button onClick={asVoid(async () => navigate('/explore'))}>Explore</Button>
           </div>
         </div>
       )}

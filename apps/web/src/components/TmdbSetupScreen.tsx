@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { adminTmdbService } from '../services/api';
 import { asVoid } from '../utils/asyncHandlers';
 import { Button } from './ui/Button';

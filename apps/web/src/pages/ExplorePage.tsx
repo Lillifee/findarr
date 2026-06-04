@@ -131,7 +131,9 @@ export function ExplorePage() {
       append: boolean;
       currentFeedId?: string;
     }) => {
-      if (!settingsLoaded) return;
+      if (!settingsLoaded) {
+        return;
+      }
 
       const requestId = latestRequestIdRef.current + 1;
       latestRequestIdRef.current = requestId;

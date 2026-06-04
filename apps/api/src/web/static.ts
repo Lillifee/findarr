@@ -1,15 +1,15 @@
-import { join } from 'node:path';
+import path from 'node:path';
 
 import { fastifyStatic } from '@fastify/static';
 import { isDefined } from '@findarr/shared';
 import dotenv from 'dotenv';
-import { type FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 
 dotenv.config();
 
 const currentDirectory = import.meta.dirname;
-const clientDistDir = join(currentDirectory, '..', '..', '..', 'web', 'dist');
-const clientAssetsDir = join(clientDistDir, 'assets');
+const clientDistDir = path.join(currentDirectory, '..', '..', '..', 'web', 'dist');
+const clientAssetsDir = path.join(clientDistDir, 'assets');
 
 export async function registerStatic(server: FastifyInstance) {
   // Serve Vite build assets
@@ -20,7 +20,7 @@ export async function registerStatic(server: FastifyInstance) {
 
   // SPA fallback
   server.get('/*', (request, reply) => {
-    const requestPath = request.url.split('?')[0];
+    const [requestPath] = request.url.split('?');
 
     if (
       !isDefined(requestPath) ||
