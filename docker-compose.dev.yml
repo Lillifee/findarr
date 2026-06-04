@@ -5,4 +5,4 @@ services:
       dockerfile: Dockerfile
     image: findarr:local
     # volumes:
-    #   - ./data:/app/server/data
+    #   - ./data:/app/apps/api/data

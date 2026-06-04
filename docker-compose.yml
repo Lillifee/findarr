@@ -5,8 +5,8 @@ services:
     ports:
       - 8585:8585
     volumes:
-      - findarr-data:/app/apps/server/data
-      # - ./data:/app/apps/server/data
+      - findarr-data:/app/apps/api/data
+      # - ./data:/app/apps/api/data
     environment:
       - NODE_ENV=production
       - HOST=0.0.0.0
