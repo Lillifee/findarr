@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vite-plus/test';
 
-import { getErrorMessage, isDefined, objectEntries, objectKeys } from './helper.js';
+import { getErrorMessage, isDefined, objectEntries, objectKeys } from './utils.js';
 
 describe('helper', () => {
   it('should return true for defined values and false for undefined or null', () => {

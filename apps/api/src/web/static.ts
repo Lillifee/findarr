@@ -1,7 +1,7 @@
 import path from 'node:path';
 
 import { fastifyStatic } from '@fastify/static';
-import { isDefined } from '@findarr/shared';
+import { isDefined } from '@findarr/shared/utils';
 import dotenv from 'dotenv';
 import type { FastifyInstance } from 'fastify';
 

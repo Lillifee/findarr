@@ -1,9 +1,5 @@
-import {
-  type ArrSettings,
-  type ArrQualityProfile,
-  type ArrRootFolder,
-  isDefined,
-} from '@findarr/shared';
+import type { ArrSettings, ArrQualityProfile, ArrRootFolder } from '@findarr/shared/settings';
+import { isDefined } from '@findarr/shared/utils';
 import { useState, useEffect, useCallback } from 'react';
 
 import { useAuth } from '../../hooks/useAuth';

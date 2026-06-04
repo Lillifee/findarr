@@ -1,13 +1,8 @@
-import {
-  type CreateMediaInteraction,
-  type User,
-  type DbMedia,
-  type InteractionsQuery,
-  type UserInteractionsResponse,
-  type MediaStatus,
-  isDefined,
-  type MediaDetails,
-} from '@findarr/shared';
+import type { User } from '@findarr/shared/auth';
+import type { DbMedia } from '@findarr/shared/db';
+import type { CreateMediaInteraction, InteractionsQuery } from '@findarr/shared/interaction';
+import type { UserInteractionsResponse, MediaStatus, MediaDetails } from '@findarr/shared/media';
+import { isDefined } from '@findarr/shared/utils';
 
 import type { AnyArrService } from '../arr/service.js';
 import { getCatalogCacheBatch } from '../catalog/repository.js';

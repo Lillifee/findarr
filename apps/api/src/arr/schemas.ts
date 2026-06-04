@@ -1,4 +1,4 @@
-import type { MediaType } from '@findarr/shared';
+import type { MediaType } from '@findarr/shared/media';
 import { z } from 'zod';
 
 export {
@@ -6,7 +6,7 @@ export {
   ArrRootFolderSchema,
   type ArrQualityProfile,
   type ArrRootFolder,
-} from '@findarr/shared';
+} from '@findarr/shared/settings';
 
 // Shared response schemas — identical structure across Radarr and Sonarr
 

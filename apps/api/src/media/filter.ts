@@ -1,13 +1,12 @@
 import {
-  type GenreKey,
-  type InteractionFilter,
-  isDefined,
-  type Media,
-  type MediaType,
-  type RegionGroupId,
   regionGroups,
   unifiedGenres,
-} from '@findarr/shared';
+  type GenreKey,
+  type RegionGroupId,
+} from '@findarr/shared/constants';
+import type { InteractionFilter } from '@findarr/shared/interaction';
+import type { Media, MediaType } from '@findarr/shared/media';
+import { isDefined } from '@findarr/shared/utils';
 
 import { toMediaKey } from '../utils/helper.js';
 

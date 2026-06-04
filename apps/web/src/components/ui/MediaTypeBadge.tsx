@@ -1,4 +1,4 @@
-import type { MediaType } from '@findarr/shared';
+import type { MediaType } from '@findarr/shared/media';
 
 interface MediaTypeBadgeProps {
   type: MediaType;

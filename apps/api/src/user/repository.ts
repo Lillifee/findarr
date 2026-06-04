@@ -1,4 +1,5 @@
-import { userSettings, type UserSettings, type UserSettingsQuery } from '@findarr/shared';
+import { userSettings } from '@findarr/shared/db';
+import type { UserSettings, UserSettingsQuery } from '@findarr/shared/settings';
 import { eq, sql } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';

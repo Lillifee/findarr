@@ -1,4 +1,5 @@
-import { type MovieDetails, type TVDetails, type Media, isDefined } from '@findarr/shared';
+import type { MovieDetails, TVDetails, Media } from '@findarr/shared/media';
+import { isDefined } from '@findarr/shared/utils';
 import { useState } from 'react';
 
 import { linkService } from '../services/api.js';

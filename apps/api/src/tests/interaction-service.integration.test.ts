@@ -1,4 +1,5 @@
-import type { CreateMediaInteraction, TmdbSettings } from '@findarr/shared';
+import type { CreateMediaInteraction } from '@findarr/shared/interaction';
+import type { TmdbSettings } from '@findarr/shared/settings';
 import type SqlDatabase from 'better-sqlite3';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vite-plus/test';
 

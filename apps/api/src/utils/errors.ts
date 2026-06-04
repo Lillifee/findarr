@@ -1,4 +1,4 @@
-import { getErrorMessage } from '@findarr/shared';
+import { getErrorMessage } from '@findarr/shared/utils';
 import type { FastifyInstance } from 'fastify';
 import { ZodError } from 'zod';
 

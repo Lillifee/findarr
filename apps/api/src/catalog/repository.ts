@@ -1,11 +1,6 @@
-import {
-  catalogCache,
-  isDefined,
-  type DbCatalogCache,
-  type Keyword,
-  type Media,
-  type MediaType,
-} from '@findarr/shared';
+import { catalogCache, type DbCatalogCache } from '@findarr/shared/db';
+import type { Keyword, Media, MediaType } from '@findarr/shared/media';
+import { isDefined } from '@findarr/shared/utils';
 import { eq, and, isNull, notInArray, or, sql } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';

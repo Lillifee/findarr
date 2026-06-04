@@ -1,4 +1,4 @@
-import { isDefined } from '@findarr/shared';
+import { isDefined } from '@findarr/shared/utils';
 
 type MaybePromise<T> = T | Promise<T>;
 

@@ -15,7 +15,7 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 
-import { isDefined } from '@findarr/shared';
+import { isDefined } from '@findarr/shared/utils';
 import { create } from 'axios';
 import * as dotenv from 'dotenv';
 

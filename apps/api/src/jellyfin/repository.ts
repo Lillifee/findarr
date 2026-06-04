@@ -1,12 +1,11 @@
+import { media } from '@findarr/shared/db';
+import type { MediaType } from '@findarr/shared/media';
 import {
-  isDefined,
   JellyfinSettingsQuerySchema,
-  media,
-  objectKeys,
   type JellyfinSettings,
   type JellyfinSettingsQuery,
-  type MediaType,
-} from '@findarr/shared';
+} from '@findarr/shared/settings';
+import { isDefined, objectKeys } from '@findarr/shared/utils';
 import { eq, inArray, isNotNull, sql } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';

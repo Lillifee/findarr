@@ -1,10 +1,7 @@
-import {
-  type GenreKey,
-  type InteractionFilter,
-  type SearchType,
-  type Media,
-  isDefined,
-} from '@findarr/shared';
+import type { GenreKey } from '@findarr/shared/constants';
+import type { InteractionFilter } from '@findarr/shared/interaction';
+import type { SearchType, Media } from '@findarr/shared/media';
+import { isDefined } from '@findarr/shared/utils';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 

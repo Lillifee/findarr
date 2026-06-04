@@ -1,4 +1,4 @@
-import { isDefined } from '@findarr/shared';
+import { isDefined } from '@findarr/shared/utils';
 
 import type { SchedulerContext } from '../scheduler/types.js';
 import {

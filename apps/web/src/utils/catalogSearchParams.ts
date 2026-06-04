@@ -1,4 +1,7 @@
-import { isDefined, type GenreKey, type InteractionFilter, type SearchType } from '@findarr/shared';
+import type { GenreKey } from '@findarr/shared/constants';
+import type { InteractionFilter } from '@findarr/shared/interaction';
+import type { SearchType } from '@findarr/shared/media';
+import { isDefined } from '@findarr/shared/utils';
 
 interface CatalogSearchParamDefaults {
   interaction?: InteractionFilter;

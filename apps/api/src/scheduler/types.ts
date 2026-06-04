@@ -1,4 +1,4 @@
-import type { SchedulerConfig, SchedulerState } from '@findarr/shared';
+import type { SchedulerConfig, SchedulerState } from '@findarr/shared/scheduler';
 import type { FastifyLogFn } from 'fastify';
 
 import type { Database } from '../db/service.js';

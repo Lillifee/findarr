@@ -1,4 +1,4 @@
-import type { User } from '@findarr/shared';
+import type { User } from '@findarr/shared/auth';
 import { useState, useEffect } from 'react';
 
 import { adminUserService } from '../../services/api';

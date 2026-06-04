@@ -1,4 +1,4 @@
-import { isDefined } from '@findarr/shared';
+import { isDefined } from '@findarr/shared/utils';
 import { create, type AxiosInstance } from 'axios';
 
 import { JellyfinItemsResponseSchema, type JellyfinItemsResponse } from './schemas.js';

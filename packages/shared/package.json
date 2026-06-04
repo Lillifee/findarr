@@ -3,12 +3,50 @@
   "version": "1.0.0",
   "description": "Shared types and utilities for Findarr",
   "type": "module",
-  "main": "dist/index.mjs",
-  "types": "dist/index.d.mts",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.mts",
-      "import": "./dist/index.mjs"
+    "./media": {
+      "types": "./dist/media.d.mts",
+      "import": "./dist/media.mjs"
+    },
+    "./catalog": {
+      "types": "./dist/catalog.d.mts",
+      "import": "./dist/catalog.mjs"
+    },
+    "./db": {
+      "types": "./dist/db.d.mts",
+      "import": "./dist/db.mjs"
+    },
+    "./auth": {
+      "types": "./dist/auth.d.mts",
+      "import": "./dist/auth.mjs"
+    },
+    "./interaction": {
+      "types": "./dist/interaction.d.mts",
+      "import": "./dist/interaction.mjs"
+    },
+    "./settings": {
+      "types": "./dist/settings.d.mts",
+      "import": "./dist/settings.mjs"
+    },
+    "./preferences": {
+      "types": "./dist/preferences.d.mts",
+      "import": "./dist/preferences.mjs"
+    },
+    "./scheduler": {
+      "types": "./dist/scheduler.d.mts",
+      "import": "./dist/scheduler.mjs"
+    },
+    "./constants": {
+      "types": "./dist/constants.d.mts",
+      "import": "./dist/constants.mjs"
+    },
+    "./utils": {
+      "types": "./dist/utils.d.mts",
+      "import": "./dist/utils.mjs"
+    },
+    "./env": {
+      "types": "./dist/env.d.mts",
+      "import": "./dist/env.mjs"
     }
   },
   "scripts": {

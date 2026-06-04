@@ -3,7 +3,7 @@ import {
   LoginSchema,
   SetupInitialPasswordSchema,
   type AppBootstrapStatus,
-} from '@findarr/shared';
+} from '@findarr/shared/auth';
 import type { FastifyInstance } from 'fastify';
 
 import { protectedRoute } from '../utils/routes.js';

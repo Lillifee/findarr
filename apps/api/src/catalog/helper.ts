@@ -1,4 +1,4 @@
-import { isDefined } from '@findarr/shared';
+import { isDefined } from '@findarr/shared/utils';
 
 export interface FeedSnapshot<T> {
   id: string;

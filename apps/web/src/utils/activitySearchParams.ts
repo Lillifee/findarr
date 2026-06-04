@@ -1,4 +1,5 @@
-import type { InteractionsQuery, SearchType } from '@findarr/shared';
+import type { InteractionsQuery } from '@findarr/shared/interaction';
+import type { SearchType } from '@findarr/shared/media';
 
 interface ActivitySearchParamDefaults {
   action?: InteractionsQuery['action'];

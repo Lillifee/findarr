@@ -1,4 +1,5 @@
-import { isDefined, JellyfinLinkQuerySchema } from '@findarr/shared';
+import { JellyfinLinkQuerySchema } from '@findarr/shared/settings';
+import { isDefined } from '@findarr/shared/utils';
 import type { FastifyInstance } from 'fastify';
 
 export const jellyfinRoutes = (fastify: FastifyInstance) => {

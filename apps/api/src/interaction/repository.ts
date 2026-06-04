@@ -1,14 +1,7 @@
-import {
-  isDefined,
-  media,
-  userMediaInteractions,
-  type DbMedia,
-  type InteractionsQuery,
-  type InteractionType,
-  type Media,
-  type MediaInteraction,
-  type MediaStatus,
-} from '@findarr/shared';
+import { media, userMediaInteractions, type DbMedia } from '@findarr/shared/db';
+import type { InteractionsQuery, InteractionType } from '@findarr/shared/interaction';
+import type { Media, MediaStatus, MediaInteraction } from '@findarr/shared/media';
+import { isDefined } from '@findarr/shared/utils';
 import { and, desc, eq, getTableColumns, inArray, isNotNull, sql } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';

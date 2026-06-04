@@ -1,18 +1,18 @@
-import {
-  type SearchQuery,
-  type DetailsQuery,
-  type GenresQuery,
-  type SearchResponse,
-  type Genre,
-  type DiscoverResponse,
-  type MediaDetails,
-  type DiscoverQuery,
-  type UserSettingsQuery,
-  type MediaType,
-  type TmdbSettings,
-  type TmdbSettingsQuery,
-  isDefined,
-} from '@findarr/shared';
+import type {
+  SearchQuery,
+  DetailsQuery,
+  GenresQuery,
+  DiscoverQuery,
+} from '@findarr/shared/catalog';
+import type {
+  SearchResponse,
+  Genre,
+  DiscoverResponse,
+  MediaDetails,
+  MediaType,
+} from '@findarr/shared/media';
+import type { UserSettingsQuery, TmdbSettings, TmdbSettingsQuery } from '@findarr/shared/settings';
+import { isDefined } from '@findarr/shared/utils';
 import type { FastifyBaseLogger } from 'fastify';
 
 import type { Database } from '../db/service.js';

@@ -1,32 +1,37 @@
-import type { z } from 'zod';
-
-import type { MediaRecord, MediaInteractionWithUser, MediaVotes } from './db-types.js';
-import type {
-  SearchQuerySchema,
-  DiscoverQuerySchema,
-  PopularQuerySchema,
-  DetailsQuerySchema,
-  AvailableMediaQuerySchema,
-  InteractionsQuerySchema,
-  ServerEnvSchema,
-  GenresQuerySchema,
-  LoginSchema,
-  CreateUserSchema,
-  ChangePasswordSchema,
-  DeleteUserSchema,
-  CreateInteractionSchema,
-  SetupInitialPasswordSchema,
-} from './schemas.js';
+import type { User } from './auth.js';
+import type { DbMedia, DbUserMediaInteraction } from './db.js';
 
 // ============================================================================
-// Application Types - Media (Movies and TV Shows)
+// Media Composite Types - Derived from DB rows
 // ============================================================================
 
-/**
- * Application types for media (movies and TV shows)
- * These are the clean, unified types used throughout the application
- * Separate from TMDB API types which live in server/src/schemas/tmdb.ts
- */
+export type MediaRecord = Omit<DbMedia, 'tmdbId' | 'type'>;
+export type MediaUser = Omit<User, 'role'>;
+export type MediaInteraction = Omit<DbUserMediaInteraction, 'mediaId' | 'userId'>;
+
+export interface MediaInteractionWithUser extends MediaInteraction {
+  user?: MediaUser;
+}
+
+export interface MediaVotes {
+  likes?: number;
+  dislikes?: number;
+}
+
+// ============================================================================
+// Core Media Types
+// ============================================================================
+
+export type MediaType = 'movie' | 'tv';
+export type SearchType = 'movie' | 'tv' | 'both';
+
+export type MediaStatus =
+  | 'pending'
+  | 'requested'
+  | 'downloading'
+  | 'downloaded'
+  | 'available'
+  | 'warning';
 
 export interface Genre {
   id: number;
@@ -74,21 +79,6 @@ export interface Season {
   // Sync status from Sonarr/Jellyfin
   status?: 'none' | 'requested' | 'monitored' | 'downloaded' | 'available';
 }
-
-export interface AppBootstrapStatus {
-  tmdbConfigured: boolean;
-  requiresPasswordSetup: boolean;
-}
-
-export type MediaStatus =
-  | 'pending'
-  | 'requested'
-  | 'downloading'
-  | 'downloaded'
-  | 'available'
-  | 'warning';
-
-export type InteractionType = 'liked' | 'disliked';
 
 export interface MediaScore {
   recencyScore: number;
@@ -195,6 +185,10 @@ export interface TVDetails extends TVShow, MediaDetailsBase {
 
 export type MediaDetails = MovieDetails | TVDetails;
 
+// ============================================================================
+// Response Wrappers
+// ============================================================================
+
 /**
  * Shared paginated media response wrapper
  */
@@ -223,80 +217,3 @@ export interface PopularResponse {
   totalPages: number;
   feedId: string;
 }
-
-// ============================================================================
-// Server Configuration Types
-// ============================================================================
-
-// Server configuration types
-export type ServerEnv = z.infer<typeof ServerEnvSchema>;
-
-// ============================================================================
-// Core Application Types
-// ============================================================================
-
-// Core application types
-export type MediaType = 'movie' | 'tv';
-export type SearchType = 'movie' | 'tv' | 'both';
-export type InteractionFilter = 'all' | 'unvoted' | 'voted';
-
-// ============================================================================
-// Request Types (inferred from schemas)
-// ============================================================================
-
-// Request types (inferred from schemas)
-export type SearchQuery = z.infer<typeof SearchQuerySchema>;
-export type DiscoverQuery = z.infer<typeof DiscoverQuerySchema>;
-export type PopularQuery = z.infer<typeof PopularQuerySchema>;
-export type DetailsQuery = z.infer<typeof DetailsQuerySchema>;
-export type GenresQuery = z.infer<typeof GenresQuerySchema>;
-export type InteractionsQuery = z.infer<typeof InteractionsQuerySchema>;
-export type AvailableMediaQuery = z.infer<typeof AvailableMediaQuerySchema>;
-
-// ============================================================================
-// Authentication & User Types
-// ============================================================================
-
-export type Login = z.infer<typeof LoginSchema>;
-
-export type CreateUser = z.infer<typeof CreateUserSchema>;
-export type ChangePassword = z.infer<typeof ChangePasswordSchema>;
-export type SetupInitialPassword = z.infer<typeof SetupInitialPasswordSchema>;
-export type DeleteUser = z.infer<typeof DeleteUserSchema>;
-
-// ============================================================================
-// Media Interaction Types
-// ============================================================================
-
-export type CreateMediaInteraction = z.infer<typeof CreateInteractionSchema>;
-
-// ============================================================================
-// Scheduler Types
-// ============================================================================
-/**
- * Configuration for a scheduler
- */
-export interface SchedulerConfig {
-  name: string;
-  description: string;
-  interval: number;
-  enabled: boolean;
-  runOnStartup?: boolean;
-  minRuntime?: number;
-  maxRuntime?: number;
-}
-
-/**
- * Runtime state of a scheduler
- */
-export interface SchedulerState {
-  enabled: boolean;
-  isRunning: boolean;
-  lastRun: number | null;
-  nextRun: number | null;
-  lastDuration: number | null;
-  lastError: string | null;
-  startedAt: number | null;
-}
-
-export type SchedulerInfo = SchedulerConfig & SchedulerState;

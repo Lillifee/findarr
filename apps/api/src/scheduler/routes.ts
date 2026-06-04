@@ -1,4 +1,4 @@
-import { SchedulerParamsSchema } from '@findarr/shared';
+import { SchedulerParamsSchema } from '@findarr/shared/scheduler';
 import type { FastifyInstance } from 'fastify';
 
 export const schedulerRoutes = (fastify: FastifyInstance) => {

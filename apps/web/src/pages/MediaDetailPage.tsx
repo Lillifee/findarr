@@ -1,4 +1,5 @@
-import { isDefined, type MediaDetails } from '@findarr/shared';
+import type { MediaDetails } from '@findarr/shared/media';
+import { isDefined } from '@findarr/shared/utils';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 

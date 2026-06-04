@@ -1,4 +1,5 @@
-import { isDefined, type Media } from '@findarr/shared';
+import type { Media } from '@findarr/shared/media';
+import { isDefined } from '@findarr/shared/utils';
 
 import { seedMediaStats, upsertMediaStats } from '../media/repository.js';
 import type { SchedulerContext } from '../scheduler/types.js';

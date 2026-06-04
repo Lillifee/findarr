@@ -2,7 +2,7 @@
  * Transformers to convert Radarr/Sonarr API responses to unified ArrLibraryItem type
  * These functions map the raw API data structure to our unified internal structure
  */
-import { isDefined } from '@findarr/shared';
+import { isDefined } from '@findarr/shared/utils';
 
 import type { ArrLibraryItem, RadarrMovie, SonarrSeries } from './schemas.js';
 

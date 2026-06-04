@@ -1,11 +1,6 @@
-import {
-  isDefined,
-  type CreateUser,
-  type Media,
-  type MovieDetails,
-  type TVDetails,
-  type User,
-} from '@findarr/shared';
+import type { CreateUser, User } from '@findarr/shared/auth';
+import type { Media, MovieDetails, TVDetails } from '@findarr/shared/media';
+import { isDefined } from '@findarr/shared/utils';
 
 import { createUser } from '../../auth/repository.js';
 import type { Database } from '../../db/service.js';

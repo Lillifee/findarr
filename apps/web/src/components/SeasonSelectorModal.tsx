@@ -1,4 +1,4 @@
-import type { Season } from '@findarr/shared';
+import type { Season } from '@findarr/shared/media';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 

@@ -2,7 +2,7 @@ import path from 'node:path';
 
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
-import { ServerEnvSchema } from '@findarr/shared';
+import { ServerEnvSchema } from '@findarr/shared/env';
 import dotenv from 'dotenv';
 import fastify from 'fastify';
 

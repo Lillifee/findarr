@@ -1,4 +1,4 @@
-import { isDefined } from '@findarr/shared';
+import { isDefined } from '@findarr/shared/utils';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
 interface OptionButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'title'> {

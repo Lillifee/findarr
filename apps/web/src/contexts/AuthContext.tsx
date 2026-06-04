@@ -1,4 +1,4 @@
-import type { User } from '@findarr/shared';
+import type { User } from '@findarr/shared/auth';
 import { createContext } from 'react';
 
 export interface AuthContextType {

@@ -1,4 +1,4 @@
-import type { Media, MediaType, TVDetails } from '@findarr/shared';
+import type { Media, MediaType, TVDetails } from '@findarr/shared/media';
 import { useState } from 'react';
 
 import { interactionService, searchService } from '../services/api';

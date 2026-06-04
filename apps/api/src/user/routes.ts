@@ -1,4 +1,4 @@
-import { UserSettingsQuerySchema } from '@findarr/shared';
+import { UserSettingsQuerySchema } from '@findarr/shared/settings';
 import type { FastifyInstance } from 'fastify';
 
 import { protectedRoute } from '../utils/routes.js';

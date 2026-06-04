@@ -1,4 +1,5 @@
-import { isDefined, type MediaType } from '@findarr/shared';
+import type { MediaType } from '@findarr/shared/media';
+import { isDefined } from '@findarr/shared/utils';
 
 import type { JellyfinItem } from './schemas.js';
 

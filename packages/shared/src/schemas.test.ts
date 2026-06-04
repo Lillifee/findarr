@@ -1,15 +1,9 @@
 import { describe, it, expect } from 'vite-plus/test';
 
-import {
-  ServerEnvSchema,
-  SearchQuerySchema,
-  DetailsQuerySchema,
-  LoginSchema,
-  CreateUserSchema,
-  CreateInteractionSchema,
-  InteractionIdSchema,
-  DiscoverQuerySchema,
-} from './index.js';
+import { LoginSchema, CreateUserSchema } from './auth.js';
+import { SearchQuerySchema, DetailsQuerySchema, DiscoverQuerySchema } from './catalog.js';
+import { ServerEnvSchema } from './env.js';
+import { CreateInteractionSchema, InteractionIdSchema } from './interaction.js';
 
 describe('schemas', () => {
   describe('ServerEnvSchema', () => {

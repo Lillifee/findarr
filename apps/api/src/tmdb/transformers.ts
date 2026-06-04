@@ -12,7 +12,7 @@ import type {
   Media,
   CastMember,
   Video,
-} from '@findarr/shared';
+} from '@findarr/shared/media';
 
 import type {
   TMDBMovie,

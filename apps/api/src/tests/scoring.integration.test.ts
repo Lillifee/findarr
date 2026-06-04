@@ -1,4 +1,6 @@
-import { isDefined, unifiedGenres, type Genre } from '@findarr/shared';
+import { unifiedGenres } from '@findarr/shared/constants';
+import type { Genre } from '@findarr/shared/media';
+import { isDefined } from '@findarr/shared/utils';
 import type SqlDatabase from 'better-sqlite3';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vite-plus/test';
 

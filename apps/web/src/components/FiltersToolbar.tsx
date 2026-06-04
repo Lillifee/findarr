@@ -1,4 +1,6 @@
-import type { GenreKey, InteractionFilter, SearchType } from '@findarr/shared';
+import type { GenreKey } from '@findarr/shared/constants';
+import type { InteractionFilter } from '@findarr/shared/interaction';
+import type { SearchType } from '@findarr/shared/media';
 import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 

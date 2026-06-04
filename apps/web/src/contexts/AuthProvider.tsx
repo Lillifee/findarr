@@ -1,4 +1,5 @@
-import { type User, isDefined } from '@findarr/shared';
+import type { User } from '@findarr/shared/auth';
+import { isDefined } from '@findarr/shared/utils';
 import axios from 'axios';
 import { type ReactNode, useState, useCallback, useEffect, useMemo } from 'react';
 

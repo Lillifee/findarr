@@ -1,11 +1,13 @@
 import type {
-  AvailableMediaQuery,
-  AvailableMediaResponse,
   SearchQuery,
   DiscoverQuery,
   PopularQuery,
   DetailsQuery,
   GenresQuery,
+} from '@findarr/shared/catalog';
+import type { AvailableMediaQuery } from '@findarr/shared/interaction';
+import type {
+  AvailableMediaResponse,
   SearchResponse,
   DiscoverResponse,
   PopularResponse,
@@ -13,7 +15,7 @@ import type {
   Media,
   SwipeNextResponse,
   MediaDetails,
-} from '@findarr/shared';
+} from '@findarr/shared/media';
 
 import type { Database } from '../db/service.js';
 import { getUserInteractionMediaKeys } from '../interaction/repository.js';
