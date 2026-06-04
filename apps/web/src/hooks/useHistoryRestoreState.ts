@@ -12,13 +12,15 @@ interface LocationRestoreState<T> {
 
 export function useHistoryRestoreState<T>() {
   const location = useLocation();
-  // TODO: fix types
+
+  // react-router types location.state as `any` and T cannot be validated at
+  // runtime, so accept the unchecked shape here.
   // oxlint-disable-next-line typescript/no-unsafe-type-assertion
   const locationState = (location.state as LocationRestoreState<T> | null) ?? null;
 
   const persistState = useCallback(
     (restoreState: T) => {
-      // TODO fix types
+      // globalThis.history.state is typed `any` by the DOM lib.
       // oxlint-disable-next-line typescript/no-unsafe-type-assertion
       const historyState = (globalThis.history.state ?? {}) as HistoryStateWithUserData;
 

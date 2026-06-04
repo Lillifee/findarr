@@ -11,6 +11,7 @@ import { createMedia } from '../media/repository.js';
 import { updateGenrePreference, updateKeywordPreference } from '../preferences/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { saveUserSettings } from '../user/service.js';
+import { createMockTMDBService } from './helpers/mockServices.js';
 import {
   createTestMedia,
   createTestMovieDetail,
@@ -29,22 +30,8 @@ describe('catalog service - integration tests', () => {
     ({ db } = result);
     ({ sqliteDb } = result);
 
-    // Mock TMDB service
     // Mock TMDB service that returns movie/TV details with genres
-    tmdbServiceMock = {
-      isConfigured: vi.fn<TMDBService['isConfigured']>().mockReturnValue(true),
-      testConnection: vi.fn<TMDBService['testConnection']>().mockResolvedValue(true),
-      testAndSync: vi.fn<TMDBService['testAndSync']>().mockResolvedValue(true),
-      getSettings: vi
-        .fn<TMDBService['getSettings']>()
-        .mockReturnValue({ tmdbAccessTokenSet: true }),
-      setSettings: vi
-        .fn<TMDBService['setSettings']>()
-        .mockResolvedValue({ tmdbAccessTokenSet: true }),
-      search: vi.fn<TMDBService['search']>(),
-      discover: vi.fn<TMDBService['discover']>(),
-      trending: vi.fn<TMDBService['trending']>(),
-      genres: vi.fn<TMDBService['genres']>(),
+    tmdbServiceMock = createMockTMDBService({
       details: vi.fn<TMDBService['details']>().mockResolvedValue(
         createTestMovieDetail({
           tmdbId: 123,
@@ -54,8 +41,7 @@ describe('catalog service - integration tests', () => {
           ],
         }),
       ),
-      findByExternalId: vi.fn<TMDBService['findByExternalId']>(),
-    } as Mocked<TMDBService>;
+    });
 
     catalogService = createCatalogService({ db, tmdb: tmdbServiceMock });
   });

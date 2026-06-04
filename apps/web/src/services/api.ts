@@ -15,7 +15,6 @@ import type {
   PopularResponse,
   Genre,
   MediaDetails,
-  Media,
   SwipeNextResponse,
   MediaType,
 } from '@findarr/shared/media';
@@ -138,8 +137,8 @@ export const interactionService = {
     mediaType: MediaType,
     action: 'liked' | 'disliked',
     seasons?: number[],
-  ): Promise<Media | undefined> => {
-    const response = await api.post<Media | undefined>('/interactions', {
+  ): Promise<MediaDetails> => {
+    const response = await api.post<MediaDetails>('/interactions', {
       tmdbId,
       mediaType,
       action,

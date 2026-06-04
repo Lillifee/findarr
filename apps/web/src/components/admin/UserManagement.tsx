@@ -130,9 +130,10 @@ export function UserManagement() {
                   label="Role"
                   value={formData.role}
                   onChange={(e) => {
-                    // TODO fix typings
-                    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-                    setFormData({ ...formData, role: e.target.value as 'user' | 'admin' });
+                    setFormData({
+                      ...formData,
+                      role: e.target.value === 'admin' ? 'admin' : 'user',
+                    });
                   }}
                 >
                   <option value="user">User</option>

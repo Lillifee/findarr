@@ -1,11 +1,7 @@
 import type { CreateMediaInteraction } from '@findarr/shared/interaction';
-import type { TmdbSettings } from '@findarr/shared/settings';
 import type SqlDatabase from 'better-sqlite3';
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vite-plus/test';
+import { describe, it, expect, beforeEach, vi, afterEach, type Mocked } from 'vite-plus/test';
 
-import { arrConfig } from '../arr/config.js';
-import type { ArrService } from '../arr/service.js';
-import type { CatalogService } from '../catalog/service.js';
 import { createDatabase, type Database } from '../db/service.js';
 import { hasInteraction, getVoteCounts } from '../interaction/repository.js';
 import {
@@ -15,6 +11,12 @@ import {
 } from '../interaction/service.js';
 import { createMedia, getMediaByTmdbId, updateMediaStatus } from '../media/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
+import {
+  createMockCatalogService,
+  createMockRadarrService,
+  createMockSonarrService,
+  createMockTMDBService,
+} from './helpers/mockServices.js';
 import {
   assertDefined as expectDefined,
   createTestUserInDb,
@@ -28,158 +30,14 @@ const interaction: CreateMediaInteraction = {
   action: 'liked',
 };
 
-const radarrService: ArrService<typeof arrConfig.radarr> = {
-  config: arrConfig.radarr,
-  getSettings: vi.fn<ArrService<typeof arrConfig.radarr>['getSettings']>().mockResolvedValue({
-    url: 'http://radarr',
-    apiKeySet: true,
-    qualityProfileId: 1,
-    rootFolderPath: '/movies',
-  }),
-  setSettings: vi.fn<ArrService<typeof arrConfig.radarr>['setSettings']>().mockResolvedValue({
-    url: 'http://radarr',
-    apiKeySet: true,
-    qualityProfileId: 1,
-    rootFolderPath: '/movies',
-  }),
-  requestMedia: vi.fn<ArrService<typeof arrConfig.radarr>['requestMedia']>().mockResolvedValue({
-    id: 1,
-    type: 'movie',
-    tmdbId: 123,
-    title: 'Test Movie',
-    monitored: true,
-    hasFile: false,
-  }),
-  isConfigured: vi
-    .fn<ArrService<typeof arrConfig.radarr>['isConfigured']>()
-    .mockResolvedValue(true),
-  testConnection: vi
-    .fn<ArrService<typeof arrConfig.radarr>['testConnection']>()
-    .mockResolvedValue(false),
-  testAndSync: vi.fn<ArrService<typeof arrConfig.radarr>['testAndSync']>().mockResolvedValue(true),
-  listQualityProfiles: vi
-    .fn<ArrService<typeof arrConfig.radarr>['listQualityProfiles']>()
-    .mockResolvedValue([]),
-  listRootFolders: vi
-    .fn<ArrService<typeof arrConfig.radarr>['listRootFolders']>()
-    .mockResolvedValue([]),
-  listLibraryItems: vi
-    .fn<ArrService<typeof arrConfig.radarr>['listLibraryItems']>()
-    .mockResolvedValue([]),
-  getQueue: vi.fn<ArrService<typeof arrConfig.radarr>['getQueue']>().mockResolvedValue([]),
-  resolveMediaUrl: vi
-    .fn<ArrService<typeof arrConfig.radarr>['resolveMediaUrl']>()
-    .mockResolvedValue(null),
-};
-
-const sonarrService: ArrService<typeof arrConfig.sonarr> = {
-  config: arrConfig.sonarr,
-  getSettings: vi.fn<ArrService<typeof arrConfig.sonarr>['getSettings']>().mockResolvedValue({
-    url: 'http://sonarr',
-    apiKeySet: true,
-    qualityProfileId: 1,
-    rootFolderPath: '/tv',
-  }),
-  setSettings: vi.fn<ArrService<typeof arrConfig.sonarr>['setSettings']>().mockResolvedValue({
-    url: 'http://sonarr',
-    apiKeySet: true,
-    qualityProfileId: 1,
-    rootFolderPath: '/tv',
-  }),
-  requestMedia: vi.fn<ArrService<typeof arrConfig.sonarr>['requestMedia']>().mockResolvedValue({
-    id: 1,
-    type: 'tv',
-    tvdbId: 81_189,
-    title: 'Test Show',
-    seasons: [],
-    monitored: true,
-    hasFile: false,
-  }),
-  isConfigured: vi
-    .fn<ArrService<typeof arrConfig.sonarr>['isConfigured']>()
-    .mockResolvedValue(true),
-  testConnection: vi
-    .fn<ArrService<typeof arrConfig.sonarr>['testConnection']>()
-    .mockResolvedValue(false),
-  testAndSync: vi.fn<ArrService<typeof arrConfig.sonarr>['testAndSync']>().mockResolvedValue(true),
-  listQualityProfiles: vi
-    .fn<ArrService<typeof arrConfig.sonarr>['listQualityProfiles']>()
-    .mockResolvedValue([]),
-  listRootFolders: vi
-    .fn<ArrService<typeof arrConfig.sonarr>['listRootFolders']>()
-    .mockResolvedValue([]),
-  listLibraryItems: vi
-    .fn<ArrService<typeof arrConfig.sonarr>['listLibraryItems']>()
-    .mockResolvedValue([]),
-  getQueue: vi.fn<ArrService<typeof arrConfig.sonarr>['getQueue']>().mockResolvedValue([]),
-  resolveMediaUrl: vi
-    .fn<ArrService<typeof arrConfig.sonarr>['resolveMediaUrl']>()
-    .mockResolvedValue(null),
-};
-
-const catalogService: CatalogService = {
-  searchMedia: vi
-    .fn<CatalogService['searchMedia']>()
-    .mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
-  getPopularMedia: vi.fn<CatalogService['getPopularMedia']>().mockResolvedValue({
-    results: [],
-    page: 1,
-    totalPages: 0,
-    feedId: '00000000-0000-0000-0000-000000000000',
-  }),
-  discoverMedia: vi
-    .fn<CatalogService['discoverMedia']>()
-    .mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
-  getMediaDetails: vi.fn<CatalogService['getMediaDetails']>().mockImplementation(async (params) =>
-    params.type === 'movie'
-      ? createTestMovieDetail({
-          tmdbId: params.id,
-          state: {
-            record: {
-              id: 1,
-              status: 'pending',
-              jellyfinId: null,
-              jellyfinAddedAt: null,
-              tvdbId: null,
-              arrId: null,
-              arrUrl: null,
-              seasons: null,
-              createdAt: Date.now(),
-              updatedAt: Date.now(),
-            },
-          },
-        })
-      : createTestTVDetail({
-          tmdbId: params.id,
-          state: {
-            record: {
-              id: 1,
-              status: 'pending',
-              jellyfinId: null,
-              jellyfinAddedAt: null,
-              tvdbId: null,
-              arrId: null,
-              arrUrl: null,
-              seasons: null,
-              createdAt: Date.now(),
-              updatedAt: Date.now(),
-            },
-          },
-        }),
-  ),
-  listGenres: vi.fn<CatalogService['listGenres']>().mockResolvedValue([]),
-  getAvailableMedia: vi
-    .fn<CatalogService['getAvailableMedia']>()
-    .mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
-  getNextUnvotedMedia: vi
-    .fn<CatalogService['getNextUnvotedMedia']>()
-    .mockResolvedValue({ media: undefined, feedId: 'feed-1' }),
-};
+const radarrService = createMockRadarrService();
+const sonarrService = createMockSonarrService();
+const catalogService = createMockCatalogService();
 
 describe('interaction service - integration tests', () => {
   let db: Database;
   let sqliteDb: SqlDatabase.Database;
-  let tmdb: TMDBService;
+  let tmdb: Mocked<TMDBService>;
 
   beforeEach(() => {
     // Create fresh in-memory database for each test
@@ -188,20 +46,7 @@ describe('interaction service - integration tests', () => {
     ({ sqliteDb } = result);
 
     // Mock TMDB service that returns movie/TV details with genres
-    tmdb = {
-      isConfigured: vi.fn<TMDBService['isConfigured']>().mockReturnValue(true),
-      testConnection: vi.fn<TMDBService['testConnection']>().mockResolvedValue(true),
-      testAndSync: vi.fn<TMDBService['testAndSync']>().mockResolvedValue(true),
-      getSettings: vi
-        .fn<TMDBService['getSettings']>()
-        .mockReturnValue({ tmdbAccessTokenSet: true }),
-      setSettings: vi
-        .fn<TMDBService['setSettings']>()
-        .mockResolvedValue({ tmdbAccessTokenSet: true }),
-      search: vi.fn<TMDBService['search']>(),
-      discover: vi.fn<TMDBService['discover']>(),
-      trending: vi.fn<TMDBService['trending']>(),
-      genres: vi.fn<TMDBService['genres']>(),
+    tmdb = createMockTMDBService({
       details: vi.fn<TMDBService['details']>().mockResolvedValue(
         createTestMovieDetail({
           tmdbId: 123,
@@ -211,8 +56,7 @@ describe('interaction service - integration tests', () => {
           ],
         }),
       ),
-      findByExternalId: vi.fn<TMDBService['findByExternalId']>(),
-    } as TMDBService;
+    });
   });
 
   afterEach(() => {
@@ -612,25 +456,11 @@ describe('interaction service - integration tests', () => {
   });
 
   describe('requestMediaToArr', () => {
-    const tmdbWithTvdb: TMDBService = {
-      isConfigured: vi.fn<TMDBService['isConfigured']>().mockReturnValue(true),
-      testConnection: vi.fn<TMDBService['testConnection']>().mockResolvedValue(true),
-      testAndSync: vi.fn<TMDBService['testAndSync']>().mockResolvedValue(true),
-      getSettings: vi
-        .fn<TMDBService['getSettings']>()
-        .mockReturnValue({ tmdbAccessTokenSet: true } as TmdbSettings),
-      setSettings: vi
-        .fn<TMDBService['setSettings']>()
-        .mockResolvedValue({ tmdbAccessTokenSet: true } as TmdbSettings),
-      search: vi.fn<TMDBService['search']>(),
-      discover: vi.fn<TMDBService['discover']>(),
-      trending: vi.fn<TMDBService['trending']>(),
-      genres: vi.fn<TMDBService['genres']>(),
+    const tmdbWithTvdb = createMockTMDBService({
       details: vi
         .fn<TMDBService['details']>()
         .mockResolvedValue(createTestMovieDetail({ tmdbId: 123 })),
-      findByExternalId: vi.fn<TMDBService['findByExternalId']>(),
-    } as TMDBService;
+    });
 
     beforeEach(() => {
       vi.clearAllMocks();

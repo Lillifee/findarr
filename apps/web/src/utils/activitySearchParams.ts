@@ -16,19 +16,24 @@ interface ActivitySearchParamInput {
   type?: SearchType;
 }
 
+const isAction = (value: string): value is NonNullable<InteractionsQuery['action']> =>
+  value === 'all' || value === 'liked' || value === 'disliked';
+
+const isSearchType = (value: string): value is SearchType =>
+  value === 'movie' || value === 'tv' || value === 'both';
+
 export const readActivitySearchParams = (
   searchParams: URLSearchParams,
   defaults: ActivitySearchParamDefaults = {},
-): ActivitySearchParamState => ({
-  // TODO fix types
-  action:
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    (searchParams.get('action') as InteractionsQuery['action'] | null) ??
-    defaults.action ??
-    'liked',
-  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-  type: (searchParams.get('type') as SearchType | null) ?? defaults.type ?? 'both',
-});
+): ActivitySearchParamState => {
+  const action = searchParams.get('action');
+  const type = searchParams.get('type');
+
+  return {
+    action: action !== null && isAction(action) ? action : (defaults.action ?? 'liked'),
+    type: type !== null && isSearchType(type) ? type : (defaults.type ?? 'both'),
+  };
+};
 
 export const buildActivitySearchParams = (next: ActivitySearchParamInput) => {
   const params = new URLSearchParams();

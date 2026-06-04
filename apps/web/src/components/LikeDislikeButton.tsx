@@ -1,4 +1,4 @@
-import type { Media, MediaType, TVDetails } from '@findarr/shared/media';
+import type { Media, MediaDetails, MediaType, TVDetails } from '@findarr/shared/media';
 import { useState } from 'react';
 
 import { interactionService, searchService } from '../services/api';
@@ -9,7 +9,7 @@ interface LikeDislikeButtonProps {
   tmdbId: number;
   mediaType: MediaType;
   initialAction?: 'liked' | 'disliked' | null;
-  onUpdate?: (updatedMedia: Media) => void;
+  onUpdate?: (updatedMedia: MediaDetails) => void;
   compact?: boolean;
   existingMedia?: Media;
 }
@@ -54,9 +54,7 @@ export function LikeDislikeButton({
       setCurrentAction(newAction);
 
       // Update parent with enriched media (has state.record.status, state.votes, etc.)
-      if (updatedMedia) {
-        onUpdate?.(updatedMedia);
-      }
+      onUpdate?.(updatedMedia);
     } catch (error) {
       console.error('Failed to update interaction:', error);
     } finally {

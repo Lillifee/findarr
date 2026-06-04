@@ -46,7 +46,6 @@ export async function syncCatalogCache(context: SchedulerContext): Promise<void>
   const startTime = Date.now();
   context.log.info({ name: 'catalog', phase: 'cache-sync' }, 'Starting cache sync');
 
-  // TODO - use language setting from config
   const language = 'en-US';
 
   // Fetch both trending and recent releases (already includes basic metadata)

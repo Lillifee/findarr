@@ -1,4 +1,4 @@
-import type { GenreKey } from '@findarr/shared/constants';
+import { genreKeys, type GenreKey } from '@findarr/shared/constants';
 import type { InteractionFilter } from '@findarr/shared/interaction';
 import type { SearchType } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
@@ -25,23 +25,33 @@ interface CatalogSearchParamInput {
   type?: SearchType | undefined;
 }
 
+const isInteractionFilter = (value: string): value is InteractionFilter =>
+  value === 'all' || value === 'unvoted' || value === 'voted';
+
+const isSearchType = (value: string): value is SearchType =>
+  value === 'movie' || value === 'tv' || value === 'both';
+
+const genreKeySet = new Set<string>(genreKeys);
+const isGenreKey = (value: string): value is GenreKey => genreKeySet.has(value);
+
 export const readCatalogSearchParams = (
   searchParams: URLSearchParams,
   defaults: CatalogSearchParamDefaults = {},
 ): CatalogSearchParamState => {
-  // TODO fix typings
+  const rawType = searchParams.get('type');
+  const rawInteraction = searchParams.get('interaction');
+
   const interaction =
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    (searchParams.get('interaction') as InteractionFilter | null) ?? defaults.interaction;
+    rawInteraction !== null && isInteractionFilter(rawInteraction)
+      ? rawInteraction
+      : defaults.interaction;
 
   return {
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    type: (searchParams.get('type') as SearchType | undefined) ?? defaults.type ?? 'both',
+    type: rawType !== null && isSearchType(rawType) ? rawType : (defaults.type ?? 'both'),
     page: Number.parseInt(searchParams.get('page') ?? String(defaults.page ?? 1), 10),
     ...(interaction === undefined ? {} : { interaction }),
     q: searchParams.get('q') ?? '',
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    genres: searchParams.getAll('genres') as GenreKey[],
+    genres: searchParams.getAll('genres').filter((genre) => isGenreKey(genre)),
   };
 };
 

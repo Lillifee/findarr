@@ -9,14 +9,12 @@ import { computeCatalogMediaStats } from '../catalog/repository.js';
 import { createCatalogService } from '../catalog/service.js';
 import { syncCatalogCache } from '../catalog/sync.js';
 import { createDatabase, type Database } from '../db/service.js';
-import type { JellyfinService } from '../jellyfin/service.js';
 import { updateGenrePreference, updateKeywordPreference } from '../preferences/repository.js';
-import type { SchedulerService } from '../scheduler/service.js';
-import type { LoggerService, SchedulerContext } from '../scheduler/types.js';
 import { TMDBSearchResponseSchema } from '../tmdb/schemas.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { transformMedia } from '../tmdb/transformers.js';
 import { loadFixture } from './helpers/fixtureHelper.js';
+import { createMockSchedulerContext, createMockTMDBService } from './helpers/mockServices.js';
 import { createTestUserInDb } from './helpers/testHelper.js';
 
 // Helper to round score values for snapshots
@@ -67,13 +65,7 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     const tvItems = popularTV.results.map((item) => transformMedia(item, genreMap));
 
     // Mock TMDB service with fixture data (already transformed)
-    const tmdbServiceMock: TMDBService = {
-      isConfigured: vi.fn<TMDBService['isConfigured']>().mockReturnValue(true),
-      testConnection: vi.fn<TMDBService['testConnection']>().mockResolvedValue(true),
-      getSettings: vi.fn<TMDBService['getSettings']>(),
-      setSettings: vi.fn<TMDBService['setSettings']>(),
-      testAndSync: vi.fn<TMDBService['testAndSync']>(),
-      search: vi.fn<TMDBService['search']>(),
+    const tmdbServiceMock = createMockTMDBService({
       discover: vi.fn<TMDBService['discover']>().mockResolvedValue({
         results: [...movieItems, ...tvItems],
         page: 1,
@@ -84,44 +76,11 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
         page: 1,
         totalPages: 1,
       }),
-      details: vi.fn<TMDBService['details']>(),
       genres: vi.fn<TMDBService['genres']>().mockResolvedValue([...genreMap.values()]),
-      findByExternalId: vi.fn<TMDBService['findByExternalId']>(),
-    };
+    });
 
-    const loggerMock: LoggerService = {
-      debug: vi.fn<LoggerService['debug']>(),
-      info: vi.fn<LoggerService['info']>(),
-      error: vi.fn<LoggerService['error']>(),
-      warn: vi.fn<LoggerService['warn']>(),
-    };
-
-    const jellyfinMock: JellyfinService = {
-      isConfigured: vi.fn<JellyfinService['isConfigured']>().mockReturnValue(false),
-      testConnection: vi.fn<JellyfinService['testConnection']>().mockResolvedValue(false),
-      testAndSync: vi.fn<JellyfinService['testAndSync']>(),
-      getSettings: vi.fn<JellyfinService['getSettings']>(),
-      setSettings: vi.fn<JellyfinService['setSettings']>(),
-      listLibraryItems: vi.fn<JellyfinService['listLibraryItems']>(),
-      resolveMediaUrl: vi.fn<JellyfinService['resolveMediaUrl']>(),
-    };
-
-    const schedulerMock: SchedulerService = {
-      start: vi.fn<SchedulerService['start']>(),
-      stop: vi.fn<SchedulerService['stop']>(),
-      getState: vi.fn<SchedulerService['getState']>(),
-      startOrchestration: vi.fn<SchedulerService['startOrchestration']>(),
-      stopOrchestration: vi.fn<SchedulerService['stopOrchestration']>(),
-      trigger: vi.fn<SchedulerService['trigger']>(),
-    };
     // Create mock Fastify instance for sync function
-    const mockFastify: SchedulerContext = {
-      db,
-      tmdb: tmdbServiceMock,
-      log: loggerMock,
-      jellyfin: jellyfinMock,
-      scheduler: schedulerMock,
-    };
+    const mockFastify = createMockSchedulerContext(db, { tmdb: tmdbServiceMock });
 
     // Use the actual sync logic with mocked TMDB responses
     await syncCatalogCache(mockFastify);

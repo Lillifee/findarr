@@ -185,16 +185,14 @@ export async function getMediaByUserInteractions(
     .from(media)
     .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
     .where(whereClause)
-    .orderBy(desc(userMediaInteractions.createdAt), desc(media.updatedAt));
+    .orderBy(desc(userMediaInteractions.createdAt), desc(media.updatedAt))
+    .$dynamic();
 
-  // TODO fix typings
   if (options.limit !== undefined) {
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    query = query.limit(options.limit) as typeof query;
+    query = query.limit(options.limit);
   }
   if (options.offset !== undefined) {
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    query = query.offset(options.offset) as typeof query;
+    query = query.offset(options.offset);
   }
 
   const results = await query;
@@ -239,16 +237,14 @@ export async function getMediaByUserAttention(
     .from(media)
     .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
     .where(whereClause)
-    .orderBy(desc(userMediaInteractions.createdAt), desc(media.updatedAt));
+    .orderBy(desc(userMediaInteractions.createdAt), desc(media.updatedAt))
+    .$dynamic();
 
-  // TODO fix typings
   if (options.limit !== undefined) {
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    query = query.limit(options.limit) as typeof query;
+    query = query.limit(options.limit);
   }
   if (options.offset !== undefined) {
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    query = query.offset(options.offset) as typeof query;
+    query = query.offset(options.offset);
   }
 
   const results = await query;

@@ -4,14 +4,14 @@ import path from 'node:path';
 
 import { isDefined } from '@findarr/shared/utils';
 import fastify, { type FastifyInstance } from 'fastify';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
+import { afterEach, beforeEach, describe, expect, it } from 'vite-plus/test';
 
 import authPlugin from '../auth/plugin.js';
 import { authRoutes, protectedAuthRoutes } from '../auth/routes.js';
 import databasePlugin from '../db/plugin.js';
 import type { Database } from '../db/service.js';
-import type { TMDBService } from '../tmdb/service.js';
 import { registerErrorHandler } from '../utils/errors.js';
+import { createMockTMDBService } from './helpers/mockServices.js';
 import { createTestUserInDb } from './helpers/testHelper.js';
 
 function getSessionCookie(reply: Awaited<ReturnType<FastifyInstance['inject']>>) {
@@ -43,25 +43,7 @@ describe('auth routes - integration tests', () => {
       secretPath: path.join(tempDir, 'session.secret'),
     });
 
-    const tmdbServiceMock: TMDBService = {
-      getSettings: vi
-        .fn<TMDBService['getSettings']>()
-        .mockReturnValue({ tmdbAccessTokenSet: true }),
-      setSettings: vi
-        .fn<TMDBService['setSettings']>()
-        .mockResolvedValue({ tmdbAccessTokenSet: true }),
-      isConfigured: vi.fn<TMDBService['isConfigured']>().mockReturnValue(true),
-      testConnection: vi.fn<TMDBService['testConnection']>().mockResolvedValue(true),
-      testAndSync: vi.fn<TMDBService['testAndSync']>().mockResolvedValue(true),
-      search: vi.fn<TMDBService['search']>(),
-      discover: vi.fn<TMDBService['discover']>(),
-      trending: vi.fn<TMDBService['trending']>(),
-      details: vi.fn<TMDBService['details']>(),
-      genres: vi.fn<TMDBService['genres']>(),
-      findByExternalId: vi.fn<TMDBService['findByExternalId']>(),
-    };
-
-    app.decorate('tmdb', tmdbServiceMock);
+    app.decorate('tmdb', createMockTMDBService());
 
     await app.register(authRoutes, { prefix: '/auth' });
     await app.register(protectedAuthRoutes, { prefix: '/auth' });

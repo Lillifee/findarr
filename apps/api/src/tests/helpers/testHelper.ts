@@ -5,18 +5,12 @@ import { isDefined } from '@findarr/shared/utils';
 import { createUser } from '../../auth/repository.js';
 import type { Database } from '../../db/service.js';
 
-// TODO mock type
-// oxlint-disable-next-line typescript/no-unsafe-type-assertion
-export const mockDb = {} as unknown as Database;
-
 // Utility functions to assert
 
 export function assertDefined<T>(value: T): asserts value is NonNullable<T> {
-  /* v8 ignore start */
   if (!isDefined(value)) {
     throw new Error(`Expected value to be defined`);
   }
-  /* v8 ignore end */
 }
 
 // Factory functions to create test data

@@ -1,4 +1,4 @@
-import type { MovieDetails, TVDetails, Media } from '@findarr/shared/media';
+import type { MovieDetails, TVDetails } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
 import { useState } from 'react';
 
@@ -427,10 +427,8 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                   : null
             }
             existingMedia={localMedia}
-            onUpdate={(updatedMedia: Media) => {
-              // TODO fix media details
-              // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-              setLocalMedia(updatedMedia as MovieDetails | TVDetails);
+            onUpdate={(updatedMedia) => {
+              setLocalMedia(updatedMedia);
               onVoteComplete?.();
             }}
           />
