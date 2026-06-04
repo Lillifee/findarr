@@ -17,7 +17,9 @@ import { scoreMediaItems, scoreMediaItemsForUser } from './scoring.js';
  * Frontend can match season status by seasonNumber from state.record.seasons if needed
  */
 export async function enrichWithRecords(db: Database, mediaItems: Media[]): Promise<Media[]> {
-  if (mediaItems.length === 0) return mediaItems;
+  if (mediaItems.length === 0) {
+    return mediaItems;
+  }
 
   const mediaRecords = await getMediaRecordsBatch(db, mediaItems);
 
@@ -45,7 +47,9 @@ export async function enrichWithInteractions(
 
   return mediaItems.map((item) => {
     const mediaId = item.state?.record?.id;
-    if (!isDefined(mediaId)) return item;
+    if (!isDefined(mediaId)) {
+      return item;
+    }
 
     const interactions = interactionsMap.get(mediaId);
     const votes = votesMap.get(mediaId);
@@ -71,7 +75,9 @@ export async function enrichWithScoring(
   mediaItems: Media[],
   userId?: number,
 ): Promise<Media[]> {
-  if (mediaItems.length === 0) return mediaItems;
+  if (mediaItems.length === 0) {
+    return mediaItems;
+  }
 
   // Get precomputed catalog stats from database
   const statsMap = await getMediaStats(db);
@@ -111,7 +117,9 @@ export async function fetchTMDBDetails(
 ): Promise<Media[]> {
   const results = await Promise.all(
     mediaDbRows.map(async (record) => {
-      if (!isDefined(record.tmdbId)) return null;
+      if (!isDefined(record.tmdbId)) {
+        return null;
+      }
 
       const details = await tmdbService
         .details({ id: record.tmdbId, type: record.type })

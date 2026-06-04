@@ -5,17 +5,17 @@ import { getErrorMessage, isDefined, objectEntries, objectKeys } from './helper.
 describe('helper', () => {
   it('should return true for defined values and false for undefined or null', () => {
     const undefinedValue = undefined;
-    expect(isDefined('abc')).toEqual(true);
-    expect(isDefined(undefinedValue)).toEqual(false);
-    expect(isDefined(null)).toEqual(false);
+    expect(isDefined('abc')).toBe(true);
+    expect(isDefined(undefinedValue)).toBe(false);
+    expect(isDefined(null)).toBe(false);
   });
 
   it('should return a typed version of Object.keys', () => {
-    expect(objectKeys({ a: 1, b: 2 })).toEqual(['a', 'b']);
+    expect(objectKeys({ a: 1, b: 2 })).toStrictEqual(['a', 'b']);
   });
 
   it('should return a typed version of Object.entries', () => {
-    expect(objectEntries({ a: 1, b: 2 })).toEqual([
+    expect(objectEntries({ a: 1, b: 2 })).toStrictEqual([
       ['a', 1],
       ['b', 2],
     ]);

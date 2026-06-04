@@ -92,7 +92,7 @@ export function ActivityPage() {
       page: number;
       type?: SearchType;
     }) => {
-      const requestId = ++activityRequestIdRef.current;
+      const requestId = (activityRequestIdRef.current += 1);
 
       if (append) {
         setLoadingMore(true);
@@ -139,7 +139,7 @@ export function ActivityPage() {
 
   const loadAttention = useCallback(
     async (type: SearchType = selectedType) => {
-      const requestId = ++attentionRequestIdRef.current;
+      const requestId = (attentionRequestIdRef.current += 1);
 
       setLoadingAttention(true);
 
@@ -202,7 +202,7 @@ export function ActivityPage() {
     }
 
     const loadInitialPage = async () => {
-      const activityRequestId = ++activityRequestIdRef.current;
+      const activityRequestId = (activityRequestIdRef.current += 1);
 
       setLoadingActivity(true);
 
@@ -443,7 +443,7 @@ export function ActivityPage() {
           {loadingActivity && activityResults.length === 0 && (
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
-                <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-amber-500"></div>
+                <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-amber-500" />
                 <p className="text-gray-400">Loading your activity...</p>
               </div>
             </div>

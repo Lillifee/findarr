@@ -11,6 +11,25 @@ import {
   computeCatalogMediaStats,
 } from './repository.js';
 
+/**
+ * Deduplicate media items based on ID and type
+ * Prefers items with trendingRank (from trending endpoint)
+ */
+function deduplicateMediaByTmdbKey(items: Media[]): Media[] {
+  const mediaByTmdbKey = new Map<string, Media>();
+
+  for (const item of items) {
+    const key = `${item.tmdbId}_${item.type}`;
+    const existingItem = mediaByTmdbKey.get(key);
+    // Prefer items with trendingRank (from trending) over discover results
+    if (!existingItem || isDefined(item.trendingRank)) {
+      mediaByTmdbKey.set(key, item);
+    }
+  }
+
+  return [...mediaByTmdbKey.values()];
+}
+
 const createPageRange = (length: number) => Array.from({ length }).map((_, i) => i + 1);
 
 /**
@@ -19,7 +38,9 @@ const createPageRange = (length: number) => Array.from({ length }).map((_, i) =>
  * Keywords are enriched separately by enrichCatalogKeywords()
  */
 export async function syncCatalogCache(context: SchedulerContext): Promise<void> {
-  if (!context.tmdb.isConfigured()) return;
+  if (!context.tmdb.isConfigured()) {
+    return;
+  }
 
   const startTime = Date.now();
   context.log.info({ name: 'catalog', phase: 'cache-sync' }, 'Starting cache sync');
@@ -170,23 +191,4 @@ export async function enrichCatalogKeywords(context: SchedulerContext): Promise<
     );
     throw error;
   }
-}
-
-/**
- * Deduplicate media items based on ID and type
- * Prefers items with trendingRank (from trending endpoint)
- */
-function deduplicateMediaByTmdbKey(items: Media[]): Media[] {
-  const mediaByTmdbKey = new Map<string, Media>();
-
-  for (const item of items) {
-    const key = `${item.tmdbId}_${item.type}`;
-    const existingItem = mediaByTmdbKey.get(key);
-    // Prefer items with trendingRank (from trending) over discover results
-    if (!existingItem || isDefined(item.trendingRank)) {
-      mediaByTmdbKey.set(key, item);
-    }
-  }
-
-  return [...mediaByTmdbKey.values()];
 }

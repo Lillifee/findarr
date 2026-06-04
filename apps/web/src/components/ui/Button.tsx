@@ -43,9 +43,7 @@ export function Button({
       disabled={Boolean(disabled) || loading}
       {...props}
     >
-      {loading && (
-        <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-current"></div>
-      )}
+      {loading && <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-current" />}
       {children}
     </button>
   );

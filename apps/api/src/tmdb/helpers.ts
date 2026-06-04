@@ -56,7 +56,9 @@ const formatDate = (date: Date) => date.toISOString().split('T')[0] ?? '';
  * Build date parameters for discover queries
  */
 export const buildDateParams = (recentDays: number | undefined, type: MediaType | 'both') => {
-  if (!isDefined(recentDays)) return {};
+  if (!isDefined(recentDays)) {
+    return {};
+  }
 
   const { pastDate, futureDate } = getDateRangeFromDays(recentDays);
 
@@ -81,7 +83,7 @@ export const buildDiscoverParams = (
   // Extract with defaults to ensure proper types
   const type = params.type ?? 'both';
   const language = params.language ?? 'en-US';
-  const recentDays = params.recentDays;
+  const { recentDays } = params;
   const page = params.page ?? 1;
   const genres = params.genres ?? [];
   const regions = params.regions ?? [];
@@ -110,7 +112,7 @@ export const buildDiscoverParams = (
 function backoffDelay(attempt: number, baseDelay: number): number {
   // Exponential backoff + jitter
   const jitter = Math.random() * 300;
-  return baseDelay * Math.pow(2, attempt) + jitter;
+  return baseDelay * 2 ** attempt + jitter;
 }
 
 /**
@@ -166,18 +168,25 @@ export async function processWithWorkerPool<TItem, TResult>(options: {
     let localCount = 0;
 
     while (true) {
-      const index = queueIndex++;
-      if (index >= items.length) break;
+      const index = (queueIndex += 1);
+      if (index >= items.length) {
+        break;
+      }
 
       const item = items[index];
-      if (!isDefined(item)) continue;
+      if (!isDefined(item)) {
+        continue;
+      }
 
       try {
+        // Sequential by design: each worker drains the shared queue one item at
+        // a time which keeps us within the TMDB rate limit. (see Promise.all below)
+        // oxlint-disable-next-line eslint/no-await-in-loop
         const result = await processWithRetry(item);
 
         if (result !== null) {
           results.push(result);
-          localCount++;
+          localCount += 1;
         }
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Unknown error';
@@ -202,7 +211,9 @@ export async function processWithWorkerPool<TItem, TResult>(options: {
   };
 
   // Start worker pool
-  const workerResults = await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
+  const workerResults = await Promise.all(
+    Array.from({ length: CONCURRENCY }, async () => worker()),
+  );
 
   const successCount = workerResults.reduce((sum, count) => sum + count, 0);
 

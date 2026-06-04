@@ -4,7 +4,7 @@ import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import { ServerEnvSchema } from '@findarr/shared';
 import dotenv from 'dotenv';
-import Fastify from 'fastify';
+import fastify from 'fastify';
 
 import { adminRoutes } from './admin/routes.js';
 import arrPlugin from './arr/plugin.js';
@@ -30,7 +30,7 @@ dotenv.config();
 const env = ServerEnvSchema.parse(process.env);
 const dataPath = env.DATA_PATH;
 
-const server = Fastify({
+const server = fastify({
   disableRequestLogging: true,
   logger: {
     level: 'info',
@@ -114,7 +114,7 @@ async function start() {
     });
   } catch (error) {
     server.log.error({ name: 'server', err: error }, 'Failed to start');
-    process.exit(1);
+    throw error;
   }
 }
 

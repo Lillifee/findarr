@@ -61,7 +61,9 @@ export function MediaTypeChips({ selectedType, onChange, disabled = false }: Med
           selected={selectedType === type.value}
           interactive={!disabled}
           onClick={() => {
-            if (!disabled) onChange(type.value);
+            if (!disabled) {
+              onChange(type.value);
+            }
           }}
           className={`min-h-8 rounded-none px-3 py-1.5 text-sm ${
             selectedType === type.value

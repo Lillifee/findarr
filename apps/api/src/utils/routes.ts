@@ -1,7 +1,7 @@
 import { isDefined, type User } from '@findarr/shared';
 import type { FastifyRequest } from 'fastify';
 
-import { Unauthorized } from './errors.js';
+import { unauthorized } from './errors.js';
 
 type MaybePromise<T> = T | Promise<T>;
 
@@ -14,7 +14,9 @@ const isAuthenticatedRequest = (request: FastifyRequest): request is Authenticat
 
 export function protectedRoute<T>(route: (request: AuthenticatedRequest) => MaybePromise<T>) {
   return async (request: FastifyRequest): Promise<T> => {
-    if (!isAuthenticatedRequest(request)) throw Unauthorized();
+    if (!isAuthenticatedRequest(request)) {
+      throw unauthorized();
+    }
     const result = await route(request);
     return result;
   };

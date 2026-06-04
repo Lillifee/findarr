@@ -56,7 +56,7 @@ const statusConfig = {
     text: 'text-white',
     label: 'Downloading',
     icon: (
-      <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-white md:h-4 md:w-4"></div>
+      <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-white md:h-4 md:w-4" />
     ),
   },
   monitored: {
@@ -112,7 +112,9 @@ const positionStyles = {
 
 export function StatusBadge({ status, position = 'inline', size = 'md', icon }: StatusBadgeProps) {
   const config = statusConfig[status];
-  if (!config) return null;
+  if (!config) {
+    return null;
+  }
 
   const baseStyles =
     'z-10 flex items-center gap-1 rounded-full border font-semibold shadow-sm backdrop-blur-sm';

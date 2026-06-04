@@ -6,7 +6,7 @@ import { ZodError } from 'zod';
  * Custom error class that includes HTTP status code
  */
 export class HttpError extends Error {
-  constructor(
+  public constructor(
     public statusCode: number,
     message?: string,
   ) {
@@ -18,11 +18,11 @@ export class HttpError extends Error {
 /**
  * Pre-defined error creators for common cases
  */
-export const BadRequest = (message?: string) => new HttpError(400, message);
-export const Unauthorized = (message?: string) => new HttpError(401, message);
-export const Forbidden = (message?: string) => new HttpError(403, message);
-export const NotFound = (message?: string) => new HttpError(404, message);
-export const Conflict = (message?: string) => new HttpError(409, message);
+export const badRequest = (message?: string) => new HttpError(400, message);
+export const unauthorized = (message?: string) => new HttpError(401, message);
+export const forbidden = (message?: string) => new HttpError(403, message);
+export const notFound = (message?: string) => new HttpError(404, message);
+export const conflict = (message?: string) => new HttpError(409, message);
 
 /**
  * Register global error handler for the Fastify instance

@@ -19,7 +19,9 @@ export async function writeSettings(
   const entries = objectEntries(values).filter((entry): entry is [string, string] =>
     isDefined(entry[1]),
   );
-  if (entries.length === 0) return;
+  if (entries.length === 0) {
+    return;
+  }
   await Promise.all(
     entries.map(([key, value]) =>
       db.insert(appSettings).values({ key, value }).onConflictDoUpdate({

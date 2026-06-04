@@ -68,7 +68,7 @@ export function SettingsPage() {
         language,
         regions,
       })
-      .catch((saveError) => {
+      .catch((saveError: unknown) => {
         console.error('Failed to save user settings:', saveError);
         setSettingsError('Failed to save settings.');
       });

@@ -63,10 +63,13 @@ export const media = sqliteTable(
       .notNull()
       .default('pending'),
     // TV only: season tracking synced from Sonarr/Jellyfin (none=not in Sonarr, requested=user wants it, monitored=in Sonarr, downloaded=complete in Sonarr, available=in Jellyfin)
-    seasons: text('seasons', { mode: 'json' }).$type<Array<{
-      seasonNumber: number;
-      status: 'none' | 'requested' | 'monitored' | 'downloaded' | 'available';
-    }> | null>(),
+    seasons: text('seasons', { mode: 'json' }).$type<
+      | {
+          seasonNumber: number;
+          status: 'none' | 'requested' | 'monitored' | 'downloaded' | 'available';
+        }[]
+      | null
+    >(),
     createdAt: integer('createdAt')
       .notNull()
       .default(sql`(unixepoch() * 1000)`)

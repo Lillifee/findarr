@@ -8,23 +8,27 @@
  * Fixtures can be refreshed quarterly or when TMDB API changes are detected.
  */
 
+// Sequential awaits with sleep() between requests are intentional rate limiting
+// against the TMDB API; parallelizing would defeat the throttle.
+// oxlint-disable eslint/no-await-in-loop
+
 import { writeFileSync, mkdirSync } from 'node:fs';
-import { join } from 'node:path';
+import path from 'node:path';
 
 import { isDefined } from '@findarr/shared';
 import { create } from 'axios';
 import * as dotenv from 'dotenv';
 
-const sleep = (ms: number) =>
+const sleep = async (ms: number) =>
   new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
 
 // Load environment variables from .env file
 const currentDirName = import.meta.dirname;
-dotenv.config({ path: join(currentDirName, '../.env') });
+dotenv.config({ path: path.join(currentDirName, '../.env') });
 
-const TMDB_ACCESS_TOKEN = process.env.TMDB_ACCESS_TOKEN;
+const { TMDB_ACCESS_TOKEN } = process.env;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
 // Create axios client
@@ -38,10 +42,10 @@ const client = create({
 
 if (!isDefined(TMDB_ACCESS_TOKEN)) {
   console.error('❌ TMDB_ACCESS_TOKEN environment variable is required');
-  process.exit(1);
+  throw new Error('TMDB_ACCESS_TOKEN environment variable is required');
 }
 
-const fixturesDir = join(currentDirName, '../fixtures/tmdb');
+const fixturesDir = path.join(currentDirName, '../fixtures/tmdb');
 
 // Ensure fixtures directory exists
 mkdirSync(fixturesDir, { recursive: true });
@@ -50,7 +54,7 @@ mkdirSync(fixturesDir, { recursive: true });
  * Save JSON data to a fixture file
  */
 function saveFixture(filename: string, data: unknown): void {
-  const filePath = join(fixturesDir, filename);
+  const filePath = path.join(fixturesDir, filename);
   writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
   console.log(`✅ Saved ${filename}`);
 }
@@ -199,7 +203,7 @@ async function captureFixtures(): Promise<void> {
     console.log(`📁 Fixtures saved to: ${fixturesDir}`);
   } catch (error) {
     console.error('\n❌ Error capturing fixtures:', error);
-    process.exit(1);
+    throw error;
   }
 }
 

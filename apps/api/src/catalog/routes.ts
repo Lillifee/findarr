@@ -17,7 +17,7 @@ export const catalogRoutes = (fastify: FastifyInstance) => {
   // Search endpoint: GET /search?query=batman&type=both
   fastify.get(
     '/search',
-    protectedRoute((request) =>
+    protectedRoute(async (request) =>
       fastify.catalog.searchMedia(SearchQuerySchema.parse(request.query), request.user.id),
     ),
   );
@@ -25,7 +25,7 @@ export const catalogRoutes = (fastify: FastifyInstance) => {
   // Popular endpoint: GET /popular?type=both&page=2&feedId=...
   fastify.get(
     '/popular',
-    protectedRoute((request) =>
+    protectedRoute(async (request) =>
       fastify.catalog.getPopularMedia(PopularQuerySchema.parse(request.query), request.user.id),
     ),
   );
@@ -33,7 +33,7 @@ export const catalogRoutes = (fastify: FastifyInstance) => {
   // Discover endpoint: GET /discover?type=both&recent_days=30 (direct TMDB passthrough)
   fastify.get(
     '/discover',
-    protectedRoute((request) =>
+    protectedRoute(async (request) =>
       fastify.catalog.discoverMedia(DiscoverQuerySchema.parse(request.query), request.user.id),
     ),
   );
@@ -42,20 +42,20 @@ export const catalogRoutes = (fastify: FastifyInstance) => {
   // Returns enriched media with DB state if authenticated
   fastify.get(
     '/details',
-    protectedRoute((request) =>
+    protectedRoute(async (request) =>
       fastify.catalog.getMediaDetails(DetailsQuerySchema.parse(request.query), request.user.id),
     ),
   );
 
   // Genres endpoint: GET /genres?type=movie
-  fastify.get('/genres', (request) =>
+  fastify.get('/genres', async (request) =>
     fastify.catalog.listGenres(GenresQuerySchema.parse(request.query)),
   );
 
   // Available overview endpoint: GET /available?type=both&limit=12
   fastify.get(
     '/available',
-    protectedRoute((request) =>
+    protectedRoute(async (request) =>
       fastify.catalog.getAvailableMedia(
         AvailableMediaQuerySchema.parse(request.query),
         request.user.id,
@@ -68,7 +68,7 @@ export const catalogRoutes = (fastify: FastifyInstance) => {
   // Requires authentication and supports same filters as popular page
   fastify.get(
     '/next',
-    protectedRoute((request) =>
+    protectedRoute(async (request) =>
       fastify.catalog.getNextUnvotedMedia(PopularQuerySchema.parse(request.query), request.user.id),
     ),
   );

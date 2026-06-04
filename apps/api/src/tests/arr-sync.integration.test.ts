@@ -1,4 +1,4 @@
-import SqlDatabase from 'better-sqlite3';
+import type SqlDatabase from 'better-sqlite3';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 import { arrConfig } from '../arr/config.js';
@@ -20,8 +20,8 @@ describe('arr sync collision handling - integration tests', () => {
 
   beforeEach(() => {
     const result = createDatabase(':memory:');
-    db = result.db;
-    sqliteDb = result.sqliteDb;
+    ({ db } = result);
+    ({ sqliteDb } = result);
   });
 
   afterEach(() => {

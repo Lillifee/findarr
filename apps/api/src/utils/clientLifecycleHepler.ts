@@ -21,7 +21,9 @@ export function createClientLifecycle<TSettings, TClient>(
   let reloadPromise: Promise<void> | undefined;
 
   async function reload(): Promise<void> {
-    if (reloadPromise) return reloadPromise;
+    if (reloadPromise) {
+      return reloadPromise;
+    }
 
     reloadPromise = (async () => {
       const newSettings = await options.loadSettings();
@@ -43,12 +45,16 @@ export function createClientLifecycle<TSettings, TClient>(
   }
 
   function client(): TClient {
-    if (!isDefined(state.client)) throw new Error(`${options.name} client is not configured`);
+    if (!isDefined(state.client)) {
+      throw new Error(`${options.name} client is not configured`);
+    }
     return state.client;
   }
 
   function settings(): TSettings {
-    if (!isDefined(state.settings)) throw new Error(`${options.name} settings are unavailable`);
+    if (!isDefined(state.settings)) {
+      throw new Error(`${options.name} settings are unavailable`);
+    }
     return state.settings;
   }
 

@@ -5,8 +5,9 @@ import {
   TMDBSearchResponseSchema,
   TMDBMovieDetailsSchema,
   TMDBTVDetailsSchema,
+  type TMDBMovieDetails,
+  type TMDBTVDetails,
 } from '../tmdb/schemas.js';
-import type { TMDBMovieDetails, TMDBTVDetails } from '../tmdb/schemas.js';
 import { transformMedia, transformDetails } from '../tmdb/transformers.js';
 import { loadFixture } from './helpers/fixtureHelper.js';
 
@@ -54,7 +55,7 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
       expect(parsed.total_results).toBeGreaterThan(0);
 
       // Verify first result has expected fields
-      const firstResult = parsed.results[0];
+      const [firstResult] = parsed.results;
       expect(firstResult).toBeDefined();
       expect(firstResult?.id).toBeDefined();
 
@@ -73,7 +74,7 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
       expect(parsed.results.length).toBeGreaterThan(0);
 
       // Verify first TV show has expected fields
-      const firstResult = parsed.results[0];
+      const [firstResult] = parsed.results;
       expect(firstResult).toBeDefined();
       expect(firstResult?.id).toBeDefined();
 

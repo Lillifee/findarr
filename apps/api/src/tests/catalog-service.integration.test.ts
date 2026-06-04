@@ -1,12 +1,11 @@
 import type { DiscoverResponse, Genre, MediaDetails, SearchResponse } from '@findarr/shared';
-import SqlDatabase from 'better-sqlite3';
+import type SqlDatabase from 'better-sqlite3';
 import { describe, it, expect, vi, beforeEach, afterEach, type Mocked } from 'vite-plus/test';
 
-import * as authService from '../auth/service.js';
+import * as authUtils from '../auth/utils.js';
 import { upsertCatalogCache } from '../catalog/repository.js';
 import { createCatalogService } from '../catalog/service.js';
-import { createDatabase } from '../db/service.js';
-import type { Database } from '../db/service.js';
+import { createDatabase, type Database } from '../db/service.js';
 import { addInteraction } from '../interaction/repository.js';
 import { createMedia } from '../media/repository.js';
 import { updateGenrePreference, updateKeywordPreference } from '../preferences/repository.js';
@@ -27,8 +26,8 @@ describe('catalog service - integration tests', () => {
   beforeEach(() => {
     // Create fresh in-memory database for each test
     const result = createDatabase(':memory:');
-    db = result.db;
-    sqliteDb = result.sqliteDb;
+    ({ db } = result);
+    ({ sqliteDb } = result);
 
     // Mock TMDB service
     // Mock TMDB service that returns movie/TV details with genres
@@ -66,7 +65,7 @@ describe('catalog service - integration tests', () => {
   });
 
   it('should delegate discover, details, and genres', async () => {
-    vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
+    vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
     const user = await createTestUserInDb(db, { email: 'delegate@test.com' });
 
     const searchResult: SearchResponse = { results: [], totalPages: 1, page: 0 };
@@ -87,10 +86,10 @@ describe('catalog service - integration tests', () => {
       { query: 'test', type: 'movie', page: 0 },
       user.id,
     );
-    expect(search.results).toEqual(searchResult.results);
+    expect(search.results).toStrictEqual(searchResult.results);
 
     const discover = await catalogService.discoverMedia({ type: 'movie', page: 1 }, user.id);
-    expect(discover.results).toEqual(fetchResult.results);
+    expect(discover.results).toStrictEqual(fetchResult.results);
 
     const details = await catalogService.getMediaDetails({ id: 1, type: 'movie' }, user.id);
     expect(details).toBe(detailsResult);
@@ -100,7 +99,7 @@ describe('catalog service - integration tests', () => {
   });
 
   it('should return cached popular results and filter/paginate', async () => {
-    vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
+    vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
     const user = await createTestUserInDb(db, { email: 'pagination@test.com' });
 
     // Populate catalog cache with 50 items
@@ -109,7 +108,7 @@ describe('catalog service - integration tests', () => {
 
     // First page
     const firstPage = await catalogService.getPopularMedia({}, user.id);
-    expect(firstPage.results.length).toBe(20);
+    expect(firstPage.results).toHaveLength(20);
     expect(firstPage.totalPages).toBe(3);
     expect(firstPage.feedId).toBeTruthy();
     expect(firstPage.page).toBe(1);
@@ -123,7 +122,7 @@ describe('catalog service - integration tests', () => {
   });
 
   it('should respect type, region, and genre filters in popular', async () => {
-    vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
+    vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
     const user = await createTestUserInDb(db, { email: 'type-filter@test.com' });
 
     // Populate catalog cache with mixed types
@@ -134,7 +133,7 @@ describe('catalog service - integration tests', () => {
     await upsertCatalogCache(db, items);
 
     const result = await catalogService.getPopularMedia({ type: 'tv' }, user.id);
-    expect(result.results.length).toBe(1);
+    expect(result.results).toHaveLength(1);
     expect(result.results[0]?.type).toBe('tv');
   });
 
@@ -147,11 +146,11 @@ describe('catalog service - integration tests', () => {
     });
 
     const result = await catalogService.searchMedia({ query: 'test', type: 'movie', page: 1 }, 0);
-    expect(result.results).toEqual(items);
+    expect(result.results).toStrictEqual(items);
   });
 
   it('should enrich discover results with database state', async () => {
-    vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
+    vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
     const user = await createTestUserInDb(db, { email: 'discover-enrich@test.com' });
 
     const items = [createTestMedia({ tmdbId: 1 })];
@@ -162,11 +161,11 @@ describe('catalog service - integration tests', () => {
     });
 
     const result = await catalogService.discoverMedia({ type: 'movie', page: 1 }, user.id);
-    expect(result.results).toEqual(items);
+    expect(result.results).toStrictEqual(items);
   });
 
   it('should resolve discover filters from stored user settings', async () => {
-    vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
+    vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
 
     const user = await createTestUserInDb(db, { email: 'discover-settings@test.com' });
     await saveUserSettings(db, user.id, {
@@ -198,7 +197,7 @@ describe('catalog service - integration tests', () => {
 
   it('should apply user preference scoring when user has genre preferences', async () => {
     // Mock password hashing for speed
-    vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
+    vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
 
     // Create a user
     const user = await createTestUserInDb(db);
@@ -225,7 +224,7 @@ describe('catalog service - integration tests', () => {
     const result = await catalogService.getPopularMedia({}, user.id);
 
     // The Action movie should be boosted due to user preferences
-    expect(result.results.length).toBe(2);
+    expect(result.results).toHaveLength(2);
     // Results should be scored (we can't predict exact order without knowing scoring algorithm details)
     // But we're testing that the code path with user preferences is executed
     expect(result.results).toBeDefined();
@@ -233,7 +232,7 @@ describe('catalog service - integration tests', () => {
 
   it('should apply user keyword preference scoring when user has keyword preferences', async () => {
     // Mock password hashing for speed
-    vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
+    vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
 
     // Create a user
     const user = await createTestUserInDb(db);
@@ -268,12 +267,12 @@ describe('catalog service - integration tests', () => {
 
     // Should execute the keyword preference scoring code path
     expect(result.results).toBeDefined();
-    expect(result.results.length).toBe(1);
+    expect(result.results).toHaveLength(1);
   });
 
   it('should enrich results with user interactions when userId is provided', async () => {
     // Mock password hashing for speed
-    vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
+    vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
 
     // Create a user
     const user = await createTestUserInDb(db);
@@ -293,7 +292,7 @@ describe('catalog service - integration tests', () => {
   });
 
   it('should stop swipe voting after the first 100 popular items are exhausted', async () => {
-    vi.spyOn(authService, 'hashPassword').mockResolvedValue('hashed-password');
+    vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
     const user = await createTestUserInDb(db, { email: 'swipe-limit@test.com' });
 
     const cachedItems = Array.from({ length: 101 }, (_, index) =>
@@ -302,7 +301,9 @@ describe('catalog service - integration tests', () => {
     await upsertCatalogCache(db, cachedItems);
 
     for (const item of cachedItems.slice(0, 100)) {
+      // oxlint-disable-next-line no-await-in-loop
       const mediaRecord = await createMedia(db, item.tmdbId, item.type);
+      // oxlint-disable-next-line no-await-in-loop
       await addInteraction(db, user.id, mediaRecord.id, 'liked');
     }
 

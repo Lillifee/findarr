@@ -12,10 +12,16 @@ interface MediaDetailsProps {
 
 // Format helpers
 const formatRuntime = (value: number | number[] | undefined) => {
-  if (!isDefined(value)) return 'Unknown';
+  if (!isDefined(value)) {
+    return 'Unknown';
+  }
   if (Array.isArray(value)) {
-    if (value.length === 0) return 'Unknown';
-    if (value.length === 1) return `${value[0]}m`;
+    if (value.length === 0) {
+      return 'Unknown';
+    }
+    if (value.length === 1) {
+      return `${value[0]}m`;
+    }
     return `${Math.min(...value)}-${Math.max(...value)}m per episode`;
   }
   const hours = Math.floor(value / 60);

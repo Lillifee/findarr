@@ -13,53 +13,43 @@ import type { ArrLibraryItem } from './schemas.js';
 import type { AnyArrService } from './service.js';
 
 /**
- * Generic complete sync for Radarr or Sonarr
- * Library sync with inline enrichment for TV shows
+ * Enrich TV shows with TMDB IDs using worker pool pattern
+ * Provides smooth, continuous processing with exponential backoff retry logic
  */
-export async function syncComplete(
+export async function enrichTvShows(
   context: SchedulerContext,
-  arrService: AnyArrService,
-): Promise<void> {
-  // Check if service is configured
-  const isConfigured = arrService.isConfigured();
-
-  if (!isConfigured) {
-    context.log.debug(
-      { name: arrService.config.service, service: arrService.config.service },
-      'Not configured - skipping sync',
-    );
-    return;
-  }
-
-  context.log.info(
-    { name: arrService.config.service, service: arrService.config.service },
-    'Starting library sync',
-  );
-  const startTime = Date.now();
+  queue: ArrLibraryItem[],
+): Promise<number> {
   const { log } = context;
 
-  // Test connection
-  const isConnected = await arrService.testConnection();
-
-  if (!isConnected) {
-    throw new Error(`${arrService.config.service} connection test failed`);
-  }
-
-  log.debug(
-    { name: arrService.config.service, service: arrService.config.service },
-    'Connection successful',
+  log.info(
+    { name: 'sonarr', service: 'sonarr', totalItems: queue.length },
+    'Enriching new TV shows with TMDB IDs',
   );
 
-  // Library sync with inline enrichment for TV shows
-  await syncLibrary(context, arrService);
+  const { successCount } = await processWithWorkerPool({
+    items: queue,
+    processFn: async (item) => {
+      if (!isDefined(item.tvdbId)) {
+        return null;
+      }
 
-  const durationMs = Date.now() - startTime;
-  const durationSec = Math.round(durationMs / 1000);
+      const tmdbId = await context.tmdb.findByExternalId('tv', item.tvdbId);
+      if (isDefined(tmdbId)) {
+        item.tmdbId = tmdbId;
+      }
 
-  context.log.info(
-    { name: arrService.config.service, service: arrService.config.service, durationSec },
-    'Library sync finished successfully',
+      return tmdbId ?? null;
+    },
+    log,
+  });
+
+  log.info(
+    { name: 'sonarr', service: 'sonarr', successCount, totalItems: queue.length },
+    'Enrichment complete',
   );
+
+  return successCount;
 }
 
 /**
@@ -143,39 +133,53 @@ export async function syncLibrary(
 }
 
 /**
- * Enrich TV shows with TMDB IDs using worker pool pattern
- * Provides smooth, continuous processing with exponential backoff retry logic
+ * Generic complete sync for Radarr or Sonarr
+ * Library sync with inline enrichment for TV shows
  */
-export async function enrichTvShows(
+export async function syncComplete(
   context: SchedulerContext,
-  queue: ArrLibraryItem[],
-): Promise<number> {
+  arrService: AnyArrService,
+): Promise<void> {
+  // Check if service is configured
+  const isConfigured = arrService.isConfigured();
+
+  if (!isConfigured) {
+    context.log.debug(
+      { name: arrService.config.service, service: arrService.config.service },
+      'Not configured - skipping sync',
+    );
+    return;
+  }
+
+  context.log.info(
+    { name: arrService.config.service, service: arrService.config.service },
+    'Starting library sync',
+  );
+  const startTime = Date.now();
   const { log } = context;
 
-  log.info(
-    { name: 'sonarr', service: 'sonarr', totalItems: queue.length },
-    'Enriching new TV shows with TMDB IDs',
+  // Test connection
+  const isConnected = await arrService.testConnection();
+
+  if (!isConnected) {
+    throw new Error(`${arrService.config.service} connection test failed`);
+  }
+
+  log.debug(
+    { name: arrService.config.service, service: arrService.config.service },
+    'Connection successful',
   );
 
-  const { successCount } = await processWithWorkerPool({
-    items: queue,
-    processFn: async (item) => {
-      if (!isDefined(item.tvdbId)) return null;
+  // Library sync with inline enrichment for TV shows
+  await syncLibrary(context, arrService);
 
-      const tmdbId = await context.tmdb.findByExternalId('tv', item.tvdbId);
-      if (isDefined(tmdbId)) item.tmdbId = tmdbId;
+  const durationMs = Date.now() - startTime;
+  const durationSec = Math.round(durationMs / 1000);
 
-      return tmdbId ?? null;
-    },
-    log,
-  });
-
-  log.info(
-    { name: 'sonarr', service: 'sonarr', successCount, totalItems: queue.length },
-    'Enrichment complete',
+  context.log.info(
+    { name: arrService.config.service, service: arrService.config.service, durationSec },
+    'Library sync finished successfully',
   );
-
-  return successCount;
 }
 
 /**
@@ -192,16 +196,18 @@ export async function syncQueue(
   completedIds: number[];
   hasActiveDownloads: boolean;
 }> {
-  const statusUpdates: Array<{ arrId: number; type: MediaType; status: MediaStatus }> = [];
+  const statusUpdates: { arrId: number; type: MediaType; status: MediaStatus }[] = [];
   const currentDownloadingIds = new Set<number>();
-  const mediaType = arrService.config.mediaType;
+  const { mediaType } = arrService.config;
 
   // Get queue from service
   const queueItems = await arrService.getQueue(1000);
   const statusMap = new Map<number, MediaStatus>();
 
   for (const item of queueItems) {
-    if (!isDefined(item.arrId)) continue;
+    if (!isDefined(item.arrId)) {
+      continue;
+    }
 
     if (item.trackedDownloadStatus === 'warning') {
       statusMap.set(item.arrId, 'warning');

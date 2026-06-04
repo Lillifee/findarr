@@ -1,6 +1,6 @@
 import type { InferSelectModel } from 'drizzle-orm';
 
-import {
+import type {
   media,
   users,
   userMediaInteractions,

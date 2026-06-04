@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "del-cli": "^7.0.0",
+    "oxlint-tsgolint": "^0.23.0",
     "typescript": "catalog:",
     "vite-plus": "catalog:"
   },

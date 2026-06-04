@@ -6,11 +6,11 @@ import {
   updateUserSettings as updateUserSettingsInRepository,
 } from './repository.js';
 
-export function getUserSettings(db: Database, userId: number) {
+export async function getUserSettings(db: Database, userId: number) {
   return getOrCreateUserSettings(db, userId);
 }
 
-export function saveUserSettings(
+export async function saveUserSettings(
   db: Database,
   userId: number,
   updates: UserSettingsQuery,

@@ -1,12 +1,14 @@
-import type {
-  Media,
-  InteractionType,
-  MediaInteraction,
-  DbMedia,
-  InteractionsQuery,
-  MediaStatus,
+import {
+  isDefined,
+  media,
+  userMediaInteractions,
+  type DbMedia,
+  type InteractionsQuery,
+  type InteractionType,
+  type Media,
+  type MediaInteraction,
+  type MediaStatus,
 } from '@findarr/shared';
-import { isDefined, media, userMediaInteractions } from '@findarr/shared';
 import { and, desc, eq, getTableColumns, inArray, isNotNull, sql } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';
@@ -88,7 +90,9 @@ export async function getInteractionsBatch(
 
   // Extract media IDs from items that have records
   const mediaIds = mediaItems.map((item) => item.state?.record?.id).filter((x) => isDefined(x));
-  if (mediaIds.length === 0) return interactionsMap;
+  if (mediaIds.length === 0) {
+    return interactionsMap;
+  }
 
   const rows = await db.query.userMediaInteractions.findMany({
     columns: {
@@ -123,7 +127,9 @@ export async function getVoteCountsBatch(
   const votesMap = new Map<number, { likes: number; dislikes: number }>();
 
   const mediaIds = mediaItems.map((item) => item.state?.record?.id).filter((x) => isDefined(x));
-  if (mediaIds.length === 0) return votesMap;
+  if (mediaIds.length === 0) {
+    return votesMap;
+  }
 
   const rows = await db
     .select({

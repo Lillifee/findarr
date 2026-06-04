@@ -1,5 +1,5 @@
 import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import path from 'node:path';
 
 const currentDirname = import.meta.dirname;
 
@@ -10,8 +10,8 @@ const currentDirname = import.meta.dirname;
  */
 // oxlint-disable-next-line typescript/no-unnecessary-type-parameters
 export function loadFixture<T>(relativePath: string): T {
-  const fixturesRoot = join(currentDirname, '../../../fixtures');
-  const filePath = join(fixturesRoot, relativePath);
+  const fixturesRoot = path.join(currentDirname, '../../../fixtures');
+  const filePath = path.join(fixturesRoot, relativePath);
 
   try {
     const content = readFileSync(filePath, 'utf8');
@@ -31,14 +31,14 @@ export function loadFixture<T>(relativePath: string): T {
  * @returns Array of parsed JSON objects
  */
 export function loadAllFixtures<T>(directoryPath: string): T[] {
-  const fixturesRoot = join(currentDirname, '../../../fixtures');
-  const fullPath = join(fixturesRoot, directoryPath);
+  const fixturesRoot = path.join(currentDirname, '../../../fixtures');
+  const fullPath = path.join(fixturesRoot, directoryPath);
 
   try {
     const files = readdirSync(fullPath);
     return files
       .filter((file: string) => file.endsWith('.json'))
-      .map((file: string) => loadFixture(join(directoryPath, file)));
+      .map((file: string) => loadFixture(path.join(directoryPath, file)));
   } catch (error) {
     throw new Error(
       `Failed to load fixtures from ${directoryPath}: ${error instanceof Error ? error.message : String(error)}`,

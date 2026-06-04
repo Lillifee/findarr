@@ -1,9 +1,6 @@
 import { defineConfig } from 'vite-plus';
 
 export default defineConfig({
-  staged: {
-    '*.{js,jsx,ts,tsx}': 'vp check --fix',
-  },
   fmt: {
     singleQuote: true,
     sortImports: true,
@@ -34,34 +31,115 @@ export default defineConfig({
 
     categories: {
       correctness: 'error',
+      perf: 'error',
+      restriction: 'error',
       suspicious: 'error',
       pedantic: 'error',
-      // perf: 'warn',
-      // style: 'warn'
+      style: 'error',
     },
     rules: {
-      'vite-plus/prefer-vite-plus-imports': 'error',
-
+      // Correctness
       'vitest/no-conditional-expect': 'off',
+      'vitest/no-conditional-in-test': 'off',
 
-      // TODO check if we can remove some of them once the categories are properly set up
-      'eslint/no-unused-vars': 'error',
+      // Perf
+      'oxc/no-map-spread': 'off',
+      'react-perf/jsx-no-jsx-as-prop': 'off',
+      'react-perf/jsx-no-new-array-as-prop': 'off',
+      'react-perf/jsx-no-new-function-as-prop': 'off',
+      'react-perf/jsx-no-new-object-as-prop': 'off',
+
+      // Restriction
+      'eslint/complexity': 'off',
+      'eslint/no-alert': 'off',
+      'eslint/no-console': 'off',
+      'eslint/no-empty-function': 'off',
+      'eslint/no-undefined': 'off',
+      'eslint/no-restricted-imports': 'off',
+      'eslint/no-restricted-properties': 'off',
+      'eslint/no-void': 'off',
+      'import/no-default-export': 'off',
+      'import/no-relative-parent-imports': 'off',
+      'import/unambiguous': 'off',
+      'oxc/no-async-await': 'off',
+      // TODO enable
+      'oxc/no-barrel-file': 'off',
+      'oxc/no-optional-chaining': 'off',
+      'oxc/no-rest-spread-properties': 'off',
+      'react/button-has-type': 'off',
+      'react/forbid-component-props': 'off',
+      'react/jsx-filename-extension': 'off',
+      'react/no-multi-comp': 'off',
+      'typescript/explicit-function-return-type': 'off',
+      'typescript/explicit-module-boundary-types': 'off',
+      'vitest/require-test-timeout': 'off',
+
+      // Suspicious
       'oxc/no-async-endpoint-handlers': 'off',
       'react/react-in-jsx-scope': 'off',
-      'typescript/no-explicit-any': 'error',
 
-      // pedantic
-      'max-lines': 'off',
-      'max-lines-per-function': 'off',
+      // Pedantic
       'import/max-dependencies': 'off',
-      'vitest/no-conditional-in-test': 'off',
+      'eslint/require-await': 'off',
+      'eslint/max-lines': 'off',
+      'eslint/max-lines-per-function': 'off',
       'no-warning-comments': 'off',
-
-      // typeAware. TODO check which category
       'typescript/prefer-readonly-parameter-types': 'off',
+      'typescript/require-await': 'off',
+
+      // Style
+      'eslint/capitalized-comments': 'off',
+      'eslint/func-style': 'off',
+      'eslint/id-length': 'off',
+      'eslint/init-declarations': 'off',
+      'eslint/max-params': 'off',
+      'eslint/max-statements': 'off',
+      'eslint/no-continue': 'off',
+      'eslint/no-implicit-coercion': 'off',
+      'eslint/no-magic-numbers': 'off',
+      'eslint/no-ternary': 'off',
+      'eslint/sort-imports': 'off',
+      'import/consistent-type-specifier-style': 'off',
+      'import/exports-last': 'off',
+      'import/group-exports': 'off',
+      'import/no-named-export': 'off',
+      'import/no-namespace': 'off',
+      'import/no-nodejs-modules': 'off',
+      'import/prefer-default-export': 'off',
+      'no-nested-ternary': 'off',
+      'promise/avoid-new': 'off',
+      'promise/prefer-await-to-callbacks': 'off',
+      'promise/prefer-await-to-then': 'off',
+      'react/jsx-max-depth': 'off',
+      'react/jsx-props-no-spreading': 'off',
+      'sort-keys': 'off',
+      'typescript/consistent-type-definitions': 'off',
+      'typescript/parameter-properties': 'off',
+      'unicorn/catch-error-name': 'off',
+      'unicorn/filename-case': 'off',
+      'unicorn/no-nested-ternary': 'off',
+      'unicorn/no-null': 'off',
+      'vitest/max-expects': 'off',
+      'vitest/no-hooks': 'off',
+      'vitest/prefer-called-with': 'off',
+      'vitest/prefer-describe-function-title': 'off',
+      'vitest/prefer-each': 'off',
+      'vitest/prefer-expect-assertions': 'off',
+      'vitest/prefer-expect-resolves': 'off',
+      'vitest/prefer-expect-type-of': 'off',
+      'vitest/prefer-importing-vitest-globals': 'off',
+      'vitest/prefer-lowercase-title': 'off',
+      'vitest/prefer-spy-on': 'off',
+      'vitest/prefer-strict-boolean-matchers': 'off',
+      'vitest/prefer-to-be-falsy': 'off',
+      'vitest/prefer-to-be-truthy': 'off',
+      'vitest/require-hook': 'off',
     },
   },
   run: {
     cache: true,
+  },
+  staged: {
+    '*.{js,jsx,ts,tsx}': 'vp check --fix',
   },
 });

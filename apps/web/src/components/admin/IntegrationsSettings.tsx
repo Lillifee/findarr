@@ -6,7 +6,7 @@ import {
 } from '@findarr/shared';
 import { useState, useEffect, useCallback } from 'react';
 
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { adminArrService, adminJellyfinService, adminTmdbService } from '../../services/api';
 import { asVoid } from '../../utils/asyncHandlers';
 import { Button } from '../ui/Button';
@@ -191,10 +191,18 @@ function ArrSection({ service, title, description }: ArrSectionProps) {
     try {
       const changedConnectionSettings = connectionDirty;
       const body: Record<string, unknown> = {};
-      if (urlInput) body['url'] = urlInput;
-      if (apiKeyInput) body['apiKey'] = apiKeyInput;
-      if (selectedProfileId) body['qualityProfileId'] = Number.parseInt(selectedProfileId, 10);
-      if (selectedRootFolder) body['rootFolderPath'] = selectedRootFolder;
+      if (urlInput) {
+        body['url'] = urlInput;
+      }
+      if (apiKeyInput) {
+        body['apiKey'] = apiKeyInput;
+      }
+      if (selectedProfileId) {
+        body['qualityProfileId'] = Number.parseInt(selectedProfileId, 10);
+      }
+      if (selectedRootFolder) {
+        body['rootFolderPath'] = selectedRootFolder;
+      }
       const savedSettings = await svc.saveSettings(body);
       const saved = savedSettings;
 

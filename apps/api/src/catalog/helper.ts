@@ -12,7 +12,7 @@ export interface FeedPage<T> {
 }
 
 // TODO we could make this as a nested function of a feed, then we don't have to pass allItems
-function getSnapshotPage<T>(allItems: T[], page: number, itemsPerPage: number = 20): FeedPage<T> {
+function getSnapshotPage<T>(allItems: T[], page: number, itemsPerPage = 20): FeedPage<T> {
   const startIndex = Math.max(0, (page - 1) * itemsPerPage);
   const totalPages = Math.ceil(allItems.length / itemsPerPage);
   const items = allItems.slice(startIndex, startIndex + itemsPerPage);
@@ -22,19 +22,6 @@ function getSnapshotPage<T>(allItems: T[], page: number, itemsPerPage: number = 
 
 export function createFeedSnapshotStore<T>(ttlMs: number = 5 * 60 * 1000) {
   const snapshotEntries = new Map<string, { items: T[]; createdAt: number }>();
-
-  async function getOrCreateSnapshot(
-    feedId: string | undefined,
-    createItems: () => Promise<T[]>,
-  ): Promise<FeedSnapshot<T>> {
-    const existingSnapshot = getSnapshot(feedId);
-    if (existingSnapshot) {
-      return existingSnapshot;
-    }
-
-    const snapshotItems = await createItems();
-    return createSnapshot(snapshotItems);
-  }
 
   function getSnapshot(feedId: string | undefined): FeedSnapshot<T> | null {
     if (!isDefined(feedId)) {
@@ -59,6 +46,19 @@ export function createFeedSnapshotStore<T>(ttlMs: number = 5 * 60 * 1000) {
     const snapshotId = crypto.randomUUID();
     snapshotEntries.set(snapshotId, { items, createdAt: Date.now() });
     return { id: snapshotId, items };
+  }
+
+  async function getOrCreateSnapshot(
+    feedId: string | undefined,
+    createItems: () => Promise<T[]>,
+  ): Promise<FeedSnapshot<T>> {
+    const existingSnapshot = getSnapshot(feedId);
+    if (existingSnapshot) {
+      return existingSnapshot;
+    }
+
+    const snapshotItems = await createItems();
+    return createSnapshot(snapshotItems);
   }
 
   return { getOrCreateSnapshot, getSnapshotPage };

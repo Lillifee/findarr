@@ -1,14 +1,14 @@
 import type { ChangePassword, Login, SetupInitialPassword, User } from '@findarr/shared';
-import { hash, verify } from '@node-rs/argon2';
 
 import type { Database } from '../db/service.js';
-import { Forbidden, Unauthorized } from '../utils/errors.js';
+import { forbidden, unauthorized } from '../utils/errors.js';
 import {
   getUserByEmail,
   getUserById,
   removePasswordHash,
   updateUserPassword,
 } from './repository.js';
+import { verifyPassword } from './utils.js';
 
 export interface UserWithPassword extends User {
   passwordHash: string;
@@ -27,25 +27,25 @@ export const login = async (db: Database, { email, password }: Login) => {
   const isValid = await verifyPassword(passwordHash, password);
 
   if (!user || !isValid) {
-    throw Unauthorized('Invalid email or password');
+    throw unauthorized('Invalid email or password');
   }
 
   return removePasswordHash(user);
 };
 
+export const isAdminPasswordSetupRequired = async (user: UserWithPassword) =>
+  user.role === 'admin' && verifyPassword(user.passwordHash, 'changeme');
+
 export const isPasswordSetupRequired = async (db: Database, userId: number) => {
   const user = await getUserById(db, userId);
 
   if (!user) {
-    throw Unauthorized('Authentication required');
+    throw unauthorized('Authentication required');
   }
 
   const setupRequired = await isAdminPasswordSetupRequired(user);
   return setupRequired;
 };
-
-export const isAdminPasswordSetupRequired = (user: UserWithPassword) =>
-  user.role === 'admin' && verifyPassword(user.passwordHash, 'changeme');
 
 export const changePassword = async (
   db: Database,
@@ -55,12 +55,12 @@ export const changePassword = async (
   const user = await getUserById(db, userId);
 
   if (!user) {
-    throw Unauthorized('Authentication required');
+    throw unauthorized('Authentication required');
   }
 
   const isCurrentPasswordValid = await verifyPassword(user.passwordHash, currentPassword);
   if (!isCurrentPasswordValid) {
-    throw Unauthorized('Current password is incorrect');
+    throw unauthorized('Current password is incorrect');
   }
 
   await updateUserPassword(db, user.id, newPassword);
@@ -74,27 +74,17 @@ export const setupInitialPassword = async (
   const user = await getUserById(db, userId);
 
   if (!user) {
-    throw Unauthorized('Authentication required');
+    throw unauthorized('Authentication required');
   }
 
   if (user.role !== 'admin') {
-    throw Forbidden('Admin access required');
+    throw forbidden('Admin access required');
   }
 
   const setupRequired = await isAdminPasswordSetupRequired(user);
   if (!setupRequired) {
-    throw Forbidden('Admin password is already set up');
+    throw forbidden('Admin password is already set up');
   }
 
   await updateUserPassword(db, user.id, newPassword);
 };
-
-// ============================================================================
-// Password Utilities
-// ============================================================================
-
-export const hashPassword = (password: string) =>
-  hash(password, { memoryCost: 19_456, timeCost: 2, parallelism: 1 });
-
-export const verifyPassword = (hashStr: string, password: string) =>
-  verify(hashStr, password).catch(() => false);

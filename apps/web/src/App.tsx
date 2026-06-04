@@ -3,7 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginForm } from './components/LoginForm';
 import { Navigation } from './components/Navigation';
 import { TmdbSetupScreen } from './components/TmdbSetupScreen';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthProvider';
+import { useAuth } from './hooks/useAuth';
 import { ActivityPage } from './pages/ActivityPage';
 import { IntegrationsSettingsPage } from './pages/admin/IntegrationsSettingsPage';
 import { SchedulersPage } from './pages/admin/SchedulersPage';
@@ -33,7 +34,7 @@ function MainApp() {
     return (
       <div className="flex h-screen items-center justify-center bg-linear-to-br from-gray-900 via-gray-900 to-amber-900/20">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-amber-500"></div>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-amber-500" />
           <p className="text-gray-400">Loading...</p>
         </div>
       </div>

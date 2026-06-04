@@ -38,7 +38,7 @@ function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
             <img
               src={`${TMDB_IMAGE_BASE}${item.posterPath}`}
               alt={title}
-              className={`aspect-2/3 w-full object-cover transition-all duration-500 group-hover:scale-[1.03]`}
+              className="aspect-2/3 w-full object-cover transition-all duration-500 group-hover:scale-[1.03]"
             />
             <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-white/6 via-transparent to-transparent opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
           </>

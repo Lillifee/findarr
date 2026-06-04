@@ -32,6 +32,88 @@ import {
   getMediaByUserInteractions,
 } from './repository.js';
 
+/**
+ * Forward a media request to Radarr (movies) or Sonarr (TV shows).
+ * Automatically handles both creating new media and updating existing media.
+ * For existing media with arrId, updates monitored seasons instead of creating duplicate.
+ * Resolves title from TMDB, fetches TVDB ID for TV shows if needed.
+ * Stores Radarr/Sonarr IDs immediately for tracking if the service is configured.
+ * Triggers fast queue sync scheduler to detect when download starts.
+ * If Radarr/Sonarr is not configured, this is a no-op (gracefully skipped).
+ */
+async function requestMediaToArr(
+  tmdbService: TMDBService,
+  radarrService: AnyArrService,
+  sonarrService: AnyArrService,
+  mediaRecord: DbMedia,
+  data: CreateMediaInteraction,
+): Promise<void> {
+  const details = await tmdbService.details({ id: data.tmdbId, type: data.mediaType });
+
+  const service = details.type === 'movie' ? radarrService : sonarrService;
+  const externalId = details.type === 'movie' ? details.tmdbId : details.tvdbId;
+
+  await service.requestMedia(
+    mediaRecord.id,
+    externalId,
+    details.name,
+    mediaRecord.arrId,
+    data.seasons,
+  );
+}
+
+async function enrichInteractionPage(
+  tmdbService: TMDBService,
+  db: Database,
+  userId: number,
+  items: { results: DbMedia[]; totalCount: number },
+  page: number,
+  limit: number,
+): Promise<UserInteractionsResponse> {
+  // Calculate pagination metadata
+  const totalPages = Math.ceil(items.totalCount / limit);
+
+  // Fetch TMDB details for all interacted media
+  const enrichedMedia = await fetchTMDBDetails(tmdbService, items.results);
+
+  // Add user interactions and vote counts in optimized batch query
+  const results = await enrichWithInteractions(db, enrichedMedia, userId);
+
+  return { results, page, totalPages };
+}
+
+/**
+ * Update user preferences (genres and keywords) based on interaction
+ * Checks catalog cache first for keywords, otherwise fetches TMDB details for genres only
+ */
+async function updateUserPreferences(
+  tmdbService: TMDBService,
+  db: Database,
+  data: CreateMediaInteraction,
+  userId: number,
+  isToggle: boolean,
+): Promise<void> {
+  const [cachedItem] = await getCatalogCacheBatch(db, [
+    { tmdbId: data.tmdbId, type: data.mediaType },
+  ]);
+
+  const source =
+    cachedItem ??
+    (await tmdbService.details({
+      id: data.tmdbId,
+      type: data.mediaType,
+    }));
+
+  await updatePreferencesForInteraction(
+    db,
+    userId,
+    source.genres,
+    source.keywords,
+    data.action,
+    isToggle,
+  );
+}
+
 const LIKE_THRESHOLD = 1;
 
 /**
@@ -49,7 +131,9 @@ export const createInteraction = async (
   data: CreateMediaInteraction,
   user?: User,
 ): Promise<MediaDetails | undefined> => {
-  if (!isDefined(user?.id)) return undefined;
+  if (!isDefined(user?.id)) {
+    return undefined;
+  }
 
   // Get or create media record
   const existing = await getMediaByTmdbId(db, data.tmdbId, data.mediaType);
@@ -101,68 +185,6 @@ export const createInteraction = async (
 };
 
 /**
- * Update user preferences (genres and keywords) based on interaction
- * Checks catalog cache first for keywords, otherwise fetches TMDB details for genres only
- */
-async function updateUserPreferences(
-  tmdbService: TMDBService,
-  db: Database,
-  data: CreateMediaInteraction,
-  userId: number,
-  isToggle: boolean,
-): Promise<void> {
-  const [cachedItem] = await getCatalogCacheBatch(db, [
-    { tmdbId: data.tmdbId, type: data.mediaType },
-  ]);
-
-  const source =
-    cachedItem ??
-    (await tmdbService.details({
-      id: data.tmdbId,
-      type: data.mediaType,
-    }));
-
-  await updatePreferencesForInteraction(
-    db,
-    userId,
-    source.genres,
-    source.keywords,
-    data.action,
-    isToggle,
-  );
-}
-
-/**
- * Forward a media request to Radarr (movies) or Sonarr (TV shows).
- * Automatically handles both creating new media and updating existing media.
- * For existing media with arrId, updates monitored seasons instead of creating duplicate.
- * Resolves title from TMDB, fetches TVDB ID for TV shows if needed.
- * Stores Radarr/Sonarr IDs immediately for tracking if the service is configured.
- * Triggers fast queue sync scheduler to detect when download starts.
- * If Radarr/Sonarr is not configured, this is a no-op (gracefully skipped).
- */
-async function requestMediaToArr(
-  tmdbService: TMDBService,
-  radarrService: AnyArrService,
-  sonarrService: AnyArrService,
-  mediaRecord: DbMedia,
-  data: CreateMediaInteraction,
-): Promise<void> {
-  const details = await tmdbService.details({ id: data.tmdbId, type: data.mediaType });
-
-  const service = details.type === 'movie' ? radarrService : sonarrService;
-  const externalId = details.type === 'movie' ? details.tmdbId : details.tvdbId;
-
-  await service.requestMedia(
-    mediaRecord.id,
-    externalId,
-    details.name,
-    mediaRecord.arrId,
-    data.seasons,
-  );
-}
-
-/**
  * Get user's interacted media (likes AND dislikes) enriched with TMDB metadata, interactions, and vote counts
  * Supports pagination for better performance with large vote lists
  */
@@ -204,24 +226,4 @@ export async function getUserActivityAttentionEnriched(
       : await getMediaByUserAttention(db, user.id, { type, statuses, limit, offset });
 
   return enrichInteractionPage(tmdbService, db, user.id, items, page, limit);
-}
-
-async function enrichInteractionPage(
-  tmdbService: TMDBService,
-  db: Database,
-  userId: number,
-  items: { results: DbMedia[]; totalCount: number },
-  page: number,
-  limit: number,
-): Promise<UserInteractionsResponse> {
-  // Calculate pagination metadata
-  const totalPages = Math.ceil(items.totalCount / limit);
-
-  // Fetch TMDB details for all interacted media
-  const enrichedMedia = await fetchTMDBDetails(tmdbService, items.results);
-
-  // Add user interactions and vote counts in optimized batch query
-  const results = await enrichWithInteractions(db, enrichedMedia, userId);
-
-  return { results, page, totalPages };
 }

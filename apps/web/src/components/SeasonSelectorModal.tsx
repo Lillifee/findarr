@@ -15,12 +15,14 @@ interface SeasonSelectorModalProps {
   showName: string;
 }
 
+const EMPTY_REQUESTED_SEASONS: number[] = [];
+
 export default function SeasonSelectorModal({
   isOpen,
   onClose,
   onConfirm,
   seasons,
-  alreadyRequestedSeasons = [],
+  alreadyRequestedSeasons = EMPTY_REQUESTED_SEASONS,
   showName,
 }: SeasonSelectorModalProps) {
   const [selectedSeasons, setSelectedSeasons] = useState<Set<number>>(new Set());
@@ -33,7 +35,9 @@ export default function SeasonSelectorModal({
     }
   }, [isOpen, alreadyRequestedSeasons]);
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   const handleToggleSeason = (seasonNumber: number) => {
     const newSelected = new Set(selectedSeasons);
@@ -69,7 +73,9 @@ export default function SeasonSelectorModal({
     requested: 'requested',
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   const modalContent = (
     <div className="fixed inset-0 z-10000 flex items-center justify-center p-4">

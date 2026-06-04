@@ -9,8 +9,12 @@ const toPercent = (value: number) => Math.round(value * 100);
 
 // Helper to get color based on score value
 const getColor = (value: number): string => {
-  if (value >= 0.7) return 'bg-green-500';
-  if (value >= 0.4) return 'bg-yellow-500';
+  if (value >= 0.7) {
+    return 'bg-green-500';
+  }
+  if (value >= 0.4) {
+    return 'bg-yellow-500';
+  }
   return 'bg-red-500';
 };
 

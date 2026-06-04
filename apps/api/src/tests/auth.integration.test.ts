@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 import { isDefined } from '@findarr/shared';
-import Fastify, { type FastifyInstance } from 'fastify';
+import fastify, { type FastifyInstance } from 'fastify';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 import authPlugin from '../auth/plugin.js';
@@ -33,7 +33,7 @@ describe('auth routes - integration tests', () => {
   beforeEach(async () => {
     tempDir = mkdtempSync(path.join(tmpdir(), 'findarr-auth-test-'));
 
-    app = Fastify();
+    app = fastify();
     registerErrorHandler(app);
 
     await app.register(databasePlugin, {
@@ -67,7 +67,7 @@ describe('auth routes - integration tests', () => {
     await app.register(protectedAuthRoutes, { prefix: '/auth' });
     await app.ready();
 
-    db = app.db;
+    ({ db } = app);
   });
 
   afterEach(async () => {
@@ -149,7 +149,7 @@ describe('auth routes - integration tests', () => {
     });
 
     expect(changeReply.statusCode).toBe(401);
-    expect(changeReply.json()).toEqual({ error: 'Current password is incorrect' });
+    expect(changeReply.json()).toStrictEqual({ error: 'Current password is incorrect' });
   });
 
   it('returns password-setup requirement in bootstrap for the seeded admin password', async () => {
@@ -169,7 +169,7 @@ describe('auth routes - integration tests', () => {
     });
 
     expect(bootstrapReply.statusCode).toBe(200);
-    expect(bootstrapReply.json()).toEqual({
+    expect(bootstrapReply.json()).toStrictEqual({
       tmdbConfigured: true,
       requiresPasswordSetup: true,
     });
@@ -204,7 +204,7 @@ describe('auth routes - integration tests', () => {
     });
 
     expect(bootstrapReply.statusCode).toBe(200);
-    expect(bootstrapReply.json()).toEqual({
+    expect(bootstrapReply.json()).toStrictEqual({
       tmdbConfigured: true,
       requiresPasswordSetup: false,
     });

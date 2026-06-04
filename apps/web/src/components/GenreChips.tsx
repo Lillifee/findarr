@@ -51,7 +51,9 @@ export function GenreChips({ selectedGenres, onGenreChange, disabled = false }: 
               selected={isSelected}
               interactive
               onClick={() => {
-                if (!disabled) handleGenreToggle(key);
+                if (!disabled) {
+                  handleGenreToggle(key);
+                }
               }}
               className={`px-3 py-1.5 text-xs shadow-none backdrop-blur-none ${
                 isSelected

@@ -1,6 +1,12 @@
-import type { Media, Keyword, DbCatalogCache, MediaType } from '@findarr/shared';
-import { catalogCache, isDefined } from '@findarr/shared';
-import { eq, and, isNull, sql } from 'drizzle-orm';
+import {
+  catalogCache,
+  isDefined,
+  type DbCatalogCache,
+  type Keyword,
+  type Media,
+  type MediaType,
+} from '@findarr/shared';
+import { eq, and, isNull, notInArray, or, sql } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';
 import type { MediaStats } from '../media/scoring.js';
@@ -63,13 +69,15 @@ const mapMediaToCatalogCacheValues = (media: Media) => ({
  * On conflict, updates all fields EXCEPT keywords (to preserve enrichment)
  */
 export const upsertCatalogCache = async (db: Database, items: Media[]): Promise<void> => {
-  if (items.length === 0) return;
+  if (items.length === 0) {
+    return;
+  }
 
-  // SQLite doesn't support batch upsert, so we need to do individual upserts
   for (const item of items) {
     const values = mapMediaToCatalogCacheValues(item);
     const { keywords: _keywords, ...updateValues } = values;
 
+    // oxlint-disable-next-line eslint/no-await-in-loop
     await db
       .insert(catalogCache)
       .values(values)
@@ -85,21 +93,22 @@ export const upsertCatalogCache = async (db: Database, items: Media[]): Promise<
  */
 export const getCatalogCacheBatch = async (
   db: Database,
-  mediaKeys: Array<{ tmdbId: number; type: MediaType }>,
+  mediaKeys: { tmdbId: number; type: MediaType }[],
 ): Promise<Media[]> => {
-  if (mediaKeys.length === 0) return [];
-
-  // Build query for multiple ID/type combinations
-  const catalogCacheRows: DbCatalogCache[] = [];
-
-  for (const { tmdbId, type } of mediaKeys) {
-    const row = await db.query.catalogCache.findFirst({
-      where: and(eq(catalogCache.tmdbId, tmdbId), eq(catalogCache.type, type)),
-    });
-    if (row) catalogCacheRows.push(row as DbCatalogCache);
+  if (mediaKeys.length === 0) {
+    return [];
   }
 
-  return catalogCacheRows.map((row) => mapCatalogCacheRowToMedia(row));
+  // Single query matching any of the requested (tmdbId, type) pairs.
+  const rows = await db.query.catalogCache.findMany({
+    where: or(
+      ...mediaKeys.map((key) =>
+        and(eq(catalogCache.tmdbId, key.tmdbId), eq(catalogCache.type, key.type)),
+      ),
+    ),
+  });
+
+  return rows.map((row) => mapCatalogCacheRowToMedia(row));
 };
 
 /**
@@ -116,7 +125,7 @@ export const getAllCatalogCache = async (db: Database): Promise<Media[]> => {
  */
 export const cleanupCatalogCache = async (
   db: Database,
-  activeMediaKeys: Array<{ tmdbId: number; type: MediaType }>,
+  activeMediaKeys: { tmdbId: number; type: MediaType }[],
 ): Promise<number> => {
   if (activeMediaKeys.length === 0) {
     // Delete all if no current IDs provided
@@ -124,25 +133,21 @@ export const cleanupCatalogCache = async (
     return result.changes;
   }
 
-  // For SQLite, we need to do this differently since we can't easily use NOT IN with composite keys
-  // Get all existing entries
-  const allEntries = await db.query.catalogCache.findMany();
-
-  // Find entries to delete (those not in the active catalog set)
-  const entriesToDelete = allEntries.filter(
-    (entry) =>
-      !activeMediaKeys.some(
-        (mediaKey) => mediaKey.tmdbId === entry.tmdbId && mediaKey.type === entry.type,
-      ),
-  );
-
-  // Delete each entry
   let deletedCount = 0;
-  for (const entry of entriesToDelete) {
-    await db
-      .delete(catalogCache)
-      .where(and(eq(catalogCache.tmdbId, entry.tmdbId), eq(catalogCache.type, entry.type)));
-    deletedCount++;
+
+  for (const type of ['movie', 'tv'] as const) {
+    const activeIds = activeMediaKeys
+      .filter((mediaKey) => mediaKey.type === type)
+      .map((mediaKey) => mediaKey.tmdbId);
+
+    const condition =
+      activeIds.length === 0
+        ? eq(catalogCache.type, type)
+        : and(eq(catalogCache.type, type), notInArray(catalogCache.tmdbId, activeIds));
+
+    // oxlint-disable-next-line eslint/no-await-in-loop
+    const result = await db.delete(catalogCache).where(condition);
+    deletedCount += result.changes;
   }
 
   return deletedCount;
@@ -154,7 +159,7 @@ export const cleanupCatalogCache = async (
  */
 export const listCatalogItemsMissingKeywords = async (
   db: Database,
-): Promise<Array<{ tmdbId: number; type: MediaType }>> => {
+): Promise<{ tmdbId: number; type: MediaType }[]> => {
   const catalogItems = await db.query.catalogCache.findMany({
     columns: {
       tmdbId: true,
@@ -202,7 +207,7 @@ export const computeCatalogMediaStats = async (
     .from(catalogCache)
     .where(eq(catalogCache.type, mediaType));
 
-  const row = result[0];
+  const [row] = result;
 
   // Handle case where catalog is empty for this type
   if (!row) {

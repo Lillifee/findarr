@@ -24,100 +24,13 @@ import type {
 } from './schemas.js';
 
 /**
- * Custom state fields that can be added to transformed items
- */
-interface CustomFields {
-  trendingRank?: number;
-}
-
-/**
- * Transform TMDB Movie to application Movie type
- */
-export function transformMedia(
-  item: TMDBMovie | TMDBTVShow,
-  genreMap: Map<number, Genre>,
-  customState?: CustomFields,
-): Media {
-  return item.type === 'movie'
-    ? transformMovie(item, genreMap, customState)
-    : transformTVShow(item, genreMap, customState);
-}
-
-/**
- * Transform TMDB Movie to application Movie type
- */
-function transformMovie(
-  tmdbMovie: TMDBMovie,
-  genreMap: Map<number, Genre>,
-  customFields?: CustomFields,
-): Movie {
-  // Map genre_ids to full genre objects
-  const genres = tmdbMovie.genre_ids
-    ? tmdbMovie.genre_ids.map((id) => genreMap.get(id)).filter((g): g is Genre => g !== undefined)
-    : [];
-
-  return {
-    tmdbId: tmdbMovie.id,
-    type: tmdbMovie.type,
-    name: tmdbMovie.title,
-    date: tmdbMovie.release_date ?? undefined,
-    posterPath: tmdbMovie.poster_path ?? undefined,
-    backdropPath: tmdbMovie.backdrop_path ?? undefined,
-    overview: tmdbMovie.overview ?? undefined,
-    voteAverage: tmdbMovie.vote_average,
-    voteCount: tmdbMovie.vote_count,
-    popularity: tmdbMovie.popularity,
-    originalLanguage: tmdbMovie.original_language,
-    originCountry: undefined,
-    genres,
-    ...customFields,
-  };
-}
-
-/**
- * Transform TMDB TV Show to application TVShow type
- */
-function transformTVShow(
-  tmdbTV: TMDBTVShow,
-  genreMap: Map<number, Genre>,
-  customFields?: CustomFields,
-): TVShow {
-  // Map genre_ids to full genre objects
-  const genres = tmdbTV.genre_ids
-    ? tmdbTV.genre_ids.map((id) => genreMap.get(id)).filter((g): g is Genre => g !== undefined)
-    : [];
-
-  return {
-    tmdbId: tmdbTV.id,
-    type: tmdbTV.type,
-    name: tmdbTV.name,
-    date: tmdbTV.first_air_date ?? undefined,
-    posterPath: tmdbTV.poster_path ?? undefined,
-    backdropPath: tmdbTV.backdrop_path ?? undefined,
-    overview: tmdbTV.overview ?? undefined,
-    voteAverage: tmdbTV.vote_average,
-    voteCount: tmdbTV.vote_count,
-    popularity: tmdbTV.popularity,
-    originalLanguage: tmdbTV.original_language,
-    originCountry: tmdbTV.origin_country,
-    genres,
-    ...customFields,
-  };
-}
-
-/**
- * Transform TMDB Movie Details or TV Show Details to application type
- */
-export function transformDetails(item: TMDBMovieDetails | TMDBTVDetails) {
-  return item.type === 'movie' ? transformMovieDetails(item) : transformTVDetails(item);
-}
-
-/**
  * Helper: Extract and transform cast members
  * Limits to top 15 actors sorted by order field
  */
 function extractCast(credits: TMDBCredits | undefined): CastMember[] | undefined {
-  if (!credits?.cast || credits.cast.length === 0) return undefined;
+  if (!credits?.cast || credits.cast.length === 0) {
+    return undefined;
+  }
 
   return credits.cast.slice(0, 6).map((member) => ({
     id: member.id,
@@ -133,7 +46,9 @@ function extractCast(credits: TMDBCredits | undefined): CastMember[] | undefined
  * Filters for official YouTube trailers and teasers
  */
 function extractVideos(videos: TMDBVideos | undefined): Video[] | undefined {
-  if (!videos?.results || videos.results.length === 0) return undefined;
+  if (!videos?.results || videos.results.length === 0) {
+    return undefined;
+  }
 
   const trailerVideos = videos.results
     .filter(
@@ -241,4 +156,93 @@ function transformTVDetails(tmdbTV: TMDBTVDetails): TVDetails {
     cast,
     videos,
   };
+}
+
+/**
+ * Custom state fields that can be added to transformed items
+ */
+interface CustomFields {
+  trendingRank?: number;
+}
+
+/**
+ * Transform TMDB Movie to application Movie type
+ */
+function transformMovie(
+  tmdbMovie: TMDBMovie,
+  genreMap: Map<number, Genre>,
+  customFields?: CustomFields,
+): Movie {
+  // Map genre_ids to full genre objects
+  const genres = tmdbMovie.genre_ids
+    ? tmdbMovie.genre_ids.map((id) => genreMap.get(id)).filter((g): g is Genre => g !== undefined)
+    : [];
+
+  return {
+    tmdbId: tmdbMovie.id,
+    type: tmdbMovie.type,
+    name: tmdbMovie.title,
+    date: tmdbMovie.release_date ?? undefined,
+    posterPath: tmdbMovie.poster_path ?? undefined,
+    backdropPath: tmdbMovie.backdrop_path ?? undefined,
+    overview: tmdbMovie.overview ?? undefined,
+    voteAverage: tmdbMovie.vote_average,
+    voteCount: tmdbMovie.vote_count,
+    popularity: tmdbMovie.popularity,
+    originalLanguage: tmdbMovie.original_language,
+    originCountry: undefined,
+    genres,
+    ...customFields,
+  };
+}
+
+/**
+ * Transform TMDB TV Show to application TVShow type
+ */
+function transformTVShow(
+  tmdbTV: TMDBTVShow,
+  genreMap: Map<number, Genre>,
+  customFields?: CustomFields,
+): TVShow {
+  // Map genre_ids to full genre objects
+  const genres = tmdbTV.genre_ids
+    ? tmdbTV.genre_ids.map((id) => genreMap.get(id)).filter((g): g is Genre => g !== undefined)
+    : [];
+
+  return {
+    tmdbId: tmdbTV.id,
+    type: tmdbTV.type,
+    name: tmdbTV.name,
+    date: tmdbTV.first_air_date ?? undefined,
+    posterPath: tmdbTV.poster_path ?? undefined,
+    backdropPath: tmdbTV.backdrop_path ?? undefined,
+    overview: tmdbTV.overview ?? undefined,
+    voteAverage: tmdbTV.vote_average,
+    voteCount: tmdbTV.vote_count,
+    popularity: tmdbTV.popularity,
+    originalLanguage: tmdbTV.original_language,
+    originCountry: tmdbTV.origin_country,
+    genres,
+    ...customFields,
+  };
+}
+
+/**
+ * Transform TMDB Movie to application Movie type
+ */
+export function transformMedia(
+  item: TMDBMovie | TMDBTVShow,
+  genreMap: Map<number, Genre>,
+  customState?: CustomFields,
+): Media {
+  return item.type === 'movie'
+    ? transformMovie(item, genreMap, customState)
+    : transformTVShow(item, genreMap, customState);
+}
+
+/**
+ * Transform TMDB Movie Details or TV Show Details to application type
+ */
+export function transformDetails(item: TMDBMovieDetails | TMDBTVDetails) {
+  return item.type === 'movie' ? transformMovieDetails(item) : transformTVDetails(item);
 }

@@ -1,17 +1,16 @@
 import type { GenreKey, InteractionFilter, SearchType } from '@findarr/shared';
-import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
 import { GenreChips } from './GenreChips';
 import { MediaTypeChips } from './MediaTypeChips';
 import { OptionButton } from './ui/OptionButton';
 
-const interactionOptions: Array<{
+const interactionOptions: {
   value: InteractionFilter;
   label: string;
   description: string;
-}> = [
+}[] = [
   {
     value: 'all',
     label: 'All media',

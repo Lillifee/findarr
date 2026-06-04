@@ -31,6 +31,7 @@ export function AvailableMediaStrip({
         <div className="flex gap-3">
           {Array.from({ length: 6 }).map((_, index) => (
             <div
+              // oxlint-disable-next-line react/no-array-index-key
               key={index}
               className="h-48 w-32 shrink-0 animate-pulse rounded-xl border border-gray-700/60 bg-gray-800/70 sm:w-36 md:h-52 md:w-40"
             />

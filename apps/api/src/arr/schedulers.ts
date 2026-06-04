@@ -40,7 +40,9 @@ export function createArrQueueMonitorScheduler(arrService: AnyArrService): Sched
       runOnStartup: true,
     },
     async (context: SchedulerContext) => {
-      if (!arrService.isConfigured()) return false;
+      if (!arrService.isConfigured()) {
+        return false;
+      }
 
       const queueItems = await arrService.getQueue(1);
 

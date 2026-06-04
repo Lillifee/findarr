@@ -1,10 +1,9 @@
-import type { CreateUser, User } from '@findarr/shared';
-import { users } from '@findarr/shared';
+import { users, type CreateUser, type User } from '@findarr/shared';
 import { eq } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';
-import { BadRequest, Forbidden, NotFound } from '../utils/errors.js';
-import { hashPassword } from './service.js';
+import { badRequest, forbidden, notFound } from '../utils/errors.js';
+import { hashPassword } from './utils.js';
 
 // ============================================================================
 // Types
@@ -62,7 +61,7 @@ export const createUser = async (
   const existingUser = await getUserByEmail(db, email);
 
   if (existingUser) {
-    throw BadRequest('User with this email already exists');
+    throw badRequest('User with this email already exists');
   }
 
   // Hash password
@@ -79,7 +78,7 @@ export const createUser = async (
     .returning();
 
   if (!user) {
-    throw NotFound('User could not be created');
+    throw notFound('User could not be created');
   }
 
   return user;
@@ -91,7 +90,7 @@ export const updateUserPassword = async (db: Database, userId: number, password:
   const result = await db.update(users).set({ passwordHash }).where(eq(users.id, userId));
 
   if (result.changes === 0) {
-    throw NotFound('User not found');
+    throw notFound('User not found');
   }
 };
 
@@ -102,13 +101,13 @@ export const updateUserPassword = async (db: Database, userId: number, password:
 export const deleteUser = async (db: Database, id: number, curUserId: number) => {
   // Prevent deleting yourself
   if (curUserId === id) {
-    throw Forbidden('Cannot delete your own account');
+    throw forbidden('Cannot delete your own account');
   }
 
   const result = await db.delete(users).where(eq(users.id, id));
 
   if (result.changes === 0) {
-    throw NotFound('User not found');
+    throw notFound('User not found');
   }
 };
 

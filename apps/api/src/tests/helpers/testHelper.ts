@@ -97,7 +97,7 @@ export const createTestMovieDetail = (props?: Partial<MovieDetails>): MovieDetai
 
 // Factory function to create data in the database for testing
 
-export const createTestUserInDb = (db: Database, props?: Partial<CreateUser>) =>
+export const createTestUserInDb = async (db: Database, props?: Partial<CreateUser>) =>
   createUser(db, {
     email: 'user@test.com',
     password: 'password',

@@ -7,7 +7,7 @@ import { SearchBar } from '../components/SearchBar';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { PageHeader } from '../components/ui/PageHeader';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { searchService } from '../services/api';
 import { asVoid } from '../utils/asyncHandlers';
 import { buildCatalogSearchParams } from '../utils/catalogSearchParams';
@@ -79,7 +79,7 @@ export function DashboardPage() {
   const requestIdRef = useRef(0);
 
   const loadDashboard = useCallback(async () => {
-    const requestId = ++requestIdRef.current;
+    const requestId = (requestIdRef.current += 1);
 
     setLoadingHero(true);
     setLoadingAvailable(true);
@@ -181,12 +181,12 @@ export function DashboardPage() {
                 )}
 
                 <div className="mt-6 flex flex-wrap gap-3">
-                  <Button onClick={asVoid(() => navigate(heroCopy.primaryAction.onClick))}>
+                  <Button onClick={asVoid(async () => navigate(heroCopy.primaryAction.onClick))}>
                     {heroCopy.primaryAction.label}
                   </Button>
                   <Button
                     variant="secondary"
-                    onClick={asVoid(() => navigate(heroCopy.secondaryAction.onClick))}
+                    onClick={asVoid(async () => navigate(heroCopy.secondaryAction.onClick))}
                   >
                     {heroCopy.secondaryAction.label}
                   </Button>

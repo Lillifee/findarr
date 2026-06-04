@@ -7,7 +7,7 @@ import {
   type JellyfinSettingsQuery,
   type MediaType,
 } from '@findarr/shared';
-import { eq, isNotNull, sql } from 'drizzle-orm';
+import { eq, inArray, isNotNull, sql } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';
 import { readSettings, writeSettings } from '../settings/repository.js';
@@ -29,10 +29,12 @@ export async function upsertMediaFromJellyfin(
   let affectedRows = 0;
 
   const upsertItem = async (item: JellyfinMedia) => {
-    let updatedSeasons: Array<{
-      seasonNumber: number;
-      status: 'none' | 'requested' | 'monitored' | 'downloaded' | 'available';
-    }> | null = null;
+    let updatedSeasons:
+      | {
+          seasonNumber: number;
+          status: 'none' | 'requested' | 'monitored' | 'downloaded' | 'available';
+        }[]
+      | null = null;
 
     if (item.type === 'tv' && item.availableSeasons) {
       const existing = await db.query.media.findFirst({
@@ -40,10 +42,10 @@ export async function upsertMediaFromJellyfin(
         columns: { seasons: true },
       });
 
-      const existingSeasons = (existing?.seasons ?? []) as Array<{
+      const existingSeasons = (existing?.seasons ?? []) as {
         seasonNumber: number;
         status: 'none' | 'requested' | 'monitored' | 'downloaded' | 'available';
-      }>;
+      }[];
       const availableSet = new Set(item.availableSeasons);
 
       updatedSeasons =
@@ -76,10 +78,16 @@ export async function upsertMediaFromJellyfin(
         },
       });
 
-    if (result.changes > 0) affectedRows++;
+    if (result.changes > 0) {
+      affectedRows += 1;
+    }
   };
 
   for (const item of items) {
+    // Sequential read-modify-write: each upsert may first read existing season
+    // JSON to merge availability. better-sqlite3 is synchronous, so parallelizing
+    // gives no benefit and would complicate the per-row merge.
+    // oxlint-disable-next-line eslint/no-await-in-loop
     await upsertItem(item);
   }
 
@@ -90,12 +98,12 @@ export async function upsertMediaFromJellyfin(
  * Get all media with Jellyfin IDs for sync matching
  */
 export async function getMediaWithJellyfinIds(db: Database): Promise<
-  Array<{
+  {
     id: number;
     type: MediaType;
     jellyfinId: string;
     status: string;
-  }>
+  }[]
 > {
   const results = await db
     .select({
@@ -121,33 +129,23 @@ export async function clearRemovedJellyfinItems(
   db: Database,
   jellyfinIds: string[],
 ): Promise<number> {
-  if (jellyfinIds.length === 0) return 0;
-
-  let cleared = 0;
-
-  for (const jellyfinId of jellyfinIds) {
-    const currentMediaRecord = await db.query.media.findFirst({
-      where: eq(media.jellyfinId, jellyfinId),
-      columns: { id: true, status: true, arrId: true },
-    });
-
-    if (!currentMediaRecord) continue;
-
-    // Reset to pending and let Arr sync handle updating status on next run
-    await db
-      .update(media)
-      .set({
-        jellyfinId: null,
-        jellyfinAddedAt: null,
-        status: 'pending',
-        updatedAt: Date.now(),
-      })
-      .where(eq(media.id, currentMediaRecord.id));
-
-    cleared++;
+  if (jellyfinIds.length === 0) {
+    return 0;
   }
 
-  return cleared;
+  // Single set-based update: detach Jellyfin metadata and reset to pending so
+  // the next Arr sync can re-resolve status. Uniform across all matched rows.
+  const result = await db
+    .update(media)
+    .set({
+      jellyfinId: null,
+      jellyfinAddedAt: null,
+      status: 'pending',
+      updatedAt: Date.now(),
+    })
+    .where(inArray(media.jellyfinId, jellyfinIds));
+
+  return result.changes;
 }
 
 export interface JellyfinSettingsFull extends JellyfinSettings {
