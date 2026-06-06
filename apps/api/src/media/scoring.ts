@@ -1,6 +1,6 @@
 import type { Media, MediaScore, MediaType } from '@findarr/shared/media';
 import type { UserGenrePreference, UserKeywordPreference } from '@findarr/shared/preferences';
-import { isDefined } from '@findarr/shared/utils';
+import { isDefined, isNotEmpty } from '@findarr/shared/utils';
 
 /**
  * Maximum trending rank (5 pages × 20 items per page from TMDB)
@@ -68,7 +68,7 @@ export function scoreMediaItems<T extends Media>(
       : 0;
 
     // Recency score
-    const recencyScore = isDefined(item.date)
+    const recencyScore = isNotEmpty(item.date)
       ? Math.exp(-Math.abs(Date.now() - new Date(item.date).getTime()) / MS_PER_DAY / 365)
       : 0;
 
