@@ -120,9 +120,10 @@ export function createMockCatalogService(
     getAvailableMedia: vi
       .fn<CatalogService['getAvailableMedia']>()
       .mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
-    getNextUnvotedMedia: vi
-      .fn<CatalogService['getNextUnvotedMedia']>()
-      .mockResolvedValue({ media: undefined, feedId: 'feed-1' }),
+    getNextUnvotedMedia: vi.fn<CatalogService['getNextUnvotedMedia']>().mockResolvedValue({
+      media: undefined,
+      feedId: 'feed-1',
+    }),
     ...overrides,
   };
 }

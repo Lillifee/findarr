@@ -7,6 +7,7 @@ import type { Database } from '../db/service.js';
 const DEFAULT_USER_SETTINGS: UserSettings = {
   language: 'de-DE',
   regions: ['western'],
+  swipeLimit: 60,
 };
 
 export async function getOrCreateUserSettings(db: Database, userId: number): Promise<UserSettings> {
@@ -37,6 +38,7 @@ export async function updateUserSettings(
   const merged: UserSettings = {
     language: updates.language ?? current.language,
     regions: updates.regions ?? current.regions,
+    swipeLimit: updates.swipeLimit ?? current.swipeLimit,
   };
 
   await db
@@ -44,6 +46,7 @@ export async function updateUserSettings(
     .set({
       language: merged.language,
       regions: merged.regions,
+      swipeLimit: merged.swipeLimit,
       updatedAt: sql`(unixepoch() * 1000)`,
     })
     .where(eq(userSettings.userId, userId));

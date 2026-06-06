@@ -186,23 +186,29 @@ export function VotePage() {
               />
             </svg>
             <p className="text-lg font-medium text-red-400">{error}</p>
-            <Button onClick={asVoid(fetchNextItem)} className="mt-4">
+            <Button onClick={asVoid(async () => fetchNextItem())} className="mt-4">
               Try Again
             </Button>
           </div>
         </div>
       )}
 
-      {/* Completion state */}
+      {/* Completion state - everything in the current swipe range has been voted */}
       {isComplete && !isLoading && (
         <div className="relative z-10 mx-auto max-w-6xl px-4 py-32 text-center md:px-8">
           <div className="flex flex-col items-center gap-4">
             <div className="mb-4 text-6xl">🎉</div>
             <h2 className="mb-2 text-2xl font-bold text-white">All Done!</h2>
             <p className="mb-6 text-lg text-gray-400">
-              You&apos;ve voted on the top 100 items. Check back later for more!
+              You&apos;ve voted on every item in your current range. Increase your voting range in
+              settings to vote on more.
             </p>
-            <Button onClick={asVoid(async () => navigate('/explore'))}>Explore</Button>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Button onClick={asVoid(async () => navigate('/explore'))}>Explore</Button>
+              <Button variant="secondary" onClick={asVoid(async () => navigate('/settings'))}>
+                Open settings
+              </Button>
+            </div>
           </div>
         </div>
       )}

@@ -9,6 +9,7 @@ import { regionGroupKeys } from './constants.js';
 export const UserSettingsSchema = z.object({
   language: z.string(),
   regions: z.array(z.enum(regionGroupKeys)),
+  swipeLimit: z.number().int().min(60).max(240),
 });
 
 export const UserSettingsQuerySchema = UserSettingsSchema.partial();

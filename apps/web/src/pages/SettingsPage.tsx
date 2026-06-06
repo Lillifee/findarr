@@ -1,6 +1,7 @@
 import type { RegionGroupId } from '@findarr/shared/constants';
+import type { UserSettings } from '@findarr/shared/settings';
 import { isDefined } from '@findarr/shared/utils';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { RegionSelector } from '../components/RegionSelector';
 import { Button } from '../components/ui/Button';
@@ -25,7 +26,10 @@ const LANGUAGE_OPTIONS = [
 export function SettingsPage() {
   const [language, setLanguage] = useState('de-DE');
   const [regions, setRegions] = useState<RegionGroupId[]>(['western']);
+  const [swipeLimit, setSwipeLimit] = useState(60);
+  const [savedSettings, setSavedSettings] = useState<UserSettings | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [settingsError, setSettingsError] = useState<string | null>(null);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -33,7 +37,6 @@ export function SettingsPage() {
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const hasLoadedInitialValuesRef = useRef(false);
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -41,6 +44,8 @@ export function SettingsPage() {
         const settings = await userSettingsService.get();
         setLanguage(settings.language);
         setRegions(settings.regions);
+        setSwipeLimit(settings.swipeLimit);
+        setSavedSettings(settings);
       } catch (loadError) {
         console.error('Failed to load user settings:', loadError);
         setSettingsError('Failed to load settings.');
@@ -52,28 +57,31 @@ export function SettingsPage() {
     void loadSettings();
   }, []);
 
-  useEffect(() => {
-    if (loading) {
-      return;
-    }
+  const isSettingsDirty =
+    isDefined(savedSettings) &&
+    (language !== savedSettings.language ||
+      swipeLimit !== savedSettings.swipeLimit ||
+      JSON.stringify(regions) !== JSON.stringify(savedSettings.regions));
 
-    if (!hasLoadedInitialValuesRef.current) {
-      hasLoadedInitialValuesRef.current = true;
-      return;
-    }
-
+  async function handleSettingsSubmit(e: React.ChangeEvent<HTMLFormElement>) {
+    e.preventDefault();
     setSettingsError(null);
+    setIsSavingSettings(true);
 
-    void userSettingsService
-      .update({
+    try {
+      const updated = await userSettingsService.update({
         language,
         regions,
-      })
-      .catch((saveError: unknown) => {
-        console.error('Failed to save user settings:', saveError);
-        setSettingsError('Failed to save settings.');
+        swipeLimit,
       });
-  }, [language, loading, regions]);
+      setSavedSettings(updated);
+    } catch (saveError) {
+      console.error('Failed to save user settings:', saveError);
+      setSettingsError('Failed to save settings.');
+    } finally {
+      setIsSavingSettings(false);
+    }
+  }
 
   async function handlePasswordSubmit(e: React.ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -122,7 +130,7 @@ export function SettingsPage() {
             {loading ? (
               <div className="text-gray-400">Loading settings...</div>
             ) : (
-              <>
+              <form onSubmit={asVoid(handleSettingsSubmit)} className="space-y-6">
                 <div className="flex flex-col gap-2">
                   <SelectInput
                     label="Language"
@@ -145,10 +153,40 @@ export function SettingsPage() {
                   disabled={false}
                 />
 
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="swipe-limit" className="text-sm font-medium text-gray-200">
+                      Voting range
+                    </label>
+                    <span className="text-sm font-semibold text-amber-500">{swipeLimit} items</span>
+                  </div>
+                  <input
+                    id="swipe-limit"
+                    type="range"
+                    min={60}
+                    max={240}
+                    step={20}
+                    value={swipeLimit}
+                    onChange={(event) => {
+                      setSwipeLimit(Number(event.target.value));
+                    }}
+                    className="w-full accent-amber-500"
+                  />
+                  <p className="text-xs text-gray-500">
+                    How many of the top-ranked titles are available to vote on.
+                  </p>
+                </div>
+
                 {isDefined(settingsError) && (
                   <p className="text-sm text-red-400">{settingsError}</p>
                 )}
-              </>
+
+                <div className="flex justify-end border-t border-gray-800/80 pt-4">
+                  <Button type="submit" disabled={isSavingSettings || !isSettingsDirty} size="sm">
+                    {isSavingSettings ? 'Saving\u2026' : 'Save Settings'}
+                  </Button>
+                </div>
+              </form>
             )}
           </div>
         </Card>

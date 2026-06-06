@@ -1,0 +1,1 @@
+ALTER TABLE `user_settings` ADD `swipeLimit` integer DEFAULT 60 NOT NULL;

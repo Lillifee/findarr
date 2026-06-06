@@ -8,6 +8,13 @@
       "when": 1778154822512,
       "tag": "0000_glossy_epoch",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1780761623839,
+      "tag": "0001_clammy_blindfold",
+      "breakpoints": true
     }
   ]
 }

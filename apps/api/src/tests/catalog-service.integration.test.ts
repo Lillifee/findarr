@@ -281,16 +281,17 @@ describe('catalog service - integration tests', () => {
     expect(result.results).toBeDefined();
   });
 
-  it('should stop swipe voting after the first 100 popular items are exhausted', async () => {
+  it('should stop swipe voting once the configured swipe limit is exhausted', async () => {
     vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
     const user = await createTestUserInDb(db, { email: 'swipe-limit@test.com' });
 
-    const cachedItems = Array.from({ length: 101 }, (_, index) =>
+    const cachedItems = Array.from({ length: 61 }, (_, index) =>
       createTestMedia({ tmdbId: index + 1, popularity: 1000 - index }),
     );
     await upsertCatalogCache(db, cachedItems);
 
-    for (const item of cachedItems.slice(0, 100)) {
+    // Vote on the first 60 items - the default swipe limit.
+    for (const item of cachedItems.slice(0, 60)) {
       // oxlint-disable-next-line no-await-in-loop
       const mediaRecord = await createMedia(db, item.tmdbId, item.type);
       // oxlint-disable-next-line no-await-in-loop

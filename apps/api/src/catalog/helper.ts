@@ -26,7 +26,7 @@ export function createFeedSnapshotStore<T>(ttlMs: number = 5 * 60 * 1000) {
       return { items: pageItems, page, totalPages };
     }
 
-    return { id, getSnapshotPage };
+    return { id, items, getSnapshotPage };
   }
 
   function getSnapshot(feedId: string | undefined) {

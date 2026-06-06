@@ -31,8 +31,6 @@ import { getUserSettings } from '../user/service.js';
 import { createFeedSnapshotStore } from './helper.js';
 import { getAllCatalogCache } from './repository.js';
 
-const SWIPE_CANDIDATE_LIMIT = 100;
-
 export interface CatalogContext {
   db: Database;
   tmdb: TMDBService;
@@ -174,7 +172,7 @@ export function createCatalogService(context: CatalogContext) {
   }
 
   /**
-   * Get next unvoted media for swipe/vote feature
+   * Get next unvoted media for swipe/vote feature.
    */
   async function getNextUnvotedMedia(
     params: PopularQuery,
@@ -182,33 +180,24 @@ export function createCatalogService(context: CatalogContext) {
   ): Promise<SwipeNextResponse> {
     const settings = await getUserSettings(db, userId);
 
-    const [popularFeedSnapshot, interactionKeys] = await Promise.all([
-      getPopularFeedSnapshot(
-        {
-          ...params,
-          type: params.type,
-          genres: params.genres,
-          interaction: 'all',
-        },
-        userId,
-      ),
+    const [snapshot, interactionKeys] = await Promise.all([
+      getPopularFeedSnapshot({ ...params, interaction: 'all' }, userId),
       getUserInteractionMediaKeys(db, userId),
     ]);
 
-    const swipeWindow = popularFeedSnapshot.getSnapshotPage(1, SWIPE_CANDIDATE_LIMIT);
-
-    const unvotedItem = swipeWindow.items.find((item) =>
+    const votableItems = snapshot.items.slice(0, settings.swipeLimit);
+    const nextItem = votableItems.find((item) =>
       filterByInteraction(item, interactionKeys, 'unvoted'),
     );
 
     const media =
-      unvotedItem &&
+      nextItem &&
       (await getMediaDetails(
-        { id: unvotedItem.tmdbId, type: unvotedItem.type, language: settings.language },
+        { id: nextItem.tmdbId, type: nextItem.type, language: settings.language },
         userId,
       ));
 
-    return { media, feedId: popularFeedSnapshot.id };
+    return { media, feedId: snapshot.id };
   }
 
   /**

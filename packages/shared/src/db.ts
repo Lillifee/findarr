@@ -225,6 +225,7 @@ export const userSettings = sqliteTable(
       .default('["western"]')
       .$type<RegionGroupId[]>(),
     withGenres: text('withGenres', { mode: 'json' }).notNull().default('[]').$type<string[]>(),
+    swipeLimit: integer('swipeLimit').notNull().default(60),
     createdAt: integer('createdAt')
       .notNull()
       .default(sql`(unixepoch() * 1000)`)
