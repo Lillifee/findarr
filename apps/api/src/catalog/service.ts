@@ -112,7 +112,8 @@ export function createCatalogService(context: CatalogContext) {
    * Currently delegates to TMDB
    */
   async function searchMedia(params: SearchQuery, userId: number): Promise<SearchResponse> {
-    const response = await tmdb.search(params);
+    const { language } = await getUserSettings(db, userId);
+    const response = await tmdb.search({ ...params, language });
     const results = await enrichMediaResults(response.results, userId);
     return { ...response, results };
   }
@@ -134,7 +135,8 @@ export function createCatalogService(context: CatalogContext) {
    * Does NOT create a database record - only fetches existing state
    */
   async function getMediaDetails(params: DetailsQuery, userId: number) {
-    const mediaItem = await tmdb.details(params);
+    const { language } = await getUserSettings(db, userId);
+    const mediaItem = await tmdb.details({ ...params, language });
     const [enriched] = await enrichMediaResults([mediaItem], userId);
     return enriched;
   }

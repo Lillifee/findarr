@@ -124,6 +124,7 @@ describe('catalog service - integration tests', () => {
   });
 
   it('should enrich search results with database state', async () => {
+    const user = await createTestUserInDb(db, { email: 'discover-enrich@test.com' });
     const items = [createTestMedia({ tmdbId: 1 })];
     tmdbServiceMock.search.mockResolvedValue({
       results: items,
@@ -131,7 +132,10 @@ describe('catalog service - integration tests', () => {
       page: 1,
     });
 
-    const result = await catalogService.searchMedia({ query: 'test', type: 'movie', page: 1 }, 0);
+    const result = await catalogService.searchMedia(
+      { query: 'test', type: 'movie', page: 1 },
+      user.id,
+    );
     expect(result.results).toStrictEqual(items);
   });
 
