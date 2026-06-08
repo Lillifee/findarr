@@ -58,10 +58,16 @@ export async function createArrService<T extends ArrServiceConfig>(
   }
 
   async function testAndSync(): Promise<boolean> {
-    return (
-      (await testConnection()) &&
-      (await context.scheduler.trigger({ name: config.syncScheduler }), true)
-    );
+    if (!(await testConnection())) {
+      return false;
+    }
+
+    context.scheduler.start({ name: config.syncScheduler });
+    context.scheduler.start({ name: config.queueFastSyncScheduler });
+
+    await context.scheduler.trigger({ name: config.syncScheduler });
+
+    return true;
   }
 
   function isConfigured(): boolean {

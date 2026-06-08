@@ -1,6 +1,28 @@
 import { createScheduler, type Scheduler, type SchedulerContext } from '../scheduler/types.js';
 import type { AnyArrService } from './service.js';
-import { syncComplete, syncLibrary, syncQueue } from './sync.js';
+import { syncLibrary, syncQueue } from './sync.js';
+
+/**
+ * Runs `task` only when the Arr service is configured AND reachable.
+ */
+export async function whenReady(
+  context: SchedulerContext,
+  arrService: AnyArrService,
+  task: () => Promise<boolean>,
+): Promise<boolean> {
+  const { service } = arrService.config;
+
+  if (!arrService.isConfigured()) {
+    context.log.debug({ name: service }, 'Not configured - skipping run');
+    return false;
+  }
+
+  if (!(await arrService.testConnection())) {
+    throw new Error(`${service} connection test failed`);
+  }
+
+  return task();
+}
 
 /**
  * Generic Arr Library Sync Scheduler Factory
@@ -16,10 +38,11 @@ export function createArrLibrarySyncScheduler(arrService: AnyArrService): Schedu
       enabled: true,
       runOnStartup: true,
     },
-    async (context: SchedulerContext) => {
-      await syncComplete(context, arrService);
-      return true;
-    },
+    async (context: SchedulerContext) =>
+      whenReady(context, arrService, async () => {
+        await syncLibrary(context, arrService);
+        return true;
+      }),
   );
 }
 
@@ -39,27 +62,23 @@ export function createArrQueueMonitorScheduler(arrService: AnyArrService): Sched
       enabled: true,
       runOnStartup: true,
     },
-    async (context: SchedulerContext) => {
-      if (!arrService.isConfigured()) {
-        return false;
-      }
+    async (context: SchedulerContext) =>
+      whenReady(context, arrService, async () => {
+        const queueItems = await arrService.getQueue(1);
 
-      const queueItems = await arrService.getQueue(1);
+        if (queueItems.length > 0) {
+          context.log.info(
+            {
+              name: arrService.config.service,
+              activeDownloads: queueItems.length,
+            },
+            'Active downloads detected - starting fast sync',
+          );
+          context.scheduler.start({ name: fastSyncName });
+        }
 
-      if (queueItems.length > 0) {
-        context.log.info(
-          {
-            name: arrService.config.service,
-            service: arrService.config.service,
-            activeDownloads: queueItems.length,
-          },
-          'Active downloads detected - starting fast sync',
-        );
-        context.scheduler.start({ name: fastSyncName });
-      }
-
-      return true;
-    },
+        return true;
+      }),
   );
 }
 
@@ -84,37 +103,37 @@ export function createArrQueueFastSyncScheduler(arrService: AnyArrService): Sche
       // Don't self-terminate for 60 seconds (handles delayed downloads)
       minRuntime: 60 * 1000,
     },
-    async (context: SchedulerContext) => {
-      // Sync queue and get current state
-      const { currentDownloadingIds, completedIds, hasActiveDownloads } = await syncQueue(
-        context,
-        arrService,
-        previousDownloadingIds,
-      );
-
-      // Handle completions
-      if (completedIds.length > 0) {
-        context.log.info(
-          {
-            name: arrService.config.service,
-            service: arrService.config.service,
-            completedDownloads: completedIds.length,
-          },
-          'Downloads completed - triggering library sync',
+    async (context: SchedulerContext) =>
+      whenReady(context, arrService, async () => {
+        // Sync queue and get current state
+        const { currentDownloadingIds, completedIds, hasActiveDownloads } = await syncQueue(
+          context,
+          arrService,
+          previousDownloadingIds,
         );
 
-        // Trigger library sync to upgrade completed items to 'downloaded' status
-        await syncLibrary(context, arrService);
+        // Handle completions
+        if (completedIds.length > 0) {
+          context.log.info(
+            {
+              name: arrService.config.service,
+              completedDownloads: completedIds.length,
+            },
+            'Downloads completed - triggering library sync',
+          );
 
-        // Trigger Jellyfin queue sync
-        context.scheduler.start({ name: 'jellyfinQueueSync' });
-      }
+          // Trigger library sync to upgrade completed items to 'downloaded' status
+          await syncLibrary(context, arrService);
 
-      // Update state for next run
-      previousDownloadingIds = currentDownloadingIds;
+          // Trigger Jellyfin queue sync
+          context.scheduler.start({ name: 'jellyfinQueueSync' });
+        }
 
-      // Self-terminate if no active downloads (service enforces minRuntime)
-      return hasActiveDownloads;
-    },
+        // Update state for next run
+        previousDownloadingIds = currentDownloadingIds;
+
+        // Self-terminate if no active downloads (service enforces minRuntime)
+        return hasActiveDownloads;
+      }),
   );
 }

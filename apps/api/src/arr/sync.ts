@@ -23,10 +23,7 @@ export async function enrichTvShows(
 ): Promise<number> {
   const { log } = context;
 
-  log.info(
-    { name: 'sonarr', service: 'sonarr', totalItems: queue.length },
-    'Enriching new TV shows with TMDB IDs',
-  );
+  log.info({ name: 'sonarr', totalItems: queue.length }, 'Enriching new TV shows with TMDB IDs');
 
   const { successCount } = await processWithWorkerPool({
     items: queue,
@@ -45,10 +42,7 @@ export async function enrichTvShows(
     log,
   });
 
-  log.info(
-    { name: 'sonarr', service: 'sonarr', successCount, totalItems: queue.length },
-    'Enrichment complete',
-  );
+  log.info({ name: 'sonarr', successCount, totalItems: queue.length }, 'Enrichment complete');
 
   return successCount;
 }
@@ -69,11 +63,11 @@ export async function syncLibrary(
   const libraryItems = await arrService.listLibraryItems();
 
   if (libraryItems.length === 0) {
-    log.info({ name: service, service }, 'No items found');
+    log.info({ name: service }, 'No items found');
     return;
   }
 
-  log.info({ name: service, service, totalItems: libraryItems.length }, 'Fetched items');
+  log.info({ name: service, totalItems: libraryItems.length }, 'Fetched items');
 
   // For TV shows: Enrich with tmdbId during sync to avoid duplicate records
   // This prevents conflicts when Jellyfin already has the same show with tmdbId
@@ -108,7 +102,7 @@ export async function syncLibrary(
   const skippedCount = itemsToUpsert.length - itemsWithRequiredIds.length;
   if (skippedCount > 0) {
     log.warn(
-      { name: service, service, skippedCount, mediaType },
+      { name: service, skippedCount, mediaType },
       'Skipping items missing required external ID',
     );
   }
@@ -124,63 +118,10 @@ export async function syncLibrary(
 
   if (removedArrIds.length > 0) {
     const clearedCount = await clearRemovedArrItems(db, removedArrIds, mediaType);
-    log.info(
-      { name: service, service, clearedCount },
-      'Cleaned up removed items (reset to pending)',
-    );
+    log.info({ name: service, clearedCount }, 'Cleaned up removed items (reset to pending)');
   }
 
-  log.info({ name: service, service, totalItems: libraryItems.length }, 'Library synced');
-}
-
-/**
- * Generic complete sync for Radarr or Sonarr
- * Library sync with inline enrichment for TV shows
- */
-export async function syncComplete(
-  context: SchedulerContext,
-  arrService: AnyArrService,
-): Promise<void> {
-  // Check if service is configured
-  const isConfigured = arrService.isConfigured();
-
-  if (!isConfigured) {
-    context.log.debug(
-      { name: arrService.config.service, service: arrService.config.service },
-      'Not configured - skipping sync',
-    );
-    return;
-  }
-
-  context.log.info(
-    { name: arrService.config.service, service: arrService.config.service },
-    'Starting library sync',
-  );
-  const startTime = Date.now();
-  const { log } = context;
-
-  // Test connection
-  const isConnected = await arrService.testConnection();
-
-  if (!isConnected) {
-    throw new Error(`${arrService.config.service} connection test failed`);
-  }
-
-  log.debug(
-    { name: arrService.config.service, service: arrService.config.service },
-    'Connection successful',
-  );
-
-  // Library sync with inline enrichment for TV shows
-  await syncLibrary(context, arrService);
-
-  const durationMs = Date.now() - startTime;
-  const durationSec = Math.round(durationMs / 1000);
-
-  context.log.info(
-    { name: arrService.config.service, service: arrService.config.service, durationSec },
-    'Library sync finished successfully',
-  );
+  log.info({ name: service, totalItems: libraryItems.length }, 'Library synced');
 }
 
 /**
@@ -215,7 +156,6 @@ export async function syncQueue(
       context.log.warn(
         {
           name: arrService.config.service,
-          service: arrService.config.service,
           arrId: item.arrId,
           status: item.trackedDownloadStatus,
         },
