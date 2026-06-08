@@ -108,6 +108,7 @@ export default defineConfig({
       'promise/avoid-new': 'off',
       'promise/prefer-await-to-callbacks': 'off',
       'promise/prefer-await-to-then': 'off',
+      'react/jsx-handler-names': 'off',
       'react/jsx-max-depth': 'off',
       'react/jsx-props-no-spreading': 'off',
       'sort-keys': 'off',

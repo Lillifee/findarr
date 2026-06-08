@@ -106,20 +106,26 @@ Domain modules define their own tasks in `schedulers.ts` and register them in th
 
 ### Folder Structure
 
-| Folder / File     | What belongs here                                                                                                                                     |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `App.tsx`         | Root component: `AuthProvider` + `BrowserRouter` + all route definitions.                                                                             |
-| `main.tsx`        | Entry point only.                                                                                                                                     |
-| `pages/`          | One file per route. Page components own data fetching and compose components. Admin pages in `pages/admin/`.                                          |
-| `components/`     | Reusable UI components with no route-level concerns. Generic primitives in `components/ui/`, admin-specific in `components/admin/`.                   |
-| `contexts/`       | React contexts. `AuthContext` provides `isAuthenticated`, `isAdmin`, `user`, `tmdbConfigured`. Use `useAuth()` hook.                                  |
-| `hooks/`          | Custom React hooks shared across pages/components.                                                                                                    |
-| `services/api.ts` | Single axios instance (`baseURL: '/api'`, `withCredentials: true`). All API calls grouped into service objects (e.g. `searchService`, `authService`). |
-| `utils/`          | Pure utility helpers.                                                                                                                                 |
+The app-shell/composition layer lives at the `src/` root (above `pages/`), so the dependency graph flows strictly downward: `main → App → AppShell → AppRoutes → pages → components → ui`. `components/` never imports from `pages/`.
+
+| Folder / File     | What belongs here                                                                                                                                                                                                                                               |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `main.tsx`        | Entry point only.                                                                                                                                                                                                                                               |
+| `App.tsx`         | Root component: `AuthProvider` + `BrowserRouter` + the auth gate (login / TMDB setup / loading).                                                                                                                                                                |
+| `AppShell.tsx`    | Authenticated chrome: `Navigation` + the routed content.                                                                                                                                                                                                        |
+| `AppRoutes.tsx`   | The `<Routes>` table — one `<Route>` per page. Admin routes guarded by `isAdmin`.                                                                                                                                                                               |
+| `Navigation.tsx`  | Top-level app navigation.                                                                                                                                                                                                                                       |
+| `pages/`          | One file per route (flat — no `admin/` subfolder). Page components own data fetching and compose components.                                                                                                                                                    |
+| `components/`     | Reusable UI components with no route-level concerns. Generic primitives in `components/ui/`; the rest grouped by domain (`media/`, `catalog/`, `dashboard/`, `explore/`, `activity/`, `vote/`, `settings/`, `integrations/`, `schedulers/`, `users/`, `auth/`). |
+| `contexts/`       | React contexts. `AuthContext` provides `isAuthenticated`, `isAdmin`, `user`, `tmdbConfigured`. Use `useAuth()` hook.                                                                                                                                            |
+| `hooks/`          | Custom React hooks shared across pages/components.                                                                                                                                                                                                              |
+| `services/api.ts` | Single axios instance (`baseURL: '/api'`, `withCredentials: true`). All API calls grouped into service objects (e.g. `searchService`, `authService`).                                                                                                           |
+| `utils/`          | Pure utility helpers.                                                                                                                                                                                                                                           |
 
 ### Key Patterns
 
 - **All API types** imported from `@findarr/shared/*` subpaths (e.g. `@findarr/shared/media`) — never redeclare shapes that exist in shared, and never import from the bare `@findarr/shared` root.
+- **Local imports** use bare relative paths (e.g. `'../components/ui/Button'`) — **no** `.js` extension (the `.js` rule is `apps/api` only).
 - **Admin routes** guarded by `isAdmin` from `useAuth()`.
 - **Styling**: Tailwind CSS utility classes. Dark theme (gray-900 base, amber-500 accents).
 
@@ -127,7 +133,7 @@ Domain modules define their own tasks in `schedulers.ts` and register them in th
 
 ## Code Conventions
 
-- **TypeScript ESM**: `"type": "module"` in all packages. Use `.js` extension in all local imports.
+- **TypeScript ESM**: `"type": "module"` in all packages. In `apps/api` and `packages/shared`, use the `.js` extension in local imports (source is `.ts`, but Node ESM requires `.js`). `apps/web` (bundled by Vite) uses bare relative imports with no extension.
 - **Zod**: validate all external data — API responses, env vars, request bodies.
 - **Comments**: only where logic is non-obvious. No redundant comments.
 - **Linting & formatting**: configured once in the root `vite.config.ts` (`lint` + `fmt` blocks, Oxlint + Oxfmt under the hood) and applied to every package via `vp check`. There are no per-package `oxlint.config.ts`/`oxfmt.config.ts` files.
