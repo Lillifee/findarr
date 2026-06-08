@@ -1,5 +1,5 @@
 import type { MovieDetails, TVDetails } from '@findarr/shared/media';
-import { isDefined } from '@findarr/shared/utils';
+import { isDefined, isNotEmpty } from '@findarr/shared/utils';
 import { useState } from 'react';
 
 import { linkService } from '../services/api.js';
@@ -136,7 +136,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
               <h1 className="mb-3 text-4xl font-bold text-white drop-shadow-lg md:text-5xl lg:text-6xl">
                 {title}
               </h1>
-              {media.type === 'movie' && isDefined(media.tagline) && (
+              {media.type === 'movie' && isNotEmpty(media.tagline) && (
                 <p className="text-xl text-gray-300 italic drop-shadow-md md:text-2xl">
                   &quot;{media.tagline}&quot;
                 </p>
@@ -263,7 +263,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                   </div>
                 </div>
 
-                {isDefined(releaseDate) && (
+                {isNotEmpty(releaseDate) && (
                   <div className={infoTileClass}>
                     <p className={infoLabelClass}>Release Date</p>
                     <div className="mt-1.5 flex items-center gap-2 text-sm font-semibold text-gray-100">
@@ -339,7 +339,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
             </div>
 
             {/* Overview */}
-            {isDefined(media.overview) && (
+            {isNotEmpty(media.overview) && (
               <div className="mb-8">
                 <h2 className="mb-3 text-2xl font-semibold text-white drop-shadow-md">Overview</h2>
                 <p className="text-lg leading-relaxed text-gray-200 drop-shadow-sm">
