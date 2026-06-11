@@ -2,7 +2,7 @@ import type { GenreKey } from '@findarr/shared/constants';
 import type { InteractionFilter } from '@findarr/shared/interaction';
 import type { Media, SearchType } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { searchService } from '../services/api';
@@ -16,19 +16,44 @@ interface CatalogFeedState {
   totalPages: number;
 }
 
-interface CatalogPageState extends CatalogFeedState {
+interface CatalogFilters {
   genres: GenreKey[];
   interaction: InteractionFilter;
   query: string;
-  scrollY: number;
   type: SearchType;
 }
+
+interface CatalogPageState extends CatalogFeedState, CatalogFilters {
+  scrollY: number;
+}
+
+interface LoadFeedOptions {
+  append: boolean;
+  currentFeedId?: string;
+  page?: number;
+}
+
+interface LoadingState {
+  loading: boolean;
+  loadingMore: boolean;
+}
+
+const emptyFeed: CatalogFeedState = {
+  currentPage: 0,
+  results: [],
+  totalPages: 0,
+};
+
+const idleLoadingState: LoadingState = {
+  loading: false,
+  loadingMore: false,
+};
+
+const mediaKey = (item: Media) => `${item.type}_${item.tmdbId}`;
 
 function areGenresEqual(left: GenreKey[], right: GenreKey[]) {
   return left.length === right.length && left.every((genre, index) => genre === right[index]);
 }
-
-const mediaKey = (item: Media) => `${item.type}_${item.tmdbId}`;
 
 function mergeUniqueResults(existing: Media[], incoming: Media[]) {
   const seen = new Set(existing.map((item) => mediaKey(item)));
@@ -44,20 +69,80 @@ function mergeUniqueResults(existing: Media[], incoming: Media[]) {
   return merged;
 }
 
-function createPopularSnapshot(params: {
-  type: SearchType;
-  genres: GenreKey[];
-  interaction: InteractionFilter;
-  results: Media[];
-  currentPage: number;
-  totalPages: number;
-  feedId?: string;
-}): CatalogPageState {
+function createPopularSnapshot(filters: CatalogFilters, feed: CatalogFeedState): CatalogPageState {
   return {
-    ...params,
+    ...filters,
+    ...feed,
     query: '',
     scrollY: 0,
   };
+}
+
+function isSameMedia(left: Media, right: Media) {
+  return left.tmdbId === right.tmdbId && left.type === right.type;
+}
+
+function isSameFeed(left: CatalogFeedState, right: CatalogFeedState) {
+  return (
+    left.currentPage === right.currentPage &&
+    left.feedId === right.feedId &&
+    left.results === right.results &&
+    left.totalPages === right.totalPages
+  );
+}
+
+function useCatalogFilters() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchParamsKey = searchParams.toString();
+  const urlFilters = useMemo(
+    () => readCatalogSearchParams(new URLSearchParams(searchParamsKey), { interaction: 'unvoted' }),
+    [searchParamsKey],
+  );
+
+  const filters = useMemo<CatalogFilters>(
+    () => ({
+      type: urlFilters.type,
+      genres: urlFilters.genres,
+      interaction: urlFilters.interaction ?? 'unvoted',
+      query: urlFilters.q,
+    }),
+    [urlFilters],
+  );
+
+  const updateFilters = useCallback(
+    (next: Partial<CatalogFilters>) => {
+      const merged = { ...filters, ...next };
+
+      setSearchParams(
+        buildCatalogSearchParams({
+          type: merged.type,
+          genres: merged.genres,
+          interaction: merged.interaction,
+          q: merged.query || undefined,
+        }),
+      );
+    },
+    [filters, setSearchParams],
+  );
+
+  return { filters, updateFilters };
+}
+
+function matchesVisibleFilters(state: CatalogPageState, filters: CatalogFilters) {
+  return (
+    state.type === filters.type &&
+    state.interaction === filters.interaction &&
+    state.query === filters.query &&
+    areGenresEqual(state.genres, filters.genres)
+  );
+}
+
+function matchesPopularFilters(state: CatalogPageState, filters: CatalogFilters) {
+  return (
+    state.type === filters.type &&
+    state.interaction === filters.interaction &&
+    areGenresEqual(state.genres, filters.genres)
+  );
 }
 
 export interface CatalogFeed {
@@ -83,100 +168,91 @@ export interface CatalogFeed {
 
 export function useCatalogFeed(): CatalogFeed {
   const { restoredState, persistState } = useHistoryRestoreState<CatalogPageState>();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const initialSearchParams = readCatalogSearchParams(searchParams, { interaction: 'unvoted' });
-
-  const [results, setResults] = useState<Media[]>([]);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [feedId, setFeedId] = useState<string | undefined>();
-  const [totalPages, setTotalPages] = useState(0);
-  const [currentSearchType, setCurrentSearchType] = useState<SearchType>(initialSearchParams.type);
-  const [currentQuery, setCurrentQuery] = useState(initialSearchParams.q);
-  const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [selectedGenres, setSelectedGenres] = useState<GenreKey[]>(initialSearchParams.genres);
-  const [interactionFilter, setInteractionFilter] = useState<InteractionFilter>(
-    initialSearchParams.interaction ?? 'unvoted',
-  );
+  const { filters, updateFilters } = useCatalogFilters();
+  const [feed, setFeed] = useState<CatalogFeedState>(emptyFeed);
+  const [loadingState, setLoadingState] = useState<LoadingState>(idleLoadingState);
+  const feedRef = useRef<CatalogFeedState>(emptyFeed);
   const popularSnapshotRef = useRef<CatalogPageState | null>(null);
   const hasConsumedRestoreRef = useRef(false);
   const latestRequestIdRef = useRef(0);
 
-  const isSearchMode = currentQuery.trim().length > 0;
+  const isSearchMode = filters.query.trim().length > 0;
 
-  useEffect(() => {
-    const nextSearchParams = readCatalogSearchParams(searchParams, { interaction: 'unvoted' });
-    const urlInteraction = nextSearchParams.interaction ?? 'unvoted';
+  const updateFeed = useCallback((nextFeed: CatalogFeedState) => {
+    feedRef.current = nextFeed;
+    setFeed(nextFeed);
+  }, []);
 
-    if (nextSearchParams.type !== currentSearchType) {
-      setCurrentSearchType(nextSearchParams.type);
+  const createPageState = useCallback(
+    (nextFeed: CatalogFeedState = feedRef.current, scrollY = window.scrollY): CatalogPageState => ({
+      ...filters,
+      ...nextFeed,
+      scrollY,
+    }),
+    [filters],
+  );
+
+  const persistHistoryState = useCallback(() => {
+    const currentFeed = feedRef.current;
+
+    if (currentFeed.results.length === 0) {
+      return;
     }
-    if (!areGenresEqual(nextSearchParams.genres, selectedGenres)) {
-      setSelectedGenres(nextSearchParams.genres);
-    }
-    if (urlInteraction !== interactionFilter) {
-      setInteractionFilter(urlInteraction);
-    }
-    if (nextSearchParams.q !== currentQuery) {
-      setCurrentQuery(nextSearchParams.q);
-    }
-    // oxlint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+
+    persistState(createPageState(currentFeed));
+  }, [createPageState, persistState]);
+
+  const restoreFeed = useCallback(
+    (nextFeed: CatalogFeedState) => {
+      updateFeed({
+        currentPage: nextFeed.currentPage,
+        ...(isDefined(nextFeed.feedId) ? { feedId: nextFeed.feedId } : {}),
+        results: nextFeed.results,
+        totalPages: nextFeed.totalPages,
+      });
+    },
+    [updateFeed],
+  );
 
   const loadFeed = useCallback(
-    async ({
-      page,
-      append,
-      currentFeedId,
-    }: {
-      page?: number;
-      append: boolean;
-      currentFeedId?: string;
-    }) => {
+    async ({ append, currentFeedId, page }: LoadFeedOptions) => {
       const requestId = latestRequestIdRef.current + 1;
       latestRequestIdRef.current = requestId;
-      const query = currentQuery;
-      const type = currentSearchType;
-      const genres = selectedGenres;
-      const interaction = interactionFilter;
-      const searchMode = isSearchMode;
+      const requestedFilters = filters;
+      const requestedSearchMode = isSearchMode;
 
-      if (append) {
-        setLoadingMore(true);
-      } else {
-        setLoading(true);
-      }
+      setLoadingState(
+        append ? { loading: false, loadingMore: true } : { loading: true, loadingMore: false },
+      );
 
       try {
-        if (searchMode) {
-          const nextPage = page ?? 1;
+        if (requestedSearchMode) {
           const response = await searchService.searchMedia({
-            query,
-            page: nextPage,
-            type,
+            query: requestedFilters.query,
+            page: page ?? 1,
+            type: requestedFilters.type,
           });
 
           if (latestRequestIdRef.current !== requestId) {
             return;
           }
 
-          setCurrentPage(response.page);
-          setTotalPages(response.totalPages);
-          setFeedId(undefined);
+          const nextFeed = {
+            currentPage: response.page,
+            results: append
+              ? mergeUniqueResults(feedRef.current.results, response.results)
+              : response.results,
+            totalPages: response.totalPages,
+          };
 
-          if (!append) {
-            setResults(response.results);
-            return;
-          }
-
-          setResults((prev) => mergeUniqueResults(prev, response.results));
+          updateFeed(nextFeed);
           return;
         }
 
         const response = await searchService.getPopularMedia({
-          type,
-          genres,
-          interaction,
+          type: requestedFilters.type,
+          genres: requestedFilters.genres,
+          interaction: requestedFilters.interaction,
           page,
           feedId: currentFeedId,
         });
@@ -184,253 +260,139 @@ export function useCatalogFeed(): CatalogFeed {
         if (latestRequestIdRef.current !== requestId) {
           return;
         }
-        setCurrentPage(response.page);
-        setTotalPages(response.totalPages);
-        setFeedId(response.feedId);
 
-        if (!append) {
-          setResults(response.results);
-          popularSnapshotRef.current = createPopularSnapshot({
-            type,
-            genres,
-            interaction,
-            results: response.results,
-            currentPage: response.page,
-            totalPages: response.totalPages,
-            feedId: response.feedId,
-          });
-          return;
-        }
+        const nextFeed = {
+          currentPage: response.page,
+          feedId: response.feedId,
+          results: append
+            ? mergeUniqueResults(feedRef.current.results, response.results)
+            : response.results,
+          totalPages: response.totalPages,
+        };
 
-        setResults((prev) => {
-          const mergedResults = mergeUniqueResults(prev, response.results);
-          popularSnapshotRef.current = createPopularSnapshot({
-            type,
-            genres,
-            interaction,
-            results: mergedResults,
-            currentPage: response.page,
-            totalPages: response.totalPages,
-            feedId: response.feedId,
-          });
-          return mergedResults;
-        });
+        updateFeed(nextFeed);
+        popularSnapshotRef.current = createPopularSnapshot(requestedFilters, nextFeed);
       } catch (error) {
-        console.error(`Failed to load ${searchMode ? 'search' : 'popular'} results:`, error);
+        console.error(
+          `Failed to load ${requestedSearchMode ? 'search' : 'popular'} results:`,
+          error,
+        );
       } finally {
         if (latestRequestIdRef.current === requestId) {
-          if (append) {
-            setLoadingMore(false);
-          } else {
-            setLoading(false);
-          }
+          setLoadingState(idleLoadingState);
         }
       }
     },
-    [currentQuery, currentSearchType, interactionFilter, isSearchMode, selectedGenres],
+    [filters, isSearchMode, updateFeed],
   );
-
-  const restoreVisibleFeed = useCallback((state: CatalogFeedState) => {
-    setResults(state.results);
-    setCurrentPage(state.currentPage);
-    setTotalPages(state.totalPages);
-    setFeedId(state.feedId);
-  }, []);
-
-  const matchesVisibleFilters = useCallback(
-    (state: Pick<CatalogPageState, 'type' | 'genres' | 'interaction' | 'query'>) =>
-      state.type === currentSearchType &&
-      areGenresEqual(state.genres, selectedGenres) &&
-      state.interaction === interactionFilter &&
-      state.query === currentQuery,
-    [currentQuery, currentSearchType, interactionFilter, selectedGenres],
-  );
-
-  const matchesPopularFilters = useCallback(
-    (state: Pick<CatalogPageState, 'type' | 'genres' | 'interaction'>) =>
-      state.type === currentSearchType &&
-      areGenresEqual(state.genres, selectedGenres) &&
-      state.interaction === interactionFilter,
-    [currentSearchType, interactionFilter, selectedGenres],
-  );
-
-  const createPageState = useCallback(
-    (stateResults: Media[] = results, scrollY = window.scrollY): CatalogPageState => ({
-      type: currentSearchType,
-      genres: selectedGenres,
-      interaction: interactionFilter,
-      query: currentQuery,
-      results: stateResults,
-      currentPage,
-      totalPages,
-      ...(isDefined(feedId) ? { feedId } : {}),
-      scrollY,
-    }),
-    [
-      currentPage,
-      currentQuery,
-      currentSearchType,
-      feedId,
-      interactionFilter,
-      results,
-      selectedGenres,
-      totalPages,
-    ],
-  );
-
-  const persistHistoryState = useCallback(() => {
-    if (results.length === 0) {
-      return;
-    }
-
-    persistState(createPageState());
-  }, [createPageState, persistState, results.length]);
 
   useEffect(() => {
-    if (!hasConsumedRestoreRef.current && restoredState && matchesVisibleFilters(restoredState)) {
-      hasConsumedRestoreRef.current = true;
-      restoreVisibleFeed(restoredState);
-      requestAnimationFrame(() => {
-        window.scrollTo({ top: restoredState.scrollY, behavior: 'auto' });
-      });
-      return;
+    if (restoredState && matchesVisibleFilters(restoredState, filters)) {
+      if (!hasConsumedRestoreRef.current) {
+        hasConsumedRestoreRef.current = true;
+        restoreFeed(restoredState);
+
+        if (restoredState.query.trim().length === 0) {
+          popularSnapshotRef.current = createPopularSnapshot(filters, restoredState);
+        }
+
+        requestAnimationFrame(() => {
+          window.scrollTo({ top: restoredState.scrollY, behavior: 'auto' });
+        });
+      }
+
+      if (isSameFeed(feedRef.current, restoredState)) {
+        return;
+      }
     }
 
     hasConsumedRestoreRef.current = true;
 
     const popularSnapshot = popularSnapshotRef.current;
-    if (!isSearchMode && popularSnapshot && matchesPopularFilters(popularSnapshot)) {
-      restoreVisibleFeed(popularSnapshot);
+    if (!isSearchMode && popularSnapshot && matchesPopularFilters(popularSnapshot, filters)) {
+      restoreFeed(popularSnapshot);
       return;
     }
 
-    setCurrentPage(0);
-    setTotalPages(0);
-    setFeedId(undefined);
+    restoreFeed(emptyFeed);
     void loadFeed({ append: false });
-  }, [
-    isSearchMode,
-    loadFeed,
-    matchesPopularFilters,
-    matchesVisibleFilters,
-    restoreVisibleFeed,
-    restoredState,
-  ]);
+  }, [filters, isSearchMode, loadFeed, restoreFeed, restoredState]);
 
   const onTypeChange = (type: SearchType) => {
-    setCurrentSearchType(type);
-    setSearchParams(
-      buildCatalogSearchParams({
-        type,
-        genres: selectedGenres,
-        interaction: interactionFilter,
-        q: currentQuery || undefined,
-      }),
-    );
+    updateFilters({ type });
   };
 
   const onGenresChange = (genres: GenreKey[]) => {
-    setSelectedGenres(genres);
-    setSearchParams(
-      buildCatalogSearchParams({
-        type: currentSearchType,
-        genres,
-        interaction: interactionFilter,
-        q: currentQuery || undefined,
-      }),
-    );
+    updateFilters({ genres });
   };
 
-  const onInteractionFilterChange = (value: InteractionFilter) => {
-    setInteractionFilter(value);
-    setSearchParams(
-      buildCatalogSearchParams({
-        type: currentSearchType,
-        genres: selectedGenres,
-        interaction: value,
-        q: currentQuery || undefined,
-      }),
-    );
+  const onInteractionFilterChange = (interaction: InteractionFilter) => {
+    updateFilters({ interaction });
   };
 
   const onSearch = (query: string) => {
-    setCurrentQuery(query);
-    setSearchParams(
-      buildCatalogSearchParams({
-        type: currentSearchType,
-        genres: selectedGenres,
-        interaction: interactionFilter,
-        q: query,
-      }),
-    );
+    updateFilters({ query });
   };
 
   const onClearSearch = () => {
     latestRequestIdRef.current += 1;
-    setLoading(false);
-    setLoadingMore(false);
-    setCurrentQuery('');
+    setLoadingState(idleLoadingState);
 
     const popularSnapshot = popularSnapshotRef.current;
-    if (popularSnapshot && matchesPopularFilters(popularSnapshot)) {
-      restoreVisibleFeed(popularSnapshot);
+    if (popularSnapshot && matchesPopularFilters(popularSnapshot, filters)) {
+      restoreFeed(popularSnapshot);
     }
 
-    setSearchParams(
-      buildCatalogSearchParams({
-        type: currentSearchType,
-        genres: selectedGenres,
-        interaction: interactionFilter,
-      }),
-    );
+    updateFilters({ query: '' });
   };
 
   const loadMore = () => {
-    if (currentPage < totalPages) {
-      void loadFeed({
-        page: currentPage + 1,
-        append: true,
-        ...(isDefined(feedId) ? { currentFeedId: feedId } : {}),
-      });
-    }
-  };
+    const currentFeed = feedRef.current;
 
-  const updateItem = (updatedItem: Media) => {
-    if (!isSearchMode && interactionFilter === 'unvoted') {
-      const filtered = results.filter(
-        (item) => !(item.tmdbId === updatedItem.tmdbId && item.type === updatedItem.type),
-      );
-      setResults(filtered);
-
-      if (popularSnapshotRef.current) {
-        popularSnapshotRef.current = { ...popularSnapshotRef.current, results: filtered };
-      }
-
-      if (filtered.length > 0) {
-        persistState(createPageState(filtered));
-      }
-
+    if (currentFeed.currentPage >= currentFeed.totalPages) {
       return;
     }
 
-    setResults((prev) =>
-      prev.map((item) =>
-        item.tmdbId === updatedItem.tmdbId && item.type === updatedItem.type ? updatedItem : item,
-      ),
-    );
+    void loadFeed({
+      append: true,
+      page: currentFeed.currentPage + 1,
+      ...(isDefined(currentFeed.feedId) ? { currentFeedId: currentFeed.feedId } : {}),
+    });
+  };
+
+  const updateItem = (updatedItem: Media) => {
+    const currentFeed = feedRef.current;
+    const shouldRemoveFromFeed = !isSearchMode && filters.interaction !== 'all';
+    const nextFeed = {
+      ...currentFeed,
+      results: shouldRemoveFromFeed
+        ? currentFeed.results.filter((item) => !isSameMedia(item, updatedItem))
+        : currentFeed.results.map((item) => (isSameMedia(item, updatedItem) ? updatedItem : item)),
+    };
+
+    updateFeed(nextFeed);
+
+    if (!isSearchMode && popularSnapshotRef.current) {
+      popularSnapshotRef.current = {
+        ...popularSnapshotRef.current,
+        results: nextFeed.results,
+      };
+    }
+
+    persistState(createPageState(nextFeed));
   };
 
   return {
-    results,
-    loading,
-    loadingMore,
-    currentPage,
-    totalPages,
     isSearchMode,
-    currentSearchType,
-    currentQuery,
-    selectedGenres,
-    interactionFilter,
+    loading: loadingState.loading,
+    loadingMore: loadingState.loadingMore,
+    results: feed.results,
+    currentPage: feed.currentPage,
+    totalPages: feed.totalPages,
+    currentSearchType: filters.type,
+    currentQuery: filters.query,
+    selectedGenres: filters.genres,
+    interactionFilter: filters.interaction,
     onTypeChange,
     onGenresChange,
     onInteractionFilterChange,
