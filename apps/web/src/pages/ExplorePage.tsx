@@ -44,7 +44,7 @@ export function ExplorePage() {
         }
       />
 
-      <PageContainer className="py-4 pb-20 md:py-8 md:pb-20">
+      <PageContainer>
         <CatalogResults
           results={feed.results}
           loading={feed.loading}

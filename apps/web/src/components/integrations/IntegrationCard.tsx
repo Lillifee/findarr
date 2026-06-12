@@ -9,7 +9,7 @@ interface IntegrationCardProps {
   description: string;
   status: ConnectionStatus;
   onSubmit: (event: ChangeEvent<HTMLFormElement>) => void;
-  children: ReactNode;
+
   actions: ReactNode;
 }
 
@@ -20,7 +20,7 @@ export function IntegrationCard({
   onSubmit,
   children,
   actions,
-}: IntegrationCardProps) {
+}: React.PropsWithChildren<IntegrationCardProps>) {
   return (
     <Card variant="solid" padding="md">
       <div className="mb-5 flex items-center gap-2">

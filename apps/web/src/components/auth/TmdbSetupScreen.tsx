@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { useAuth } from '../../hooks/useAuth';
+import { useSession } from '../../hooks/useSession';
 import { adminTmdbService } from '../../services/api';
 import { asVoid } from '../../utils/asyncHandlers';
 import { Button } from '../ui/Button';
@@ -10,7 +10,7 @@ import { InlineFeedback } from '../ui/InlineFeedback';
 import { Input } from '../ui/Input';
 
 export function TmdbSetupScreen() {
-  const { refreshBootstrapStatus } = useAuth();
+  const { refreshBootstrapStatus } = useSession();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isTesting, setIsTesting] = useState(false);

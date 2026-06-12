@@ -1,7 +1,7 @@
 import { isDefined } from '@findarr/shared/utils';
 import { useState, useEffect, useCallback, type ChangeEvent } from 'react';
 
-import { useAuth } from '../../hooks/useAuth';
+import { useSession } from '../../hooks/useSession';
 import { adminTmdbService } from '../../services/api';
 import { asVoid } from '../../utils/asyncHandlers';
 import { deriveFeedback } from '../ui/feedback';
@@ -12,7 +12,7 @@ import { SecretField } from './SecretField';
 import { StepPanel } from './StepPanel';
 
 export function TmdbSection() {
-  const { refreshBootstrapStatus } = useAuth();
+  const { refreshBootstrapStatus } = useSession();
   const [testResult, setTestResult] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isTesting, setIsTesting] = useState(false);

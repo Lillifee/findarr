@@ -1,10 +1,10 @@
 import { AppRoutes } from './AppRoutes';
 import { appGradient } from './components/ui/theme';
-import { useAuth } from './hooks/useAuth';
+import { useSession } from './hooks/useSession';
 import { Navigation } from './Navigation';
 
 export function AppShell() {
-  const { isAdmin, logout, user } = useAuth();
+  const { isAdmin, logout, user } = useSession();
 
   return (
     <div className={`min-h-screen ${appGradient}`}>

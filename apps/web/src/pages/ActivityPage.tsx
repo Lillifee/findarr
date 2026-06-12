@@ -5,6 +5,7 @@ import { ActivityStatusFilter } from '../components/activity/ActivityStatusFilte
 import { AttentionQueueSection } from '../components/activity/AttentionQueueSection';
 import { FiltersToolbar } from '../components/catalog/FiltersToolbar';
 import { PageContainer } from '../components/ui/PageContainer';
+import { StickyHeader } from '../components/ui/StickyHeader';
 import { useActivityFeed } from '../hooks/useActivityFeed';
 import { useMediaNavigation } from '../hooks/useMediaNavigation';
 
@@ -18,27 +19,30 @@ export function ActivityPage() {
 
   return (
     <>
-      <FiltersToolbar
-        selectedType={feed.selectedType}
-        onTypeChange={(type) => {
-          feed.reloadActivityWith({ type });
-        }}
-        selectedGenres={[]}
-        onGenresChange={() => {}}
-        showFiltersButton
-        showGenreFilter={false}
-        filterDescription="Adjust your activity filters."
-        extraFiltersContent={
-          <ActivityStatusFilter
-            actionFilter={feed.actionFilter}
-            onActionChange={(action) => {
-              feed.reloadActivityWith({ action });
-            }}
-          />
-        }
-      />
+      <StickyHeader>
+        <FiltersToolbar
+          disableWrapper
+          selectedType={feed.selectedType}
+          onTypeChange={(type) => {
+            feed.reloadActivityWith({ type });
+          }}
+          selectedGenres={[]}
+          onGenresChange={() => {}}
+          showFiltersButton
+          showGenreFilter={false}
+          filterDescription="Adjust your activity filters."
+          extraFiltersContent={
+            <ActivityStatusFilter
+              actionFilter={feed.actionFilter}
+              onActionChange={(action) => {
+                feed.reloadActivityWith({ action });
+              }}
+            />
+          }
+        />
+      </StickyHeader>
 
-      <PageContainer className="py-4 pb-20 md:py-8 md:pb-20">
+      <PageContainer>
         <AttentionQueueSection
           results={feed.attentionResults}
           loading={feed.loadingAttention}

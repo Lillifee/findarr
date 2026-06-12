@@ -24,7 +24,7 @@ export function UsersPage() {
   }
 
   return (
-    <PageContainer className="py-6 pb-20 md:py-10">
+    <PageContainer>
       <div className="space-y-5">
         <PageHeader
           title="Users"

@@ -32,7 +32,7 @@ import type {
 } from '@findarr/shared/settings';
 import { create } from 'axios';
 
-const api = create({
+export const api = create({
   baseURL: '/api',
   withCredentials: true,
   paramsSerializer: {
