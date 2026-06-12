@@ -19,28 +19,43 @@ export interface UserSettingsForm {
   save: () => Promise<void>;
 }
 
+interface UserSettingsStatus {
+  loading: boolean;
+  saving: boolean;
+  error: string | null;
+}
+
+const defaultSettings: UserSettings = {
+  language: 'de-DE',
+  regions: ['western'],
+  swipeLimit: 60,
+};
+
+const initialStatus: UserSettingsStatus = {
+  loading: true,
+  saving: false,
+  error: null,
+};
+
+const areRegionsEqual = (left: RegionGroupId[], right: RegionGroupId[]) =>
+  left.length === right.length && left.every((region, index) => region === right[index]);
+
 export function useUserSettings(): UserSettingsForm {
-  const [language, setLanguage] = useState('de-DE');
-  const [regions, setRegions] = useState<RegionGroupId[]>(['western']);
-  const [swipeLimit, setSwipeLimit] = useState(60);
+  const [draft, setDraft] = useState<UserSettings>(defaultSettings);
   const [savedSettings, setSavedSettings] = useState<UserSettings | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<UserSettingsStatus>(initialStatus);
 
   useEffect(() => {
     const loadSettings = async () => {
       try {
         const settings = await userSettingsService.get();
-        setLanguage(settings.language);
-        setRegions(settings.regions);
-        setSwipeLimit(settings.swipeLimit);
+        setDraft(settings);
         setSavedSettings(settings);
       } catch (loadError) {
         console.error('Failed to load user settings:', loadError);
-        setError('Failed to load settings.');
+        setStatus((prev) => ({ ...prev, error: 'Failed to load settings.' }));
       } finally {
-        setLoading(false);
+        setStatus((prev) => ({ ...prev, loading: false }));
       }
     };
 
@@ -49,36 +64,38 @@ export function useUserSettings(): UserSettingsForm {
 
   const isDirty =
     isDefined(savedSettings) &&
-    (language !== savedSettings.language ||
-      swipeLimit !== savedSettings.swipeLimit ||
-      JSON.stringify(regions) !== JSON.stringify(savedSettings.regions));
+    (draft.language !== savedSettings.language ||
+      draft.swipeLimit !== savedSettings.swipeLimit ||
+      !areRegionsEqual(draft.regions, savedSettings.regions));
 
   const save = async () => {
-    setError(null);
-    setSaving(true);
+    setStatus((prev) => ({ ...prev, saving: true, error: null }));
 
     try {
-      const updated = await userSettingsService.update({ language, regions, swipeLimit });
+      const updated = await userSettingsService.update(draft);
+      setDraft(updated);
       setSavedSettings(updated);
     } catch (saveError) {
       console.error('Failed to save user settings:', saveError);
-      setError('Failed to save settings.');
+      setStatus((prev) => ({ ...prev, error: 'Failed to save settings.' }));
     } finally {
-      setSaving(false);
+      setStatus((prev) => ({ ...prev, saving: false }));
     }
   };
 
   return {
-    language,
-    regions,
-    swipeLimit,
-    loading,
-    saving,
-    error,
+    ...draft,
+    ...status,
     isDirty,
-    setLanguage,
-    setRegions,
-    setSwipeLimit,
+    setLanguage: (language) => {
+      setDraft((prev) => ({ ...prev, language }));
+    },
+    setRegions: (regions) => {
+      setDraft((prev) => ({ ...prev, regions }));
+    },
+    setSwipeLimit: (swipeLimit) => {
+      setDraft((prev) => ({ ...prev, swipeLimit }));
+    },
     save,
   };
 }

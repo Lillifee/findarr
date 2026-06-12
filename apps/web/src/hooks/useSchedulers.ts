@@ -5,6 +5,12 @@ import { schedulerService, adminSchedulerService } from '../services/api';
 
 const REFRESH_INTERVAL_MS = 5000;
 
+interface SchedulersState {
+  schedulers: SchedulerInfo[];
+  isLoading: boolean;
+  error: string;
+}
+
 export interface SchedulersAdmin {
   schedulers: SchedulerInfo[];
   isLoading: boolean;
@@ -14,21 +20,22 @@ export interface SchedulersAdmin {
   toggle: (name: string, enabled: boolean) => Promise<void>;
 }
 
+const initialState: SchedulersState = {
+  schedulers: [],
+  isLoading: true,
+  error: '',
+};
+
 export function useSchedulers(): SchedulersAdmin {
-  const [schedulers, setSchedulers] = useState<SchedulerInfo[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [state, setState] = useState<SchedulersState>(initialState);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
-      const data = await schedulerService.listAll();
-      setSchedulers(data);
-      setError('');
+      const schedulers = await schedulerService.listAll();
+      setState({ schedulers, isLoading: false, error: '' });
     } catch {
-      setError('Failed to load schedulers');
-    } finally {
-      setIsLoading(false);
+      setState((prev) => ({ ...prev, isLoading: false, error: 'Failed to load schedulers' }));
     }
   }, []);
 
@@ -42,35 +49,43 @@ export function useSchedulers(): SchedulersAdmin {
     };
   }, [load]);
 
-  const trigger = useCallback(
-    async (name: string) => {
+  const runSchedulerAction = useCallback(
+    async (name: string, action: () => Promise<void>, errorMessage: string) => {
       setActionLoading(name);
       try {
-        await adminSchedulerService.trigger(name);
+        await action();
         await load();
       } catch {
-        alert('Failed to trigger scheduler');
+        alert(errorMessage);
       } finally {
         setActionLoading(null);
       }
     },
     [load],
+  );
+
+  const trigger = useCallback(
+    async (name: string) => {
+      await runSchedulerAction(
+        name,
+        async () => adminSchedulerService.trigger(name),
+        'Failed to trigger scheduler',
+      );
+    },
+    [runSchedulerAction],
   );
 
   const toggle = useCallback(
     async (name: string, enabled: boolean) => {
-      setActionLoading(name);
-      try {
-        await (enabled ? adminSchedulerService.stop(name) : adminSchedulerService.start(name));
-        await load();
-      } catch {
-        alert('Failed to toggle scheduler');
-      } finally {
-        setActionLoading(null);
-      }
+      await runSchedulerAction(
+        name,
+        async () =>
+          enabled ? adminSchedulerService.stop(name) : adminSchedulerService.start(name),
+        'Failed to toggle scheduler',
+      );
     },
-    [load],
+    [runSchedulerAction],
   );
 
-  return { schedulers, isLoading, error, actionLoading, trigger, toggle };
+  return { ...state, actionLoading, trigger, toggle };
 }

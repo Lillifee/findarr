@@ -1,9 +1,9 @@
 import type { GenreKey } from '@findarr/shared/constants';
 import type { MediaDetails, SearchType } from '@findarr/shared/media';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { searchService, userSettingsService } from '../services/api';
+import { searchService } from '../services/api';
 import { buildCatalogSearchParams, readCatalogSearchParams } from '../utils/catalogSearchParams';
 
 export interface VoteFeed {
@@ -11,112 +11,99 @@ export interface VoteFeed {
   isLoading: boolean;
   isComplete: boolean;
   error: string | null;
-  currentSearchType: SearchType;
+  selectedType: SearchType;
   selectedGenres: GenreKey[];
   fetchNextItem: () => Promise<void>;
   onTypeChange: (type: SearchType) => void;
   onGenresChange: (genres: GenreKey[]) => void;
 }
 
+interface VoteFeedState {
+  currentMedia: MediaDetails | null;
+  isLoading: boolean;
+  isComplete: boolean;
+  error: string | null;
+}
+
+const initialFeedState: VoteFeedState = {
+  currentMedia: null,
+  isLoading: true,
+  isComplete: false,
+  error: null,
+};
+
+const createFeedState = (next: Partial<VoteFeedState>): VoteFeedState => ({
+  currentMedia: null,
+  isLoading: false,
+  isComplete: false,
+  error: null,
+  ...next,
+});
+
+const areGenresEqual = (left: GenreKey[], right: GenreKey[]) =>
+  left.length === right.length && left.every((genre, index) => genre === right[index]);
+
 export function useVoteFeed(): VoteFeed {
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialSearchParams = readCatalogSearchParams(searchParams, { type: 'both' });
+  const { type: selectedType, genres: selectedGenres } = useMemo(
+    () => readCatalogSearchParams(searchParams, { type: 'both' }),
+    [searchParams],
+  );
 
-  const [currentMedia, setCurrentMedia] = useState<MediaDetails | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isComplete, setIsComplete] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [currentSearchType, setCurrentSearchType] = useState<SearchType>(initialSearchParams.type);
-  const [selectedGenres, setSelectedGenres] = useState<GenreKey[]>(initialSearchParams.genres);
-  const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [feedState, setFeedState] = useState<VoteFeedState>(initialFeedState);
   const feedIdRef = useRef<string | null>(null);
+  const lastFiltersRef = useRef({ genres: selectedGenres, type: selectedType });
 
   useEffect(() => {
-    const loadUserSettings = async () => {
-      try {
-        await userSettingsService.get();
-      } catch (e) {
-        console.error('Failed to load user settings:', e);
-      } finally {
-        setSettingsLoaded(true);
-      }
-    };
+    const lastFilters = lastFiltersRef.current;
+    const filtersChanged =
+      lastFilters.type !== selectedType || !areGenresEqual(lastFilters.genres, selectedGenres);
 
-    void loadUserSettings();
-  }, []);
-
-  useEffect(() => {
-    const nextSearchParams = readCatalogSearchParams(searchParams, { type: 'both' });
-
-    if (nextSearchParams.type !== currentSearchType) {
-      setCurrentSearchType(nextSearchParams.type);
+    if (filtersChanged) {
+      lastFiltersRef.current = { genres: selectedGenres, type: selectedType };
+      feedIdRef.current = null;
+      setFeedState(createFeedState({}));
     }
-
-    if (JSON.stringify(nextSearchParams.genres) !== JSON.stringify(selectedGenres)) {
-      setSelectedGenres(nextSearchParams.genres);
-    }
-    // oxlint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, [selectedType, selectedGenres]);
 
   const fetchNextItem = useCallback(async () => {
-    if (!settingsLoaded) {
-      return;
-    }
+    setFeedState(createFeedState({ isLoading: true }));
 
-    setIsLoading(true);
-    setError(null);
     try {
       const response = await searchService.getNextUnvotedMedia({
-        type: currentSearchType,
+        type: selectedType,
         genres: selectedGenres,
-        interaction: 'unvoted',
         feedId: feedIdRef.current ?? undefined,
       });
 
       feedIdRef.current = response.feedId;
 
       if (response.media) {
-        setCurrentMedia(response.media);
-        setIsComplete(false);
+        setFeedState(createFeedState({ currentMedia: response.media }));
       } else {
-        setCurrentMedia(null);
-        setIsComplete(true);
+        setFeedState(createFeedState({ isComplete: true }));
       }
     } catch (error_) {
       console.error('Failed to fetch next item:', error_);
-      setError('Failed to load next item. Please try again.');
-    } finally {
-      setIsLoading(false);
+      setFeedState(createFeedState({ error: 'Failed to load next item. Please try again.' }));
     }
-  }, [currentSearchType, selectedGenres, settingsLoaded]);
+  }, [selectedType, selectedGenres]);
 
   useEffect(() => {
     void fetchNextItem();
   }, [fetchNextItem]);
 
-  const resetFeed = () => {
-    feedIdRef.current = null;
-    setIsComplete(false);
-  };
-
   const onTypeChange = (type: SearchType) => {
-    setCurrentSearchType(type);
-    resetFeed();
     setSearchParams(buildCatalogSearchParams({ type, genres: selectedGenres }));
   };
 
   const onGenresChange = (genres: GenreKey[]) => {
-    setSelectedGenres(genres);
-    resetFeed();
-    setSearchParams(buildCatalogSearchParams({ type: currentSearchType, genres }));
+    setSearchParams(buildCatalogSearchParams({ type: selectedType, genres }));
   };
 
   return {
-    currentMedia,
-    isLoading,
-    isComplete,
-    error,
-    currentSearchType,
+    ...feedState,
+    selectedType,
     selectedGenres,
     fetchNextItem,
     onTypeChange,

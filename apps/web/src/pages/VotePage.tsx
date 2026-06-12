@@ -20,7 +20,7 @@ export function VotePage() {
     isLoading,
     isComplete,
     error,
-    currentSearchType,
+    selectedType,
     selectedGenres,
     fetchNextItem,
     onTypeChange,
@@ -41,7 +41,7 @@ export function VotePage() {
         filters={
           <FiltersToolbar
             disableWrapper
-            selectedType={currentSearchType}
+            selectedType={selectedType}
             onTypeChange={onTypeChange}
             disabled={isLoading}
             selectedGenres={selectedGenres}

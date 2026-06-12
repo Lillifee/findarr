@@ -32,7 +32,7 @@ export function useDashboardData(): DashboardData {
     setAvailableError(undefined);
 
     const [nextResult, availableResult] = await Promise.allSettled([
-      searchService.getNextUnvotedMedia({ type: 'both', interaction: 'unvoted' }),
+      searchService.getNextUnvotedMedia({ type: 'both' }),
       searchService.getAvailableMedia({ page: 1, type: 'both' }),
     ]);
 
