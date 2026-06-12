@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import type { ButtonHTMLAttributes } from 'react';
 
 import { buttonSizes, type Size } from './sizes';
 
@@ -6,7 +6,6 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'icon' | 'danger' | 'success';
   size?: Size;
   loading?: boolean;
-  children: ReactNode;
 }
 
 const variants = {

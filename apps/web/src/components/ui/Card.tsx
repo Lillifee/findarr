@@ -1,9 +1,8 @@
-import type { HTMLAttributes, ReactNode } from 'react';
+import type { HTMLAttributes } from 'react';
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: 'glass' | 'solid' | 'transparent';
   padding?: 'none' | 'sm' | 'md' | 'lg';
-  children: ReactNode;
 }
 
 const variants = {

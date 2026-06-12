@@ -11,7 +11,7 @@ export function SettingsPage() {
   const passwordForm = usePasswordForm();
 
   return (
-    <PageContainer className="py-6 pb-20 md:py-10">
+    <PageContainer>
       <div className="mb-8">
         <PageHeader
           title="Settings"

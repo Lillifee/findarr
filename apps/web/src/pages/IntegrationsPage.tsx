@@ -6,7 +6,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 
 export function IntegrationsPage() {
   return (
-    <PageContainer className="py-6 pb-20 md:py-10">
+    <PageContainer>
       <div className="space-y-6">
         <PageHeader
           title="Integrations"

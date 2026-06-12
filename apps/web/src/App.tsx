@@ -4,11 +4,11 @@ import { AppShell } from './AppShell';
 import { LoginForm } from './components/auth/LoginForm';
 import { TmdbSetupScreen } from './components/auth/TmdbSetupScreen';
 import { LoadingScreen } from './components/ui/LoadingScreen';
-import { AuthProvider } from './contexts/AuthProvider';
-import { useAuth } from './hooks/useAuth';
+import { SessionProvider } from './contexts/SessionProvider';
+import { useSession } from './hooks/useSession';
 
 function MainApp() {
-  const { isAuthenticated, isLoading, tmdbConfigured } = useAuth();
+  const { isAuthenticated, isLoading, isTmdbConfigured } = useSession();
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -18,7 +18,7 @@ function MainApp() {
     return <LoginForm />;
   }
 
-  if (!tmdbConfigured) {
+  if (!isTmdbConfigured) {
     return <TmdbSetupScreen />;
   }
 
@@ -27,11 +27,11 @@ function MainApp() {
 
 function App() {
   return (
-    <AuthProvider>
+    <SessionProvider>
       <BrowserRouter>
         <MainApp />
       </BrowserRouter>
-    </AuthProvider>
+    </SessionProvider>
   );
 }
 

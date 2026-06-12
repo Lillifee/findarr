@@ -1,10 +1,9 @@
 import { isDefined } from '@findarr/shared/utils';
-import type { ReactNode, SelectHTMLAttributes } from 'react';
+import type { SelectHTMLAttributes } from 'react';
 
 export interface SelectInputProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: boolean;
-  children: ReactNode;
 }
 
 export function SelectInput({

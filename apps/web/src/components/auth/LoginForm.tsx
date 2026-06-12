@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { useAuth } from '../../hooks/useAuth';
+import { useSession } from '../../hooks/useSession';
 import { asVoid } from '../../utils/asyncHandlers';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
@@ -11,7 +11,7 @@ export function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login } = useSession();
 
   async function handleSubmit(e: React.ChangeEvent<HTMLFormElement>) {
     e.preventDefault();

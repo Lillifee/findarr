@@ -7,13 +7,13 @@ import { NewlyAvailableSection } from '../components/dashboard/NewlyAvailableSec
 import { PageContainer } from '../components/ui/PageContainer';
 import { PageHeader } from '../components/ui/PageHeader';
 import { StickyHeader } from '../components/ui/StickyHeader';
-import { useAuth } from '../hooks/useAuth';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useMediaNavigation } from '../hooks/useMediaNavigation';
+import { useSession } from '../hooks/useSession';
 
 export function DashboardPage() {
   const { goTo, goToMedia, goToSearch } = useMediaNavigation();
-  const { user } = useAuth();
+  const { user } = useSession();
   const dashboard = useDashboardData();
 
   const handleSelectItem = (item: Media) => {
@@ -26,7 +26,7 @@ export function DashboardPage() {
         <SearchBar onSearch={goToSearch} loading={false} />
       </StickyHeader>
 
-      <PageContainer className="py-6 pb-20 md:py-8 md:pb-20">
+      <PageContainer>
         <div className="space-y-8 md:space-y-10">
           <PageHeader
             title={`Welcome back${isDefined(user?.displayName) ? `, ${user.displayName}` : ''}`}

@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import type { ButtonHTMLAttributes } from 'react';
 
 import { badgeSizes, type Size } from './sizes';
 
@@ -7,7 +7,6 @@ export interface BadgeProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: Size;
   selected?: boolean;
   interactive?: boolean;
-  children: ReactNode;
 }
 
 const variants = {

@@ -15,7 +15,7 @@ export function SchedulersPage() {
   };
 
   return (
-    <PageContainer className="py-6 pb-20 md:py-10">
+    <PageContainer>
       {isLoading ? (
         <div className="flex items-center justify-center p-8">
           <div className="text-gray-400">Loading schedulers...</div>

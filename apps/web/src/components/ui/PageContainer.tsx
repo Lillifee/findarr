@@ -1,10 +1,3 @@
-import type { ReactNode } from 'react';
-
-interface PageContainerProps {
-  children: ReactNode;
-  className?: string;
-}
-
-export function PageContainer({ children, className = '' }: PageContainerProps) {
-  return <div className={`mx-auto max-w-7xl px-4 md:px-8 ${className}`}>{children}</div>;
+export function PageContainer({ children }: React.PropsWithChildren) {
+  return <div className="mx-auto max-w-7xl px-4 py-6 pb-20 md:px-8 md:py-10">{children}</div>;
 }
