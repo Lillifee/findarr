@@ -36,7 +36,7 @@ export function AvailableMediaStrip({
             <div
               // oxlint-disable-next-line react/no-array-index-key
               key={index}
-              className="h-48 w-32 shrink-0 animate-pulse rounded-xl border border-gray-700/60 bg-gray-800/70 sm:w-36 md:h-52 md:w-40"
+              className="h-48 w-32 shrink-0 animate-pulse rounded-xl border border-zinc-800 bg-zinc-900/35 sm:w-36 md:h-52 md:w-40"
             />
           ))}
         </div>
@@ -46,7 +46,7 @@ export function AvailableMediaStrip({
 
   if (results.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-gray-700/70 bg-gray-800/40 px-5 py-8 text-sm text-gray-400">
+      <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/35 px-5 py-8 text-sm text-zinc-400">
         No newly available titles yet.
       </div>
     );
@@ -76,7 +76,7 @@ export function AvailableMediaStrip({
               }}
               className="group w-32 shrink-0 cursor-pointer transition-transform duration-300 sm:w-36 md:w-40"
             >
-              <div className="relative overflow-hidden rounded-xl border border-gray-700/60 bg-gray-800/75 shadow-lg transition-all duration-300 group-hover:border-gray-500/90 group-hover:shadow-2xl">
+              <div className="relative overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 shadow-[0_14px_36px_rgba(0,0,0,0.22)] transition-all duration-300 group-hover:border-zinc-700 group-hover:shadow-[0_22px_56px_rgba(0,0,0,0.32)]">
                 {isDefined(item.posterPath) ? (
                   <img
                     src={tmdbImage(item.posterPath, 'w342')}
@@ -84,7 +84,7 @@ export function AvailableMediaStrip({
                     className="aspect-2/3 w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                   />
                 ) : (
-                  <div className="flex aspect-2/3 w-full items-center justify-center bg-linear-to-br from-gray-800 via-gray-700 to-gray-800 text-xs font-medium text-gray-500">
+                  <div className="flex aspect-2/3 w-full items-center justify-center bg-linear-to-br from-zinc-900 via-zinc-800 to-zinc-900 text-xs font-medium text-zinc-500">
                     No Poster
                   </div>
                 )}
@@ -93,7 +93,7 @@ export function AvailableMediaStrip({
                   <p className="line-clamp-2 text-[11px] leading-tight font-semibold text-white md:text-xs">
                     {item.name}
                   </p>
-                  <p className="mt-1 text-[10px] tracking-[0.16em] text-gray-300 uppercase">
+                  <p className="mt-1 text-[10px] tracking-[0.16em] text-zinc-300 uppercase">
                     {releaseYear(item.date)}
                   </p>
                 </div>

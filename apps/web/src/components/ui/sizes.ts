@@ -4,9 +4,9 @@
  */
 
 export const buttonSizes = {
-  sm: 'px-3 py-1.5 text-xs md:text-sm',
-  md: 'px-4 py-2 text-sm md:text-base',
-  lg: 'px-6 py-3 text-base md:text-lg',
+  sm: 'min-h-8 px-3 py-1.5 text-sm',
+  md: 'min-h-10 px-4 py-2 text-sm',
+  lg: 'min-h-12 px-5 py-3 text-base',
 } as const;
 
 export const badgeSizes = {
@@ -22,9 +22,9 @@ export const statusBadgeSizes = {
 } as const;
 
 export const inputSizes = {
-  sm: 'px-3 py-2 text-sm',
-  md: 'px-4 py-2.5 md:py-3 text-base',
-  lg: 'px-5 py-3.5 md:py-4 text-lg',
+  sm: 'min-h-8 px-3 py-1.5 text-sm',
+  md: 'min-h-10 px-3.5 py-2 text-sm',
+  lg: 'min-h-12 px-4 py-3 text-base',
 } as const;
 
 export type Size = 'sm' | 'md' | 'lg';

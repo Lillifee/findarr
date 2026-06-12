@@ -6,8 +6,8 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const variants = {
-  glass: 'border border-gray-700/50 bg-gray-800/60 backdrop-blur-md shadow-xl',
-  solid: 'border border-gray-700/50 bg-gray-800/85 backdrop-blur-sm shadow-xl',
+  glass: 'border border-zinc-800 bg-zinc-900/35 shadow-[0_18px_50px_rgba(0,0,0,0.18)]',
+  solid: 'border border-zinc-800 bg-zinc-900/45',
   transparent: 'bg-transparent',
 };
 

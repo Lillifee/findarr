@@ -54,7 +54,13 @@ export function PasswordForm({ form }: PasswordFormProps) {
       {form.error && <p className="text-sm text-red-400">{form.error}</p>}
       {form.success && <p className="text-sm text-emerald-400">{form.success}</p>}
 
-      <Button type="submit" className="w-full" loading={form.submitting} disabled={!form.canSubmit}>
+      <Button
+        type="submit"
+        size="sm"
+        className="w-full"
+        loading={form.submitting}
+        disabled={!form.canSubmit}
+      >
         {form.submitting ? 'Updating Password...' : 'Update Password'}
       </Button>
     </form>

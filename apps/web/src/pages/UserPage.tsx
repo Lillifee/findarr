@@ -32,7 +32,7 @@ export function UsersPage() {
           action={
             <Button
               type="button"
-              variant={showCreateForm ? 'secondary' : 'success'}
+              variant={showCreateForm ? 'secondary' : 'primary'}
               size="sm"
               onClick={() => {
                 setShowCreateForm(!showCreateForm);

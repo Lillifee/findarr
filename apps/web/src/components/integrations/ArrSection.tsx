@@ -13,7 +13,7 @@ import { IntegrationCard } from './IntegrationCard';
 import { StepPanel } from './StepPanel';
 
 const readonlyClass =
-  'w-full min-h-10 rounded-lg border border-gray-700/50 bg-gray-800/60 px-3.5 py-2 text-sm text-gray-500';
+  'w-full min-h-10 rounded-lg border border-zinc-800 bg-zinc-950/60 px-3.5 py-2 text-sm text-zinc-500';
 
 function formatBytes(bytes: number): string {
   const gb = bytes / 1024 ** 3;
@@ -204,7 +204,7 @@ export function ArrSection({ service, title, description }: ArrSectionProps) {
         />
       }
     >
-      <div className="grid gap-5 xl:grid-cols-2 xl:items-start">
+      <div className="grid gap-6 xl:grid-cols-2 xl:items-start">
         <ConnectionCredentialsStep
           urlValue={urlInput}
           onUrlChange={handleUrlChange}
@@ -219,7 +219,7 @@ export function ArrSection({ service, title, description }: ArrSectionProps) {
           message="Choose the quality profile and root folder for new requests."
         >
           <div>
-            <label className="mb-1.5 block text-sm text-gray-300">Quality Profile</label>
+            <label className="mb-1.5 block text-sm text-zinc-300">Quality Profile</label>
             {connectionEstablished && profiles.length > 0 ? (
               <SelectInput
                 value={selectedProfileId}
@@ -242,7 +242,7 @@ export function ArrSection({ service, title, description }: ArrSectionProps) {
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm text-gray-300">Root Folder</label>
+            <label className="mb-1.5 block text-sm text-zinc-300">Root Folder</label>
             {connectionEstablished && rootFolders.length > 0 ? (
               <SelectInput
                 value={selectedRootFolder}

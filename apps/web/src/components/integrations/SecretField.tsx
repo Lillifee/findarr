@@ -11,10 +11,10 @@ interface SecretFieldProps {
 export function SecretField({ label, value, onChange, isSet, placeholder }: SecretFieldProps) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm text-gray-300">
+      <label className="mb-1.5 block text-sm text-zinc-300">
         {label}
         {isSet && !value && (
-          <span className="ml-2 text-xs font-normal text-gray-500">
+          <span className="ml-2 text-xs font-normal text-zinc-500">
             (already set — leave blank to keep)
           </span>
         )}

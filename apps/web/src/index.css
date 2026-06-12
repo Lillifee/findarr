@@ -1,4 +1,19 @@
 @import 'tailwindcss';
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..700,0..1,-50..200');
+
+.material-symbols-rounded {
+  font-family: 'Material Symbols Rounded';
+  font-weight: normal;
+  font-style: normal;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  font-feature-settings: 'liga';
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
 
 /* Ensure proper scrolling behavior with fixed navigation */
 html {
@@ -14,7 +29,7 @@ body,
 }
 
 body {
-  background-color: #111827; /* bg-gray-900 */
+  background-color: #09090b; /* bg-zinc-950 */
 }
 
 button:not(:disabled),
@@ -42,24 +57,51 @@ input:disabled,
 }
 
 ::-webkit-scrollbar-track {
-  background: #1f2937; /* bg-gray-800 */
-  border-left: 1px solid #374151; /* border-gray-700 */
+  background: #09090b; /* bg-zinc-950 */
+  border-left: 1px solid #27272a; /* border-zinc-800 */
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #4b5563 0%, #374151 100%); /* gray-600 to gray-700 */
+  background: #3f3f46; /* zinc-700 */
   border-radius: 6px;
-  border: 2px solid #1f2937; /* bg-gray-800 */
+  border: 2px solid #09090b; /* bg-zinc-950 */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #6b7280 0%, #4b5563 100%); /* gray-500 to gray-600 */
+  background: #52525b; /* zinc-600 */
 }
 
 /* For Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #4b5563 #1f2937; /* thumb: gray-600, track: bg-gray-800 */
+  scrollbar-color: #3f3f46 #09090b; /* thumb: zinc-700, track: bg-zinc-950 */
+}
+
+.range-input {
+  height: 0.5rem;
+  appearance: none;
+  border-radius: 9999px;
+  background: #27272a;
+  accent-color: #f59e0b;
+}
+
+.range-input::-webkit-slider-thumb {
+  width: 1rem;
+  height: 1rem;
+  appearance: none;
+  border: 2px solid #fbbf24;
+  border-radius: 9999px;
+  background: #09090b;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.12);
+}
+
+.range-input::-moz-range-thumb {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #fbbf24;
+  border-radius: 9999px;
+  background: #09090b;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.12);
 }
 
 .scrollbar-hidden {

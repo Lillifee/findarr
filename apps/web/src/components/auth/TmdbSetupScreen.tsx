@@ -80,12 +80,12 @@ export function TmdbSetupScreen() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-zinc-950 via-neutral-950 to-stone-950 px-4">
       <div className="w-full max-w-2xl">
         <Card
           variant="solid"
           padding="lg"
-          className="overflow-hidden rounded-3xl border-gray-700/60 shadow-2xl"
+          className="overflow-hidden rounded-3xl border-zinc-800 shadow-[0_24px_80px_rgba(0,0,0,0.35)]"
         >
           <div className="mb-5 flex items-start justify-between gap-4">
             <div>
@@ -93,10 +93,10 @@ export function TmdbSetupScreen() {
                 Setup Required
               </p>
               <h1 className="mb-2 text-3xl font-bold text-white sm:text-4xl">Connect TMDB</h1>
-              <p className="mt-2 max-w-xl text-sm leading-5 text-gray-400">
+              <p className="mt-2 max-w-xl text-sm leading-5 text-zinc-400">
                 This product uses the TMDB API but is not endorsed or certified by TMDB.
               </p>
-              <p className="mt-2 max-w-xl text-sm leading-5 text-gray-400">
+              <p className="mt-2 max-w-xl text-sm leading-5 text-zinc-400">
                 Finish the initial Findarr setup by adding a TMDB read access token. This enables
                 search, discovery, and full media metadata throughout the app.
               </p>
@@ -104,7 +104,7 @@ export function TmdbSetupScreen() {
           </div>
 
           <div className="mb-8">
-            <div className="rounded-2xl border border-gray-700/50 bg-gray-900/30 px-5 py-5 text-left text-sm text-gray-400">
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 px-5 py-5 text-left text-sm text-zinc-400">
               <p>
                 Sign in or create an account at{' '}
                 <a
@@ -118,19 +118,19 @@ export function TmdbSetupScreen() {
                 , then open the following section in your account:
               </p>
               <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-                <span className="rounded-lg border border-gray-600/60 bg-gray-800/70 px-3 py-1.5 font-semibold text-white">
+                <span className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 font-semibold text-white">
                   Settings
                 </span>
-                <span className="text-gray-500">/</span>
-                <span className="rounded-lg border border-gray-600/60 bg-gray-800/70 px-3 py-1.5 font-semibold text-white">
+                <span className="text-zinc-500">/</span>
+                <span className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 font-semibold text-white">
                   API
                 </span>
-                <span className="text-gray-500">/</span>
-                <span className="rounded-lg border border-gray-600/60 bg-gray-800/70 px-3 py-1.5 font-semibold text-white">
+                <span className="text-zinc-500">/</span>
+                <span className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 font-semibold text-white">
                   API Read Access Token
                 </span>
               </div>
-              <p className="mt-4 text-sm leading-6 text-gray-300">
+              <p className="mt-4 text-sm leading-6 text-zinc-300">
                 Copy that value and paste it into the field below.
               </p>
             </div>

@@ -7,12 +7,12 @@ import { PageHeader } from '../components/ui/PageHeader';
 export function IntegrationsPage() {
   return (
     <PageContainer>
-      <div className="space-y-6">
+      <div className="space-y-5">
         <PageHeader
           title="Integrations"
           description="Configure TMDB, Jellyfin, Radarr, and Sonarr for discovery and automatic media management."
         />
-        <div className="space-y-6">
+        <div className="space-y-4">
           <TmdbSection />
           <JellyfinSection />
           <ArrSection

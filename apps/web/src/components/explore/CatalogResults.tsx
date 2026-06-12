@@ -70,8 +70,8 @@ export function CatalogResults({
       <ResultsGrid results={results} onSelectItem={onSelectItem} onUpdateItem={onUpdateItem} />
 
       {hasMore && (
-        <div className="mt-6 border-t border-gray-700 pt-4 text-center md:mt-8 md:pt-6 md:pb-0">
-          <Button onClick={onLoadMore} disabled={loadingMore || loading}>
+        <div className="mt-6 border-t border-zinc-800 pt-4 text-center md:mt-8 md:pt-6 md:pb-0">
+          <Button variant="secondary" onClick={onLoadMore} disabled={loadingMore || loading}>
             {loadingMore ? 'Loading...' : 'Load more'}
           </Button>
         </div>

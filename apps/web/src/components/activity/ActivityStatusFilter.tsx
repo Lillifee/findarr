@@ -1,6 +1,7 @@
 import type { InteractionsQuery } from '@findarr/shared/interaction';
 
 import { OptionButton } from '../ui/OptionButton';
+import { PanelSection } from '../ui/PanelSection';
 
 type ActionFilter = InteractionsQuery['action'];
 
@@ -16,20 +17,6 @@ const statusOptions: StatusOption[] = [
   { value: 'disliked', title: 'Downvotes', description: 'Focus on titles you disliked.' },
 ];
 
-function CheckIcon({ selected }: { selected: boolean }) {
-  return (
-    <span
-      className={`flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${
-        selected
-          ? 'border-gray-500 bg-gray-200/90 text-gray-900'
-          : 'border-gray-600/70 bg-transparent text-transparent'
-      }`}
-    >
-      ✓
-    </span>
-  );
-}
-
 interface ActivityStatusFilterProps {
   actionFilter: ActionFilter;
   onActionChange: (action: ActionFilter) => void;
@@ -37,7 +24,7 @@ interface ActivityStatusFilterProps {
 
 export function ActivityStatusFilter({ actionFilter, onActionChange }: ActivityStatusFilterProps) {
   return (
-    <div className="rounded-xl border border-gray-700/50 bg-gray-800/70 p-4">
+    <PanelSection>
       <div className="mb-2.5">
         <h4 className="text-sm font-semibold text-white">Voting status</h4>
       </div>
@@ -51,10 +38,9 @@ export function ActivityStatusFilter({ actionFilter, onActionChange }: ActivityS
             }}
             title={option.title}
             description={option.description}
-            icon={<CheckIcon selected={actionFilter === option.value} />}
           />
         ))}
       </div>
-    </div>
+    </PanelSection>
   );
 }

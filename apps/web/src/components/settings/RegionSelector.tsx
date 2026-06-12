@@ -56,48 +56,10 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
     }
   };
 
-  const handleShowAll = () => {
-    onRegionsChange(allRegions);
-  };
-
-  const handleHideAll = () => {
-    onRegionsChange([]);
-  };
-
-  const isShowingAll = selectedRegions.length === allRegions.length;
-  const isShowingNone = selectedRegions.length === 0;
-
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-gray-400">Content Regions</label>
-
-        <div className="flex gap-2">
-          <button
-            onClick={handleShowAll}
-            type="button"
-            disabled={disabled || isShowingAll}
-            className={`inline-flex min-h-8 items-center justify-center rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-              isShowingAll
-                ? 'border-gray-400 bg-gray-300/90 text-gray-950'
-                : 'border-gray-600/70 bg-gray-800/80 text-gray-300 hover:border-gray-400 hover:bg-gray-700/80 hover:text-white'
-            }`}
-          >
-            All
-          </button>
-          <button
-            onClick={handleHideAll}
-            type="button"
-            disabled={disabled || isShowingNone}
-            className={`inline-flex min-h-8 items-center justify-center rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-              isShowingNone
-                ? 'border-gray-400 bg-gray-300/90 text-gray-950'
-                : 'border-gray-600/70 bg-gray-800/80 text-gray-300 hover:border-gray-400 hover:bg-gray-700/80 hover:text-white'
-            }`}
-          >
-            None
-          </button>
-        </div>
+        <label className="text-sm font-medium text-zinc-400">Content Regions</label>
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-2">
@@ -113,14 +75,7 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
               }}
               disabled={disabled}
               selected={isSelected}
-              title={
-                <span className="flex items-center gap-2">
-                  <span
-                    className={`h-2.5 w-2.5 rounded-full ${isSelected ? 'bg-gray-900' : 'bg-gray-500'}`}
-                  />
-                  <span>{region.name}</span>
-                </span>
-              }
+              title={region.name}
               description={region.description}
               className={disabled ? 'cursor-not-allowed opacity-60' : ''}
             />
@@ -129,7 +84,7 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
       </div>
 
       {selectedRegions.length > 0 && selectedRegions.length < allRegions.length && (
-        <div className="text-center text-xs text-gray-400 italic">
+        <div className="text-center text-xs text-zinc-400 italic">
           Showing {selectedRegions.length} of {allRegions.length} content regions
         </div>
       )}
