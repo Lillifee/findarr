@@ -65,7 +65,7 @@ export function MediaTypeChips({ selectedType, onChange, disabled = false }: Med
               onChange(type.value);
             }
           }}
-          className={`min-h-8 rounded-none px-3 py-1.5 text-sm ${
+          className={`min-h-10 rounded-none px-3 py-1.5 text-sm ${
             selectedType === type.value
               ? 'border-gray-200 bg-gray-200 text-gray-950 shadow-none hover:bg-gray-100 hover:text-gray-950'
               : 'border-transparent bg-transparent text-gray-300 hover:border-gray-600 hover:bg-gray-700/80 hover:text-white'
