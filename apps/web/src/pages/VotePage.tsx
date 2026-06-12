@@ -40,7 +40,6 @@ export function VotePage() {
         }
         filters={
           <FiltersToolbar
-            disableWrapper
             selectedType={selectedType}
             onTypeChange={onTypeChange}
             disabled={isLoading}

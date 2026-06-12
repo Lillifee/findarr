@@ -30,7 +30,6 @@ export function ExplorePage() {
         }
         filters={
           <FiltersToolbar
-            disableWrapper
             selectedType={feed.currentSearchType}
             onTypeChange={feed.onTypeChange}
             disabled={feed.loading}

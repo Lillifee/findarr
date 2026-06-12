@@ -21,15 +21,10 @@ export function ActivityPage() {
     <>
       <StickyHeader>
         <FiltersToolbar
-          disableWrapper
           selectedType={feed.selectedType}
           onTypeChange={(type) => {
             feed.reloadActivityWith({ type });
           }}
-          selectedGenres={[]}
-          onGenresChange={() => {}}
-          showFiltersButton
-          showGenreFilter={false}
           filterDescription="Adjust your activity filters."
           extraFiltersContent={
             <ActivityStatusFilter
