@@ -1,14 +1,13 @@
 import { useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 
-interface HistoryStateWithUserData {
-  [key: string]: unknown;
-  usr?: Record<string, unknown>;
-}
-
-interface LocationRestoreState<T> {
+interface RestoreLocationState<T> {
   restoreState?: T;
 }
+
+type RouterHistoryState = Record<string, unknown> & {
+  usr?: Record<string, unknown>;
+};
 
 export function useHistoryRestoreState<T>() {
   const location = useLocation();
@@ -16,24 +15,22 @@ export function useHistoryRestoreState<T>() {
   // react-router types location.state as `any` and T cannot be validated at
   // runtime, so accept the unchecked shape here.
   // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-  const locationState = (location.state as LocationRestoreState<T> | null) ?? null;
+  const restoredState = (location.state as RestoreLocationState<T> | null)?.restoreState;
 
   const persistState = useCallback(
     (restoreState: T) => {
       // globalThis.history.state is typed `any` by the DOM lib.
       // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-      const historyState = (globalThis.history.state ?? {}) as HistoryStateWithUserData;
-
-      const nextHistoryState = {
-        ...historyState,
-        usr: {
-          ...(historyState.usr ?? undefined),
-          restoreState,
-        },
-      };
+      const currentState = (globalThis.history.state ?? {}) as RouterHistoryState;
 
       globalThis.history.replaceState(
-        nextHistoryState,
+        {
+          ...currentState,
+          usr: {
+            ...currentState.usr,
+            restoreState,
+          },
+        },
         '',
         `${location.pathname}${location.search}`,
       );
@@ -42,7 +39,7 @@ export function useHistoryRestoreState<T>() {
   );
 
   return {
-    restoredState: locationState?.restoreState,
+    restoredState,
     persistState,
   };
 }

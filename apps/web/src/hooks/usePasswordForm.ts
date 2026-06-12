@@ -2,6 +2,18 @@ import { useState } from 'react';
 
 import { authService } from '../services/api';
 
+interface PasswordFields {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+interface PasswordStatus {
+  error: string;
+  success: string;
+  submitting: boolean;
+}
+
 export interface PasswordChangeForm {
   currentPassword: string;
   newPassword: string;
@@ -16,51 +28,64 @@ export interface PasswordChangeForm {
   submit: () => Promise<void>;
 }
 
-export function usePasswordForm(): PasswordChangeForm {
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+const emptyFields: PasswordFields = {
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: '',
+};
 
-  const canSubmit = Boolean(currentPassword && newPassword && confirmPassword);
+const idleStatus: PasswordStatus = {
+  error: '',
+  success: '',
+  submitting: false,
+};
+
+export function usePasswordForm(): PasswordChangeForm {
+  const [fields, setFields] = useState<PasswordFields>(emptyFields);
+  const [status, setStatus] = useState<PasswordStatus>(idleStatus);
+
+  const canSubmit = Boolean(
+    fields.currentPassword && fields.newPassword && fields.confirmPassword && !status.submitting,
+  );
 
   const submit = async () => {
-    setError('');
-    setSuccess('');
+    setStatus(idleStatus);
 
-    if (newPassword !== confirmPassword) {
-      setError('New password and confirmation must match.');
+    if (fields.newPassword !== fields.confirmPassword) {
+      setStatus({ ...idleStatus, error: 'New password and confirmation must match.' });
       return;
     }
 
-    setSubmitting(true);
+    setStatus({ ...idleStatus, submitting: true });
 
     try {
-      await authService.changePassword({ currentPassword, newPassword });
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setSuccess('Password updated successfully.');
+      await authService.changePassword({
+        currentPassword: fields.currentPassword,
+        newPassword: fields.newPassword,
+      });
+      setFields(emptyFields);
+      setStatus({ ...idleStatus, success: 'Password updated successfully.' });
     } catch {
-      setError('Failed to change password. Check your current password and try again.');
-    } finally {
-      setSubmitting(false);
+      setStatus({
+        ...idleStatus,
+        error: 'Failed to change password. Check your current password and try again.',
+      });
     }
   };
 
   return {
-    currentPassword,
-    newPassword,
-    confirmPassword,
-    error,
-    success,
-    submitting,
+    ...fields,
+    ...status,
     canSubmit,
-    setCurrentPassword,
-    setNewPassword,
-    setConfirmPassword,
+    setCurrentPassword: (currentPassword) => {
+      setFields((prev) => ({ ...prev, currentPassword }));
+    },
+    setNewPassword: (newPassword) => {
+      setFields((prev) => ({ ...prev, newPassword }));
+    },
+    setConfirmPassword: (confirmPassword) => {
+      setFields((prev) => ({ ...prev, confirmPassword }));
+    },
     submit,
   };
 }
