@@ -74,13 +74,13 @@ function FilterPanel({ description, children, onClose }: FilterPanelProps) {
   return (
     <>
       <div
-        className="animate-in fade-in fixed inset-0 z-40 cursor-pointer bg-black/60 duration-200"
+        className="animate-in fade-in fixed inset-0 z-1000 cursor-pointer bg-black/60 duration-200"
         onClick={onClose}
       />
 
-      <div className="animate-in slide-in-from-top-4 fixed top-16 right-0 left-0 z-50 mx-4 max-w-7xl duration-200 md:right-0 md:left-64 md:mx-8 md:mr-auto md:ml-auto">
-        <div className="overflow-hidden rounded-xl border border-gray-700/50 bg-gray-800/92 shadow-2xl backdrop-blur-md">
-          <div className="border-b border-gray-700/50 px-4 py-4 md:px-5">
+      <div className="animate-in slide-in-from-top-4 fixed top-8 right-0 left-0 z-1010 mx-4 max-w-7xl duration-200 md:right-0 md:left-64 md:mx-8 md:mr-auto md:ml-auto">
+        <div className="flex max-h-[calc(100dvh-3rem)] flex-col overflow-hidden rounded-xl border border-gray-700/50 bg-gray-800/92 shadow-2xl backdrop-blur-md">
+          <div className="shrink-0 border-b border-gray-700/50 px-4 py-4 md:px-5">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-semibold text-white">Filters</h3>
@@ -97,7 +97,9 @@ function FilterPanel({ description, children, onClose }: FilterPanelProps) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4 p-4 md:p-5">{children}</div>
+          <div className="flex flex-col gap-4 overflow-y-auto overscroll-contain p-4 md:p-5">
+            {children}
+          </div>
         </div>
       </div>
     </>
