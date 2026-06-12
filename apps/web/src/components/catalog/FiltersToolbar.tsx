@@ -5,10 +5,10 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
 import { OptionButton } from '../ui/OptionButton';
+import { PanelSection } from '../ui/PanelSection';
+import { controlSurface } from '../ui/theme';
 import { GenreChips } from './GenreChips';
 import { MediaTypeChips } from './MediaTypeChips';
-
-const panelSectionClass = 'rounded-xl border border-gray-700/50 bg-gray-800/70 p-4';
 
 const interactionOptions: {
   value: InteractionFilter;
@@ -50,20 +50,6 @@ interface FiltersToolbarProps {
   extraFiltersContent?: ReactNode;
 }
 
-function CheckIndicator({ selected }: { selected: boolean }) {
-  return (
-    <span
-      className={`flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${
-        selected
-          ? 'border-gray-500 bg-gray-200/90 text-gray-900'
-          : 'border-gray-600/70 bg-transparent text-transparent'
-      }`}
-    >
-      ✓
-    </span>
-  );
-}
-
 interface FilterPanelProps {
   description: string;
   children: ReactNode;
@@ -74,13 +60,13 @@ function FilterPanel({ description, children, onClose }: FilterPanelProps) {
   return (
     <>
       <div
-        className="animate-in fade-in fixed inset-0 z-1000 cursor-pointer bg-black/60 duration-200"
+        className="animate-in fade-in fixed inset-0 z-[1000] cursor-pointer bg-black/60 duration-200"
         onClick={onClose}
       />
 
-      <div className="animate-in slide-in-from-top-4 fixed top-8 right-0 left-0 z-1010 mx-4 max-w-7xl duration-200 md:right-0 md:left-64 md:mx-8 md:mr-auto md:ml-auto">
-        <div className="flex max-h-[calc(100dvh-3rem)] flex-col overflow-hidden rounded-xl border border-gray-700/50 bg-gray-800/92 shadow-2xl backdrop-blur-md">
-          <div className="shrink-0 border-b border-gray-700/50 px-4 py-4 md:px-5">
+      <div className="animate-in slide-in-from-top-4 fixed top-8 right-0 left-0 z-[1010] mx-4 max-w-7xl duration-200 md:right-0 md:left-64 md:mx-8 md:mr-auto md:ml-auto">
+        <div className="flex max-h-[calc(100dvh-3rem)] flex-col overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+          <div className="shrink-0 border-b border-zinc-800 px-4 py-4 md:px-5">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-semibold text-white">Filters</h3>
@@ -89,7 +75,7 @@ function FilterPanel({ description, children, onClose }: FilterPanelProps) {
               <button
                 type="button"
                 onClick={onClose}
-                className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-700/50 bg-gray-800/70 px-3 py-1.5 text-xs font-medium text-gray-400 transition-colors hover:border-gray-500 hover:bg-gray-700/80 hover:text-white"
+                className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:border-zinc-700 hover:bg-zinc-800 hover:text-zinc-100"
               >
                 Close
                 <span aria-hidden>x</span>
@@ -114,7 +100,7 @@ interface InteractionFilterSectionProps {
 
 function InteractionFilterSection({ disabled, value, onChange }: InteractionFilterSectionProps) {
   return (
-    <div className={panelSectionClass}>
+    <PanelSection>
       <h4 className="mb-2.5 text-sm font-semibold text-white">Voting status</h4>
 
       <div className="grid gap-2.5 md:grid-cols-3">
@@ -131,13 +117,12 @@ function InteractionFilterSection({ disabled, value, onChange }: InteractionFilt
               selected={selected}
               title={option.label}
               description={option.description}
-              icon={<CheckIndicator selected={selected} />}
               className={disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
             />
           );
         })}
       </div>
-    </div>
+    </PanelSection>
   );
 }
 
@@ -170,13 +155,13 @@ export function FiltersToolbar({
 
   const genreFilterSection =
     showGenreFilter && onGenresChange ? (
-      <div className={panelSectionClass}>
+      <PanelSection>
         <GenreChips
           selectedGenres={selectedGenres}
           onGenreChange={onGenresChange}
           disabled={disabled}
         />
-      </div>
+      </PanelSection>
     ) : null;
 
   const hasFilterContent =
@@ -202,7 +187,7 @@ export function FiltersToolbar({
         setFiltersExpanded((current) => !current);
       }}
       aria-expanded={filtersExpanded}
-      className="ml-auto inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-700/50 bg-gray-800/70 px-3.5 py-2 text-sm font-medium whitespace-nowrap text-gray-200 backdrop-blur-sm transition-colors hover:border-gray-500 hover:bg-gray-700/80 hover:text-white"
+      className={`ml-auto inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium whitespace-nowrap ${controlSurface}`}
     >
       Filters
       <span

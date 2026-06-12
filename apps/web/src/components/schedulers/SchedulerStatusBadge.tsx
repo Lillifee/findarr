@@ -7,7 +7,7 @@ interface SchedulerStatusBadgeProps {
 export function SchedulerStatusBadge({ scheduler }: SchedulerStatusBadgeProps) {
   if (scheduler.isRunning) {
     return (
-      <span className="inline-flex rounded-full border border-blue-800 bg-blue-950/40 px-2.5 py-1 text-xs text-blue-200">
+      <span className="inline-flex rounded-full border border-amber-700/70 bg-amber-950/50 px-2.5 py-1 text-xs text-amber-200">
         Running
       </span>
     );
@@ -22,7 +22,7 @@ export function SchedulerStatusBadge({ scheduler }: SchedulerStatusBadgeProps) {
   }
 
   return (
-    <span className="inline-flex rounded-full border border-gray-700 bg-gray-800 px-2.5 py-1 text-xs text-gray-300">
+    <span className="inline-flex rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-xs text-zinc-300">
       Disabled
     </span>
   );

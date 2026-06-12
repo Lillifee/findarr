@@ -1,6 +1,7 @@
 import type { ButtonHTMLAttributes } from 'react';
 
 import { buttonSizes, type Size } from './sizes';
+import { controlSurface } from './theme';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'icon' | 'danger' | 'success';
@@ -11,14 +12,13 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const variants = {
   primary:
     'border border-amber-400/70 bg-amber-500 text-gray-950 hover:border-amber-300 hover:bg-amber-400 shadow-none',
-  secondary:
-    'border border-gray-700/60 bg-gray-800/70 backdrop-blur-sm text-gray-200 hover:border-gray-500 hover:bg-gray-700/80 shadow-none',
-  ghost: 'text-gray-400 hover:bg-gray-700/60 hover:text-white',
-  icon: 'text-gray-400 hover:bg-gray-700/60 hover:text-white rounded-lg',
+  secondary: `${controlSurface} shadow-none`,
+  ghost: 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100',
+  icon: 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100 rounded-lg',
   danger:
-    'border border-red-700/70 bg-red-900/30 text-red-200 hover:border-red-500 hover:bg-red-800/50 hover:text-white shadow-none',
+    'border border-red-900/80 bg-red-950/60 text-red-200 hover:border-red-700 hover:bg-red-900/60 hover:text-white shadow-none',
   success:
-    'border border-emerald-700/70 bg-emerald-900/30 text-emerald-200 hover:border-emerald-500 hover:bg-emerald-800/50 hover:text-white shadow-none',
+    'border border-emerald-900/80 bg-emerald-950/60 text-emerald-200 hover:border-emerald-700 hover:bg-emerald-900/60 hover:text-white shadow-none',
 };
 
 export function Button({

@@ -12,24 +12,23 @@ export interface BadgeProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const variants = {
   primary:
     'bg-amber-600/20 text-amber-200 border-amber-500/40 hover:bg-amber-600/30 hover:border-amber-500/60',
-  secondary:
-    'bg-gray-800/60 text-gray-300 border-gray-600/50 hover:bg-gray-700/80 hover:border-gray-500/70',
+  secondary: 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700',
   success:
     'bg-green-600/20 text-green-200 border-green-500/40 hover:bg-green-600/30 hover:border-green-500/60',
   warning:
     'bg-yellow-600/20 text-yellow-200 border-yellow-500/40 hover:bg-yellow-600/30 hover:border-yellow-500/60',
   danger:
     'bg-red-600/20 text-red-200 border-red-500/40 hover:bg-red-600/30 hover:border-red-500/60',
-  info: 'bg-blue-600/20 text-blue-200 border-blue-500/40 hover:bg-blue-600/30 hover:border-blue-500/60',
+  info: 'bg-zinc-800 text-zinc-200 border-zinc-700 hover:bg-zinc-700 hover:border-zinc-600',
 };
 
 const selectedVariants = {
-  primary: 'bg-amber-600 text-white border-amber-500 shadow-md',
-  secondary: 'bg-gray-700 text-white border-gray-500 shadow-md',
-  success: 'bg-green-600 text-white border-green-500 shadow-md',
-  warning: 'bg-yellow-600 text-white border-yellow-500 shadow-md',
-  danger: 'bg-red-600 text-white border-red-500 shadow-md',
-  info: 'bg-blue-600 text-white border-blue-500 shadow-md',
+  primary: 'bg-amber-600 text-white border-amber-500',
+  secondary: 'bg-amber-400/12 text-amber-100 border-amber-400/45',
+  success: 'bg-green-600 text-white border-green-500',
+  warning: 'bg-yellow-600 text-white border-yellow-500',
+  danger: 'bg-red-600 text-white border-red-500',
+  info: 'bg-amber-400/12 text-amber-100 border-amber-400/45',
 };
 
 export function Badge({
@@ -42,8 +41,7 @@ export function Badge({
   type = 'button',
   ...props
 }: BadgeProps) {
-  const baseStyles =
-    'inline-flex items-center gap-1.5 rounded-full font-medium border backdrop-blur-sm';
+  const baseStyles = 'inline-flex items-center gap-1.5 rounded-full font-medium border';
   const variantStyles = selected ? selectedVariants[variant] : variants[variant];
   const sizeStyles = badgeSizes[size];
   const interactiveStyles = interactive ? 'cursor-pointer transition-all duration-200' : '';

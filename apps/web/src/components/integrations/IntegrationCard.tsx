@@ -22,16 +22,18 @@ export function IntegrationCard({
   actions,
 }: React.PropsWithChildren<IntegrationCardProps>) {
   return (
-    <Card variant="solid" padding="md">
-      <div className="mb-5 flex items-center gap-2">
-        <h3 className="text-lg font-semibold text-white">{title}</h3>
+    <Card variant="solid" padding="none" className="overflow-hidden">
+      <div className="flex flex-col gap-2 border-b border-zinc-800 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-6">
+        <div className="min-w-0">
+          <h3 className="text-lg font-semibold text-white">{title}</h3>
+          <p className="mt-1 text-sm text-zinc-400">{description}</p>
+        </div>
         <ConnectionStatusBadge status={status} />
       </div>
-      <p className="-mt-3 mb-5 text-sm text-gray-400">{description}</p>
 
-      <form onSubmit={onSubmit} className="space-y-4">
-        {children}
-        {actions}
+      <form onSubmit={onSubmit}>
+        <div className="px-5 py-5 md:px-6">{children}</div>
+        <div className="border-t border-zinc-800 px-5 py-4 md:px-6">{actions}</div>
       </form>
     </Card>
   );

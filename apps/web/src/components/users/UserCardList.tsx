@@ -39,13 +39,13 @@ export function UserCardList({ users, onDelete }: UserCardListProps) {
                   <h3 className="truncate text-sm font-semibold text-white">{user.displayName}</h3>
                   <UserRoleBadge role={user.role} className="shrink-0" />
                 </div>
-                <div className="mt-0.5 truncate text-xs text-gray-400">{user.email}</div>
+                <div className="mt-0.5 truncate text-xs text-zinc-400">{user.email}</div>
               </div>
             </div>
 
             <div className="flex items-center justify-between gap-4 sm:justify-end">
-              <div className="text-xs text-gray-500 sm:text-right">
-                <span className="block text-[11px] tracking-wide text-gray-600 uppercase">
+              <div className="text-xs text-zinc-500 sm:text-right">
+                <span className="block text-[11px] tracking-wide text-zinc-600 uppercase">
                   Created
                 </span>
                 {new Date(user.createdAt * 1000).toLocaleDateString()}

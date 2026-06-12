@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { Icon } from '../ui/Icon';
 import { StatusBadge, type StatusType } from '../ui/StatusBadge';
 
 interface SeasonSelectorModalProps {
@@ -92,10 +93,10 @@ export default function SeasonSelectorModal({
         className="relative flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden"
       >
         {/* Header - More compact */}
-        <div className="flex items-center justify-between border-b border-gray-700/50 p-4">
+        <div className="flex items-center justify-between border-b border-zinc-800 p-4">
           <div className="min-w-0 flex-1 pr-2">
             <h2 className="text-lg font-bold text-white">Select Seasons</h2>
-            <p className="mt-0.5 truncate text-xs text-gray-400">{showName}</p>
+            <p className="mt-0.5 truncate text-xs text-zinc-400">{showName}</p>
           </div>
           <Button
             onClick={onClose}
@@ -104,21 +105,14 @@ export default function SeasonSelectorModal({
             className="shrink-0"
             aria-label="Close"
           >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <Icon name="close" />
           </Button>
         </div>
 
         {/* Content - More compact */}
         <div className="flex-1 overflow-y-auto p-4">
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-zinc-400">
               {alreadyRequestedSeasons.length > 0
                 ? `${alreadyRequestedSeasons.length} requested`
                 : 'Choose seasons'}
@@ -147,8 +141,8 @@ export default function SeasonSelectorModal({
                     isAlreadyRequested
                       ? 'cursor-pointer border-green-600/50 bg-green-900/20'
                       : isSelected
-                        ? 'cursor-pointer border-blue-400 bg-blue-900/30'
-                        : 'cursor-pointer border-gray-600 hover:border-gray-500 hover:bg-gray-700/50'
+                        ? 'cursor-pointer border-amber-400/50 bg-amber-400/12'
+                        : 'cursor-pointer border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900'
                   }`}
                 >
                   <input
@@ -157,10 +151,10 @@ export default function SeasonSelectorModal({
                     onChange={() => {
                       handleToggleSeason(season.seasonNumber);
                     }}
-                    className={`mr-3 h-4 w-4 rounded focus:ring-blue-500 ${
+                    className={`mr-3 h-4 w-4 rounded focus:ring-amber-500 ${
                       isAlreadyRequested
                         ? 'cursor-pointer text-green-600'
-                        : 'cursor-pointer text-blue-600'
+                        : 'cursor-pointer text-amber-500'
                     }`}
                   />
                   <div className="min-w-0 flex-1">
@@ -171,7 +165,7 @@ export default function SeasonSelectorModal({
                         <StatusBadge status={badgeStatusMap[status]} size="sm" />
                       )}
                     </div>
-                    <div className="text-xs text-gray-400">
+                    <div className="text-xs text-zinc-400">
                       {season.episodeCount} ep{season.episodeCount === 1 ? '' : 's'}
                     </div>
                   </div>
@@ -182,9 +176,9 @@ export default function SeasonSelectorModal({
         </div>
 
         {/* Footer - More compact */}
-        <div className="border-t border-gray-700/50 p-4">
+        <div className="border-t border-zinc-800 p-4">
           {newlySelectedCount > 0 && (
-            <p className="mb-3 text-xs text-gray-300">
+            <p className="mb-3 text-xs text-zinc-300">
               {newlySelectedCount} new season{newlySelectedCount === 1 ? '' : 's'} to request
             </p>
           )}

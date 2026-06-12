@@ -45,7 +45,7 @@ export function CreateUserForm({ onCreate, onClose }: CreateUserFormProps) {
       >
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-sm text-gray-300">Email</label>
+            <label className="mb-1.5 block text-sm text-zinc-300">Email</label>
             <Input
               type="email"
               value={formData.email}
@@ -56,7 +56,7 @@ export function CreateUserForm({ onCreate, onClose }: CreateUserFormProps) {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm text-gray-300">Display Name</label>
+            <label className="mb-1.5 block text-sm text-zinc-300">Display Name</label>
             <Input
               type="text"
               value={formData.displayName}
@@ -70,7 +70,7 @@ export function CreateUserForm({ onCreate, onClose }: CreateUserFormProps) {
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-sm text-gray-300">Password</label>
+            <label className="mb-1.5 block text-sm text-zinc-300">Password</label>
             <Input
               type="password"
               value={formData.password}

@@ -6,8 +6,8 @@ interface UserRoleBadgeProps {
 export function UserRoleBadge({ role, className = '' }: UserRoleBadgeProps) {
   const toneClass =
     role === 'admin'
-      ? 'border-gray-300 bg-gray-200 text-gray-950'
-      : 'border-gray-700 bg-gray-800 text-gray-300';
+      ? 'border-amber-400/45 bg-amber-400/12 text-amber-100'
+      : 'border-zinc-800 bg-zinc-900 text-zinc-300';
 
   return (
     <span

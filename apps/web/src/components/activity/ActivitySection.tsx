@@ -3,18 +3,8 @@ import type { Media } from '@findarr/shared/media';
 import { ResultsGrid } from '../media/ResultsGrid';
 import { Button } from '../ui/Button';
 import { EmptyState } from '../ui/EmptyState';
+import { Icon } from '../ui/Icon';
 import { Spinner } from '../ui/Spinner';
-
-const emptyIcon = (
-  <svg className="h-24 w-24 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={1.5}
-      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-    />
-  </svg>
-);
 
 interface ActivitySectionProps {
   results: Media[];
@@ -64,7 +54,7 @@ export function ActivitySection({
       {!loading && results.length === 0 && (
         <EmptyState
           className="py-20"
-          icon={emptyIcon}
+          icon={<Icon className="text-zinc-600" name="fact_check" size="display" />}
           title="No activity yet"
           message="You have not voted on any media yet. Start exploring and your personal request activity will show up here."
         />
@@ -76,8 +66,8 @@ export function ActivitySection({
 
       {hasMore && (
         <div className="pt-6 md:pt-8 md:pb-0">
-          <div className="border-t border-gray-700 pt-4 text-center md:pt-6 md:pb-0">
-            <Button onClick={onLoadMore} disabled={loadingMore}>
+          <div className="border-t border-zinc-800 pt-4 text-center md:pt-6 md:pb-0">
+            <Button variant="secondary" onClick={onLoadMore} disabled={loadingMore}>
               {loadingMore ? 'Loading...' : 'Load more'}
             </Button>
           </div>

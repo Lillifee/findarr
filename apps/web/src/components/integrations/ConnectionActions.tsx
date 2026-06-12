@@ -22,7 +22,7 @@ export function ConnectionActions({
   onTest,
 }: ConnectionActionsProps) {
   return (
-    <div className="flex flex-col gap-3 border-t border-gray-800/80 pt-4 sm:flex-row sm:items-start sm:gap-4">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
       <div className="flex flex-wrap gap-2">
         <Button type="submit" disabled={isSaving || !isDirty} size="sm">
           {isSaving ? 'Saving\u2026' : 'Save Settings'}

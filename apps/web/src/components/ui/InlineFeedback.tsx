@@ -7,7 +7,7 @@ export function InlineFeedback({ tone, message }: Feedback) {
 
   return (
     <div
-      className={`flex items-center gap-2 rounded-lg border border-dashed bg-gray-900/30 px-3 py-2 text-sm ${toneClass}`}
+      className={`flex items-center gap-2 rounded-lg border border-dashed bg-zinc-950/50 px-3 py-2 text-sm ${toneClass}`}
     >
       <span className={`h-2 w-2 flex-none rounded-full ${dotClass}`} aria-hidden="true" />
       <span>{message}</span>

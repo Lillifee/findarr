@@ -25,7 +25,7 @@ export function ConnectionCredentialsStep({
       message="Save the server URL and API key before testing the connection."
     >
       <div>
-        <label className="mb-1.5 block text-sm text-gray-300">Server URL</label>
+        <label className="mb-1.5 block text-sm text-zinc-300">Server URL</label>
         <Input
           type="url"
           value={urlValue}

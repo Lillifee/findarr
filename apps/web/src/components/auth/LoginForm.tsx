@@ -4,6 +4,7 @@ import { useSession } from '../../hooks/useSession';
 import { asVoid } from '../../utils/asyncHandlers';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { InlineFeedback } from '../ui/InlineFeedback';
 import { Input } from '../ui/Input';
 
 export function LoginForm() {
@@ -28,12 +29,19 @@ export function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-zinc-950 via-neutral-950 to-stone-950 px-4">
       <div className="w-full max-w-md">
-        <Card variant="solid" padding="lg">
+        <Card
+          variant="solid"
+          padding="lg"
+          className="overflow-hidden rounded-3xl border-zinc-800 shadow-[0_24px_80px_rgba(0,0,0,0.35)]"
+        >
           <div className="mb-8 text-center">
+            <p className="mb-5 inline-flex rounded-full border border-amber-400/25 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold tracking-[0.18em] text-amber-300 uppercase">
+              Findarr
+            </p>
             <h1 className="mb-2 text-3xl font-bold text-white">Findarr</h1>
-            <p className="text-gray-400">Sign in to your account</p>
+            <p className="text-zinc-400">Sign in to your account</p>
           </div>
 
           <form onSubmit={asVoid(handleSubmit)} className="space-y-6">
@@ -61,11 +69,7 @@ export function LoginForm() {
               placeholder="••••••••"
             />
 
-            {error && (
-              <div className="rounded-lg border border-red-700 bg-red-900/50 px-4 py-3 text-red-200">
-                {error}
-              </div>
-            )}
+            {error && <InlineFeedback tone="error" message={error} />}
 
             <Button
               type="submit"

@@ -70,7 +70,7 @@ export function ContentPreferencesForm({ settings }: ContentPreferencesFormProps
           onChange={(event) => {
             settings.setSwipeLimit(Number(event.target.value));
           }}
-          className="w-full accent-amber-500"
+          className="range-input w-full"
         />
         <p className="text-xs text-gray-500">
           How many of the top-ranked titles are available to vote on.
@@ -79,7 +79,7 @@ export function ContentPreferencesForm({ settings }: ContentPreferencesFormProps
 
       {isDefined(settings.error) && <p className="text-sm text-red-400">{settings.error}</p>}
 
-      <div className="flex justify-end border-t border-gray-800/80 pt-4">
+      <div className="flex justify-end border-t border-zinc-800 pt-4">
         <Button type="submit" disabled={settings.saving || !settings.isDirty} size="sm">
           {settings.saving ? 'Saving\u2026' : 'Save Settings'}
         </Button>

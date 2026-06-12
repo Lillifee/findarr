@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { linkService } from '../../services/api';
 import { tmdbImage, tmdbImageOrUndefined } from '../../utils/tmdb';
+import { Icon } from '../ui/Icon';
 import { StatusBadge, type StatusType } from '../ui/StatusBadge';
 import { LikeDislikeButton } from './LikeDislikeButton';
 
@@ -58,8 +59,8 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
 
   const availabilityStatus = media.state?.record?.status as StatusType | undefined;
   const infoTileClass =
-    'rounded-xl border border-gray-700/50 bg-gray-800/68 px-3 py-2.5 backdrop-blur-md';
-  const infoLabelClass = 'text-[10px] uppercase tracking-[0.14em] text-gray-400 font-semibold';
+    'rounded-xl border border-zinc-800/80 bg-zinc-950/72 px-3 py-2.5 backdrop-blur-sm';
+  const infoLabelClass = 'text-[10px] uppercase tracking-[0.14em] text-zinc-400 font-semibold';
 
   // Build Radarr/Sonarr link
   const arrLink = isDefined(media.state?.record?.arrUrl)
@@ -95,7 +96,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
   ].filter((link): link is { key: string; url: string; label: string } => !!link);
 
   return (
-    <div className="relative min-h-screen bg-gray-900">
+    <div className="relative min-h-screen bg-zinc-950">
       {/* Full-page backdrop background */}
       {isDefined(backdropUrl) && (
         <div className="fixed inset-0 z-0">
@@ -106,8 +107,8 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
             style={{ objectPosition: 'center 30%' }}
           />
           {/* Gradient overlays for readability */}
-          <div className="absolute inset-0 bg-linear-to-b from-gray-900/70 via-gray-900/90 to-gray-900" />
-          <div className="absolute inset-0 bg-linear-to-r from-gray-900/95 via-gray-900/60 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-b from-zinc-950/70 via-zinc-950/90 to-zinc-950" />
+          <div className="absolute inset-0 bg-linear-to-r from-zinc-950/95 via-zinc-950/62 to-transparent" />
         </div>
       )}
 
@@ -121,7 +122,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
               <img
                 src={posterUrl}
                 alt={title}
-                className="mx-auto w-full max-w-xs rounded-lg shadow-2xl md:mx-0 md:w-56 lg:w-80 xl:w-96"
+                className="mx-auto w-full max-w-xs rounded-lg shadow-[0_26px_80px_rgba(0,0,0,0.42)] md:mx-0 md:w-56 lg:w-80 xl:w-96"
               />
             </div>
           )}
@@ -147,49 +148,23 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
 
             {actionLinks.length > 0 && (
               <div>
-                <div className="flex w-full flex-wrap items-center overflow-hidden rounded-xl border border-gray-700/50 bg-gray-800/70 backdrop-blur-md">
+                <div className="flex w-full flex-wrap items-center overflow-hidden rounded-xl border border-zinc-800/80 bg-zinc-950/72 backdrop-blur-sm">
                   <div className="flex min-w-0 flex-wrap gap-0">
                     {actionLinks.map((link, index) => (
                       <div key={link.key} className="contents">
-                        {index > 0 && <div className="w-px bg-gray-700/60" />}
+                        {index > 0 && <div className="w-px bg-zinc-800/80" />}
                         <a
                           href={link.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 px-4 py-2 font-medium text-gray-100 no-underline transition-colors duration-200 hover:bg-gray-700/70 hover:text-white"
+                          className="flex items-center gap-2 px-4 py-2 font-medium text-zinc-100 no-underline transition-colors duration-200 hover:bg-zinc-800/80 hover:text-white"
                         >
                           {link.key === 'trailer' ? (
-                            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                            </svg>
+                            <Icon filled name="play_arrow" size="sm" />
                           ) : link.key === 'website' ? (
-                            <svg
-                              className="h-4 w-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
-                              />
-                            </svg>
+                            <Icon name="public" size="sm" />
                           ) : (
-                            <svg
-                              className="h-4 w-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4m-4-4h6m0 0V6m0 4v4"
-                              />
-                            </svg>
+                            <Icon name="open_in_new" size="sm" />
                           )}
                           <span>{link.label}</span>
                         </a>
@@ -198,7 +173,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                   </div>
                   {availabilityStatus && (
                     <>
-                      <div className="ml-auto w-px bg-gray-700/60" />
+                      <div className="ml-auto w-px bg-zinc-800/80" />
                       <div className="flex shrink-0 items-center px-4 py-2">
                         <StatusBadge status={availabilityStatus} size="sm" />
                       </div>
@@ -214,35 +189,11 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                 <div className={infoTileClass}>
                   <p className={infoLabelClass}>Media Type</p>
                   <div className="mt-1.5 flex items-center gap-2 text-sm font-semibold text-white">
-                    {media.type === 'movie' ? (
-                      <svg
-                        className="h-4 w-4 text-gray-300"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.8}
-                          d="M7 4v12M13 4v12M3 7h4m6 0h4M3 10h14m-14 3h4m6 0h4M4 16h12a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1z"
-                        />
-                      </svg>
-                    ) : (
-                      <svg
-                        className="h-4 w-4 text-gray-300"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.8}
-                          d="M7.5 14.5 7 16l-.7.7h7.4l-.7-.7-.5-1.5M3 11h14M4.5 14.5h11a1.5 1.5 0 001.5-1.5V4.5A1.5 1.5 0 0015.5 3h-11A1.5 1.5 0 003 4.5V13a1.5 1.5 0 001.5 1.5z"
-                        />
-                      </svg>
-                    )}
+                    <Icon
+                      className="text-zinc-300"
+                      name={media.type === 'movie' ? 'movie' : 'tv'}
+                      size="sm"
+                    />
                     <span>{media.type === 'movie' ? 'Movie' : 'TV Series'}</span>
                   </div>
                 </div>
@@ -250,11 +201,9 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                 <div className={infoTileClass}>
                   <p className={infoLabelClass}>Rating</p>
                   <div className="mt-1.5 flex items-center gap-2 text-sm font-semibold text-white">
-                    <svg className="h-4 w-4 text-amber-300" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
+                    <Icon filled className="text-amber-300" name="star" size="sm" />
                     <span>{media.voteAverage.toFixed(1)}</span>
-                    <span className="text-xs font-medium text-gray-400">
+                    <span className="text-xs font-medium text-zinc-400">
                       ({media.voteCount.toLocaleString()})
                     </span>
                   </div>
@@ -264,19 +213,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                   <div className={infoTileClass}>
                     <p className={infoLabelClass}>Release Date</p>
                     <div className="mt-1.5 flex items-center gap-2 text-sm font-semibold text-gray-100">
-                      <svg
-                        className="h-4 w-4 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
+                      <Icon className="text-zinc-400" name="calendar_month" size="sm" />
                       <span>{releaseDate}</span>
                     </div>
                   </div>
@@ -285,27 +222,15 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                 {media.type === 'movie' ? (
                   <div className={infoTileClass}>
                     <p className={infoLabelClass}>Duration</p>
-                    <div className="mt-1.5 flex items-center gap-2 text-sm font-semibold text-gray-100">
-                      <svg
-                        className="h-4 w-4 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
+                    <div className="mt-1.5 flex items-center gap-2 text-sm font-semibold text-zinc-100">
+                      <Icon className="text-zinc-400" name="schedule" size="sm" />
                       <span>{formatRuntime(media.runtime)}</span>
                     </div>
                   </div>
                 ) : (
                   <div className={infoTileClass}>
-                    <p className={infoLabelClass}>Seasons / Episodes</p>
-                    <p className="mt-1.5 text-sm font-semibold text-gray-100">
+                    <p className={infoLabelClass}>Episodes</p>
+                    <p className="mt-1.5 text-sm font-semibold text-zinc-100">
                       {media.numberOfSeasons} / {media.numberOfEpisodes}
                     </p>
                   </div>
@@ -313,7 +238,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
 
                 <div className={infoTileClass}>
                   <p className={infoLabelClass}>TMDB Status</p>
-                  <p className="mt-1.5 truncate text-sm font-semibold text-gray-100">
+                  <p className="mt-1.5 truncate text-sm font-semibold text-zinc-100">
                     {media.status}
                   </p>
                 </div>
@@ -325,7 +250,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                     {media.genres.map((genre) => (
                       <span
                         key={genre.id}
-                        className="inline-flex items-center rounded-full border border-gray-700/60 bg-gray-800/72 px-3 py-1 text-xs text-gray-200 backdrop-blur-sm"
+                        className="inline-flex items-center rounded-full border border-zinc-800/80 bg-zinc-950/72 px-3 py-1 text-xs text-zinc-200 backdrop-blur-sm"
                       >
                         {genre.name}
                       </span>
@@ -356,21 +281,11 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                         <img
                           src={tmdbImage(actor.profilePath, 'w185')}
                           alt={actor.name}
-                          className="mb-2 h-20 w-20 rounded-full border border-gray-700/50 object-cover shadow-lg"
+                          className="mb-2 h-20 w-20 rounded-full border border-zinc-800/80 object-cover shadow-lg"
                         />
                       ) : (
-                        <div className="mb-2 flex h-20 w-20 items-center justify-center rounded-full border border-gray-700/50 bg-gray-800/70 shadow-lg">
-                          <svg
-                            className="h-10 w-10 text-gray-500"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
+                        <div className="mb-2 flex h-20 w-20 items-center justify-center rounded-full border border-zinc-800/80 bg-zinc-900/80 shadow-lg">
+                          <Icon filled className="text-zinc-500" name="person" size="xl" />
                         </div>
                       )}
                       <div className="w-full text-center">
@@ -391,7 +306,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                   {media.keywords.map((keyword) => (
                     <span
                       key={keyword.id}
-                      className="rounded-full border border-gray-700/50 bg-gray-800/70 px-3 py-1 text-sm text-gray-200 backdrop-blur-sm"
+                      className="rounded-full border border-zinc-800/80 bg-zinc-950/72 px-3 py-1 text-sm text-zinc-200 backdrop-blur-sm"
                     >
                       {keyword.name}
                     </span>
@@ -404,7 +319,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
       </div>
 
       {/* Sticky Like/Dislike buttons at bottom - Always centered, above mobile nav but behind desktop sidebar */}
-      <div className="fixed right-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 z-40 border-t border-gray-700/50 bg-gray-800/90 shadow-2xl backdrop-blur-md md:bottom-0 md:left-64 md:z-30">
+      <div className="fixed right-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 z-40 border-t border-zinc-800/80 bg-zinc-950/95 shadow-[0_-18px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm md:bottom-0 md:left-64 md:z-30">
         <div className="mx-auto flex w-full max-w-7xl justify-center px-4 py-3 md:px-8 md:py-4">
           <LikeDislikeButton
             tmdbId={localMedia.tmdbId}

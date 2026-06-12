@@ -1,5 +1,6 @@
 import { Button } from '../ui/Button';
-import { CenteredState } from '../ui/CenteredState';
+import { EmptyState } from '../ui/EmptyState';
+import { Icon } from '../ui/Icon';
 
 interface VoteCompleteStateProps {
   onExplore: () => void;
@@ -8,19 +9,19 @@ interface VoteCompleteStateProps {
 
 export function VoteCompleteState({ onExplore, onOpenSettings }: VoteCompleteStateProps) {
   return (
-    <CenteredState>
-      <div className="mb-4 text-6xl">🎉</div>
-      <h2 className="mb-2 text-2xl font-bold text-white">All Done!</h2>
-      <p className="mb-6 text-lg text-gray-400">
-        You&apos;ve voted on every item in your current range. Increase your voting range in
-        settings to vote on more.
-      </p>
-      <div className="flex flex-wrap items-center justify-center gap-3">
-        <Button onClick={onExplore}>Explore</Button>
-        <Button variant="secondary" onClick={onOpenSettings}>
-          Open settings
-        </Button>
-      </div>
-    </CenteredState>
+    <EmptyState
+      className="py-24"
+      icon={<Icon className="text-amber-300/80" name="check_circle" size="display" />}
+      title="All done"
+      message="You have voted on every item in your current range. Increase your voting range in settings to vote on more."
+      action={
+        <>
+          <Button onClick={onExplore}>Explore</Button>
+          <Button variant="secondary" onClick={onOpenSettings}>
+            Open settings
+          </Button>
+        </>
+      }
+    />
   );
 }
