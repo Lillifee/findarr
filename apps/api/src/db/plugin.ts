@@ -1,7 +1,6 @@
 import type { FastifyPluginAsync, FastifyPluginOptions } from 'fastify';
 import fp from 'fastify-plugin';
 
-import { seed } from './seed.js';
 import { createDatabase, type Database } from './service.js';
 
 declare module 'fastify' {
@@ -17,7 +16,6 @@ interface DatabasePluginOptions extends FastifyPluginOptions {
 const databasePlugin: FastifyPluginAsync<DatabasePluginOptions> = async (fastify, options) => {
   const { dbPath } = options;
   const { db, sqliteDb } = createDatabase(dbPath);
-  await seed(fastify, db);
 
   fastify.log.info({ name: 'db', dbPath }, 'Database initialized');
 

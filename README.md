@@ -67,15 +67,9 @@ http://localhost:8585
 
 ## 🔐 First-Time Setup
 
-1. Sign in with the default admin account:
-
-```txt
-Email:    admin@findarr.com
-Password: changeme
-```
-
-2. Add your TMDB access token
-3. Save your settings
+1. Open Findarr in your browser
+2. Create the first admin account
+3. Add your TMDB access token
 4. Start discovering content 🎉
 
 ---
