@@ -3,7 +3,7 @@ import type {
   ChangePassword,
   CreateUser,
   AppBootstrapStatus,
-  SetupInitialPassword,
+  SetupOwner,
   User,
 } from '@findarr/shared/auth';
 import type { SearchQuery, PopularQuery, DetailsQuery, GenresQuery } from '@findarr/shared/catalog';
@@ -105,8 +105,9 @@ export const authService = {
     await api.put('/auth/password', payload);
   },
 
-  setupInitialPassword: async (payload: SetupInitialPassword): Promise<void> => {
-    await api.put('/auth/password/setup', payload);
+  setupOwner: async (payload: SetupOwner): Promise<User> => {
+    const response = await api.post<User>('/auth/setup-owner', payload);
+    return response.data;
   },
 };
 

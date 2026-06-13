@@ -14,7 +14,7 @@ export type User = Omit<DbUser, 'passwordHash'>;
 
 export interface AppBootstrapStatus {
   tmdbConfigured: boolean;
-  requiresPasswordSetup: boolean;
+  requiresOwnerSetup: boolean;
 }
 
 // ============================================================================
@@ -38,8 +38,10 @@ export const ChangePasswordSchema = z.object({
   newPassword: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
-export const SetupInitialPasswordSchema = z.object({
-  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+export const SetupOwnerSchema = z.object({
+  displayName: z.string().min(1),
+  email: z.email(),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
 export const DeleteUserSchema = z.object({
@@ -49,5 +51,5 @@ export const DeleteUserSchema = z.object({
 export type Login = z.infer<typeof LoginSchema>;
 export type CreateUser = z.infer<typeof CreateUserSchema>;
 export type ChangePassword = z.infer<typeof ChangePasswordSchema>;
-export type SetupInitialPassword = z.infer<typeof SetupInitialPasswordSchema>;
+export type SetupOwner = z.infer<typeof SetupOwnerSchema>;
 export type DeleteUser = z.infer<typeof DeleteUserSchema>;

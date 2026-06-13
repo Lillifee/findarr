@@ -1,5 +1,6 @@
 import type { CreateUser, User } from '@findarr/shared/auth';
 import { users } from '@findarr/shared/db';
+import { isDefined } from '@findarr/shared/utils';
 import { eq } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';
@@ -49,6 +50,12 @@ export const listAllUsers = (db: Database) =>
     },
     orderBy: (usr, { asc }) => [asc(usr.createdAt)],
   });
+
+export const hasUsers = async (db: Database) => {
+  const user = await db.query.users.findFirst({ columns: { id: true } });
+
+  return isDefined(user);
+};
 
 // ============================================================================
 // Create / Update Operations

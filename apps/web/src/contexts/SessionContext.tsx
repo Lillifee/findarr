@@ -7,7 +7,9 @@ export interface SessionContextType {
   isAdmin: boolean;
   isLoading: boolean;
   isTmdbConfigured: boolean;
+  requiresOwnerSetup: boolean;
   login: (email: string, password: string) => Promise<void>;
+  setupOwner: (email: string, password: string, displayName: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   refreshBootstrapStatus: () => Promise<void>;

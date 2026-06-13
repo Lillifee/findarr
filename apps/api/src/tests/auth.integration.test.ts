@@ -134,61 +134,77 @@ describe('auth routes - integration tests', () => {
     expect(changeReply.json()).toStrictEqual({ error: 'Current password is incorrect' });
   });
 
-  it('returns password-setup requirement in bootstrap for the seeded admin password', async () => {
-    const loginReply = await app.inject({
-      method: 'POST',
-      url: '/auth/login',
-      payload: {
-        email: 'admin@findarr.com',
-        password: 'changeme',
-      },
-    });
-
+  it('returns owner setup requirement in public bootstrap when no users exist', async () => {
     const bootstrapReply = await app.inject({
       method: 'GET',
       url: '/auth/bootstrap',
-      headers: { cookie: getSessionCookie(loginReply) },
     });
 
     expect(bootstrapReply.statusCode).toBe(200);
     expect(bootstrapReply.json()).toStrictEqual({
       tmdbConfigured: true,
-      requiresPasswordSetup: true,
+      requiresOwnerSetup: true,
     });
   });
 
-  it('clears the bootstrap password gate after initial admin password setup', async () => {
-    const loginReply = await app.inject({
-      method: 'POST',
-      url: '/auth/login',
-      payload: {
-        email: 'admin@findarr.com',
-        password: 'changeme',
-      },
-    });
-
-    const cookie = getSessionCookie(loginReply);
+  it('creates and logs in the first admin owner', async () => {
     const setupReply = await app.inject({
-      method: 'PUT',
-      url: '/auth/password/setup',
-      headers: { cookie },
+      method: 'POST',
+      url: '/auth/setup-owner',
       payload: {
-        newPassword: 'updated-admin-password',
+        email: 'owner@test.com',
+        password: 'owner-password',
+        displayName: 'Owner',
       },
     });
 
     expect(setupReply.statusCode).toBe(200);
+    expect(setupReply.json()).toMatchObject({
+      email: 'owner@test.com',
+      displayName: 'Owner',
+      role: 'admin',
+    });
+    expect(setupReply.json()).not.toHaveProperty('passwordHash');
+
+    const cookie = getSessionCookie(setupReply);
+    const meReply = await app.inject({
+      method: 'GET',
+      url: '/auth/me',
+      headers: { cookie },
+    });
+
+    expect(meReply.statusCode).toBe(200);
+    expect(meReply.json()).toMatchObject({
+      email: 'owner@test.com',
+      role: 'admin',
+    });
 
     const bootstrapReply = await app.inject({
       method: 'GET',
       url: '/auth/bootstrap',
-      headers: { cookie },
     });
 
     expect(bootstrapReply.statusCode).toBe(200);
     expect(bootstrapReply.json()).toStrictEqual({
       tmdbConfigured: true,
-      requiresPasswordSetup: false,
+      requiresOwnerSetup: false,
     });
+  });
+
+  it('rejects owner setup after a user exists', async () => {
+    await createTestUserInDb(db, { email: 'existing@test.com' });
+
+    const setupReply = await app.inject({
+      method: 'POST',
+      url: '/auth/setup-owner',
+      payload: {
+        email: 'owner@test.com',
+        password: 'owner-password',
+        displayName: 'Owner',
+      },
+    });
+
+    expect(setupReply.statusCode).toBe(409);
+    expect(setupReply.json()).toStrictEqual({ error: 'Owner account is already set up' });
   });
 });

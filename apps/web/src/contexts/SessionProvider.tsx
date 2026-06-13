@@ -9,24 +9,32 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isTmdbConfigured, setIsTmdbConfigured] = useState(false);
+  const [requiresOwnerSetup, setRequiresOwnerSetup] = useState(false);
 
   const refreshBootstrapStatus = useCallback(async () => {
     const bootstrap = await authService.bootstrap();
     setIsTmdbConfigured(bootstrap.tmdbConfigured);
+    setRequiresOwnerSetup(bootstrap.requiresOwnerSetup);
   }, []);
 
   const refreshUser = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [currentUser, bootstrap] = await Promise.all([
-        authService.me(),
-        authService.bootstrap(),
-      ]);
-      setUser(currentUser);
+      const bootstrap = await authService.bootstrap();
       setIsTmdbConfigured(bootstrap.tmdbConfigured);
+      setRequiresOwnerSetup(bootstrap.requiresOwnerSetup);
+
+      if (bootstrap.requiresOwnerSetup) {
+        setUser(null);
+        return;
+      }
+
+      const currentUser = await authService.me();
+      setUser(currentUser);
     } catch {
       setUser(null);
       setIsTmdbConfigured(false);
+      setRequiresOwnerSetup(false);
     } finally {
       setIsLoading(false);
     }
@@ -62,13 +70,23 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     const bootstrap = await authService.bootstrap();
     setUser(currentUser);
     setIsTmdbConfigured(bootstrap.tmdbConfigured);
+    setRequiresOwnerSetup(bootstrap.requiresOwnerSetup);
+  }, []);
+
+  const setupOwner = useCallback(async (email: string, password: string, displayName: string) => {
+    const currentUser = await authService.setupOwner({ email, password, displayName });
+    const bootstrap = await authService.bootstrap();
+    setUser(currentUser);
+    setIsTmdbConfigured(bootstrap.tmdbConfigured);
+    setRequiresOwnerSetup(bootstrap.requiresOwnerSetup);
   }, []);
 
   const logout = useCallback(async () => {
     await authService.logout();
     setUser(null);
     setIsTmdbConfigured(false);
-  }, []);
+    await refreshBootstrapStatus();
+  }, [refreshBootstrapStatus]);
 
   const value = useMemo<SessionContextType>(
     () => ({
@@ -77,12 +95,24 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       isAdmin: user?.role === 'admin',
       isLoading,
       isTmdbConfigured,
+      requiresOwnerSetup,
       login,
+      setupOwner,
       logout,
       refreshUser,
       refreshBootstrapStatus,
     }),
-    [user, isLoading, isTmdbConfigured, login, logout, refreshUser, refreshBootstrapStatus],
+    [
+      user,
+      isLoading,
+      isTmdbConfigured,
+      requiresOwnerSetup,
+      login,
+      setupOwner,
+      logout,
+      refreshUser,
+      refreshBootstrapStatus,
+    ],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

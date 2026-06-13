@@ -1,10 +1,12 @@
-import type { ChangePassword, Login, SetupInitialPassword, User } from '@findarr/shared/auth';
+import type { ChangePassword, Login, SetupOwner, User } from '@findarr/shared/auth';
 
 import type { Database } from '../db/service.js';
-import { forbidden, unauthorized } from '../utils/errors.js';
+import { conflict, unauthorized } from '../utils/errors.js';
 import {
+  createUser,
   getUserByEmail,
   getUserById,
+  hasUsers,
   removePasswordHash,
   updateUserPassword,
 } from './repository.js';
@@ -33,18 +35,17 @@ export const login = async (db: Database, { email, password }: Login) => {
   return removePasswordHash(user);
 };
 
-export const isAdminPasswordSetupRequired = async (user: UserWithPassword) =>
-  user.role === 'admin' && verifyPassword(user.passwordHash, 'changeme');
+export const isOwnerSetupRequired = async (db: Database) => hasUsers(db).then((exists) => !exists);
 
-export const isPasswordSetupRequired = async (db: Database, userId: number) => {
-  const user = await getUserById(db, userId);
-
-  if (!user) {
-    throw unauthorized('Authentication required');
+export const setupOwner = async (db: Database, owner: SetupOwner) => {
+  const ownerSetupRequired = await isOwnerSetupRequired(db);
+  if (!ownerSetupRequired) {
+    throw conflict('Owner account is already set up');
   }
 
-  const setupRequired = await isAdminPasswordSetupRequired(user);
-  return setupRequired;
+  const user = await createUser(db, { ...owner, role: 'admin' });
+
+  return removePasswordHash(user);
 };
 
 export const changePassword = async (
@@ -61,29 +62,6 @@ export const changePassword = async (
   const isCurrentPasswordValid = await verifyPassword(user.passwordHash, currentPassword);
   if (!isCurrentPasswordValid) {
     throw unauthorized('Current password is incorrect');
-  }
-
-  await updateUserPassword(db, user.id, newPassword);
-};
-
-export const setupInitialPassword = async (
-  db: Database,
-  userId: number,
-  { newPassword }: SetupInitialPassword,
-) => {
-  const user = await getUserById(db, userId);
-
-  if (!user) {
-    throw unauthorized('Authentication required');
-  }
-
-  if (user.role !== 'admin') {
-    throw forbidden('Admin access required');
-  }
-
-  const setupRequired = await isAdminPasswordSetupRequired(user);
-  if (!setupRequired) {
-    throw forbidden('Admin password is already set up');
   }
 
   await updateUserPassword(db, user.id, newPassword);

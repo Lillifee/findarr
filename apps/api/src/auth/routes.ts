@@ -1,15 +1,33 @@
 import {
   ChangePasswordSchema,
   LoginSchema,
-  SetupInitialPasswordSchema,
+  SetupOwnerSchema,
   type AppBootstrapStatus,
 } from '@findarr/shared/auth';
 import type { FastifyInstance } from 'fastify';
 
 import { protectedRoute } from '../utils/routes.js';
-import { changePassword, isPasswordSetupRequired, login, setupInitialPassword } from './service.js';
+import { changePassword, isOwnerSetupRequired, login, setupOwner } from './service.js';
 
 export const authRoutes = (fastify: FastifyInstance) => {
+  // Get bootstrap status for first-run and app gating
+  fastify.get(
+    '/bootstrap',
+    async (): Promise<AppBootstrapStatus> => ({
+      tmdbConfigured: fastify.tmdb.isConfigured(),
+      requiresOwnerSetup: await isOwnerSetupRequired(fastify.db),
+    }),
+  );
+
+  // First-run owner account setup
+  fastify.post('/setup-owner', async (r) => {
+    const user = await setupOwner(fastify.db, SetupOwnerSchema.parse(r.body));
+
+    r.session.set('userId', user.id);
+
+    return user;
+  });
+
   // Login endpoint
   fastify.post('/login', async (r) => {
     const user = await login(fastify.db, LoginSchema.parse(r.body));
@@ -39,22 +57,5 @@ export const protectedAuthRoutes = (fastify: FastifyInstance) => {
       await changePassword(fastify.db, r.user.id, ChangePasswordSchema.parse(r.body));
       return { success: true };
     }),
-  );
-
-  fastify.put(
-    '/password/setup',
-    protectedRoute(async (r) => {
-      await setupInitialPassword(fastify.db, r.user.id, SetupInitialPasswordSchema.parse(r.body));
-      return { success: true };
-    }),
-  );
-
-  // Get bootstrap status for post-login app gating
-  fastify.get(
-    '/bootstrap',
-    protectedRoute<AppBootstrapStatus>(async (r) => ({
-      tmdbConfigured: fastify.tmdb.isConfigured(),
-      requiresPasswordSetup: await isPasswordSetupRequired(fastify.db, r.user.id),
-    })),
   );
 };
