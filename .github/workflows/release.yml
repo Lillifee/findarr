@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node (for versioning tool)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install semver tool
+        run: npm install -g semver
+
+      - name: Get latest tag
+        id: tag
+        run: |
+          git fetch --tags
+          latest=$(git tag --sort=-v:refname | head -n 1)
+          echo "latest=$latest" >> $GITHUB_OUTPUT
+
+      - name: Calculate new version
+        id: version
+        run: |
+          latest=${{ steps.tag.outputs.latest }}
+          if [ -z "$latest" ]; then
+            latest="v0.0.0"
+          fi
+
+          clean=${latest#v}
+          new=$(npx semver -i ${{ github.event.inputs.version }} $clean)
+
+          echo "new=v$new" >> $GITHUB_OUTPUT
+
+      - name: Create Git tag
+        run: |
+          git tag ${{ steps.version.outputs.new }}
+          git push origin ${{ steps.version.outputs.new }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.new }}
+          generate_release_notes: true
