@@ -1,6 +1,14 @@
 # 🎬 Findarr
 
-> Discover movies and TV shows, vote with friends, and manage requests for your media stack — all in one place.
+![Docker](https://img.shields.io/badge/docker-ready-blue?logo=docker)
+![Self-Hosted](https://img.shields.io/badge/self--hosted-yes-green)
+![TMDB](https://img.shields.io/badge/TMDB-API-01b4e4)
+![Radarr](https://img.shields.io/badge/Radarr-supported-orange)
+![Sonarr](https://img.shields.io/badge/Sonarr-supported-blue)
+
+> Stop searching. Start finding.
+
+Find movies and shows you actually want — without the repetition.
 
 ---
 
@@ -14,27 +22,52 @@
 
 ---
 
-## ✨ Features
+## ✨ What makes Findarr different
 
-### 🔎 Smart Discovery
+Finding something to watch shouldn’t feel like scrolling the same lists every day.
 
-- Search movies and TV series with rich metadata
-- Browse cast, ratings, release dates, and overviews
-- Personalized recommendations powered by genre + keyword scoring
+Findarr is built on a simple idea:
 
-### 👍 Personalized Recommendations
+- If you’ve already rated something, you won’t see it again
+- No re-evaluating the same titles over and over
+- Your feed always stays fresh
 
-- Like or dislike titles to train your recommendation feed
-- Findarr learns what you enjoy over time
-- Titles you've already rated are automatically hidden, so discovery stays fresh
+You go through content once — like it or dislike it — then move on.
 
-### 📥 Media Requests
+No repetition. No clutter. No déjà vu lists.
 
-- Request movies and shows directly from the app
-- Track request progress through your media pipeline
-- Get notified when content becomes available in your library
+---
 
-### 🧩 Works With
+## ⚡ The experience
+
+Discover → Like / Dislike → New content only
+
+Everything you’ve already rated disappears from your discovery flow.
+
+What’s left is always new.
+
+---
+
+## 📥 Requests (automatic)
+
+Everything you **like** is automatically sent to:
+
+- Radarr: https://radarr.video/
+- Sonarr: https://sonarr.tv/
+
+---
+
+## 🧠 Smart filtering
+
+- Learns from what you like and dislike
+- Builds your taste from genres + keywords
+- Finds more of what fits your taste
+- Removes anything you’ve already rated
+- Keeps discovery always fresh
+
+---
+
+## 🧩 Integrations
 
 - [TMDB API](https://www.themoviedb.org/)
 - [Radarr](https://radarr.video/) / [Sonarr](https://sonarr.tv/)
@@ -43,21 +76,28 @@
 
 ---
 
-## 🚀 Quick Start (Docker)
+## 🚀 Quick start
 
-### Requirements
+Create or a copy the [`docker-compose.yml`](/docker-compose.yml) file:
 
-- Docker with Compose support
-- Download or copy the [`docker-compose.yml`](/docker-compose.yml)
+```yaml
+services:
+  findarr:
+    image: ghcr.io/lillifee/findarr:latest
+    restart: unless-stopped
+    ports:
+      - 8585:8585
+    volumes:
+      - ./data:/app/apps/api/data
+```
 
-### Start Findarr
+Run:
 
 ```bash
-docker compose pull
 docker compose up -d
 ```
 
-Once running, open:
+Open:
 
 ```txt
 http://localhost:8585
@@ -65,43 +105,19 @@ http://localhost:8585
 
 ---
 
-## 🔐 First-Time Setup
+## 🔐 Setup
 
-1. Open Findarr in your browser
-2. Create the first admin account
-3. Add your TMDB access token
-4. Start discovering content 🎉
-
----
-
-## 🧠 How Recommendations Work
-
-Findarr builds recommendations using:
-
-- Trending and recent movies and shows
-- Your liked and disliked titles
-- Genre and keyword preferences
-
-The more you interact, the smarter your recommendations become.
+1. Create admin account
+2. Add TMDB token
+3. Start discovering
 
 ---
 
-## 📺 Everyday Workflow
+## ❤️ Built for self-hosters
 
-```txt
-Discover → Vote → Request → Watch
-```
-
-1. Search for a movie or TV show
-2. Dislike and Like to request it
-3. Track request and availability updates
-4. Enjoy it once it lands in your library
+Findarr is made for people who want a clean, personal way to discover what to watch — without noise, repetition, or endless scrolling.
 
 ---
-
-## ❤️ Built For Self-Hosted Media Stacks
-
-Findarr is designed to fit naturally into modern self-hosted media ecosystems and make group discovery painless.
 
 ## Metadata
 
