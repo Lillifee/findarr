@@ -1,7 +1,10 @@
 #!/bin/sh
 set -eu
 
-mkdir -p /app/apps/api/data
-chown -R node:node /app/apps/api/data
+DATA_DIR="${DATA_PATH:-/app/apps/api/data}"
 
+mkdir -p "$DATA_DIR"
+chown -R node:node "$DATA_DIR"
+
+# Start application as node
 exec runuser -u node -- node apps/api/dist/index.js

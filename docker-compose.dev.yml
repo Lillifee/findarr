@@ -1,5 +1,5 @@
 services:
-  app:
+  findarr:
     build:
       context: .
       dockerfile: Dockerfile

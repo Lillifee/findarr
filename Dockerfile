@@ -20,8 +20,8 @@ COPY packages/shared/package.json ./packages/shared/package.json
 COPY apps/api/package.json ./apps/api/package.json
 COPY apps/web/package.json ./apps/web/package.json
 
-# Install all deps (including dev deps needed for build)
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile
 
 # Copy source code
 COPY vite.config.ts ./
@@ -67,7 +67,8 @@ COPY apps/api/package.json ./apps/api/package.json
 COPY apps/web/package.json ./apps/web/package.json
 
 # Install production deps
-RUN pnpm install --prod --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --prod --frozen-lockfile
 
 # Built artifacts
 COPY --from=build /app/packages/shared/dist ./packages/shared/dist
@@ -76,7 +77,7 @@ COPY --from=build /app/apps/api/drizzle ./apps/api/drizzle
 COPY --from=build /app/apps/web/dist ./apps/web/dist
 
 # Entrypoint
-COPY --chmod=755 docker/entrypoint.sh /app/docker/entrypoint.sh
+COPY --chmod=755 docker/entrypoint.sh /entrypoint.sh
 
 # Expose app port
 EXPOSE 8585
@@ -84,4 +85,4 @@ EXPOSE 8585
 # -------------------------
 # 🚀 Start command
 # -------------------------
-ENTRYPOINT ["/app/docker/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
