@@ -87,7 +87,7 @@ No separate request buttons. Just like it and move on.
 
 ## 🚀 Quick start
 
-Create or a copy the [`docker-compose.yml`](/docker-compose.yml) file:
+Create or copy the [`docker-compose.yml`](/docker-compose.yml) file:
 
 ```yaml
 services:
