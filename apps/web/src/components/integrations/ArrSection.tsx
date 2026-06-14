@@ -208,7 +208,7 @@ export function ArrSection({ service, title, description }: ArrSectionProps) {
         <ConnectionCredentialsStep
           urlValue={urlInput}
           onUrlChange={handleUrlChange}
-          urlPlaceholder="http://localhost:7878"
+          urlPlaceholder={svc.urlPlaceholder}
           apiKeyValue={apiKeyInput}
           onApiKeyChange={handleApiKeyChange}
           apiKeySet={settings.apiKeySet}

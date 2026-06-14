@@ -177,6 +177,7 @@ export const userSettingsService = {
 
 export const adminArrService = {
   radarr: {
+    urlPlaceholder: 'http://localhost:7878',
     getSettings: async (): Promise<ArrSettings> => {
       const response = await api.get<ArrSettings>('/admin/radarr/settings');
       return response.data;
@@ -201,6 +202,7 @@ export const adminArrService = {
     },
   },
   sonarr: {
+    urlPlaceholder: 'http://localhost:8989',
     getSettings: async (): Promise<ArrSettings> => {
       const response = await api.get<ArrSettings>('/admin/sonarr/settings');
       return response.data;
