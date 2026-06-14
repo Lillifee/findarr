@@ -5,10 +5,11 @@
 ![TMDB](https://img.shields.io/badge/TMDB-API-01b4e4)
 ![Radarr](https://img.shields.io/badge/Radarr-supported-orange)
 ![Sonarr](https://img.shields.io/badge/Sonarr-supported-blue)
+![Jellyfin](https://img.shields.io/badge/Jellyfin-supported-purple)
 
 > Stop searching. Start finding.
 
-Find movies and shows you actually want — without the repetition.
+Find movies and shows you actually want — without endless scrolling.
 
 ---
 
@@ -38,32 +39,40 @@ No repetition. No clutter. No déjà vu lists.
 
 ---
 
-## ⚡ The experience
+## ⚡ How it works
 
-Discover → Like / Dislike → New content only
+> Discover → Like / Dislike → New content only
 
-Everything you’ve already rated disappears from your discovery flow.
+Everything you've already rated disappears from your discovery flow.
 
-What’s left is always new.
+Configure a voting pool (for example, the top 100 movies and shows) and go through it once.
+
+After that, you'll usually only have a handful of new titles to rate every few days.
+
+- No endless lists.
+- No maintaining dozens of watchlists.
+- No endlessly tweaking filters.
+
+Just a small, constantly refreshed set of movies and shows that adapts to your taste.
 
 ---
 
-## 📥 Requests (automatic)
+## 🧠 Smart recommendations
 
-Everything you **like** is automatically sent to:
+Findarr combines:
 
-- Radarr: https://radarr.video/
-- Sonarr: https://sonarr.tv/
+- Trending and recent releases
+- Your likes and dislikes
+- Genre preferences
+- Keywords from the movies and shows you've rated
 
----
+Each user builds their own taste profile and receives personalized recommendations.
 
-## 🧠 Smart filtering
+That means everyone can share the same media stack while discovering different movies and shows.
 
-- Learns from what you like and dislike
-- Builds your taste from genres + keywords
-- Finds more of what fits your taste
-- Removes anything you’ve already rated
-- Keeps discovery always fresh
+Every movie or show you **like** is automatically sent to Radarr or Sonarr.
+
+No separate request buttons. Just like it and move on.
 
 ---
 
@@ -113,13 +122,15 @@ http://localhost:8585
 
 ---
 
-## ❤️ Built for self-hosters
-
-Findarr is made for people who want a clean, personal way to discover what to watch — without noise, repetition, or endless scrolling.
-
----
-
 ## Metadata
 
 This product uses the TMDB API but is not endorsed or certified by TMDB.
 https://www.themoviedb.org/
+
+---
+
+## ❤️ Built for self-hosters
+
+Hope you find something great to watch.
+
+> Stop searching. Start finding.
