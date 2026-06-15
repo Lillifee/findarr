@@ -27,34 +27,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node (semver tool)
         uses: actions/setup-node@v4
         with:
           node-version: 24
 
-      - name: Install semver
-        run: npm install -g semver
-
-      - name: Get latest tag
-        id: tag
-        run: |
-          git fetch --tags
-          latest=$(git tag --sort=-v:refname | head -n 1)
-          echo "latest=$latest" >> $GITHUB_OUTPUT
-
       - name: Calculate new version
         id: version
         run: |
-          latest=${{ steps.tag.outputs.latest }}
-          if [ -z "$latest" ]; then
-            latest="v0.0.0"
-          fi
+          git fetch --tags
+          latest=$(git tag --sort=-v:refname | head -n 1)
+          latest=${latest:-v0.0.0}
 
           clean=${latest#v}
-          new=$(npx semver -i ${{ github.event.inputs.version }} $clean)
+          new=$(npx --yes semver@7 -i ${{ inputs.version }} $clean)
 
           echo "new=v$new" >> $GITHUB_OUTPUT
 
