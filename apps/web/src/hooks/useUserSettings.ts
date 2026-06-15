@@ -1,5 +1,5 @@
 import type { RegionGroupId } from '@findarr/shared/constants';
-import type { UserSettings } from '@findarr/shared/settings';
+import { DEFAULT_USER_SETTINGS, type UserSettings } from '@findarr/shared/settings';
 import { isDefined } from '@findarr/shared/utils';
 import { useEffect, useState } from 'react';
 
@@ -25,12 +25,6 @@ interface UserSettingsStatus {
   error: string | null;
 }
 
-const defaultSettings: UserSettings = {
-  language: 'de-DE',
-  regions: ['western'],
-  swipeLimit: 60,
-};
-
 const initialStatus: UserSettingsStatus = {
   loading: true,
   saving: false,
@@ -41,7 +35,7 @@ const areRegionsEqual = (left: RegionGroupId[], right: RegionGroupId[]) =>
   left.length === right.length && left.every((region, index) => region === right[index]);
 
 export function useUserSettings(): UserSettingsForm {
-  const [draft, setDraft] = useState<UserSettings>(defaultSettings);
+  const [draft, setDraft] = useState<UserSettings>(DEFAULT_USER_SETTINGS);
   const [savedSettings, setSavedSettings] = useState<UserSettings | null>(null);
   const [status, setStatus] = useState<UserSettingsStatus>(initialStatus);
 

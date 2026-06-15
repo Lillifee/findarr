@@ -14,6 +14,12 @@ export const UserSettingsSchema = z.object({
 
 export const UserSettingsQuerySchema = UserSettingsSchema.partial();
 
+export const DEFAULT_USER_SETTINGS: UserSettings = {
+  language: 'en-US',
+  regions: ['western'],
+  swipeLimit: 100,
+};
+
 // ============================================================================
 // Link Schemas (Radarr/Sonarr/Jellyfin)
 // ============================================================================
