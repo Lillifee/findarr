@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 
 import { Icon } from './Icon';
 import { statusBadgeSizes, type Size } from './sizes';
+import { Spinner } from './Spinner';
 
 export type StatusType =
   | 'available'
@@ -40,9 +41,7 @@ const statusConfig = {
     border: 'border-amber-300/35',
     text: 'text-white',
     label: 'Downloading',
-    icon: (
-      <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-white md:h-4 md:w-4" />
-    ),
+    icon: <Spinner className="text-white" label={null} size="sm" />,
   },
   monitored: {
     bg: 'bg-zinc-700/92',

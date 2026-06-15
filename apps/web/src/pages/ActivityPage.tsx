@@ -5,6 +5,7 @@ import { ActivityStatusFilter } from '../components/activity/ActivityStatusFilte
 import { AttentionQueueSection } from '../components/activity/AttentionQueueSection';
 import { FiltersToolbar } from '../components/catalog/FiltersToolbar';
 import { PageContainer } from '../components/ui/PageContainer';
+import { PageHeader } from '../components/ui/PageHeader';
 import { StickyHeader } from '../components/ui/StickyHeader';
 import { useActivityFeed } from '../hooks/useActivityFeed';
 import { useMediaNavigation } from '../hooks/useMediaNavigation';
@@ -38,24 +39,28 @@ export function ActivityPage() {
       </StickyHeader>
 
       <PageContainer>
-        <AttentionQueueSection
-          results={feed.attentionResults}
-          loading={feed.loadingAttention}
-          onSelectItem={handleSelectItem}
-          onUpdateItem={feed.updateItem}
-        />
+        <div className="space-y-8 md:space-y-10">
+          <PageHeader
+            title="Your Activity"
+            description="Review your votes, requested media, and anything that still needs attention."
+          />
 
-        <ActivitySection
-          results={feed.activityResults}
-          loading={feed.loadingActivity}
-          loadingMore={feed.loadingMore}
-          hasMore={feed.hasMore}
-          currentPage={feed.currentPage}
-          totalPages={feed.totalPages}
-          onSelectItem={handleSelectItem}
-          onUpdateItem={feed.updateItem}
-          onLoadMore={feed.loadMore}
-        />
+          <AttentionQueueSection
+            results={feed.attentionResults}
+            onSelectItem={handleSelectItem}
+            onUpdateItem={feed.updateItem}
+          />
+
+          <ActivitySection
+            results={feed.activityResults}
+            loading={feed.loadingActivity}
+            loadingMore={feed.loadingMore}
+            hasMore={feed.hasMore}
+            onSelectItem={handleSelectItem}
+            onUpdateItem={feed.updateItem}
+            onLoadMore={feed.loadMore}
+          />
+        </div>
       </PageContainer>
     </>
   );

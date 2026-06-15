@@ -3,11 +3,11 @@ import { isDefined } from '@findarr/shared/utils';
 import { FiltersToolbar } from '../components/catalog/FiltersToolbar';
 import { SearchBar } from '../components/catalog/SearchBar';
 import { MediaView } from '../components/media/MediaView';
+import { PageContainer } from '../components/ui';
 import { Button } from '../components/ui/Button';
-import { CenteredState } from '../components/ui/CenteredState';
 import { ErrorState } from '../components/ui/ErrorState';
 import { SearchFilterBar } from '../components/ui/SearchFilterBar';
-import { Spinner } from '../components/ui/Spinner';
+import { LoadingState } from '../components/ui/StateDisplay';
 import { VoteCompleteState } from '../components/vote/VoteCompleteState';
 import { useMediaNavigation } from '../hooks/useMediaNavigation';
 import { useVoteFeed } from '../hooks/useVoteFeed';
@@ -50,10 +50,9 @@ export function VotePage() {
       />
 
       {isLoading && (
-        <CenteredState className="text-gray-400">
-          <Spinner />
-          <p>Loading next item...</p>
-        </CenteredState>
+        <PageContainer>
+          <LoadingState title="Loading next item..." />
+        </PageContainer>
       )}
 
       {isDefined(error) && !isLoading && (
