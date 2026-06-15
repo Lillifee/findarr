@@ -4,6 +4,7 @@ import { FiltersToolbar } from '../components/catalog/FiltersToolbar';
 import { SearchBar } from '../components/catalog/SearchBar';
 import { CatalogResults } from '../components/explore/CatalogResults';
 import { PageContainer } from '../components/ui/PageContainer';
+import { PageHeader } from '../components/ui/PageHeader';
 import { SearchFilterBar } from '../components/ui/SearchFilterBar';
 import { useCatalogFeed } from '../hooks/useCatalogFeed';
 import { useMediaNavigation } from '../hooks/useMediaNavigation';
@@ -44,18 +45,23 @@ export function ExplorePage() {
       />
 
       <PageContainer>
-        <CatalogResults
-          results={feed.results}
-          loading={feed.loading}
-          loadingMore={feed.loadingMore}
-          currentPage={feed.currentPage}
-          totalPages={feed.totalPages}
-          isSearchMode={feed.isSearchMode}
-          currentSearchType={feed.currentSearchType}
-          onSelectItem={handleSelectItem}
-          onUpdateItem={feed.updateItem}
-          onLoadMore={feed.loadMore}
-        />
+        <div className="space-y-8 md:space-y-10">
+          <PageHeader
+            title={feed.isSearchMode ? 'Search results' : 'Trending & Popular'}
+            description="Browse what is trending, search your next watch, and vote on what should be requested."
+          />
+
+          <CatalogResults
+            results={feed.results}
+            loading={feed.loading}
+            loadingMore={feed.loadingMore}
+            currentPage={feed.currentPage}
+            totalPages={feed.totalPages}
+            onSelectItem={handleSelectItem}
+            onUpdateItem={feed.updateItem}
+            onLoadMore={feed.loadMore}
+          />
+        </div>
       </PageContainer>
     </>
   );

@@ -1,4 +1,4 @@
-import { Spinner } from './Spinner';
+import { LoadingState } from './StateDisplay';
 import { appGradient } from './theme';
 
 interface LoadingScreenProps {
@@ -8,10 +8,7 @@ interface LoadingScreenProps {
 export function LoadingScreen({ message = 'Loading...' }: LoadingScreenProps) {
   return (
     <div className={`flex h-screen items-center justify-center ${appGradient}`}>
-      <div className="text-center">
-        <Spinner className="mx-auto mb-4" />
-        <p className="text-gray-400">{message}</p>
-      </div>
+      <LoadingState title={message} />
     </div>
   );
 }

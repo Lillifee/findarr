@@ -4,9 +4,8 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { DetailBackButton } from '../components/media/DetailBackButton';
 import { MediaView } from '../components/media/MediaView';
 import { Button } from '../components/ui/Button';
-import { CenteredState } from '../components/ui/CenteredState';
 import { ErrorState } from '../components/ui/ErrorState';
-import { Spinner } from '../components/ui/Spinner';
+import { LoadingState } from '../components/ui/StateDisplay';
 import { useMediaDetails } from '../hooks/useMediaDetails';
 
 export function MediaDetailPage() {
@@ -25,12 +24,7 @@ export function MediaDetailPage() {
     <div className="pb-20 md:pb-8">
       <DetailBackButton onClick={handleBack} />
 
-      {loading && (
-        <CenteredState className="text-gray-400">
-          <Spinner />
-          <p>Loading details...</p>
-        </CenteredState>
-      )}
+      {loading && <LoadingState title="Loading details..." />}
 
       {isDefined(error) && !loading && (
         <ErrorState

@@ -1,8 +1,8 @@
-import type { Media, SearchType } from '@findarr/shared/media';
+import type { Media } from '@findarr/shared/media';
 
 import { ResultsGrid } from '../media/ResultsGrid';
 import { Button } from '../ui/Button';
-import { EmptyState } from '../ui/EmptyState';
+import { LoadingState, StateDisplay } from '../ui/StateDisplay';
 
 interface CatalogResultsProps {
   results: Media[];
@@ -10,27 +10,9 @@ interface CatalogResultsProps {
   loadingMore: boolean;
   currentPage: number;
   totalPages: number;
-  isSearchMode: boolean;
-  currentSearchType: SearchType;
   onSelectItem: (item: Media) => void;
   onUpdateItem: (updatedItem: Media) => void;
   onLoadMore: () => void;
-}
-
-function getResultsTitle(isSearchMode: boolean, type: SearchType) {
-  if (!isSearchMode) {
-    return 'Trending & Popular';
-  }
-
-  if (type === 'movie') {
-    return 'Movies';
-  }
-
-  if (type === 'tv') {
-    return 'TV Shows';
-  }
-
-  return 'Movies & TV Shows';
 }
 
 export function CatalogResults({
@@ -39,8 +21,6 @@ export function CatalogResults({
   loadingMore,
   currentPage,
   totalPages,
-  isSearchMode,
-  currentSearchType,
   onSelectItem,
   onUpdateItem,
   onLoadMore,
@@ -48,25 +28,15 @@ export function CatalogResults({
   const hasMore = currentPage < totalPages;
 
   if (results.length === 0) {
-    if (loading) {
-      return null;
-    }
-
-    return <EmptyState message={isSearchMode ? 'No results found.' : 'Loading content...'} />;
+    return loading ? (
+      <LoadingState title="Loading content..." />
+    ) : (
+      <StateDisplay title="No results found." />
+    );
   }
 
   return (
     <div id="results-section">
-      <div className="mb-6 flex items-center justify-between gap-3">
-        <h2 className="text-xl font-bold text-white md:text-3xl">
-          {getResultsTitle(isSearchMode, currentSearchType)}
-        </h2>
-        <span className="text-xs text-gray-400 md:text-sm">
-          {results.length.toLocaleString()}
-          {hasMore ? '+' : ''} results loaded
-        </span>
-      </div>
-
       <ResultsGrid results={results} onSelectItem={onSelectItem} onUpdateItem={onUpdateItem} />
 
       {hasMore && (

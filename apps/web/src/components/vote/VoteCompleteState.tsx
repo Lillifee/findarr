@@ -1,6 +1,6 @@
 import { Button } from '../ui/Button';
-import { EmptyState } from '../ui/EmptyState';
 import { Icon } from '../ui/Icon';
+import { StateDisplay } from '../ui/StateDisplay';
 
 interface VoteCompleteStateProps {
   onExplore: () => void;
@@ -9,7 +9,7 @@ interface VoteCompleteStateProps {
 
 export function VoteCompleteState({ onExplore, onOpenSettings }: VoteCompleteStateProps) {
   return (
-    <EmptyState
+    <StateDisplay
       className="py-24"
       icon={<Icon className="text-amber-300/80" name="check_circle" size="display" />}
       title="All done"

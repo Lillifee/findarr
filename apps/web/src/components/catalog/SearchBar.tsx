@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { Button } from '../ui/Button';
 import { Icon } from '../ui/Icon';
 import { Input } from '../ui/Input';
-import { Spinner } from '../ui/Spinner';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -57,7 +56,7 @@ export function SearchBar({
         event.preventDefault();
       }}
       disabled={!canClear}
-      className={`rounded-full p-1.5 transition-all ${
+      className={`flex items-center justify-center rounded-full p-1.5 transition-all ${
         canClear
           ? 'cursor-pointer text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100'
           : 'pointer-events-none cursor-default text-transparent'
@@ -66,12 +65,6 @@ export function SearchBar({
     >
       <Icon name="close" />
     </button>
-  );
-
-  const searchIcon = loading ? (
-    <Spinner className="h-5 w-5 border-zinc-500" />
-  ) : (
-    <Icon name="search" />
   );
 
   return (
@@ -99,7 +92,7 @@ export function SearchBar({
           aria-label="Search"
           className="min-h-10 shrink-0 rounded-lg px-3.5"
         >
-          {searchIcon}
+          <Icon name="search" />
         </Button>
       </div>
     </form>

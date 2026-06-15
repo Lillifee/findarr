@@ -4,14 +4,20 @@ export { StatusBadge, type StatusBadgeProps, type StatusType } from './StatusBad
 export { MediaTypeBadge } from './MediaTypeBadge';
 export { Input, type InputProps } from './Input';
 export { Card, type CardProps } from './Card';
-export { Spinner } from './Spinner';
+export { Spinner, type SpinnerSize } from './Spinner';
 export { LoadingScreen } from './LoadingScreen';
 export { PageContainer } from './PageContainer';
 export { StickyHeader } from './StickyHeader';
 export { SearchFilterBar } from './SearchFilterBar';
 export { CenteredState } from './CenteredState';
 export { ErrorState } from './ErrorState';
-export { EmptyState } from './EmptyState';
+export {
+  StateDisplay,
+  LoadingState,
+  type StateDisplayProps,
+  type LoadingStateProps,
+} from './StateDisplay';
+export { EmptyState, type EmptyStateProps } from './EmptyState';
 export { InlineFeedback } from './InlineFeedback';
 export { PanelSection } from './PanelSection';
 export { SelectionIndicator } from './SelectionIndicator';

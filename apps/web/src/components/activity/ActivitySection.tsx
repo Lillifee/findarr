@@ -2,17 +2,14 @@ import type { Media } from '@findarr/shared/media';
 
 import { ResultsGrid } from '../media/ResultsGrid';
 import { Button } from '../ui/Button';
-import { EmptyState } from '../ui/EmptyState';
 import { Icon } from '../ui/Icon';
-import { Spinner } from '../ui/Spinner';
+import { LoadingState, StateDisplay } from '../ui/StateDisplay';
 
 interface ActivitySectionProps {
   results: Media[];
   loading: boolean;
   loadingMore: boolean;
   hasMore: boolean;
-  currentPage: number;
-  totalPages: number;
   onSelectItem: (item: Media) => void;
   onUpdateItem: (updatedItem: Media) => void;
   onLoadMore: () => void;
@@ -23,36 +20,16 @@ export function ActivitySection({
   loading,
   loadingMore,
   hasMore,
-  currentPage,
-  totalPages,
   onSelectItem,
   onUpdateItem,
   onLoadMore,
 }: ActivitySectionProps) {
   return (
     <section id="results-section">
-      <div className="mb-6 flex flex-col gap-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-          <h2 className="text-xl font-bold text-white md:text-3xl">Your Activity</h2>
-
-          <div className="text-xs text-gray-400 md:text-sm">
-            {results.length.toLocaleString()}
-            {currentPage < totalPages ? '+' : ''} items loaded
-          </div>
-        </div>
-      </div>
-
-      {loading && results.length === 0 && (
-        <div className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <Spinner className="mx-auto mb-4" />
-            <p className="text-gray-400">Loading your activity...</p>
-          </div>
-        </div>
-      )}
+      {loading && results.length === 0 && <LoadingState title="Loading your activity..." />}
 
       {!loading && results.length === 0 && (
-        <EmptyState
+        <StateDisplay
           className="py-20"
           icon={<Icon className="text-zinc-600" name="fact_check" size="display" />}
           title="No activity yet"

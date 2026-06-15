@@ -1,6 +1,7 @@
 import type { ButtonHTMLAttributes } from 'react';
 
 import { buttonSizes, type Size } from './sizes';
+import { Spinner } from './Spinner';
 import { controlSurface } from './theme';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -42,7 +43,7 @@ export function Button({
       disabled={Boolean(disabled) || loading}
       {...props}
     >
-      {loading && <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-current" />}
+      {loading && <Spinner className="text-current" label={null} size="sm" />}
       {children}
     </button>
   );
