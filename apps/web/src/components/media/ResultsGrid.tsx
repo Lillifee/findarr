@@ -21,56 +21,59 @@ function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
 
   return (
     <div
+      title={title}
       onClick={onSelect}
-      className="group cursor-pointer transition-transform duration-300 hover:-translate-y-1"
+      className="group @container cursor-pointer transition-transform duration-300 hover:-translate-y-1"
     >
-      <div className="relative overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 shadow-[0_14px_36px_rgba(0,0,0,0.22)] transition-all duration-300 group-hover:border-zinc-700 group-hover:shadow-[0_22px_56px_rgba(0,0,0,0.32)]">
-        {/* Status Badges */}
-        {item.state?.record?.status && (
-          <StatusBadge status={item.state.record.status} position="top-left" />
-        )}
+      <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 shadow-[0_14px_36px_rgba(0,0,0,0.22)] transition-all duration-300 group-hover:border-zinc-700 group-hover:shadow-[0_22px_56px_rgba(0,0,0,0.32)]">
+        <div className="relative overflow-hidden bg-zinc-900">
+          <div className="absolute top-1.5 right-1.5 left-1.5 z-10 flex items-start justify-between gap-1.5 md:top-3 md:right-3 md:left-3">
+            {/* Status Badges */}
+            <div className="shrink-0">
+              {item.state?.record?.status && (
+                <StatusBadge status={item.state.record.status} position="inline" />
+              )}
+            </div>
 
-        {/* Media Type Corner Flag */}
-        <MediaTypeBadge type={item.type} />
-
-        {/* Poster Image */}
-        {isDefined(item.posterPath) ? (
-          <>
-            <img
-              src={tmdbImage(item.posterPath, 'w500')}
-              alt={title}
-              className="aspect-2/3 w-full object-cover transition-all duration-500 group-hover:scale-[1.03]"
-            />
-            <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-white/6 via-transparent to-transparent opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
-          </>
-        ) : (
-          <div className="flex aspect-2/3 w-full items-center justify-center bg-linear-to-br from-zinc-900 via-zinc-800 to-zinc-900 text-zinc-500">
-            <span className="text-sm font-medium tracking-wide">No Poster</span>
+            {/* Media Type Corner Flag */}
+            <div className="@container flex min-w-0 flex-1 justify-end">
+              <MediaTypeBadge type={item.type} />
+            </div>
           </div>
-        )}
 
-        {/* Bottom Overlay with Info */}
-        <div className="absolute right-0 bottom-0 left-0 z-10 bg-linear-to-t from-black/88 via-black/55 to-transparent px-3 pt-8 pb-3 md:px-4 md:pt-10 md:pb-4">
-          <h3 className="mb-1.5 line-clamp-2 text-sm leading-tight font-semibold text-white transition-colors group-hover:text-zinc-100 md:text-base">
-            {title}
-          </h3>
+          {/* Poster Image */}
+          {isDefined(item.posterPath) ? (
+            <>
+              <img
+                src={tmdbImage(item.posterPath, 'w500')}
+                alt={title}
+                className="aspect-2/3 w-full object-cover transition-all duration-500 group-hover:scale-[1.03]"
+              />
+              <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-white/6 via-transparent to-black/12 opacity-75 transition-opacity duration-300 group-hover:opacity-100" />
+            </>
+          ) : (
+            <div className="flex aspect-2/3 w-full items-center justify-center bg-linear-to-br from-zinc-900 via-zinc-800 to-zinc-900 text-zinc-500">
+              <span className="text-sm font-medium tracking-wide">No Poster</span>
+            </div>
+          )}
+        </div>
 
-          <div className="mb-2.5 flex items-center justify-between gap-2">
-            <span className="text-xs font-medium tracking-[0.18em] text-zinc-300 uppercase md:text-[11px]">
+        {/* Bottom Dock with Actions */}
+        <div className="flex min-h-12 items-center justify-between gap-2 border-t border-zinc-800 bg-zinc-950/95 px-2.5 py-1.5 md:px-3">
+          <div className="flex min-w-0 items-center gap-1.5 text-[11px] leading-none font-semibold text-zinc-100">
+            <span className="tracking-[0.14em] text-zinc-300 uppercase @max-[180px]:hidden">
               {year}
             </span>
-
-            <div className="flex items-center gap-1.5 rounded-full border border-zinc-700/80 bg-zinc-950/75 px-2 py-1 text-xs backdrop-blur-sm md:px-2.5">
-              <span className="text-xs text-amber-300">★</span>
-              <span className="text-xs font-semibold text-white">
-                {item.voteAverage.toFixed(1)}
-              </span>
-            </div>
+            <span className="h-3 w-px bg-zinc-700 @max-[180px]:hidden" />
+            <span className="flex shrink-0 items-center gap-1">
+              <Icon filled className="text-amber-300" name="star" size="xs" weight={600} />
+              {item.voteAverage.toFixed(1)}
+            </span>
           </div>
 
           {/* Like/Dislike Buttons */}
           <div
-            className="flex justify-center"
+            className="shrink-0"
             onClick={(e) => {
               e.stopPropagation();
             }}

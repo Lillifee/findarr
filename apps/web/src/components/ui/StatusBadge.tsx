@@ -81,13 +81,15 @@ export function StatusBadge({ status, position = 'inline', size = 'md', icon }: 
   }
 
   const baseStyles =
-    'z-10 flex items-center gap-1 rounded-full border font-semibold shadow-sm backdrop-blur-sm';
+    'z-10 flex items-center gap-1 rounded-full border leading-none font-semibold shadow-sm backdrop-blur-sm';
 
   return (
     <div
       className={`${baseStyles} ${config.bg} ${config.border} ${config.text} ${statusBadgeSizes[size]} ${positionStyles[position]}`}
     >
-      {icon ?? config.icon}
+      <span className="inline-flex h-[1.125rem] w-[1.125rem] items-center justify-center">
+        {icon ?? config.icon}
+      </span>
       <span>{config.label}</span>
     </div>
   );
