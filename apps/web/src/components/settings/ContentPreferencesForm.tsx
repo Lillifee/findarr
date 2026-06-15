@@ -7,9 +7,9 @@ import { SelectInput } from '../ui/SelectInput';
 import { RegionSelector } from './RegionSelector';
 
 const LANGUAGE_OPTIONS = [
-  { value: 'de-DE', label: 'German (Germany)' },
   { value: 'en-US', label: 'English (US)' },
   { value: 'en-GB', label: 'English (UK)' },
+  { value: 'de-DE', label: 'German (Germany)' },
   { value: 'fr-FR', label: 'French (France)' },
   { value: 'es-ES', label: 'Spanish (Spain)' },
   { value: 'it-IT', label: 'Italian (Italy)' },

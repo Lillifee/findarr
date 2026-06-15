@@ -285,13 +285,13 @@ describe('catalog service - integration tests', () => {
     vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
     const user = await createTestUserInDb(db, { email: 'swipe-limit@test.com' });
 
-    const cachedItems = Array.from({ length: 61 }, (_, index) =>
+    const cachedItems = Array.from({ length: 101 }, (_, index) =>
       createTestMedia({ tmdbId: index + 1, popularity: 1000 - index }),
     );
     await upsertCatalogCache(db, cachedItems);
 
-    // Vote on the first 60 items - the default swipe limit.
-    for (const item of cachedItems.slice(0, 60)) {
+    // Vote on the first 100 items - the default swipe limit.
+    for (const item of cachedItems.slice(0, 100)) {
       // oxlint-disable-next-line no-await-in-loop
       const mediaRecord = await createMedia(db, item.tmdbId, item.type);
       // oxlint-disable-next-line no-await-in-loop

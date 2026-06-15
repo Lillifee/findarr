@@ -1,14 +1,12 @@
 import { userSettings } from '@findarr/shared/db';
-import type { UserSettings, UserSettingsQuery } from '@findarr/shared/settings';
+import {
+  DEFAULT_USER_SETTINGS,
+  type UserSettings,
+  type UserSettingsQuery,
+} from '@findarr/shared/settings';
 import { eq, sql } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';
-
-const DEFAULT_USER_SETTINGS: UserSettings = {
-  language: 'de-DE',
-  regions: ['western'],
-  swipeLimit: 60,
-};
 
 export async function getOrCreateUserSettings(db: Database, userId: number): Promise<UserSettings> {
   const existing = await db.query.userSettings.findFirst({
@@ -23,6 +21,7 @@ export async function getOrCreateUserSettings(db: Database, userId: number): Pro
     userId,
     language: DEFAULT_USER_SETTINGS.language,
     regions: DEFAULT_USER_SETTINGS.regions,
+    swipeLimit: DEFAULT_USER_SETTINGS.swipeLimit,
   });
 
   return DEFAULT_USER_SETTINGS;
