@@ -44,13 +44,6 @@ export const SonarrSeasonSchema = z.object({
     .optional(),
 });
 
-export const SonarrEpisodeSchema = z.object({
-  id: z.number(),
-  seasonNumber: z.number(),
-});
-
-export const SonarrEpisodeListSchema = z.array(SonarrEpisodeSchema);
-
 // Sonarr series object from GET /api/v3/series
 export const SonarrSeriesSchema = z
   .object({
@@ -130,7 +123,6 @@ export const ArrQueueResponseSchema = z.object({
 export type RadarrMovie = z.infer<typeof RadarrMovieSchema>;
 export type SonarrSeries = z.infer<typeof SonarrSeriesSchema>;
 export type SonarrSeason = z.infer<typeof SonarrSeasonSchema>;
-export type SonarrEpisode = z.infer<typeof SonarrEpisodeSchema>;
 export type ArrQueueResponse = z.infer<typeof ArrQueueResponseSchema>;
 export type ArrQueueItem =
   | z.infer<typeof RadarrQueueItemSchema>
