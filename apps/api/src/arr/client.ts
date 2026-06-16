@@ -5,11 +5,9 @@ import { z } from 'zod';
 
 import type { ArrServiceConfig } from './config.js';
 import {
-  SonarrEpisodeListSchema,
   ArrSystemStatusSchema,
   ArrQualityProfileSchema,
   ArrRootFolderSchema,
-  type SonarrEpisode,
   type ArrQualityProfile,
   type ArrRootFolder,
   type SonarrSeries,
@@ -81,11 +79,38 @@ export function createArrClient(
       },
       seasonNumbers?: number[],
     ): Promise<RadarrMovie | SonarrSeries> {
-      const media =
-        (await this.tryGetLibraryItemById(params.arrId)) ??
-        (await this.requestMedia(params, profileConfig));
+      const existing = await this.tryGetLibraryItemById(params.arrId);
 
-      return this.updateLibrarySeasons(media, seasonNumbers);
+      // TV show: if already in Sonarr, update else request
+      if (isSonarr) {
+        return existing
+          ? this.updateLibrarySeasons(existing.id, seasonNumbers)
+          : this.requestMedia(params, profileConfig, seasonNumbers);
+      }
+
+      // Movie: if already in Radarr, nothing to update
+      return existing ?? this.requestMedia(params, profileConfig);
+    },
+
+    async buildSeasonList(
+      tvdbId: number,
+      monitoredSeasonNumbers: number[],
+    ): Promise<{ seasonNumber: number; monitored: boolean }[] | undefined> {
+      const response = await client.get<unknown[]>('/series/lookup', {
+        params: { term: `tvdb:${tvdbId}` },
+      });
+      const LookupSchema = z.array(
+        z.object({
+          seasons: z
+            .array(z.object({ seasonNumber: z.number(), monitored: z.boolean() }))
+            .optional(),
+        }),
+      );
+      const [first] = LookupSchema.parse(response.data);
+      return first?.seasons?.map((season) => ({
+        seasonNumber: season.seasonNumber,
+        monitored: monitoredSeasonNumbers.includes(season.seasonNumber),
+      }));
     },
 
     async requestMedia(
@@ -97,11 +122,18 @@ export function createArrClient(
         qualityProfileId: number;
         rootFolderPath: string;
       },
+      seasonNumbers?: number[],
     ): Promise<RadarrMovie | SonarrSeries> {
+      const seasons =
+        isSonarr && isDefined(params.id) && isDefined(seasonNumbers)
+          ? await this.buildSeasonList(params.id, seasonNumbers)
+          : undefined;
+
       const payload = {
         [config.mediaIdField]: params.id,
         title: params.title,
         monitored: true,
+        ...(seasons ? { seasons } : {}),
         ...profileConfig,
         ...config.extraFields,
       };
@@ -110,53 +142,39 @@ export function createArrClient(
       return config.libraryItemSchema.parse(response.data);
     },
 
-    async updateLibrarySeasons(media: RadarrMovie | SonarrSeries, seasons?: number[]) {
-      if (!isSonarr || media.type !== 'tv' || !isDefined(seasons)) {
-        return media;
-      }
-
+    async updateLibrarySeasons(seriesId: number, seasons?: number[]) {
       const monitoredSeasons = new Set(seasons);
 
-      const updatedSeasons =
-        media.seasons?.map((season) => ({
-          seasonNumber: season.seasonNumber,
+      // Fetch the full series object from Sonarr — our parsed schema strips many fields
+      // that Sonarr requires on PUT (path, seriesType, etc.). We update only seasons.
+      const fullResponse = await client.get<Record<string, unknown>>(
+        `${config.mediaEndpoint}/${seriesId}`,
+      );
+      const fullSeries = fullResponse.data;
+
+      const existingSeasons = z
+        .array(z.looseObject({ seasonNumber: z.number(), monitored: z.boolean() }))
+        .optional()
+        .parse(fullSeries['seasons']);
+
+      const updatedSeries = {
+        ...fullSeries,
+        seasons: existingSeasons?.map((season) => ({
+          ...season,
           monitored: monitoredSeasons.has(season.seasonNumber),
-        })) ?? [];
+        })),
+      };
 
-      await this.updateSeasonPass(media.id, updatedSeasons);
+      // PUT /series with updated seasons — Sonarr calls SetEpisodeMonitoredBySeason
+      // internally for each changed season, so no separate episode monitoring calls needed.
+      const response = await client.put(config.mediaEndpoint, updatedSeries);
+      const result = config.libraryItemSchema.parse(response.data);
 
-      const episodes = await this.getEpisodes(media.id);
-
-      const monitoredEpisodeIds = episodes
-        .filter((episode) => monitoredSeasons.has(episode.seasonNumber))
-        .map((episode) => episode.id);
-
-      const unmonitoredEpisodeIds = episodes
-        .filter((episode) => !monitoredSeasons.has(episode.seasonNumber))
-        .map((episode) => episode.id);
-
-      await Promise.all([
-        this.updateEpisodeMonitoring(unmonitoredEpisodeIds, false),
-        this.updateEpisodeMonitoring(monitoredEpisodeIds, true),
-      ]);
-
-      if (seasons.length > 0) {
-        await this.searchMissingEpisodes(media.id);
+      if (isDefined(seasons) && seasons.length > 0) {
+        await this.searchMissingEpisodes(seriesId);
       }
 
-      return this.getLibraryItemById(media.id);
-    },
-
-    async getEpisodes(seriesId: number): Promise<SonarrEpisode[]> {
-      const response = await client.get('/episode', { params: { seriesId } });
-      return SonarrEpisodeListSchema.parse(response.data);
-    },
-
-    async updateEpisodeMonitoring(episodeIds: number[], monitored: boolean): Promise<void> {
-      if (episodeIds.length === 0) {
-        return;
-      }
-      await client.put('/episode/monitor', { episodeIds, monitored });
+      return result;
     },
 
     async listLibraryItems(): Promise<(RadarrMovie | SonarrSeries)[]> {
@@ -177,13 +195,6 @@ export function createArrClient(
       // In case the item was deleted from the library we want to handle that gracefully.
       const media = await this.getLibraryItemById(arrId).catch(() => null);
       return media;
-    },
-
-    async updateSeasonPass(
-      id: number,
-      seasons: { seasonNumber: number; monitored: boolean }[],
-    ): Promise<void> {
-      await client.post('/seasonpass', { series: [{ id, seasons, monitored: true }] });
     },
 
     async searchMissingEpisodes(seriesId: number): Promise<void> {
