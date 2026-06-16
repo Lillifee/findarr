@@ -1,5 +1,6 @@
 import { isDefined } from '@findarr/shared/utils';
 import { create, type AxiosInstance } from 'axios';
+import type { FastifyBaseLogger } from 'fastify';
 
 import { JellyfinItemsResponseSchema, type JellyfinItemsResponse } from './schemas.js';
 
@@ -22,7 +23,7 @@ function createHttpClient(baseUrl: string, apiKey: string): AxiosInstance {
   });
 }
 
-export function createJellyfinClient(baseUrl: string, apiKey: string) {
+export function createJellyfinClient(baseUrl: string, apiKey: string, log: FastifyBaseLogger) {
   const client = createHttpClient(baseUrl, apiKey);
 
   return {
@@ -30,7 +31,8 @@ export function createJellyfinClient(baseUrl: string, apiKey: string) {
       try {
         const response = await client.get('/System/Info/Public', { timeout: 5000 });
         return response.status === 200;
-      } catch {
+      } catch (error) {
+        log.warn({ name: 'jellyfin', err: error }, 'Connection test failed');
         return false;
       }
     },

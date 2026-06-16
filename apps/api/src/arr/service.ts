@@ -33,7 +33,7 @@ export async function createArrService<T extends ArrServiceConfig>(
     loadSettings: async () => getArrSettings(context.db, config),
     createClient: (settings) =>
       isDefined(settings.url) && isDefined(settings.apiKey)
-        ? createArrClient(config, settings.url, settings.apiKey)
+        ? createArrClient(config, settings.url, settings.apiKey, context.log)
         : undefined,
   });
 

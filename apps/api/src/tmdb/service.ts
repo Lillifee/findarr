@@ -43,7 +43,9 @@ export async function createTMDBService(context: TmdbServiceContext) {
     name: 'TMDB',
     loadSettings: async () => getTmdbSettingsFull(context.db),
     createClient: (settings) =>
-      isDefined(settings.tmdbAccessToken) ? createTMDBClient(settings.tmdbAccessToken) : undefined,
+      isDefined(settings.tmdbAccessToken)
+        ? createTMDBClient(settings.tmdbAccessToken, context.log)
+        : undefined,
   });
 
   async function loadGenres(client: TMDBClient): Promise<void> {

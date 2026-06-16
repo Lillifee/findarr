@@ -1,5 +1,6 @@
 import { isDefined } from '@findarr/shared/utils';
 import { create, type AxiosInstance } from 'axios';
+import type { FastifyBaseLogger } from 'fastify';
 import { z } from 'zod';
 
 import type { ArrServiceConfig } from './config.js';
@@ -32,7 +33,12 @@ function createHttpClient(baseUrl: string, apiKey: string): AxiosInstance {
  * Generic Arr client factory - works for both Radarr and Sonarr
  * Provides unified interface with service-specific implementations
  */
-export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKey: string) {
+export function createArrClient(
+  config: ArrServiceConfig,
+  baseUrl: string,
+  apiKey: string,
+  log: FastifyBaseLogger,
+) {
   const client = createHttpClient(baseUrl, apiKey);
   const isSonarr = config.service === 'sonarr';
 
@@ -42,7 +48,8 @@ export function createArrClient(config: ArrServiceConfig, baseUrl: string, apiKe
         const response = await client.get('/system/status', { timeout: 5000 });
         ArrSystemStatusSchema.parse(response.data);
         return true;
-      } catch {
+      } catch (error) {
+        log.warn({ name: config.service, err: error }, 'Connection test failed');
         return false;
       }
     },
