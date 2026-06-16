@@ -1,5 +1,6 @@
 import type { MediaType } from '@findarr/shared/media';
 import { create, type AxiosInstance } from 'axios';
+import type { FastifyBaseLogger } from 'fastify';
 
 import {
   type TMDBSearchParams,
@@ -25,14 +26,15 @@ function createHttpClient(accessToken: string): AxiosInstance {
   });
 }
 
-export function createTMDBClient(accessToken: string) {
+export function createTMDBClient(accessToken: string, log: FastifyBaseLogger) {
   const client = createHttpClient(accessToken);
 
   async function test(): Promise<boolean> {
     try {
       const auth = await client.get<{ success?: boolean }>('/authentication');
       return auth.data?.success ?? false;
-    } catch {
+    } catch (error) {
+      log.warn({ name: 'tmdb', err: error }, 'Connection test failed');
       return false;
     }
   }

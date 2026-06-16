@@ -22,6 +22,7 @@ import { adminSchedulerRoutes, schedulerRoutes } from './scheduler/routes.js';
 import tmdbPlugin from './tmdb/plugin.js';
 import { settingsRoutes } from './user/routes.js';
 import { registerErrorHandler } from './utils/errors.js';
+import { buildLogger } from './utils/logger.js';
 import { registerStatic } from './web/static.js';
 
 dotenv.config();
@@ -32,29 +33,7 @@ const dataPath = env.DATA_PATH;
 
 const server = fastify({
   disableRequestLogging: true,
-  logger: {
-    level: 'info',
-    transport: {
-      target: 'pino-pretty',
-      options: {
-        colorize: true,
-        translateTime: 'HH:MM:ss',
-        ignore: 'pid,hostname,req,res',
-        singleLine: true,
-        messageFormat: '{msg}',
-      },
-    },
-    serializers: {
-      err: (err: Error & { code?: string; status?: number; response?: { data?: unknown } }) => ({
-        type: err.name,
-        message: err.message,
-        code: err.code,
-        status: err.status,
-        data: err.response?.data,
-        stack: err.stack ?? 'no stack trace',
-      }),
-    },
-  },
+  logger: buildLogger(env.NODE_ENV === 'production'),
 });
 
 async function start() {

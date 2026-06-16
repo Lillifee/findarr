@@ -27,7 +27,7 @@ export async function createJellyfinService(context: JellyfinContext) {
     loadSettings: async () => getJellyfinSettingsFull(context.db),
     createClient: (settings) =>
       isDefined(settings.jellyfinUrl) && isDefined(settings.jellyfinApiKey)
-        ? createJellyfinClient(settings.jellyfinUrl, settings.jellyfinApiKey)
+        ? createJellyfinClient(settings.jellyfinUrl, settings.jellyfinApiKey, context.log)
         : undefined,
   });
 
@@ -106,8 +106,12 @@ export async function createJellyfinService(context: JellyfinContext) {
           if (seasonNumbers.length > 0) {
             item.availableSeasons = seasonNumbers;
           }
-        } catch {
+        } catch (err) {
           // Ignore per-series season lookup failures and keep the rest of the sync moving.
+          context.log.debug(
+            { name: 'jellyfin', jellyfinId: item.jellyfinId, err },
+            'Season lookup failed, skipping',
+          );
         }
       }),
     );
