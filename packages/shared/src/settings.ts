@@ -21,24 +21,17 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
 };
 
 // ============================================================================
-// Link Schemas (Radarr/Sonarr/Jellyfin)
-// ============================================================================
-
-export const ArrLinkQuerySchema = z.object({
-  mediaId: z.coerce.number().int().positive(),
-});
-
-export const LibLinkQuerySchema = z.object({
-  mediaId: z.coerce.number().int().positive(),
-});
-
-// ============================================================================
 // Integration Settings Schemas (TMDB, Radarr, Sonarr, Jellyfin)
 // ============================================================================
 
 /** Request body for PUT /admin/tmdb/settings */
 export const TmdbSettingsQuerySchema = z.object({
   tmdbAccessToken: z.string().min(1).optional(),
+});
+
+/** Response shape for GET /admin/tmdb/settings */
+export const TmdbSettingsSchema = z.object({
+  tmdbAccessTokenSet: z.boolean(),
 });
 
 /** Request body for PUT /admin/radarr/settings and PUT /admin/sonarr/settings */
@@ -49,49 +42,12 @@ export const ArrSettingsQuerySchema = z.object({
   rootFolderPath: z.string().min(1).optional(),
 });
 
-/** Backward-compatible aliases for ARR service-specific naming */
-export const RadarrSettingsQuerySchema = ArrSettingsQuerySchema;
-export const SonarrSettingsQuerySchema = ArrSettingsQuerySchema;
-
-/** Request body for PUT /admin/jellyfin/settings */
-export const JellyfinSettingsQuerySchema = z.object({
-  jellyfinUrl: z.string().optional(),
-  jellyfinApiKey: z.string().optional(),
-});
-
-/** Request body for PUT /admin/plex/settings */
-export const PlexSettingsQuerySchema = z.object({
-  plexUrl: z.string().optional(),
-  plexToken: z.string().optional(),
-});
-
-/** Response shape for GET /admin/tmdb/settings */
-export const TmdbSettingsSchema = z.object({
-  tmdbAccessTokenSet: z.boolean(),
-});
-
 /** Response shape for GET /admin/radarr/settings and GET /admin/sonarr/settings */
 export const ArrSettingsSchema = z.object({
   url: z.string().nullable(),
   apiKeySet: z.boolean(),
   qualityProfileId: z.number().int().nullable(),
   rootFolderPath: z.string().nullable(),
-});
-
-/** Backward-compatible aliases for ARR service-specific naming */
-export const RadarrSettingsSchema = ArrSettingsSchema;
-export const SonarrSettingsSchema = ArrSettingsSchema;
-
-/** Response shape for GET /admin/jellyfin/settings */
-export const JellyfinSettingsSchema = z.object({
-  jellyfinUrl: z.string().nullable(),
-  jellyfinApiKeySet: z.boolean(),
-});
-
-/** Response shape for GET /admin/plex/settings */
-export const PlexSettingsSchema = z.object({
-  plexUrl: z.string().nullable(),
-  plexTokenSet: z.boolean(),
 });
 
 /** Quality profile returned by Radarr/Sonarr */
@@ -107,26 +63,28 @@ export const ArrRootFolderSchema = z.object({
   freeSpace: z.number().optional(),
 });
 
+/** Request body for PUT /admin/jellyfin/settings and PUT /admin/plex/settings */
+export const LibSettingsQuerySchema = z.object({
+  url: z.string().optional(),
+  apiKey: z.string().optional(),
+});
+
+/** Response shape for GET /admin/jellyfin/settings and GET /admin/plex/settings */
+export const LibSettingsSchema = z.object({
+  url: z.string().nullable(),
+  apiKeySet: z.boolean(),
+});
+
 export type UserSettingsQuery = z.infer<typeof UserSettingsQuerySchema>;
 export type UserSettings = z.infer<typeof UserSettingsSchema>;
-
-export type ArrLinkQuery = z.infer<typeof ArrLinkQuerySchema>;
-export type LibLinkQuery = z.infer<typeof LibLinkQuerySchema>;
 
 export type TmdbSettingsQuery = z.infer<typeof TmdbSettingsQuerySchema>;
 export type TmdbSettings = z.infer<typeof TmdbSettingsSchema>;
 
 export type ArrSettingsQuery = z.infer<typeof ArrSettingsQuerySchema>;
 export type ArrSettings = z.infer<typeof ArrSettingsSchema>;
-export type RadarrSettingsQuery = ArrSettingsQuery;
-export type SonarrSettingsQuery = ArrSettingsQuery;
-export type RadarrSettings = ArrSettings;
-export type SonarrSettings = ArrSettings;
 export type ArrQualityProfile = z.infer<typeof ArrQualityProfileSchema>;
 export type ArrRootFolder = z.infer<typeof ArrRootFolderSchema>;
 
-export type JellyfinSettingsQuery = z.infer<typeof JellyfinSettingsQuerySchema>;
-export type JellyfinSettings = z.infer<typeof JellyfinSettingsSchema>;
-
-export type PlexSettingsQuery = z.infer<typeof PlexSettingsQuerySchema>;
-export type PlexSettings = z.infer<typeof PlexSettingsSchema>;
+export type LibSettingsQuery = z.infer<typeof LibSettingsQuerySchema>;
+export type LibSettings = z.infer<typeof LibSettingsSchema>;

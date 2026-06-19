@@ -29,5 +29,5 @@ const schedulerPlugin = (fastify: FastifyInstance) => {
 
 export default fp(schedulerPlugin, {
   name: 'scheduler',
-  dependencies: ['arr', 'jellyfin', 'catalog'],
+  dependencies: ['arr', 'lib', 'catalog'],
 });

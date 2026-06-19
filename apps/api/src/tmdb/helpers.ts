@@ -184,7 +184,7 @@ export async function processWithWorkerPool<TItem, TResult>(options: {
         // oxlint-disable-next-line eslint/no-await-in-loop
         const result = await processWithRetry(item);
 
-        if (result !== null) {
+        if (isDefined(result)) {
           results.push(result);
           localCount += 1;
         }

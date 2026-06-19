@@ -1,8 +1,7 @@
 import { CreateUserSchema, DeleteUserSchema } from '@findarr/shared/auth';
 import {
   ArrSettingsQuerySchema,
-  JellyfinSettingsQuerySchema,
-  PlexSettingsQuerySchema,
+  LibSettingsQuerySchema,
   TmdbSettingsQuerySchema,
 } from '@findarr/shared/settings';
 import type { FastifyInstance } from 'fastify';
@@ -49,7 +48,7 @@ const adminRoutes = (fastify: FastifyInstance) => {
   fastify.get('/jellyfin/settings', () => fastify.jellyfin.getSettings());
 
   fastify.put('/jellyfin/settings', async (r) =>
-    fastify.jellyfin.setSettings(JellyfinSettingsQuerySchema.parse(r.body)),
+    fastify.jellyfin.setSettings(LibSettingsQuerySchema.parse(r.body)),
   );
 
   fastify.post('/jellyfin/test', async () => fastify.jellyfin.testAndSync());
@@ -57,7 +56,7 @@ const adminRoutes = (fastify: FastifyInstance) => {
   fastify.get('/plex/settings', () => fastify.plex.getSettings());
 
   fastify.put('/plex/settings', async (r) =>
-    fastify.plex.setSettings(PlexSettingsQuerySchema.parse(r.body)),
+    fastify.plex.setSettings(LibSettingsQuerySchema.parse(r.body)),
   );
 
   fastify.post('/plex/test', async () => fastify.plex.testAndSync());

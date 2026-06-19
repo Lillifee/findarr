@@ -96,8 +96,8 @@ export async function syncLibrary(
   // Count items that will be skipped due to missing IDs
   const itemsWithRequiredIds =
     mediaType === 'tv'
-      ? itemsToUpsert.filter((item) => item.tvdbId !== null)
-      : itemsToUpsert.filter((item) => item.tmdbId !== null);
+      ? itemsToUpsert.filter((item) => isDefined(item.tvdbId))
+      : itemsToUpsert.filter((item) => isDefined(item.tmdbId));
 
   const skippedCount = itemsToUpsert.length - itemsWithRequiredIds.length;
   if (skippedCount > 0) {

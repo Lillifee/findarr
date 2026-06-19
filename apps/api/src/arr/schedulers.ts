@@ -125,8 +125,9 @@ export function createArrQueueFastSyncScheduler(arrService: AnyArrService): Sche
           // Trigger library sync to upgrade completed items to 'downloaded' status
           await syncLibrary(context, arrService);
 
-          // Trigger Jellyfin queue sync
+          // Trigger library queue sync
           context.scheduler.start({ name: 'jellyfinQueueSync' });
+          context.scheduler.start({ name: 'plexQueueSync' });
         }
 
         // Update state for next run

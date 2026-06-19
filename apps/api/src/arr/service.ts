@@ -8,14 +8,10 @@ import { createClientLifecycle } from '../utils/clientLifecycleHepler.js';
 import { trimTrailingSlash } from '../utils/links.js';
 import { createArrClient, type ArrClient } from './client.js';
 import type { arrConfig, ArrServiceConfig } from './config.js';
-import {
-  getArrSettings,
-  setArrSettings,
-  updateMediaIds,
-  type ArrSettingsFull,
-} from './repository.js';
+import { getArrSettings, setArrSettings, updateMediaIds } from './repository.js';
 import type { ArrLibraryItem, ArrQualityProfile, ArrQueueItem, ArrRootFolder } from './schemas.js';
 import { transformArrMedia } from './transformers.js';
+import type { ArrSettingsFull } from './types.js';
 
 export interface ArrServiceContext {
   db: Database;

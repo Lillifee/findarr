@@ -1,18 +1,11 @@
 import { z } from 'zod';
 
-// Plex server identity response
 export const PlexIdentitySchema = z.object({
-  MediaContainer: z.object({
-    machineIdentifier: z.string(),
-  }),
+  MediaContainer: z.object({ machineIdentifier: z.string() }),
 });
 
-// Plex GUID (external service mappings like tmdb://12345)
-export const PlexGuidSchema = z.object({
-  id: z.string(),
-});
+export const PlexGuidSchema = z.object({ id: z.string() });
 
-// Plex Metadata item (movie or show)
 export const PlexMetadataItemSchema = z.object({
   ratingKey: z.string(),
   type: z.enum(['movie', 'show', 'season']),
@@ -22,16 +15,14 @@ export const PlexMetadataItemSchema = z.object({
   index: z.number().optional(),
 });
 
-// Plex MediaContainer response
 export const PlexMediaContainerSchema = z.object({
   MediaContainer: z.object({
     Metadata: z.array(PlexMetadataItemSchema).optional(),
-    TotalSize: z.number().optional(),
+    totalSize: z.number().optional(),
     size: z.number().optional(),
   }),
 });
 
-// Plex library section
 export const PlexSectionSchema = z.object({
   key: z.string(),
   type: z.enum(['movie', 'show']),
@@ -39,11 +30,8 @@ export const PlexSectionSchema = z.object({
 });
 
 export const PlexSectionsResponseSchema = z.object({
-  MediaContainer: z.object({
-    Directory: z.array(PlexSectionSchema).optional(),
-  }),
+  MediaContainer: z.object({ Directory: z.array(PlexSectionSchema).optional() }),
 });
 
 export type PlexMetadataItem = z.infer<typeof PlexMetadataItemSchema>;
-export type PlexMediaContainer = z.infer<typeof PlexMediaContainerSchema>;
 export type PlexSection = z.infer<typeof PlexSectionSchema>;

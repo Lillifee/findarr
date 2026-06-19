@@ -42,12 +42,12 @@ export const readCatalogSearchParams = (
   const rawInteraction = searchParams.get('interaction');
 
   const interaction =
-    rawInteraction !== null && isInteractionFilter(rawInteraction)
+    isDefined(rawInteraction) && isInteractionFilter(rawInteraction)
       ? rawInteraction
       : defaults.interaction;
 
   return {
-    type: rawType !== null && isSearchType(rawType) ? rawType : (defaults.type ?? 'both'),
+    type: isDefined(rawType) && isSearchType(rawType) ? rawType : (defaults.type ?? 'both'),
     page: Number.parseInt(searchParams.get('page') ?? String(defaults.page ?? 1), 10),
     ...(interaction === undefined ? {} : { interaction }),
     q: searchParams.get('q') ?? '',

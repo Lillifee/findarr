@@ -8,15 +8,13 @@ import fastify from 'fastify';
 
 import { adminRoutes } from './admin/routes.js';
 import arrPlugin from './arr/plugin.js';
-import { arrRoutes } from './arr/routes.js';
 import authPlugin from './auth/plugin.js';
 import { authRoutes, protectedAuthRoutes } from './auth/routes.js';
 import catalogPlugin from './catalog/plugin.js';
 import { catalogRoutes } from './catalog/routes.js';
 import databasePlugin from './db/plugin.js';
 import { interactionRoutes } from './interaction/routes.js';
-import jellyfinPlugin from './jellyfin/plugin.js';
-import plexPlugin from './plex/plugin.js';
+import libPlugin from './lib/plugin.js';
 import schedulerPlugin from './scheduler/plugin.js';
 import { adminSchedulerRoutes, schedulerRoutes } from './scheduler/routes.js';
 import tmdbPlugin from './tmdb/plugin.js';
@@ -58,8 +56,7 @@ async function start() {
     await server.register(authPlugin, { secretPath: path.join(dataPath, 'session.secret') });
     await server.register(tmdbPlugin);
 
-    await server.register(jellyfinPlugin);
-    await server.register(plexPlugin);
+    await server.register(libPlugin);
     await server.register(arrPlugin);
     await server.register(catalogPlugin);
     await server.register(schedulerPlugin);
@@ -71,7 +68,6 @@ async function start() {
     await server.register(authRoutes, { prefix: '/api/auth' });
     await server.register(protectedAuthRoutes, { prefix: '/api/auth' });
     await server.register(adminRoutes, { prefix: '/api/admin' });
-    await server.register(arrRoutes, { prefix: '/api' });
     await server.register(interactionRoutes, { prefix: '/api/interactions' });
     await server.register(settingsRoutes, { prefix: '/api/settings' });
     await server.register(catalogRoutes, { prefix: '/api' });
