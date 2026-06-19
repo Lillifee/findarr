@@ -155,7 +155,7 @@ export function createCatalogService(context: CatalogContext) {
     userId: number,
   ): Promise<AvailableMediaResponse> {
     const { type = 'both', page = 1 } = params;
-    const itemsPerPage = 20;
+    const itemsPerPage = 10;
     const offset = (page - 1) * itemsPerPage;
 
     const { results: dbRecords, totalCount } = await getMediaByStatusPaginated(db, ['available'], {

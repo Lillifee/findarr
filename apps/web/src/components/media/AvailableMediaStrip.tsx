@@ -10,15 +10,13 @@ function keyOf(item: Media) {
 }
 
 export function AvailableMediaStrip({
-  hasMore,
   loading,
-  onSelectItem,
   results,
+  onSelectItem,
 }: {
-  hasMore: boolean;
   loading: boolean;
-  onSelectItem: (item: Media) => void;
   results: Media[];
+  onSelectItem: (item: Media) => void;
 }) {
   const { t } = useTranslation();
   const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>, item: Media) => {
@@ -54,16 +52,15 @@ export function AvailableMediaStrip({
     );
   }
 
-  const fadeStyle = hasMore
-    ? {
-        WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 5rem), transparent)',
-        maskImage: 'linear-gradient(to right, black calc(100% - 5rem), transparent)',
-      }
-    : undefined;
-
   return (
     <div className="relative overflow-hidden">
-      <div className="scrollbar-hidden overflow-x-auto overflow-y-hidden" style={fadeStyle}>
+      <div
+        className="scrollbar-hidden overflow-x-auto overflow-y-hidden"
+        style={{
+          WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 5rem), transparent)',
+          maskImage: 'linear-gradient(to right, black calc(100% - 5rem), transparent)',
+        }}
+      >
         <div className="flex gap-3 md:gap-4">
           {results.map((item) => (
             <div

@@ -43,9 +43,7 @@ export function DashboardPage() {
 
           <NewlyAvailableSection
             results={dashboard.availableResults}
-            hasMore={dashboard.availableHasMore}
             loading={dashboard.loadingAvailable}
-            error={dashboard.availableError}
             onSelectItem={handleSelectItem}
           />
         </div>
