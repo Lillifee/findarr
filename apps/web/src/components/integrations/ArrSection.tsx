@@ -3,7 +3,7 @@ import { isDefined } from '@findarr/shared/utils';
 import { useState, useCallback, type ChangeEvent } from 'react';
 
 import { useConnectionState } from '../../hooks/useConnectionState';
-import { adminArrService } from '../../services/api';
+import { createArrServiceApi } from '../../services/api';
 import { asVoid } from '../../utils/asyncHandlers';
 import { SelectInput } from '../ui/SelectInput';
 import { ConnectionActions } from './ConnectionActions';
@@ -27,14 +27,26 @@ const defaultSettings: ArrSettings = {
   rootFolderPath: null,
 };
 
+const arrServiceConfig = {
+  radarr: {
+    title: 'Radarr',
+    description: 'Movies — quality profile and root folder for new movie requests',
+    urlPlaceholder: 'http://localhost:7878',
+  },
+  sonarr: {
+    title: 'Sonarr',
+    description: 'TV Shows — quality profile and root folder for new series requests',
+    urlPlaceholder: 'http://localhost:8989',
+  },
+} as const;
+
 interface ArrSectionProps {
-  service: 'radarr' | 'sonarr';
-  title: string;
-  description: string;
+  service: keyof typeof arrServiceConfig;
 }
 
-export function ArrSection({ service, title, description }: ArrSectionProps) {
-  const svc = adminArrService[service];
+export function ArrSection({ service }: ArrSectionProps) {
+  const svc = createArrServiceApi(service);
+  const config = arrServiceConfig[service];
 
   const [settings, setSettings] = useState<ArrSettings>(defaultSettings);
   const [profiles, setProfiles] = useState<ArrQualityProfile[]>([]);
@@ -119,7 +131,7 @@ export function ArrSection({ service, title, description }: ArrSectionProps) {
       } else {
         setProfiles([]);
         setRootFolders([]);
-        setError(`Could not reach ${title}. Check the URL and API key, then test again.`);
+        setError(`Could not reach ${config.title}. Check the URL and API key, then test again.`);
       }
     });
 
@@ -158,8 +170,8 @@ export function ArrSection({ service, title, description }: ArrSectionProps) {
 
   return (
     <IntegrationCard
-      title={title}
-      description={description}
+      title={config.title}
+      description={config.description}
       status={status}
       onSubmit={asVoid(handleSave)}
       actions={
@@ -178,7 +190,7 @@ export function ArrSection({ service, title, description }: ArrSectionProps) {
         <ConnectionCredentialsStep
           urlValue={urlInput}
           onUrlChange={handleUrlChange}
-          urlPlaceholder={svc.urlPlaceholder}
+          urlPlaceholder={config.urlPlaceholder}
           apiKeyValue={apiKeyInput}
           onApiKeyChange={handleApiKeyChange}
           apiKeySet={settings.apiKeySet}
