@@ -1,23 +1,17 @@
 import type { Media } from '@findarr/shared/media';
-import { isDefined } from '@findarr/shared/utils';
 import { useTranslation } from 'react-i18next';
 
 import { AvailableMediaStrip } from '../media/AvailableMediaStrip';
-import { Card } from '../ui/Card';
 
 interface NewlyAvailableSectionProps {
   results: Media[];
-  hasMore: boolean;
   loading: boolean;
-  error: string | undefined;
   onSelectItem: (item: Media) => void;
 }
 
 export function NewlyAvailableSection({
   results,
-  hasMore,
   loading,
-  error,
   onSelectItem,
 }: NewlyAvailableSectionProps) {
   const { t } = useTranslation();
@@ -29,16 +23,7 @@ export function NewlyAvailableSection({
         </h2>
       </div>
 
-      {isDefined(error) && !loading && (
-        <Card className="mb-4 border border-red-500/30 text-sm text-red-200">{error}</Card>
-      )}
-
-      <AvailableMediaStrip
-        hasMore={hasMore}
-        loading={loading}
-        onSelectItem={onSelectItem}
-        results={results}
-      />
+      <AvailableMediaStrip loading={loading} onSelectItem={onSelectItem} results={results} />
     </section>
   );
 }
