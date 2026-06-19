@@ -101,11 +101,13 @@ export async function getLibSettings(
 ): Promise<LibSettingsFull> {
   const urlKey = `${config.service}Url`;
   const credentialKey = `${config.service}ApiKey`;
-  const v = await readSettings(db, [urlKey, credentialKey]);
+  const enabledKey = `${config.service}Enabled`;
+  const v = await readSettings(db, [urlKey, credentialKey, enabledKey]);
   return {
     url: v[urlKey] ?? null,
     apiKey: v[credentialKey] ?? null,
     apiKeySet: isDefined(v[credentialKey]),
+    enabled: isDefined(v[enabledKey]) ? v[enabledKey] === 'true' : isDefined(v[urlKey]),
   };
 }
 
@@ -116,8 +118,10 @@ export async function setLibSettings(
 ): Promise<void> {
   const urlKey = `${config.service}Url`;
   const credentialKey = `${config.service}ApiKey`;
+  const enabledKey = `${config.service}Enabled`;
   await writeSettings(db, {
-    ...(isDefined(settings.url) && { [urlKey]: settings.url }),
-    ...(isDefined(settings.apiKey) && { [credentialKey]: settings.apiKey }),
+    [urlKey]: settings.url,
+    [credentialKey]: settings.apiKey,
+    [enabledKey]: settings.enabled?.toString(),
   });
 }

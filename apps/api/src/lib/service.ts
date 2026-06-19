@@ -31,6 +31,9 @@ export async function createLibService(config: LibServiceConfig, context: LibSer
     name: config.service,
     loadSettings: async () => getLibSettings(context.db, config),
     createClient: (settings): LibClient | undefined => {
+      if (!settings.enabled) {
+        return undefined;
+      }
       const factory = clientFactories[config.service];
       return factory && isDefined(settings.url) && isDefined(settings.apiKey)
         ? factory(settings.url, settings.apiKey, context.log)
@@ -50,6 +53,7 @@ export async function createLibService(config: LibServiceConfig, context: LibSer
   async function setSettings(query: LibSettingsQuery): Promise<LibSettings> {
     await setLibSettings(context.db, config, query);
     await lifecycle.reload();
+    context.scheduler.setState({ name: config.syncScheduler, enabled: lifecycle.isConfigured() });
     return getSettings();
   }
 
@@ -62,10 +66,12 @@ export async function createLibService(config: LibServiceConfig, context: LibSer
   }
 
   async function testAndSync(): Promise<boolean> {
-    return (
-      (await testConnection()) &&
-      (await context.scheduler.trigger({ name: config.syncScheduler }), true)
-    );
+    if (!(await testConnection())) {
+      return false;
+    }
+    context.scheduler.setState({ name: config.syncScheduler, enabled: true });
+    await context.scheduler.trigger({ name: config.syncScheduler });
+    return true;
   }
 
   async function listLibraryItems(): Promise<LibMedia[]> {

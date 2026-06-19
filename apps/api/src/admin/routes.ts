@@ -21,52 +21,36 @@ const adminRoutes = (fastify: FastifyInstance) => {
     ),
   );
 
-  fastify.get('/radarr/settings', () => fastify.radarr.getSettings());
+  // Generic settings + test routes for all integrations
+  const libServices = { jellyfin: fastify.jellyfin, plex: fastify.plex } as const;
+  const arrServices = { radarr: fastify.radarr, sonarr: fastify.sonarr } as const;
 
-  fastify.put('/radarr/settings', async (r) =>
-    fastify.radarr.setSettings(ArrSettingsQuerySchema.parse(r.body)),
-  );
+  for (const [name, svc] of Object.entries(libServices)) {
+    fastify.get(`/${name}/settings`, () => svc.getSettings());
+    fastify.put(`/${name}/settings`, async (r) =>
+      svc.setSettings(LibSettingsQuerySchema.parse(r.body)),
+    );
+    fastify.post(`/${name}/test`, async () => svc.testAndSync());
+  }
 
-  fastify.get('/radarr/quality-profiles', async () => fastify.radarr.listQualityProfiles());
+  for (const [name, svc] of Object.entries(arrServices)) {
+    fastify.get(`/${name}/settings`, () => svc.getSettings());
+    fastify.put(`/${name}/settings`, async (r) =>
+      svc.setSettings(ArrSettingsQuerySchema.parse(r.body)),
+    );
+    fastify.post(`/${name}/test`, async () => svc.testAndSync());
+  }
 
-  fastify.get('/radarr/root-folders', async () => fastify.radarr.listRootFolders());
-
-  fastify.post('/radarr/test', async () => fastify.radarr.testAndSync());
-
-  fastify.get('/sonarr/settings', () => fastify.sonarr.getSettings());
-
-  fastify.put('/sonarr/settings', async (r) =>
-    fastify.sonarr.setSettings(ArrSettingsQuerySchema.parse(r.body)),
-  );
-
-  fastify.get('/sonarr/quality-profiles', async () => fastify.sonarr.listQualityProfiles());
-
-  fastify.get('/sonarr/root-folders', async () => fastify.sonarr.listRootFolders());
-
-  fastify.post('/sonarr/test', async () => fastify.sonarr.testAndSync());
-
-  fastify.get('/jellyfin/settings', () => fastify.jellyfin.getSettings());
-
-  fastify.put('/jellyfin/settings', async (r) =>
-    fastify.jellyfin.setSettings(LibSettingsQuerySchema.parse(r.body)),
-  );
-
-  fastify.post('/jellyfin/test', async () => fastify.jellyfin.testAndSync());
-
-  fastify.get('/plex/settings', () => fastify.plex.getSettings());
-
-  fastify.put('/plex/settings', async (r) =>
-    fastify.plex.setSettings(LibSettingsQuerySchema.parse(r.body)),
-  );
-
-  fastify.post('/plex/test', async () => fastify.plex.testAndSync());
+  // Arr-specific: quality profiles and root folders
+  for (const [name, svc] of Object.entries(arrServices)) {
+    fastify.get(`/${name}/quality-profiles`, async () => svc.listQualityProfiles());
+    fastify.get(`/${name}/root-folders`, async () => svc.listRootFolders());
+  }
 
   fastify.get('/tmdb/settings', () => fastify.tmdb.getSettings());
-
   fastify.put('/tmdb/settings', async (r) =>
     fastify.tmdb.setSettings(TmdbSettingsQuerySchema.parse(r.body)),
   );
-
   fastify.post('/tmdb/test', async () => fastify.tmdb.testAndSync());
 };
 

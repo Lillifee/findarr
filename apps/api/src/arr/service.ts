@@ -27,7 +27,7 @@ export async function createArrService<T extends ArrServiceConfig>(
     name: config.service,
     loadSettings: async () => getArrSettings(context.db, config),
     createClient: (settings) =>
-      isDefined(settings.url) && isDefined(settings.apiKey)
+      settings.enabled && isDefined(settings.url) && isDefined(settings.apiKey)
         ? createArrClient(config, settings.url, settings.apiKey, context.log)
         : undefined,
   });
@@ -43,8 +43,8 @@ export async function createArrService<T extends ArrServiceConfig>(
 
   async function setSettings(settingsQuery: ArrSettingsQuery): Promise<ArrSettings> {
     await setArrSettings(context.db, config, settingsQuery);
-
     await lifecycle.reload();
+    context.scheduler.setState({ name: config.syncScheduler, enabled: lifecycle.isConfigured() });
     return getSettings();
   }
 
@@ -57,8 +57,8 @@ export async function createArrService<T extends ArrServiceConfig>(
       return false;
     }
 
-    context.scheduler.start({ name: config.syncScheduler });
-    context.scheduler.start({ name: config.queueFastSyncScheduler });
+    context.scheduler.setState({ name: config.syncScheduler, enabled: true });
+    context.scheduler.setState({ name: config.queueFastSyncScheduler, enabled: true });
 
     await context.scheduler.trigger({ name: config.syncScheduler });
 

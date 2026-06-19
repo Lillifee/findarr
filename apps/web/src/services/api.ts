@@ -206,7 +206,11 @@ export function createLibServiceApi(service: 'jellyfin' | 'plex') {
       const response = await api.get<LibSettings>(`/admin/${service}/settings`);
       return response.data;
     },
-    saveSettings: async (settings: { url?: string; apiKey?: string }): Promise<LibSettings> => {
+    saveSettings: async (settings: {
+      url?: string;
+      apiKey?: string;
+      enabled?: boolean;
+    }): Promise<LibSettings> => {
       const response = await api.put<LibSettings>(`/admin/${service}/settings`, settings);
       return response.data;
     },
