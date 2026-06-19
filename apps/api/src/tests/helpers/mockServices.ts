@@ -5,6 +5,7 @@ import type { ArrService } from '../../arr/service.js';
 import type { CatalogService } from '../../catalog/service.js';
 import type { Database } from '../../db/service.js';
 import type { JellyfinService } from '../../jellyfin/service.js';
+import type { PlexService } from '../../plex/service.js';
 import type { SchedulerService } from '../../scheduler/service.js';
 import type { LoggerService, SchedulerContext } from '../../scheduler/types.js';
 import type { TMDBService } from '../../tmdb/service.js';
@@ -58,7 +59,6 @@ export function createMockArrService<T extends ArrServiceConfig>(
     listRootFolders: vi.fn<ArrService<T>['listRootFolders']>().mockResolvedValue([]),
     listLibraryItems: vi.fn<ArrService<T>['listLibraryItems']>().mockResolvedValue([]),
     getQueue: vi.fn<ArrService<T>['getQueue']>().mockResolvedValue([]),
-    resolveMediaUrl: vi.fn<ArrService<T>['resolveMediaUrl']>().mockResolvedValue(null),
     ...overrides,
   };
 
@@ -79,8 +79,9 @@ export const createMockSonarrService = (
 const createDefaultMediaRecord = () => ({
   id: 1,
   status: 'pending' as const,
-  jellyfinId: null,
-  jellyfinAddedAt: null,
+  libId: null,
+  libUrl: null,
+  libAddedAt: null,
   tvdbId: null,
   arrId: null,
   arrUrl: null,
@@ -138,7 +139,20 @@ export function createMockJellyfinService(
     testConnection: vi.fn<JellyfinService['testConnection']>().mockResolvedValue(false),
     testAndSync: vi.fn<JellyfinService['testAndSync']>(),
     listLibraryItems: vi.fn<JellyfinService['listLibraryItems']>(),
-    resolveMediaUrl: vi.fn<JellyfinService['resolveMediaUrl']>(),
+    ...overrides,
+  };
+}
+
+export function createMockPlexService(
+  overrides: Partial<Mocked<PlexService>> = {},
+): Mocked<PlexService> {
+  return {
+    getSettings: vi.fn<PlexService['getSettings']>(),
+    setSettings: vi.fn<PlexService['setSettings']>(),
+    isConfigured: vi.fn<PlexService['isConfigured']>().mockReturnValue(false),
+    testConnection: vi.fn<PlexService['testConnection']>().mockResolvedValue(false),
+    testAndSync: vi.fn<PlexService['testAndSync']>(),
+    listLibraryItems: vi.fn<PlexService['listLibraryItems']>(),
     ...overrides,
   };
 }
@@ -178,6 +192,7 @@ export function createMockSchedulerContext(
     log: createMockLoggerService(),
     tmdb: createMockTMDBService(),
     jellyfin: createMockJellyfinService(),
+    plex: createMockPlexService(),
     scheduler: createMockSchedulerService(),
     ...overrides,
   };

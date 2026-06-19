@@ -1,11 +1,7 @@
 import { isDefined } from '@findarr/shared/utils';
 
 import type { SchedulerContext } from '../scheduler/types.js';
-import {
-  clearRemovedJellyfinItems,
-  getMediaWithJellyfinIds,
-  upsertMediaFromJellyfin,
-} from './repository.js';
+import { clearRemovedLibItems, getMediaWithLibIds, upsertMediaFromJellyfin } from './repository.js';
 
 /**
  * Sync Jellyfin library to database
@@ -32,15 +28,15 @@ export async function syncJellyfinLibrary(context: SchedulerContext): Promise<vo
 
   const affectedRows = await upsertMediaFromJellyfin(context.db, jellyfinItems);
 
-  const mediaWithJellyfinIds = await getMediaWithJellyfinIds(context.db);
-  const currentJellyfinIds = new Set(jellyfinItems.map((item) => item.jellyfinId));
-  const removedJellyfinIds = mediaWithJellyfinIds
-    .map((mediaRecord) => mediaRecord.jellyfinId)
-    .filter((jellyfinId) => isDefined(jellyfinId))
-    .filter((jellyfinId) => !currentJellyfinIds.has(jellyfinId));
+  const mediaWithLibIds = await getMediaWithLibIds(context.db);
+  const currentLibIds = new Set(jellyfinItems.map((item) => item.libId));
+  const removedLibIds = mediaWithLibIds
+    .map((mediaRecord) => mediaRecord.libId)
+    .filter((libId) => isDefined(libId))
+    .filter((libId) => !currentLibIds.has(libId));
 
-  if (removedJellyfinIds.length > 0) {
-    const clearedCount = await clearRemovedJellyfinItems(context.db, removedJellyfinIds);
+  if (removedLibIds.length > 0) {
+    const clearedCount = await clearRemovedLibItems(context.db, removedLibIds);
     context.log.info({ name: 'jellyfin', clearedCount }, 'Cleaned up removed items');
   }
 

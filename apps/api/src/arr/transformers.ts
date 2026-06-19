@@ -9,12 +9,12 @@ import type { ArrLibraryItem, RadarrMovie, SonarrSeries } from './schemas.js';
 /**
  * Transform Radarr Movie to unified ArrLibraryItem type
  */
-export function transformRadarrMovie(radarrMovie: RadarrMovie): ArrLibraryItem {
+export function transformRadarrMovie(radarrMovie: RadarrMovie, baseUrl: string): ArrLibraryItem {
   return {
     id: radarrMovie.id,
     type: 'movie',
     tmdbId: radarrMovie.tmdbId,
-    arrUrl: `/movie/${radarrMovie.tmdbId}`,
+    arrUrl: `${baseUrl}/movie/${radarrMovie.tmdbId}`,
     title: radarrMovie.title,
     year: radarrMovie.year,
     monitored: radarrMovie.monitored,
@@ -25,7 +25,7 @@ export function transformRadarrMovie(radarrMovie: RadarrMovie): ArrLibraryItem {
 /**
  * Transform Sonarr Series to unified ArrLibraryItem type
  */
-export function transformSonarrSeries(series: SonarrSeries): ArrLibraryItem {
+export function transformSonarrSeries(series: SonarrSeries, baseUrl: string): ArrLibraryItem {
   const seasons = series.seasons?.map((s) => {
     const stats = s.statistics;
     const total = stats?.totalEpisodeCount ?? stats?.episodeCount ?? 0;
@@ -45,7 +45,7 @@ export function transformSonarrSeries(series: SonarrSeries): ArrLibraryItem {
     year: series.year,
     monitored: series.monitored,
     hasFile: (series.statistics?.episodeFileCount ?? 0) > 0,
-    ...(isDefined(series.titleSlug) && { arrUrl: `/series/${series.titleSlug}` }),
+    ...(isDefined(series.titleSlug) && { arrUrl: `${baseUrl}/series/${series.titleSlug}` }),
     ...(isDefined(seasons) && { seasons }),
   };
 }
@@ -54,6 +54,11 @@ export function transformSonarrSeries(series: SonarrSeries): ArrLibraryItem {
  * Unified transformer that uses the type discriminator from the validated schema
  * Since RadarrMovie and SonarrSeries now include type field, we can use it directly
  */
-export function transformArrMedia(item: RadarrMovie | SonarrSeries): ArrLibraryItem {
-  return item.type === 'movie' ? transformRadarrMovie(item) : transformSonarrSeries(item);
+export function transformArrMedia(
+  item: RadarrMovie | SonarrSeries,
+  baseUrl: string,
+): ArrLibraryItem {
+  return item.type === 'movie'
+    ? transformRadarrMovie(item, baseUrl)
+    : transformSonarrSeries(item, baseUrl);
 }

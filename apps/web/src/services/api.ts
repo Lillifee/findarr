@@ -25,8 +25,7 @@ import type {
   ArrRootFolder,
   JellyfinSettings,
   TmdbSettings,
-  ArrLinkQuery,
-  JellyfinLinkQuery,
+  PlexSettings,
   UserSettings,
   UserSettingsQuery,
 } from '@findarr/shared/settings';
@@ -246,6 +245,24 @@ export const adminJellyfinService = {
   },
 };
 
+export const adminPlexService = {
+  getSettings: async (): Promise<PlexSettings> => {
+    const response = await api.get<PlexSettings>('/admin/plex/settings');
+    return response.data;
+  },
+  saveSettings: async (settings: {
+    plexUrl?: string;
+    plexToken?: string;
+  }): Promise<PlexSettings> => {
+    const response = await api.put<PlexSettings>('/admin/plex/settings', settings);
+    return response.data;
+  },
+  test: async (): Promise<boolean> => {
+    const response = await api.post<boolean>('/admin/plex/test');
+    return response.data;
+  },
+};
+
 export const adminTmdbService = {
   getSettings: async (): Promise<TmdbSettings> => {
     const response = await api.get<TmdbSettings>('/admin/tmdb/settings');
@@ -284,29 +301,4 @@ export const adminSchedulerService = {
   stop: async (name: string): Promise<void> => {
     await api.post(`/admin/schedulers/${name}/stop`);
   },
-};
-
-// Link resolution service
-// Provides URLs for media links in Radarr/Sonarr and Jellyfin
-export const linkService = {
-  /**
-   * Get Radarr link for a movie
-   * @param query - { mediaId: number }
-   * @returns URL to Radarr movie page (browser will handle redirect)
-   */
-  radarr: (query: ArrLinkQuery): string => `/api/radarr-link?mediaId=${query.mediaId}`,
-
-  /**
-   * Get Sonarr link for a TV show
-   * @param query - { mediaId: number }
-   * @returns URL to Sonarr series page (browser will handle redirect)
-   */
-  sonarr: (query: ArrLinkQuery): string => `/api/sonarr-link?mediaId=${query.mediaId}`,
-
-  /**
-   * Get Jellyfin link for media
-   * @param query - { mediaId: number }
-   * @returns URL to Jellyfin item page (browser will handle redirect)
-   */
-  jellyfin: (query: JellyfinLinkQuery): string => `/api/jellyfin-link?mediaId=${query.mediaId}`,
 };

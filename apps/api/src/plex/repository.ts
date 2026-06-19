@@ -1,9 +1,9 @@
 import { media } from '@findarr/shared/db';
 import type { MediaType } from '@findarr/shared/media';
 import {
-  JellyfinSettingsQuerySchema,
-  type JellyfinSettings,
-  type JellyfinSettingsQuery,
+  PlexSettingsQuerySchema,
+  type PlexSettings,
+  type PlexSettingsQuery,
 } from '@findarr/shared/settings';
 import { isDefined, objectKeys } from '@findarr/shared/utils';
 import { eq, inArray, isNotNull, sql } from 'drizzle-orm';
@@ -11,24 +11,21 @@ import { eq, inArray, isNotNull, sql } from 'drizzle-orm';
 import type { Database } from '../db/service.js';
 import { readSettings, writeSettings } from '../settings/repository.js';
 import { mergeAvailableSeasons } from '../utils/helper.js';
-import type { JellyfinMedia } from './transformers.js';
+import type { PlexMedia } from './transformers.js';
 
 // ============================================================================
-// Jellyfin Media Sync Operations
+// Plex Media Sync Operations
 // ============================================================================
 
 /**
- * Upsert media from Jellyfin into the database
- * Updates libId, libUrl, libAddedAt, status, and season availability (for TV shows)
- * Only updates when libId, status, or seasons have actually changed
+ * Upsert media from Plex into the database.
+ * Updates plexId, libraryAddedAt, status, and season availability (for TV shows).
+ * Only updates when plexId, status, or seasons have actually changed.
  */
-export async function upsertMediaFromJellyfin(
-  db: Database,
-  items: JellyfinMedia[],
-): Promise<number> {
+export async function upsertMediaFromPlex(db: Database, items: PlexMedia[]): Promise<number> {
   let affectedRows = 0;
 
-  const upsertItem = async (item: JellyfinMedia) => {
+  const upsertItem = async (item: PlexMedia) => {
     let updatedSeasons = null;
 
     if (item.type === 'tv') {
@@ -79,7 +76,7 @@ export async function upsertMediaFromJellyfin(
 }
 
 /**
- * Get all media with Jellyfin IDs for sync matching
+ * Get all media with Plex IDs for sync matching.
  */
 export async function getMediaWithLibIds(db: Database): Promise<
   {
@@ -103,9 +100,8 @@ export async function getMediaWithLibIds(db: Database): Promise<
 }
 
 /**
- * Clear removed items from Jellyfin
- * Resets jellyfinId and status for items no longer in Jellyfin library.
- * Only resets status to pending if Plex is also not linked (to avoid downgrading available items).
+ * Clear removed items from Plex.
+ * Only resets status to pending if Jellyfin is also not linked.
  */
 export async function clearRemovedLibItems(db: Database, libIds: string[]): Promise<number> {
   if (libIds.length === 0) {
@@ -126,29 +122,30 @@ export async function clearRemovedLibItems(db: Database, libIds: string[]): Prom
   return result.changes;
 }
 
-export interface JellyfinSettingsFull extends JellyfinSettings {
-  jellyfinApiKey: string | null;
+// ============================================================================
+// Plex Settings Operations
+// ============================================================================
+
+export interface PlexSettingsFull extends PlexSettings {
+  plexToken: string | null;
 }
 
-const jellyfinKeys = objectKeys(JellyfinSettingsQuerySchema.shape);
+const plexKeys = objectKeys(PlexSettingsQuerySchema.shape);
 
-export async function setJellyfinSettings(
-  db: Database,
-  settings: JellyfinSettingsQuery,
-): Promise<void> {
+export async function setPlexSettings(db: Database, settings: PlexSettingsQuery): Promise<void> {
   await writeSettings(db, settings);
 }
 
-export async function getJellyfinSettingsFull(db: Database): Promise<JellyfinSettingsFull> {
-  const settingsValues = await readSettings(db, jellyfinKeys);
+export async function getPlexSettingsFull(db: Database): Promise<PlexSettingsFull> {
+  const settingsValues = await readSettings(db, plexKeys);
   return {
-    jellyfinUrl: settingsValues.jellyfinUrl,
-    jellyfinApiKeySet: isDefined(settingsValues.jellyfinApiKey),
-    jellyfinApiKey: settingsValues.jellyfinApiKey,
+    plexUrl: settingsValues.plexUrl,
+    plexTokenSet: isDefined(settingsValues.plexToken),
+    plexToken: settingsValues.plexToken,
   };
 }
 
-export async function getJellyfinSettings(db: Database): Promise<JellyfinSettings> {
-  const { jellyfinApiKey: _jellyfinApiKey, ...settings } = await getJellyfinSettingsFull(db);
+export async function getPlexSettings(db: Database): Promise<PlexSettings> {
+  const { plexToken: _plexToken, ...settings } = await getPlexSettingsFull(db);
   return settings;
 }

@@ -13,6 +13,10 @@ import {
   createJellyfinLibrarySyncScheduler,
   createJellyfinQueueSyncScheduler,
 } from '../jellyfin/schedulers.js';
+import {
+  createPlexLibrarySyncScheduler,
+  createPlexQueueSyncScheduler,
+} from '../plex/schedulers.js';
 import type { Scheduler } from './types.js';
 
 /**
@@ -23,6 +27,8 @@ export function createSchedulers(fastify: FastifyInstance) {
   return {
     jellyfinLibrarySync: createJellyfinLibrarySyncScheduler(),
     jellyfinQueueSync: createJellyfinQueueSyncScheduler(),
+    plexLibrarySync: createPlexLibrarySyncScheduler(),
+    plexQueueSync: createPlexQueueSyncScheduler(),
     radarrLibrarySync: createArrLibrarySyncScheduler(fastify.radarr),
     radarrQueueMonitor: createArrQueueMonitorScheduler(fastify.radarr),
     radarrQueueFastSync: createArrQueueFastSyncScheduler(fastify.radarr),

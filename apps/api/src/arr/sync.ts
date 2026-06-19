@@ -109,12 +109,9 @@ export async function syncLibrary(
   await upsertMediaFromArr(db, itemsToUpsert);
 
   // Cleanup: Find items in DB that are no longer in Radarr/Sonarr
-  const existingMedia = await listMediaWithArrIds(db, mediaType);
+  const existingArrIds = await listMediaWithArrIds(db, mediaType);
   const currentArrIds = new Set(libraryItems.map((item) => item.id));
-  const removedArrIds = existingMedia
-    .map((m) => m.arrId)
-    .filter((arrId) => isDefined(arrId))
-    .filter((arrId) => !currentArrIds.has(arrId));
+  const removedArrIds = existingArrIds.filter((arrId) => !currentArrIds.has(arrId));
 
   if (removedArrIds.length > 0) {
     const clearedCount = await clearRemovedArrItems(db, removedArrIds, mediaType);

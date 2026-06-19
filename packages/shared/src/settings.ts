@@ -28,7 +28,7 @@ export const ArrLinkQuerySchema = z.object({
   mediaId: z.coerce.number().int().positive(),
 });
 
-export const JellyfinLinkQuerySchema = z.object({
+export const LibLinkQuerySchema = z.object({
   mediaId: z.coerce.number().int().positive(),
 });
 
@@ -59,6 +59,12 @@ export const JellyfinSettingsQuerySchema = z.object({
   jellyfinApiKey: z.string().optional(),
 });
 
+/** Request body for PUT /admin/plex/settings */
+export const PlexSettingsQuerySchema = z.object({
+  plexUrl: z.string().optional(),
+  plexToken: z.string().optional(),
+});
+
 /** Response shape for GET /admin/tmdb/settings */
 export const TmdbSettingsSchema = z.object({
   tmdbAccessTokenSet: z.boolean(),
@@ -82,6 +88,12 @@ export const JellyfinSettingsSchema = z.object({
   jellyfinApiKeySet: z.boolean(),
 });
 
+/** Response shape for GET /admin/plex/settings */
+export const PlexSettingsSchema = z.object({
+  plexUrl: z.string().nullable(),
+  plexTokenSet: z.boolean(),
+});
+
 /** Quality profile returned by Radarr/Sonarr */
 export const ArrQualityProfileSchema = z.object({
   id: z.number(),
@@ -99,7 +111,7 @@ export type UserSettingsQuery = z.infer<typeof UserSettingsQuerySchema>;
 export type UserSettings = z.infer<typeof UserSettingsSchema>;
 
 export type ArrLinkQuery = z.infer<typeof ArrLinkQuerySchema>;
-export type JellyfinLinkQuery = z.infer<typeof JellyfinLinkQuerySchema>;
+export type LibLinkQuery = z.infer<typeof LibLinkQuerySchema>;
 
 export type TmdbSettingsQuery = z.infer<typeof TmdbSettingsQuerySchema>;
 export type TmdbSettings = z.infer<typeof TmdbSettingsSchema>;
@@ -115,3 +127,6 @@ export type ArrRootFolder = z.infer<typeof ArrRootFolderSchema>;
 
 export type JellyfinSettingsQuery = z.infer<typeof JellyfinSettingsQuerySchema>;
 export type JellyfinSettings = z.infer<typeof JellyfinSettingsSchema>;
+
+export type PlexSettingsQuery = z.infer<typeof PlexSettingsQuerySchema>;
+export type PlexSettings = z.infer<typeof PlexSettingsSchema>;
