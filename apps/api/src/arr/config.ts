@@ -10,6 +10,7 @@ export const arrConfig = {
 
     // Schedulers
     syncScheduler: 'radarrLibrarySync' as const,
+    queueMonitorScheduler: 'radarrQueueMonitor' as const,
     queueFastSyncScheduler: 'radarrQueueFastSync' as const,
 
     // Client API fields
@@ -27,6 +28,7 @@ export const arrConfig = {
 
     // Schedulers
     syncScheduler: 'sonarrLibrarySync' as const,
+    queueMonitorScheduler: 'sonarrQueueMonitor' as const,
     queueFastSyncScheduler: 'sonarrQueueFastSync' as const,
 
     // Client API fields
