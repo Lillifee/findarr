@@ -1,5 +1,6 @@
 import type { Media, MediaDetails, MediaType, TVDetails } from '@findarr/shared/media';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { interactionService, searchService } from '../../services/api';
 import { asVoid } from '../../utils/asyncHandlers';
@@ -23,6 +24,7 @@ export function LikeDislikeButton({
   compact = false,
   existingMedia,
 }: LikeDislikeButtonProps) {
+  const { t } = useTranslation();
   const [currentAction, setCurrentAction] = useState<'liked' | 'disliked' | null>(initialAction);
   const [isLoading, setIsLoading] = useState(false);
   const [isSeasonModalOpen, setIsSeasonModalOpen] = useState(false);
@@ -138,7 +140,7 @@ export function LikeDislikeButton({
                 ? 'bg-emerald-500/45 text-white'
                 : 'text-zinc-200 hover:bg-emerald-500/18 hover:text-emerald-100'
             }`}
-            title="Like"
+            title={t('media.like')}
           >
             <Icon filled name="thumb_up" size="sm" weight={500} />
           </button>
@@ -156,7 +158,7 @@ export function LikeDislikeButton({
                 ? 'bg-red-500/45 text-white'
                 : 'text-zinc-200 hover:bg-red-500/18 hover:text-red-100'
             }`}
-            title="Dislike"
+            title={t('media.dislike')}
           >
             <Icon filled name="thumb_down" size="sm" weight={500} />
           </button>
@@ -175,10 +177,10 @@ export function LikeDislikeButton({
                 ? 'border border-emerald-400/70 bg-emerald-500/18 text-emerald-50 shadow-[0_0_0_1px_rgba(52,211,153,0.18),0_14px_34px_rgba(16,185,129,0.16)]'
                 : 'border border-zinc-700 bg-zinc-900 text-zinc-200 shadow-[0_10px_28px_rgba(0,0,0,0.18)] hover:border-emerald-500/70 hover:bg-emerald-500/10 hover:text-emerald-100'
             } disabled:cursor-not-allowed disabled:opacity-50`}
-            title="Like"
+            title={t('media.like')}
           >
             <Icon filled name="thumb_up" weight={500} />
-            <span>Like</span>
+            <span>{t('media.like')}</span>
           </button>
 
           {/* Dislike Button */}
@@ -193,10 +195,10 @@ export function LikeDislikeButton({
                 ? 'border border-red-400/70 bg-red-500/18 text-red-50 shadow-[0_0_0_1px_rgba(248,113,113,0.18),0_14px_34px_rgba(239,68,68,0.16)]'
                 : 'border border-zinc-700 bg-zinc-900 text-zinc-200 shadow-[0_10px_28px_rgba(0,0,0,0.18)] hover:border-red-500/70 hover:bg-red-500/10 hover:text-red-100'
             } disabled:cursor-not-allowed disabled:opacity-50`}
-            title="Dislike"
+            title={t('media.dislike')}
           >
             <Icon filled name="thumb_down" weight={500} />
-            <span>Dislike</span>
+            <span>{t('media.dislike')}</span>
           </button>
         </div>
       )}

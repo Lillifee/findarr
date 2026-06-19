@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '../ui/Button';
 import { Icon } from '../ui/Icon';
@@ -19,6 +20,7 @@ export function SearchBar({
   hasSearched = false,
   initialQuery = '',
 }: SearchBarProps) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState(initialQuery);
   const canClear = Boolean(query || hasSearched);
 
@@ -77,7 +79,7 @@ export function SearchBar({
             onChange={(e) => {
               setQuery(e.target.value);
             }}
-            placeholder="Search movies or TV shows..."
+            placeholder={t('catalog.searchPlaceholder')}
             disabled={loading}
             variant="search"
             suffixIcon={clearButton}
@@ -89,7 +91,7 @@ export function SearchBar({
           type="submit"
           disabled={loading || (!query.trim() && !hasSearched)}
           variant="secondary"
-          aria-label="Search"
+          aria-label={t('catalog.filters')}
           className="min-h-10 shrink-0 rounded-lg px-3.5"
         >
           <Icon name="search" />

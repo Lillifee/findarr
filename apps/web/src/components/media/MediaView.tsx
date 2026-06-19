@@ -1,6 +1,7 @@
 import type { MovieDetails, TVDetails } from '@findarr/shared/media';
 import { isDefined, isNotEmpty } from '@findarr/shared/utils';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { tmdbImage, tmdbImageOrUndefined } from '../../utils/tmdb';
 import { Icon } from '../ui/Icon';
@@ -13,13 +14,13 @@ interface MediaDetailsProps {
 }
 
 // Format helpers
-const formatRuntime = (value: number | number[] | undefined) => {
+const formatRuntime = (value: number | number[] | undefined, unknown: string) => {
   if (!isDefined(value)) {
-    return 'Unknown';
+    return unknown;
   }
   if (Array.isArray(value)) {
     if (value.length === 0) {
-      return 'Unknown';
+      return unknown;
     }
     if (value.length === 1) {
       return `${value[0]}m`;
@@ -32,6 +33,7 @@ const formatRuntime = (value: number | number[] | undefined) => {
 };
 
 export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
+  const { t } = useTranslation();
   // Track local media state for updates
   const [localMedia, setLocalMedia] = useState<MovieDetails | TVDetails>(media);
 
@@ -78,15 +80,19 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
     : null;
 
   const actionLinks = [
-    isDefined(trailerUrl) ? { key: 'trailer', url: trailerUrl, label: 'Trailer' } : null,
-    isDefined(altTrailerUrl)
-      ? { key: 'altTrailer', url: altTrailerUrl, label: 'Search Trailer' }
+    isDefined(trailerUrl)
+      ? { key: 'trailer', url: trailerUrl, label: t('mediaView.trailer') }
       : null,
-    isDefined(media.homepage) ? { key: 'website', url: media.homepage, label: 'Website' } : null,
+    isDefined(altTrailerUrl)
+      ? { key: 'altTrailer', url: altTrailerUrl, label: t('mediaView.searchTrailer') }
+      : null,
+    isDefined(media.homepage)
+      ? { key: 'website', url: media.homepage, label: t('mediaView.website') }
+      : null,
     isDefined(arrLink)
       ? { key: arrLink.label.toLowerCase(), url: arrLink.url, label: arrLink.label }
       : null,
-    isDefined(libLink) ? { key: 'watch', url: libLink.url, label: libLink.label } : null,
+    isDefined(libLink) ? { key: 'watch', url: libLink.url, label: t('mediaView.watch') } : null,
   ].filter((link): link is { key: string; url: string; label: string } => !!link);
 
   return (
@@ -181,19 +187,21 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
             <div className="mt-2 mb-6 pt-2">
               <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-5">
                 <div className={infoTileClass}>
-                  <p className={infoLabelClass}>Media Type</p>
+                  <p className={infoLabelClass}>{t('mediaView.mediaType')}</p>
                   <div className="mt-1.5 flex items-center gap-2 text-sm font-semibold text-white">
                     <Icon
                       className="text-zinc-300"
                       name={media.type === 'movie' ? 'movie' : 'tv'}
                       size="sm"
                     />
-                    <span>{media.type === 'movie' ? 'Movie' : 'TV Series'}</span>
+                    <span>
+                      {media.type === 'movie' ? t('mediaView.movie') : t('mediaView.tvSeries')}
+                    </span>
                   </div>
                 </div>
 
                 <div className={infoTileClass}>
-                  <p className={infoLabelClass}>Rating</p>
+                  <p className={infoLabelClass}>{t('mediaView.rating')}</p>
                   <div className="mt-1.5 flex items-center gap-2 text-sm font-semibold text-white">
                     <Icon filled className="text-amber-300" name="star" size="sm" />
                     <span>{media.voteAverage.toFixed(1)}</span>
@@ -205,7 +213,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
 
                 {isNotEmpty(releaseDate) && (
                   <div className={infoTileClass}>
-                    <p className={infoLabelClass}>Release Date</p>
+                    <p className={infoLabelClass}>{t('mediaView.releaseDate')}</p>
                     <div className="mt-1.5 flex items-center gap-2 text-sm font-semibold text-gray-100">
                       <Icon className="text-zinc-400" name="calendar_month" size="sm" />
                       <span>{releaseDate}</span>
@@ -215,15 +223,15 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
 
                 {media.type === 'movie' ? (
                   <div className={infoTileClass}>
-                    <p className={infoLabelClass}>Duration</p>
+                    <p className={infoLabelClass}>{t('mediaView.duration')}</p>
                     <div className="mt-1.5 flex items-center gap-2 text-sm font-semibold text-zinc-100">
                       <Icon className="text-zinc-400" name="schedule" size="sm" />
-                      <span>{formatRuntime(media.runtime)}</span>
+                      <span>{formatRuntime(media.runtime, t('mediaView.unknown'))}</span>
                     </div>
                   </div>
                 ) : (
                   <div className={infoTileClass}>
-                    <p className={infoLabelClass}>Episodes</p>
+                    <p className={infoLabelClass}>{t('mediaView.episodes')}</p>
                     <p className="mt-1.5 text-sm font-semibold text-zinc-100">
                       {media.numberOfSeasons} / {media.numberOfEpisodes}
                     </p>
@@ -231,7 +239,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                 )}
 
                 <div className={infoTileClass}>
-                  <p className={infoLabelClass}>TMDB Status</p>
+                  <p className={infoLabelClass}>{t('mediaView.tmdbStatus')}</p>
                   <p className="mt-1.5 truncate text-sm font-semibold text-zinc-100">
                     {media.status}
                   </p>
@@ -257,7 +265,9 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
             {/* Overview */}
             {isNotEmpty(media.overview) && (
               <div className="mb-8">
-                <h2 className="mb-3 text-2xl font-semibold text-white drop-shadow-md">Overview</h2>
+                <h2 className="mb-3 text-2xl font-semibold text-white drop-shadow-md">
+                  {t('mediaView.overview')}
+                </h2>
                 <p className="text-lg leading-relaxed text-gray-200 drop-shadow-sm">
                   {media.overview}
                 </p>
@@ -267,7 +277,9 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
             {/* Cast section - Responsive grid */}
             {topCast.length > 0 && (
               <div className="mb-8">
-                <h2 className="mb-4 text-2xl font-semibold text-white drop-shadow-md">Cast</h2>
+                <h2 className="mb-4 text-2xl font-semibold text-white drop-shadow-md">
+                  {t('mediaView.cast')}
+                </h2>
                 <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
                   {topCast.map((actor) => (
                     <div key={actor.id} className="flex flex-col items-center">
@@ -295,7 +307,9 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
             {/* Keywords */}
             {media.keywords && media.keywords.length > 0 && (
               <div className="mb-8">
-                <h3 className="mb-3 text-xl font-semibold text-white drop-shadow-md">Keywords</h3>
+                <h3 className="mb-3 text-xl font-semibold text-white drop-shadow-md">
+                  {t('mediaView.keywords')}
+                </h3>
                 <div className="flex flex-wrap gap-2">
                   {media.keywords.map((keyword) => (
                     <span

@@ -1,9 +1,13 @@
+import { useTranslation } from 'react-i18next';
+
 import { SchedulerCardList } from '../components/schedulers/SchedulerCardList';
 import { PageContainer } from '../components/ui/PageContainer';
 import { PageHeader } from '../components/ui/PageHeader';
+import { LoadingState } from '../components/ui/StateDisplay';
 import { useSchedulers } from '../hooks/useSchedulers';
 
 export function SchedulersPage() {
+  const { t } = useTranslation();
   const { schedulers, isLoading, error, actionLoading, trigger, toggle } = useSchedulers();
 
   const handleTrigger = (name: string) => {
@@ -18,7 +22,7 @@ export function SchedulersPage() {
     <PageContainer>
       {isLoading ? (
         <div className="flex items-center justify-center p-8">
-          <div className="text-gray-400">Loading schedulers...</div>
+          <LoadingState />
         </div>
       ) : error ? (
         <div className="p-4">
@@ -28,11 +32,7 @@ export function SchedulersPage() {
         </div>
       ) : (
         <div className="space-y-5">
-          <PageHeader
-            title="Schedulers"
-            description="Monitor recurring jobs and trigger them manually when needed."
-            action={<div className="text-sm text-gray-400">Auto-refreshes every 5 seconds</div>}
-          />
+          <PageHeader title={t('schedulers.title')} description={t('schedulers.description')} />
 
           <SchedulerCardList
             schedulers={schedulers}

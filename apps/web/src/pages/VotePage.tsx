@@ -1,4 +1,5 @@
 import { isDefined } from '@findarr/shared/utils';
+import { useTranslation } from 'react-i18next';
 
 import { FiltersToolbar } from '../components/catalog/FiltersToolbar';
 import { SearchBar } from '../components/catalog/SearchBar';
@@ -14,6 +15,7 @@ import { useVoteFeed } from '../hooks/useVoteFeed';
 import { asVoid } from '../utils/asyncHandlers';
 
 export function VotePage() {
+  const { t } = useTranslation();
   const { goTo, goToSearch } = useMediaNavigation();
   const {
     currentMedia,
@@ -51,7 +53,7 @@ export function VotePage() {
 
       {isLoading && (
         <PageContainer>
-          <LoadingState title="Loading next item..." />
+          <LoadingState />
         </PageContainer>
       )}
 
@@ -60,7 +62,7 @@ export function VotePage() {
           message={error}
           action={
             <Button onClick={asVoid(async () => fetchNextItem())} className="mt-4">
-              Try Again
+              {t('vote.tryAgain')}
             </Button>
           }
         />

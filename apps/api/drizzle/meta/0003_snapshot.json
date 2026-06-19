@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "e8d21c10-c70b-452d-8d80-d24a37f0c711",
-  "prevId": "7c2faa7e-55c6-41ca-890c-efe8d95e547a",
+  "id": "f153ff6d-ea47-4e55-a3e8-bc9015cfbecf",
+  "prevId": "e8d21c10-c70b-452d-8d80-d24a37f0c711",
   "tables": {
     "settings": {
       "name": "settings",
@@ -575,6 +575,14 @@
           "notNull": true,
           "autoincrement": false,
           "default": "'en-US'"
+        },
+        "uiLanguage": {
+          "name": "uiLanguage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'en'"
         },
         "regionGroups": {
           "name": "regionGroups",

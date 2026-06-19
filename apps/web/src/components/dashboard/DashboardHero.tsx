@@ -1,5 +1,6 @@
 import type { Media } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
+import { useTranslation } from 'react-i18next';
 
 import { asVoid } from '../../utils/asyncHandlers';
 import { tmdbImage } from '../../utils/tmdb';
@@ -20,42 +21,6 @@ interface HeroCopy {
   secondaryAction: HeroAction;
 }
 
-function getHeroCopy(nextMedia: Media | undefined, heroError: string | undefined): HeroCopy {
-  if (nextMedia) {
-    return {
-      eyebrow: 'Continue voting',
-      title: nextMedia.name,
-      description: isDefined(nextMedia.overview)
-        ? nextMedia.overview
-        : 'Your next voting pick is ready. Jump back into the stack and keep shaping what lands in your library.',
-      posterLabel: 'Ready to vote',
-      primaryAction: { label: 'Continue Voting', to: '/vote' },
-      secondaryAction: { label: 'Explore Catalog', to: '/explore' },
-    };
-  }
-
-  if (isDefined(heroError)) {
-    return {
-      eyebrow: 'Voting unavailable',
-      title: 'Explore while voting catches up.',
-      description: heroError,
-      posterLabel: 'Explore catalog',
-      primaryAction: { label: 'Explore Catalog', to: '/explore' },
-      secondaryAction: { label: 'Try Voting Again', to: '/vote' },
-    };
-  }
-
-  return {
-    eyebrow: 'Voting complete',
-    title: 'No more picks in the voting queue.',
-    description:
-      'You have already voted through the current stack. Browse the catalog to find something to watch while new voting candidates build up.',
-    posterLabel: 'Queue complete',
-    primaryAction: { label: 'Explore Catalog', to: '/explore' },
-    secondaryAction: { label: 'Open Activity', to: '/activity' },
-  };
-}
-
 function getHeroBackground(nextMedia: Media | undefined): string {
   return isDefined(nextMedia?.backdropPath)
     ? `linear-gradient(135deg, rgba(10, 10, 12, 0.92), rgba(17, 24, 39, 0.72)), url(${tmdbImage(nextMedia.backdropPath, 'w1280')})`
@@ -70,7 +35,48 @@ interface DashboardHeroProps {
 }
 
 export function DashboardHero({ nextMedia, heroError, loading, onNavigate }: DashboardHeroProps) {
-  const copy = getHeroCopy(nextMedia, heroError);
+  const { t } = useTranslation();
+
+  let copy: HeroCopy;
+  if (nextMedia) {
+    copy = {
+      eyebrow: t('dashboard.hero.continueVoting.eyebrow'),
+      title: nextMedia.name,
+      description: isDefined(nextMedia.overview)
+        ? nextMedia.overview
+        : t('dashboard.hero.continueVoting.defaultDescription'),
+      posterLabel: t('dashboard.hero.continueVoting.posterLabel'),
+      primaryAction: { label: t('dashboard.hero.actions.continueVoting'), to: '/vote' },
+      secondaryAction: {
+        label: t('dashboard.hero.actions.exploreCatalog'),
+        to: '/explore',
+      },
+    };
+  } else if (isDefined(heroError)) {
+    copy = {
+      eyebrow: t('dashboard.hero.votingUnavailable.eyebrow'),
+      title: t('dashboard.hero.votingUnavailable.title'),
+      description: heroError,
+      posterLabel: t('dashboard.hero.votingUnavailable.posterLabel'),
+      primaryAction: { label: t('dashboard.hero.actions.exploreCatalog'), to: '/explore' },
+      secondaryAction: {
+        label: t('dashboard.hero.actions.tryVotingAgain'),
+        to: '/vote',
+      },
+    };
+  } else {
+    copy = {
+      eyebrow: t('dashboard.hero.votingComplete.eyebrow'),
+      title: t('dashboard.hero.votingComplete.title'),
+      description: t('dashboard.hero.votingComplete.description'),
+      posterLabel: t('dashboard.hero.votingComplete.posterLabel'),
+      primaryAction: { label: t('dashboard.hero.actions.exploreCatalog'), to: '/explore' },
+      secondaryAction: {
+        label: t('dashboard.hero.actions.openActivity'),
+        to: '/activity',
+      },
+    };
+  }
 
   return (
     <Card

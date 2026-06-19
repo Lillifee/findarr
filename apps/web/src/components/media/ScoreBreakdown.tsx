@@ -1,4 +1,5 @@
 import type { MediaScore } from '@findarr/shared/media';
+import { useTranslation } from 'react-i18next';
 
 import { Icon, type IconName } from '../ui/Icon';
 
@@ -21,24 +22,26 @@ const getColor = (value: number): string => {
 };
 
 export function ScoreBreakdown({ score }: ScoreBreakdownProps) {
+  const { t } = useTranslation();
+
   const scores: { label: string; value: number; icon: IconName }[] = [
-    { label: 'Popularity', value: score.popularityScore, icon: 'star' },
-    { label: 'Rating', value: score.weightedRating, icon: 'thumb_up' },
-    { label: 'Genre Match', value: score.genreScore, icon: 'theater_comedy' },
-    { label: 'Keyword Match', value: score.keywordScore, icon: 'sell' },
+    { label: t('scoreBreakdown.popularity'), value: score.popularityScore, icon: 'star' },
+    { label: t('scoreBreakdown.rating'), value: score.weightedRating, icon: 'thumb_up' },
+    { label: t('scoreBreakdown.genreMatch'), value: score.genreScore, icon: 'theater_comedy' },
+    { label: t('scoreBreakdown.keywordMatch'), value: score.keywordScore, icon: 'sell' },
   ];
 
   return (
     <div className="mb-6 md:mb-8">
       <h3 className="m-0 mb-4 flex items-center gap-2 text-base font-semibold text-white md:text-lg">
         <Icon name="bar_chart" />
-        Score Breakdown
+        {t('scoreBreakdown.title')}
       </h3>
 
       {/* Overall score display */}
       <div className="mb-4 rounded-lg border border-zinc-800 bg-zinc-900/35 p-4">
         <div className="flex items-center justify-between">
-          <span className="font-semibold text-white">Overall Score</span>
+          <span className="font-semibold text-white">{t('scoreBreakdown.overall')}</span>
           <div className="flex items-center gap-3">
             <div className="text-3xl font-bold text-amber-400">{toPercent(score.finalScore)}%</div>
             <div className="relative h-16 w-16">
@@ -95,11 +98,11 @@ export function ScoreBreakdown({ score }: ScoreBreakdownProps) {
       {score.userScore > 0 && (
         <div className="mt-4 grid grid-cols-2 gap-3 text-center text-sm">
           <div className="rounded-lg border border-zinc-800 bg-zinc-900/35 p-3">
-            <div className="mb-1 text-zinc-300">Base Score</div>
+            <div className="mb-1 text-zinc-300">{t('scoreBreakdown.baseScore')}</div>
             <div className="text-xl font-bold text-zinc-100">{toPercent(score.baseScore)}%</div>
           </div>
           <div className="rounded-lg border border-amber-400/35 bg-amber-400/10 p-3">
-            <div className="mb-1 text-amber-100/80">User Match</div>
+            <div className="mb-1 text-amber-100/80">{t('scoreBreakdown.userMatch')}</div>
             <div className="text-xl font-bold text-amber-300">{toPercent(score.userScore)}%</div>
           </div>
         </div>

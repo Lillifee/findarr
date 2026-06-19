@@ -1,0 +1,318 @@
+{
+  "common": {
+    "saving": "Wird gespeichert…",
+    "saveSettings": "Einstellungen speichern",
+    "testing": "Wird getestet…",
+    "synchronize": "Synchronisieren",
+    "testAndSynchronize": "Testen & Synchronisieren",
+    "loadMore": "Mehr laden",
+    "loading": "Laden...",
+    "votingStatus": "Abstimmungsstatus",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "displayName": "Anzeigename",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "creating": "Wird erstellt...",
+    "noResults": "Keine Ergebnisse gefunden"
+  },
+  "nav": {
+    "home": "Startseite",
+    "vote": "Abstimmen",
+    "explore": "Entdecken",
+    "activity": "Aktivität",
+    "settings": "Einstellungen",
+    "users": "Benutzer",
+    "integrations": "Integrationen",
+    "schedulers": "Aufgaben",
+    "more": "Mehr",
+    "account": "Konto",
+    "logout": "Abmelden",
+    "loggedInAs": "Angemeldet als"
+  },
+  "login": {
+    "badge": "Findarr",
+    "title": "Findarr",
+    "subtitle": "Bei deinem Konto anmelden",
+    "submit": "Anmelden",
+    "submitting": "Wird angemeldet...",
+    "error": "Anmeldung fehlgeschlagen. Bitte erneut versuchen."
+  },
+  "dashboard": {
+    "welcomeBack": "Willkommen zurück, {{name}}",
+    "description": "Schau dir an, was gerade beliebt ist, stimme über Anfragen ab und entdecke, was gerade angesagt ist.",
+    "hero": {
+      "continueVoting": {
+        "eyebrow": "Weiter abstimmen",
+        "defaultDescription": "Dein nächster Film ist bereit. Spring zurück in den Stapel und gestalte mit, was in deine Bibliothek kommt.",
+        "posterLabel": "Bereit zur Abstimmung"
+      },
+      "votingUnavailable": {
+        "eyebrow": "Abstimmung nicht verfügbar",
+        "title": "Erkunde, während die Abstimmung aufholt.",
+        "posterLabel": "Mehr entdecken"
+      },
+      "votingComplete": {
+        "eyebrow": "Abstimmung abgeschlossen",
+        "title": "Keine weiteren Vorschläge in der Warteschlange.",
+        "description": "Du hast bereits alle aktuellen Vorschläge bewertet. Stöbere im Katalog, während neue Abstimmungskandidaten hinzukommen.",
+        "posterLabel": "Warteschlange abgeschlossen"
+      },
+      "actions": {
+        "exploreCatalog": "Mehr entdecken",
+        "continueVoting": "Weiter abstimmen",
+        "tryVotingAgain": "Abstimmung erneut versuchen",
+        "openActivity": "Aktivität öffnen"
+      }
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "description": "Verwalte deine Standard-Sprache und Regionseinstellungen für neue Such- und Abstimmsessions.",
+    "contentPreferences": "Inhaltseinstellungen",
+    "contentLanguage": "Inhaltssprache",
+    "contentLanguageDescription": "Sprache für Filmtitel, Beschreibungen und Poster von TMDB.",
+    "uiLanguage": "Oberflächensprache",
+    "uiLanguageDescription": "Sprache der Findarr-Benutzeroberfläche.",
+    "votingRange": "Abstimmungsbereich",
+    "items": "Einträge",
+    "votingRangeDescription": "Wie viele der am höchsten bewerteten Titel zum Abstimmen verfügbar sind.",
+    "password": "Passwort",
+    "passwordDescription": "Dein Anmeldepasswort aktualisieren."
+  },
+  "language": {
+    "en": "Englisch",
+    "de": "Deutsch"
+  },
+  "integrations": {
+    "title": "Integrationen",
+    "description": "TMDB, Jellyfin, Plex, Radarr und Sonarr für Entdeckung und automatische Medienverwaltung konfigurieren."
+  },
+  "vote": {
+    "tryAgain": "Erneut versuchen",
+    "complete": {
+      "title": "Alles erledigt",
+      "message": "Du hast alle Einträge in deinem aktuellen Bereich bewertet. Erhöhe deinen Abstimmungsbereich in den Einstellungen, um mehr zu bewerten.",
+      "explore": "Entdecken",
+      "openSettings": "Einstellungen öffnen"
+    }
+  },
+  "schedulers": {
+    "title": "Aufgaben",
+    "description": "Wiederkehrende Aufgaben überwachen und bei Bedarf manuell ausführen.",
+    "interval": "Intervall",
+    "duration": "Dauer",
+    "lastRun": "Letzter Lauf",
+    "nextRun": "Nächster Lauf",
+    "trigger": "Ausführen",
+    "stop": "Stoppen",
+    "start": "Starten"
+  },
+  "activity": {
+    "title": "Meine Aktivität",
+    "description": "Deine Abstimmungen, angefragte Medien und alles, was noch Aufmerksamkeit benötigt.",
+    "empty": "Noch keine Aktivität",
+    "emptyMessage": "Du hast noch keine Medien bewertet. Starte mit der Entdeckung und deine persönliche Aktivität erscheint hier.",
+    "adjustFilters": "Aktivitätsfilter anpassen.",
+    "filter": {
+      "all": "Alle Aktivitäten",
+      "allDesc": "Alles anzeigen, über das du abgestimmt hast.",
+      "upvotes": "Positiv bewertet",
+      "upvotesDesc": "Fokus auf Titel, die dir gefallen haben.",
+      "downvotes": "Negativ bewertet",
+      "downvotesDesc": "Fokus auf Titel, die dir nicht gefallen haben."
+    }
+  },
+  "users": {
+    "title": "Benutzer",
+    "description": "Zugriff, Rollen und Einladungen für Personen verwalten, die Findarr nutzen.",
+    "createUser": "Benutzer erstellen",
+    "created": "Erstellt",
+    "delete": "Löschen",
+    "deleteConfirm": "Möchtest du diesen Benutzer wirklich löschen?",
+    "deleteError": "Benutzer konnte nicht gelöscht werden",
+    "form": {
+      "title": "Neuen Benutzer erstellen",
+      "role": "Rolle",
+      "roleUser": "Benutzer",
+      "roleAdmin": "Administrator",
+      "error": "Benutzer konnte nicht erstellt werden",
+      "submit": "Benutzer erstellen"
+    }
+  },
+  "explore": {
+    "searchResults": "Suchergebnisse",
+    "trending": "Trends & Beliebt",
+    "description": "Entdecke Trends, suche deinen nächsten Film und stimme ab, was angefordert werden soll."
+  },
+  "mediaDetail": {
+    "goBack": "Zurück"
+  },
+  "catalog": {
+    "searchPlaceholder": "Filme oder Serien suchen...",
+    "clearSearch": "Suche löschen",
+    "filters": "Filter",
+    "filtersDefaultDescription": "Genre und Abstimmungsstatus anpassen.",
+    "typeAll": "Alle",
+    "typeMovies": "Filme",
+    "typeShows": "Serien",
+    "genresLabel": "Genres",
+    "genres": "Genres ({{count}})",
+    "clearAll": "Alle entfernen",
+    "interactionFilter": {
+      "all": "Alle Medien",
+      "allDesc": "Bewertete und unbewertete Titel zusammen anzeigen.",
+      "unvoted": "Nur unbewertete",
+      "unvotedDesc": "Feed auf Titel fokussieren, die noch bewertet werden müssen.",
+      "voted": "Nur bewertete",
+      "votedDesc": "Bereits bewertete Titel überprüfen."
+    }
+  },
+  "media": {
+    "noPoster": "Kein Poster",
+    "back": "Zurück",
+    "like": "Gefällt mir",
+    "dislike": "Gefällt mir nicht",
+    "newlyAvailable": "Neu verfügbar",
+    "noNewlyAvailable": "Noch keine neu verfügbaren Titel.",
+    "mediaTypeMovie": "Film",
+    "mediaTypeTv": "Serie"
+  },
+  "passwordForm": {
+    "currentPassword": "Aktuelles Passwort",
+    "newPassword": "Neues Passwort",
+    "confirmPassword": "Neues Passwort bestätigen",
+    "submit": "Passwort aktualisieren",
+    "submitting": "Passwort wird aktualisiert..."
+  },
+  "ownerSetup": {
+    "badge": "Ersteinrichtung",
+    "title": "Administratorkonto erstellen",
+    "description": "Den ersten Findarr-Benutzer einrichten. Dieses Konto verwaltet Benutzer und Integrationen.",
+    "passwordPlaceholder": "Mindestens 8 Zeichen",
+    "confirmPasswordLabel": "Passwort bestätigen",
+    "confirmPasswordPlaceholder": "Passwort wiederholen",
+    "passwordMismatch": "Passwörter stimmen nicht überein.",
+    "error": "Das Administratorkonto konnte nicht erstellt werden. Bitte überprüfe die Angaben und versuche es erneut.",
+    "submit": "Administratorkonto erstellen"
+  },
+  "tmdbSetup": {
+    "badge": "Einrichtung erforderlich",
+    "title": "TMDB verbinden",
+    "instructions": "Melde dich an oder erstelle ein Konto",
+    "instructionsCopy": "Kopiere diesen Wert und füge ihn in das folgende Feld ein.",
+    "breadcrumbSettings": "Einstellungen",
+    "breadcrumbApi": "API",
+    "breadcrumbToken": "API-Lesezugriffstoken",
+    "loadError": "TMDB-Einstellungen konnten nicht geladen werden",
+    "saveError": "Der TMDB-Zugriffstoken konnte nicht gespeichert und getestet werden",
+    "success": "Verbindung erfolgreich. Findarr ist bereit fortzufahren.",
+    "error": "TMDB konnte nicht erreicht werden. Überprüfe den Zugriffstoken und versuche es erneut."
+  },
+  "integrationCard": {
+    "secretAlreadySet": "bereits gesetzt — leer lassen zum Beibehalten",
+    "disabled": "Integration deaktiviert. Schalter umlegen, um sie wieder zu aktivieren.",
+    "tmdb": {
+      "description": "Metadatenanbieter für Suche, Entdeckung und Mediendetails.",
+      "stepMessage": "Speichere den TMDB-Zugriffstoken, bevor du die Verbindung testest.",
+      "accessTokenLabel": "Zugriffstoken",
+      "accessTokenPlaceholder": "TMDB-Zugriffstoken eingeben",
+      "success": "Verbindung erfolgreich. TMDB ist bereit.",
+      "error": "TMDB konnte nicht erreicht werden. Speichere einen gültigen Zugriffstoken und teste erneut."
+    },
+    "credentials": {
+      "stepMessage": "Speichere die Server-URL und den API-Schlüssel, bevor du die Verbindung testest.",
+      "serverUrlLabel": "Server-URL",
+      "apiKeyLabel": "API-Schlüssel",
+      "apiKeyPlaceholder": "API-Schlüssel eingeben"
+    },
+    "arr": {
+      "step2Message": "Wähle das Qualitätsprofil und den Stammordner für neue Anfragen.",
+      "qualityProfileLabel": "Qualitätsprofil",
+      "qualityProfilePlaceholder": "— Qualitätsprofil auswählen —",
+      "rootFolderLabel": "Stammordner",
+      "rootFolderPlaceholder": "— Stammordner auswählen —",
+      "availableAfterTest": "Verfügbar nach einem erfolgreichen Verbindungstest.",
+      "success": "Verbindung erfolgreich. Qualitätsprofile und Stammordner sind bereit.",
+      "error": "{{title}} konnte nicht erreicht werden. Überprüfe die URL und den API-Schlüssel."
+    },
+    "jellyfin": {
+      "success": "Verbindung erfolgreich. Jellyfin ist bereit.",
+      "error": "Jellyfin konnte nicht erreicht werden. URL und API-Schlüssel überprüfen."
+    },
+    "plex": {
+      "success": "Verbindung erfolgreich. Plex ist bereit.",
+      "error": "Plex konnte nicht erreicht werden. URL und Token überprüfen."
+    },
+    "step1": "Schritt 1",
+    "step2": "Schritt 2"
+  },
+  "mediaView": {
+    "mediaType": "Medientyp",
+    "movie": "Film",
+    "tvSeries": "Serie",
+    "rating": "Bewertung",
+    "releaseDate": "Veröffentlichungsdatum",
+    "duration": "Dauer",
+    "episodes": "Episoden",
+    "tmdbStatus": "TMDB-Status",
+    "unknown": "Unbekannt",
+    "overview": "Übersicht",
+    "cast": "Besetzung",
+    "keywords": "Stichwörter",
+    "trailer": "Trailer",
+    "searchTrailer": "Trailer suchen",
+    "website": "Webseite",
+    "watch": "Ansehen"
+  },
+  "status": {
+    "available": "Verfügbar",
+    "downloaded": "Heruntergeladen",
+    "downloading": "Wird heruntergeladen",
+    "monitored": "Überwacht",
+    "requested": "Angefordert",
+    "warning": "Warnung",
+    "running": "Läuft",
+    "enabled": "Aktiviert",
+    "disabled": "Deaktiviert"
+  },
+  "regions": {
+    "label": "Inhaltsregionen",
+    "showing": "{{count}} von {{total}} Inhaltsregionen angezeigt",
+    "western": "Westlich",
+    "westernDesc": "Englischsprachige Länder, Westeuropa und nordische Länder (USA, UK, Deutschland, Frankreich, etc.)",
+    "easternEurope": "Osteuropa",
+    "easternEuropeDesc": "Osteuropäische Länder einschließlich Russland, Polen, Tschechien und baltische Staaten",
+    "asian": "Asien",
+    "asianDesc": "Alle asiatischen Länder einschließlich Japan, Korea, China, Indien, Thailand, Indonesien, Philippinen, etc.",
+    "latinAmerica": "Lateinamerika",
+    "latinAmericaDesc": "Lateinamerikanische Länder einschließlich Mexiko, Brasilien, Argentinien, Chile, Kolumbien, Peru, etc.",
+    "middleEastAfrica": "Naher Osten & Afrika",
+    "middleEastAfricaDesc": "Nahost- und afrikanische Länder einschließlich Saudi-Arabien, Türkei, Ägypten, Nigeria, Kenia, etc."
+  },
+  "seasonSelector": {
+    "title": "Staffeln auswählen",
+    "requested_one": "{{count}} angefordert",
+    "requested_other": "{{count}} angefordert",
+    "chooseSeasons": "Staffeln auswählen",
+    "selectAll": "Alle auswählen",
+    "newSeasons_one": "{{count}} neue Staffel anfordern",
+    "newSeasons_other": "{{count}} neue Staffeln anfordern",
+    "episodes_one": "{{count}} Ep.",
+    "episodes_other": "{{count}} Ep.",
+    "removeAll": "Alle Staffeln entfernen",
+    "update": "Staffeln aktualisieren",
+    "request": "Staffeln anfordern",
+    "keep": "Auswahl behalten"
+  },
+  "scoreBreakdown": {
+    "title": "Punkteaufschlüsselung",
+    "overall": "Gesamtpunktzahl",
+    "baseScore": "Basispunktzahl",
+    "userMatch": "Benutzerübereinstimmung",
+    "popularity": "Beliebtheit",
+    "rating": "Bewertung",
+    "genreMatch": "Genre-Übereinstimmung",
+    "keywordMatch": "Stichwort-Übereinstimmung"
+  }
+}

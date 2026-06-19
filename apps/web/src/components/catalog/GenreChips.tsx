@@ -1,5 +1,6 @@
 import { unifiedGenres, type GenreKey } from '@findarr/shared/constants';
 import { objectEntries } from '@findarr/shared/utils';
+import { useTranslation } from 'react-i18next';
 
 import { Badge } from '../ui/Badge';
 import { Icon } from '../ui/Icon';
@@ -11,6 +12,7 @@ interface GenreChipsProps {
 }
 
 export function GenreChips({ selectedGenres, onGenreChange, disabled = false }: GenreChipsProps) {
+  const { t } = useTranslation();
   const handleGenreToggle = (genreKey: GenreKey) => {
     const updatedKeys = selectedGenres.includes(genreKey)
       ? selectedGenres.filter((k) => k !== genreKey)
@@ -27,7 +29,9 @@ export function GenreChips({ selectedGenres, onGenreChange, disabled = false }: 
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium text-gray-300">
-          Genres {selectedGenres.length > 0 && `(${selectedGenres.length})`}
+          {selectedGenres.length > 0
+            ? t('catalog.genres', { count: selectedGenres.length })
+            : t('catalog.genresLabel')}
         </label>
         <button
           type="button"
@@ -39,7 +43,7 @@ export function GenreChips({ selectedGenres, onGenreChange, disabled = false }: 
             selectedGenres.length === 0 ? 'pointer-events-none invisible opacity-0' : 'opacity-100'
           } ${disabled ? 'opacity-50' : ''}`}
         >
-          Clear all
+          {t('catalog.clearAll')}
         </button>
       </div>
 

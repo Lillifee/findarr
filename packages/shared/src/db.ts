@@ -221,6 +221,7 @@ export const userSettings = sqliteTable(
       .unique()
       .references(() => users.id, { onDelete: 'cascade' }),
     language: text('language').notNull().default('en-US'),
+    uiLanguage: text('uiLanguage').notNull().default('en'),
     regions: text('regionGroups', { mode: 'json' })
       .notNull()
       .default('["western"]')

@@ -1,5 +1,6 @@
 import type { CreateUser } from '@findarr/shared/auth';
 import { useState, type ChangeEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
@@ -14,6 +15,7 @@ interface CreateUserFormProps {
 }
 
 export function CreateUserForm({ onCreate, onClose }: CreateUserFormProps) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<CreateUser>(emptyForm);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +30,7 @@ export function CreateUserForm({ onCreate, onClose }: CreateUserFormProps) {
       setFormData(emptyForm);
       onClose();
     } catch {
-      setError('Failed to create user');
+      setError(t('users.form.error'));
     } finally {
       setIsLoading(false);
     }
@@ -36,7 +38,7 @@ export function CreateUserForm({ onCreate, onClose }: CreateUserFormProps) {
 
   return (
     <Card variant="solid" padding="md" className="space-y-4">
-      <h3 className="text-lg font-semibold text-white">Create New User</h3>
+      <h3 className="text-lg font-semibold text-white">{t('users.form.title')}</h3>
       <form
         onSubmit={(event) => {
           void handleSubmit(event);
@@ -45,7 +47,7 @@ export function CreateUserForm({ onCreate, onClose }: CreateUserFormProps) {
       >
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-sm text-zinc-300">Email</label>
+            <label className="mb-1.5 block text-sm text-zinc-300">{t('common.email')}</label>
             <Input
               type="email"
               value={formData.email}
@@ -56,7 +58,9 @@ export function CreateUserForm({ onCreate, onClose }: CreateUserFormProps) {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm text-zinc-300">Display Name</label>
+            <label className="mb-1.5 block text-sm text-zinc-300">
+              {t('users.form.displayName')}
+            </label>
             <Input
               type="text"
               value={formData.displayName}
@@ -70,7 +74,7 @@ export function CreateUserForm({ onCreate, onClose }: CreateUserFormProps) {
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-sm text-zinc-300">Password</label>
+            <label className="mb-1.5 block text-sm text-zinc-300">{t('common.password')}</label>
             <Input
               type="password"
               value={formData.password}
@@ -83,7 +87,7 @@ export function CreateUserForm({ onCreate, onClose }: CreateUserFormProps) {
           </div>
           <div>
             <SelectInput
-              label="Role"
+              label={t('users.form.role')}
               value={formData.role}
               onChange={(e) => {
                 setFormData({
@@ -92,8 +96,8 @@ export function CreateUserForm({ onCreate, onClose }: CreateUserFormProps) {
                 });
               }}
             >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
+              <option value="user">{t('users.form.roleUser')}</option>
+              <option value="admin">{t('users.form.roleAdmin')}</option>
             </SelectInput>
           </div>
         </div>
@@ -106,10 +110,10 @@ export function CreateUserForm({ onCreate, onClose }: CreateUserFormProps) {
 
         <div className="flex flex-wrap gap-2">
           <Button type="submit" disabled={isLoading} size="sm">
-            {isLoading ? 'Creating...' : 'Create User'}
+            {isLoading ? t('common.creating') : t('users.form.submit')}
           </Button>
           <Button type="button" variant="ghost" size="sm" onClick={onClose}>
-            Close
+            {t('common.close')}
           </Button>
         </div>
       </form>

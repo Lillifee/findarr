@@ -1,6 +1,7 @@
 import type { ArrSettings, ArrQualityProfile, ArrRootFolder } from '@findarr/shared/settings';
 import { isDefined } from '@findarr/shared/utils';
 import { useState, useCallback, type ChangeEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useConnectionState } from '../../hooks/useConnectionState';
 import { createArrServiceApi } from '../../services/api';
@@ -45,6 +46,7 @@ interface ArrSectionProps {
 }
 
 export function ArrSection({ service }: ArrSectionProps) {
+  const { t } = useTranslation();
   const svc = createArrServiceApi(service);
   const config = arrServiceConfig[service];
 
@@ -128,11 +130,11 @@ export function ArrSection({ service }: ArrSectionProps) {
       setTestResult(result);
       if (result) {
         await loadProfiles();
-        setSuccess('Connection successful. Quality profiles and root folders are ready.');
+        setSuccess(t('integrationCard.arr.success'));
       } else {
         setProfiles([]);
         setRootFolders([]);
-        setError(`Could not reach ${config.title}. Check the URL and API key, then test again.`);
+        setError(t('integrationCard.arr.error', { title: config.title }));
       }
     });
 
@@ -198,12 +200,11 @@ export function ArrSection({ service }: ArrSectionProps) {
           apiKeySet={settings.apiKeySet}
         />
 
-        <StepPanel
-          title="Step 2"
-          message="Choose the quality profile and root folder for new requests."
-        >
+        <StepPanel step={2} message={t('integrationCard.arr.step2Message')}>
           <div>
-            <label className="mb-1.5 block text-sm text-zinc-300">Quality Profile</label>
+            <label className="mb-1.5 block text-sm text-zinc-300">
+              {t('integrationCard.arr.qualityProfileLabel')}
+            </label>
             {connectionEstablished && profiles.length > 0 ? (
               <SelectInput
                 value={selectedProfileId}
@@ -211,7 +212,7 @@ export function ArrSection({ service }: ArrSectionProps) {
                   handleProfileChange(e.target.value);
                 }}
               >
-                <option value="">— Select quality profile —</option>
+                <option value="">{t('integrationCard.arr.qualityProfilePlaceholder')}</option>
                 {profiles.map((p) => (
                   <option key={p.id} value={p.id.toString()}>
                     {p.name}
@@ -220,13 +221,15 @@ export function ArrSection({ service }: ArrSectionProps) {
               </SelectInput>
             ) : (
               <div className={`${readonlyClass} flex items-center`}>
-                Available after a successful connection test.
+                {t('integrationCard.arr.availableAfterTest')}
               </div>
             )}
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm text-zinc-300">Root Folder</label>
+            <label className="mb-1.5 block text-sm text-zinc-300">
+              {t('integrationCard.arr.rootFolderLabel')}
+            </label>
             {connectionEstablished && rootFolders.length > 0 ? (
               <SelectInput
                 value={selectedRootFolder}
@@ -234,7 +237,7 @@ export function ArrSection({ service }: ArrSectionProps) {
                   handleRootFolderChange(e.target.value);
                 }}
               >
-                <option value="">— Select root folder —</option>
+                <option value="">{t('integrationCard.arr.rootFolderPlaceholder')}</option>
                 {rootFolders.map((f) => (
                   <option key={f.id} value={f.path}>
                     {f.path}

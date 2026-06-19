@@ -1,6 +1,7 @@
 import type { SchedulerInfo } from '@findarr/shared/scheduler';
 import { isDefined } from '@findarr/shared/utils';
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import {
   formatDuration,
@@ -34,6 +35,7 @@ export function SchedulerCardList({
   onTrigger,
   onToggle,
 }: SchedulerListProps) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-3">
       {schedulers.map((scheduler) => {
@@ -51,10 +53,18 @@ export function SchedulerCardList({
               </div>
 
               <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4 xl:flex-1">
-                <Stat label="Interval" value={formatInterval(scheduler.interval)} mono />
-                <Stat label="Duration" value={formatDuration(scheduler.lastDuration)} mono />
-                <Stat label="Last Run" value={formatTimestamp(scheduler.lastRun)} />
-                <Stat label="Next Run" value={formatNextRun(scheduler.nextRun)} />
+                <Stat
+                  label={t('schedulers.interval')}
+                  value={formatInterval(scheduler.interval)}
+                  mono
+                />
+                <Stat
+                  label={t('schedulers.duration')}
+                  value={formatDuration(scheduler.lastDuration)}
+                  mono
+                />
+                <Stat label={t('schedulers.lastRun')} value={formatTimestamp(scheduler.lastRun)} />
+                <Stat label={t('schedulers.nextRun')} value={formatNextRun(scheduler.nextRun)} />
               </div>
 
               <div className="flex gap-2 xl:shrink-0">
@@ -67,7 +77,7 @@ export function SchedulerCardList({
                   size="sm"
                   className="flex-1 xl:flex-none"
                 >
-                  {isBusy ? 'Loading...' : 'Trigger'}
+                  {isBusy ? t('common.loading') : t('schedulers.trigger')}
                 </Button>
                 <Button
                   onClick={() => {
@@ -78,7 +88,7 @@ export function SchedulerCardList({
                   size="sm"
                   className="flex-1 xl:flex-none"
                 >
-                  {scheduler.enabled ? 'Stop' : 'Start'}
+                  {scheduler.enabled ? t('schedulers.stop') : t('schedulers.start')}
                 </Button>
               </div>
             </div>

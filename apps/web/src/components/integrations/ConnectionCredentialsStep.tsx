@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import { Input } from '../ui/Input';
 import { SecretField } from './SecretField';
 import { StepPanel } from './StepPanel';
@@ -23,13 +25,13 @@ export function ConnectionCredentialsStep({
   onUrlChange,
   onApiKeyChange,
 }: ConnectionCredentialsStepProps) {
+  const { t } = useTranslation();
   return (
-    <StepPanel
-      title="Step 1"
-      message="Save the server URL and API key before testing the connection."
-    >
+    <StepPanel step={1} message={t('integrationCard.credentials.stepMessage')}>
       <div>
-        <label className="mb-1.5 block text-sm text-zinc-300">Server URL</label>
+        <label className="mb-1.5 block text-sm text-zinc-300">
+          {t('integrationCard.credentials.serverUrlLabel')}
+        </label>
         <Input
           type="url"
           value={urlValue}

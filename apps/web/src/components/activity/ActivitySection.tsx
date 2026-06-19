@@ -1,4 +1,5 @@
 import type { Media } from '@findarr/shared/media';
+import { useTranslation } from 'react-i18next';
 
 import { ResultsGrid } from '../media/ResultsGrid';
 import { Button } from '../ui/Button';
@@ -24,16 +25,17 @@ export function ActivitySection({
   onUpdateItem,
   onLoadMore,
 }: ActivitySectionProps) {
+  const { t } = useTranslation();
   return (
     <section id="results-section">
-      {loading && results.length === 0 && <LoadingState title="Loading your activity..." />}
+      {loading && results.length === 0 && <LoadingState />}
 
       {!loading && results.length === 0 && (
         <StateDisplay
           className="py-20"
           icon={<Icon className="text-zinc-600" name="fact_check" size="display" />}
-          title="No activity yet"
-          message="You have not voted on any media yet. Start exploring and your personal request activity will show up here."
+          title={t('activity.empty')}
+          message={t('activity.emptyMessage')}
         />
       )}
 
@@ -45,7 +47,7 @@ export function ActivitySection({
         <div className="pt-6 md:pt-8 md:pb-0">
           <div className="border-t border-zinc-800 pt-4 text-center md:pt-6 md:pb-0">
             <Button variant="secondary" onClick={onLoadMore} disabled={loadingMore}>
-              {loadingMore ? 'Loading...' : 'Load more'}
+              {loadingMore ? t('common.loading') : t('common.loadMore')}
             </Button>
           </div>
         </div>

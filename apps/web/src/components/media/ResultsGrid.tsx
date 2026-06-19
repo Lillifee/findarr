@@ -1,5 +1,6 @@
 import type { Media } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
+import { useTranslation } from 'react-i18next';
 
 import { tmdbImage, releaseYear } from '../../utils/tmdb';
 import { Icon } from '../ui/Icon';
@@ -14,6 +15,7 @@ interface MediaCardProps {
 }
 
 function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
+  const { t } = useTranslation();
   const title = item.name;
   const year = releaseYear(item.date);
   const isLiked = item.state?.interactions?.find((i) => i.action === 'liked');
@@ -53,7 +55,7 @@ function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
             </>
           ) : (
             <div className="flex aspect-2/3 w-full items-center justify-center bg-linear-to-br from-zinc-900 via-zinc-800 to-zinc-900 text-zinc-500">
-              <span className="text-sm font-medium tracking-wide">No Poster</span>
+              <span className="text-sm font-medium tracking-wide">{t('media.noPoster')}</span>
             </div>
           )}
         </div>

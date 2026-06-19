@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useSession } from '../../hooks/useSession';
 import { adminTmdbService } from '../../services/api';
@@ -10,6 +11,7 @@ import { InlineFeedback } from '../ui/InlineFeedback';
 import { Input } from '../ui/Input';
 
 export function TmdbSetupScreen() {
+  const { t } = useTranslation();
   const { refreshBootstrapStatus } = useSession();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -28,11 +30,11 @@ export function TmdbSetupScreen() {
       setSavedTokenSet(settings.tmdbAccessTokenSet);
       setTokenInput('');
     } catch {
-      setError('Failed to load TMDB settings');
+      setError(t('tmdbSetup.loadError'));
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void loadSettings();
@@ -51,12 +53,12 @@ export function TmdbSetupScreen() {
     const result = await adminTmdbService.test();
 
     if (result) {
-      setSuccess('Connection successful. Findarr is ready to continue.');
+      setSuccess(t('tmdbSetup.success'));
       await refreshBootstrapStatus();
       return;
     }
 
-    setError('Could not reach TMDB. Check the access token and try again.');
+    setError(t('tmdbSetup.error'));
   }
 
   async function handleSubmit(e: React.ChangeEvent<HTMLFormElement>) {
@@ -72,7 +74,7 @@ export function TmdbSetupScreen() {
       }
       await runTest();
     } catch {
-      setError('Failed to save and test the TMDB access token');
+      setError(t('tmdbSetup.saveError'));
     } finally {
       setIsSaving(false);
       setIsTesting(false);
@@ -90,9 +92,11 @@ export function TmdbSetupScreen() {
           <div className="mb-5 flex items-start justify-between gap-4">
             <div>
               <p className="mb-5 inline-flex rounded-full border border-amber-400/25 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold tracking-[0.18em] text-amber-300 uppercase">
-                Setup Required
+                {t('tmdbSetup.badge')}
               </p>
-              <h1 className="mb-2 text-3xl font-bold text-white sm:text-4xl">Connect TMDB</h1>
+              <h1 className="mb-2 text-3xl font-bold text-white sm:text-4xl">
+                {t('tmdbSetup.title')}
+              </h1>
               <p className="mt-2 max-w-xl text-sm leading-5 text-zinc-400">
                 This product uses the TMDB API but is not endorsed or certified by TMDB.
               </p>
@@ -106,7 +110,7 @@ export function TmdbSetupScreen() {
           <div className="mb-8">
             <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 px-5 py-5 text-left text-sm text-zinc-400">
               <p>
-                Sign in or create an account at{' '}
+                {t('tmdbSetup.instructions')}{' '}
                 <a
                   href="https://www.themoviedb.org/"
                   target="_blank"
@@ -119,19 +123,19 @@ export function TmdbSetupScreen() {
               </p>
               <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
                 <span className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 font-semibold text-white">
-                  Settings
+                  {t('tmdbSetup.breadcrumbSettings')}
                 </span>
                 <span className="text-zinc-500">/</span>
                 <span className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 font-semibold text-white">
-                  API
+                  {t('tmdbSetup.breadcrumbApi')}
                 </span>
                 <span className="text-zinc-500">/</span>
                 <span className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 font-semibold text-white">
-                  API Read Access Token
+                  {t('tmdbSetup.breadcrumbToken')}
                 </span>
               </div>
               <p className="mt-4 text-sm leading-6 text-zinc-300">
-                Copy that value and paste it into the field below.
+                {t('tmdbSetup.instructionsCopy')}
               </p>
             </div>
           </div>
@@ -139,7 +143,7 @@ export function TmdbSetupScreen() {
           <form onSubmit={asVoid(handleSubmit)} className="space-y-6">
             <Input
               type="password"
-              label="Access Token"
+              label={t('integrationCard.tmdb.accessTokenLabel')}
               value={tokenInput}
               onChange={(e) => {
                 setError('');

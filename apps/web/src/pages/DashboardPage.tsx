@@ -1,5 +1,5 @@
 import type { Media } from '@findarr/shared/media';
-import { isDefined } from '@findarr/shared/utils';
+import { useTranslation } from 'react-i18next';
 
 import { SearchBar } from '../components/catalog/SearchBar';
 import { DashboardHero } from '../components/dashboard/DashboardHero';
@@ -12,6 +12,7 @@ import { useMediaNavigation } from '../hooks/useMediaNavigation';
 import { useSession } from '../hooks/useSession';
 
 export function DashboardPage() {
+  const { t } = useTranslation();
   const { goTo, goToMedia, goToSearch } = useMediaNavigation();
   const { user } = useSession();
   const dashboard = useDashboardData();
@@ -29,8 +30,8 @@ export function DashboardPage() {
       <PageContainer>
         <div className="space-y-8 md:space-y-10">
           <PageHeader
-            title={`Welcome back${isDefined(user?.displayName) ? `, ${user.displayName}` : ''}`}
-            description="Check out what's popular, vote on requests, and discover what's rising."
+            title={t('dashboard.welcomeBack', { name: user?.displayName })}
+            description={t('dashboard.description')}
           />
 
           <DashboardHero

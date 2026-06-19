@@ -1,12 +1,14 @@
 import { isDefined } from '@findarr/shared/utils';
 import type { ChangeEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import type { UserSettingsForm } from '../../hooks/useUserSettings';
 import { Button } from '../ui/Button';
 import { SelectInput } from '../ui/SelectInput';
+import { LoadingState } from '../ui/StateDisplay';
 import { RegionSelector } from './RegionSelector';
 
-const LANGUAGE_OPTIONS = [
+const CONTENT_LANGUAGE_OPTIONS = [
   { value: 'en-US', label: 'English (US)' },
   { value: 'en-GB', label: 'English (UK)' },
   { value: 'de-DE', label: 'German (Germany)' },
@@ -17,13 +19,20 @@ const LANGUAGE_OPTIONS = [
   { value: 'pt-BR', label: 'Portuguese (Brazil)' },
 ];
 
+const UI_LANGUAGE_OPTIONS = [
+  { value: 'en', labelKey: 'language.en' },
+  { value: 'de', labelKey: 'language.de' },
+] as const;
+
 interface ContentPreferencesFormProps {
   settings: UserSettingsForm;
 }
 
 export function ContentPreferencesForm({ settings }: ContentPreferencesFormProps) {
+  const { t } = useTranslation();
+
   if (settings.loading) {
-    return <div className="text-gray-400">Loading settings...</div>;
+    return <LoadingState spinnerSize="sm" />;
   }
 
   const handleSubmit = (event: ChangeEvent<HTMLFormElement>) => {
@@ -33,19 +42,39 @@ export function ContentPreferencesForm({ settings }: ContentPreferencesFormProps
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <SelectInput
-        label="Language"
-        value={settings.language}
-        onChange={(event) => {
-          settings.setLanguage(event.target.value);
-        }}
-      >
-        {LANGUAGE_OPTIONS.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </SelectInput>
+      <div className="space-y-1.5">
+        <SelectInput
+          label={t('settings.uiLanguage')}
+          value={settings.uiLanguage}
+          onChange={(event) => {
+            settings.setUiLanguage(event.target.value);
+          }}
+        >
+          {UI_LANGUAGE_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {t(option.labelKey)}
+            </option>
+          ))}
+        </SelectInput>
+        <p className="text-xs text-zinc-500">{t('settings.uiLanguageDescription')}</p>
+      </div>
+
+      <div className="space-y-1.5">
+        <SelectInput
+          label={t('settings.contentLanguage')}
+          value={settings.language}
+          onChange={(event) => {
+            settings.setLanguage(event.target.value);
+          }}
+        >
+          {CONTENT_LANGUAGE_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </SelectInput>
+        <p className="text-xs text-zinc-500">{t('settings.contentLanguageDescription')}</p>
+      </div>
 
       <RegionSelector
         selectedRegions={settings.regions}
@@ -56,9 +85,11 @@ export function ContentPreferencesForm({ settings }: ContentPreferencesFormProps
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <label htmlFor="swipe-limit" className="text-sm font-medium text-gray-200">
-            Voting range
+            {t('settings.votingRange')}
           </label>
-          <span className="text-sm font-semibold text-amber-500">{settings.swipeLimit} items</span>
+          <span className="text-sm font-semibold text-amber-500">
+            {settings.swipeLimit} {t('settings.items')}
+          </span>
         </div>
         <input
           id="swipe-limit"
@@ -72,16 +103,14 @@ export function ContentPreferencesForm({ settings }: ContentPreferencesFormProps
           }}
           className="range-input w-full"
         />
-        <p className="text-xs text-gray-500">
-          How many of the top-ranked titles are available to vote on.
-        </p>
+        <p className="text-xs text-gray-500">{t('settings.votingRangeDescription')}</p>
       </div>
 
       {isDefined(settings.error) && <p className="text-sm text-red-400">{settings.error}</p>}
 
       <div className="flex justify-end border-t border-zinc-800 pt-4">
         <Button type="submit" disabled={settings.saving || !settings.isDirty} size="sm">
-          {settings.saving ? 'Saving\u2026' : 'Save Settings'}
+          {settings.saving ? t('common.saving') : t('common.saveSettings')}
         </Button>
       </div>
     </form>

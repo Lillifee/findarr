@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useSession } from '../../hooks/useSession';
 import { asVoid } from '../../utils/asyncHandlers';
@@ -8,6 +9,7 @@ import { InlineFeedback } from '../ui/InlineFeedback';
 import { Input } from '../ui/Input';
 
 export function LoginForm() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -22,7 +24,7 @@ export function LoginForm() {
     try {
       await login(email, password);
     } catch {
-      setError('Login failed. Please try again.');
+      setError(t('login.error'));
     } finally {
       setIsLoading(false);
     }
@@ -38,29 +40,29 @@ export function LoginForm() {
         >
           <div className="mb-8 text-center">
             <p className="mb-5 inline-flex rounded-full border border-amber-400/25 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold tracking-[0.18em] text-amber-300 uppercase">
-              Findarr
+              {t('login.badge')}
             </p>
-            <h1 className="mb-2 text-3xl font-bold text-white">Findarr</h1>
-            <p className="text-zinc-400">Sign in to your account</p>
+            <h1 className="mb-2 text-3xl font-bold text-white">{t('login.title')}</h1>
+            <p className="text-zinc-400">{t('login.subtitle')}</p>
           </div>
 
           <form onSubmit={asVoid(handleSubmit)} className="space-y-6">
             <Input
               id="email"
               type="email"
-              label="Email"
+              label={t('common.email')}
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
               }}
               required
-              placeholder="you@example.com"
+              placeholder="mail@example.com"
             />
 
             <Input
               id="password"
               type="password"
-              label="Password"
+              label={t('common.password')}
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
@@ -78,7 +80,7 @@ export function LoginForm() {
               variant="primary"
               className="w-full"
             >
-              {isLoading ? 'Logging in...' : 'Login'}
+              {isLoading ? t('login.submitting') : t('login.submit')}
             </Button>
           </form>
         </Card>

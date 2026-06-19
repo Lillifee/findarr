@@ -3,10 +3,12 @@ import { DEFAULT_USER_SETTINGS, type UserSettings } from '@findarr/shared/settin
 import { isDefined } from '@findarr/shared/utils';
 import { useEffect, useState } from 'react';
 
+import i18n from '../i18n.ts';
 import { userSettingsService } from '../services/api';
 
 export interface UserSettingsForm {
   language: string;
+  uiLanguage: string;
   regions: RegionGroupId[];
   swipeLimit: number;
   loading: boolean;
@@ -14,6 +16,7 @@ export interface UserSettingsForm {
   error: string | null;
   isDirty: boolean;
   setLanguage: (value: string) => void;
+  setUiLanguage: (value: string) => void;
   setRegions: (value: RegionGroupId[]) => void;
   setSwipeLimit: (value: number) => void;
   save: () => Promise<void>;
@@ -59,6 +62,7 @@ export function useUserSettings(): UserSettingsForm {
   const isDirty =
     isDefined(savedSettings) &&
     (draft.language !== savedSettings.language ||
+      draft.uiLanguage !== savedSettings.uiLanguage ||
       draft.swipeLimit !== savedSettings.swipeLimit ||
       !areRegionsEqual(draft.regions, savedSettings.regions));
 
@@ -69,6 +73,7 @@ export function useUserSettings(): UserSettingsForm {
       const updated = await userSettingsService.update(draft);
       setDraft(updated);
       setSavedSettings(updated);
+      void i18n.changeLanguage(updated.uiLanguage);
     } catch (saveError) {
       console.error('Failed to save user settings:', saveError);
       setStatus((prev) => ({ ...prev, error: 'Failed to save settings.' }));
@@ -83,6 +88,9 @@ export function useUserSettings(): UserSettingsForm {
     isDirty,
     setLanguage: (language) => {
       setDraft((prev) => ({ ...prev, language }));
+    },
+    setUiLanguage: (uiLanguage) => {
+      setDraft((prev) => ({ ...prev, uiLanguage }));
     },
     setRegions: (regions) => {
       setDraft((prev) => ({ ...prev, regions }));

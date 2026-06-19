@@ -1,8 +1,9 @@
 import type { Media } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
 import type { KeyboardEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 
-import { tmdbImage, releaseYear } from '../../utils/tmdb';
+import { tmdbImage } from '../../utils/tmdb';
 
 function keyOf(item: Media) {
   return `${item.type}_${item.tmdbId}`;
@@ -19,6 +20,7 @@ export function AvailableMediaStrip({
   onSelectItem: (item: Media) => void;
   results: Media[];
 }) {
+  const { t } = useTranslation();
   const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>, item: Media) => {
     if (event.key !== 'Enter' && event.key !== ' ') {
       return;
@@ -47,7 +49,7 @@ export function AvailableMediaStrip({
   if (results.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/35 px-5 py-8 text-sm text-zinc-400">
-        No newly available titles yet.
+        {t('media.noNewlyAvailable')}
       </div>
     );
   }
@@ -85,18 +87,9 @@ export function AvailableMediaStrip({
                   />
                 ) : (
                   <div className="flex aspect-2/3 w-full items-center justify-center bg-linear-to-br from-zinc-900 via-zinc-800 to-zinc-900 text-xs font-medium text-zinc-500">
-                    No Poster
+                    {t('media.noPoster')}
                   </div>
                 )}
-
-                <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/92 via-black/58 to-transparent px-2 pt-7 pb-2">
-                  <p className="line-clamp-2 text-[11px] leading-tight font-semibold text-white md:text-xs">
-                    {item.name}
-                  </p>
-                  <p className="mt-1 text-[10px] tracking-[0.16em] text-zinc-300 uppercase">
-                    {releaseYear(item.date)}
-                  </p>
-                </div>
               </div>
             </div>
           ))}

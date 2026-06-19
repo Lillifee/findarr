@@ -8,6 +8,7 @@ import { regionGroupKeys } from './constants.js';
 
 export const UserSettingsSchema = z.object({
   language: z.string(),
+  uiLanguage: z.string(),
   regions: z.array(z.enum(regionGroupKeys)),
   swipeLimit: z.number().int().min(60).max(240),
 });
@@ -16,6 +17,7 @@ export const UserSettingsQuerySchema = UserSettingsSchema.partial();
 
 export const DEFAULT_USER_SETTINGS: UserSettings = {
   language: 'en-US',
+  uiLanguage: 'en',
   regions: ['western'],
   swipeLimit: 100,
 };
