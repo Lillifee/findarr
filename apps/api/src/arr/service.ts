@@ -41,10 +41,16 @@ export async function createArrService<T extends ArrServiceConfig>(
     return settings;
   }
 
+  async function updateSchedulers() {
+    const enabled = lifecycle.isConfigured();
+    context.scheduler.setState({ name: config.syncScheduler, enabled });
+    context.scheduler.setState({ name: config.queueMonitorScheduler, enabled });
+  }
+
   async function setSettings(settingsQuery: ArrSettingsQuery): Promise<ArrSettings> {
     await setArrSettings(context.db, config, settingsQuery);
     await lifecycle.reload();
-    context.scheduler.setState({ name: config.syncScheduler, enabled: lifecycle.isConfigured() });
+    await updateSchedulers();
     return getSettings();
   }
 
@@ -57,9 +63,7 @@ export async function createArrService<T extends ArrServiceConfig>(
       return false;
     }
 
-    context.scheduler.setState({ name: config.syncScheduler, enabled: true });
-    context.scheduler.setState({ name: config.queueFastSyncScheduler, enabled: true });
-
+    await updateSchedulers();
     await context.scheduler.trigger({ name: config.syncScheduler });
 
     return true;
