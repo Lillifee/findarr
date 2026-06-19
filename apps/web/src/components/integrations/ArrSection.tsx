@@ -8,7 +8,6 @@ import { asVoid } from '../../utils/asyncHandlers';
 import { SelectInput } from '../ui/SelectInput';
 import { ConnectionActions } from './ConnectionActions';
 import { ConnectionCredentialsStep } from './ConnectionCredentialsStep';
-import { deriveConnectionStatus } from './connectionStatus';
 import { IntegrationCard } from './IntegrationCard';
 import { StepPanel } from './StepPanel';
 
@@ -25,6 +24,7 @@ const defaultSettings: ArrSettings = {
   apiKeySet: false,
   qualityProfileId: null,
   rootFolderPath: null,
+  enabled: true,
 };
 
 const arrServiceConfig = {
@@ -49,6 +49,7 @@ export function ArrSection({ service }: ArrSectionProps) {
   const config = arrServiceConfig[service];
 
   const [settings, setSettings] = useState<ArrSettings>(defaultSettings);
+  const [enabled, setEnabled] = useState(true);
   const [profiles, setProfiles] = useState<ArrQualityProfile[]>([]);
   const [rootFolders, setRootFolders] = useState<ArrRootFolder[]>([]);
 
@@ -58,7 +59,6 @@ export function ArrSection({ service }: ArrSectionProps) {
   const [selectedRootFolder, setSelectedRootFolder] = useState('');
 
   const {
-    isLoading,
     isSaving,
     isTesting,
     testResult,
@@ -72,6 +72,7 @@ export function ArrSection({ service }: ArrSectionProps) {
   } = useConnectionState(async () => {
     const currentSettings = await svc.getSettings();
     setSettings(currentSettings);
+    setEnabled(currentSettings.enabled);
     setUrlInput(currentSettings.url ?? '');
     setSelectedProfileId(currentSettings.qualityProfileId?.toString() ?? '');
     setSelectedRootFolder(currentSettings.rootFolderPath ?? '');
@@ -98,6 +99,12 @@ export function ArrSection({ service }: ArrSectionProps) {
   }
 
   // Connection settings changed (URL or API key) - requires re-test
+  const handleToggleEnabled = () => {
+    const next = !enabled;
+    setEnabled(next);
+    void svc.saveSettings({ enabled: next });
+  };
+
   const connectionDirty = urlInput !== (settings.url ?? '') || apiKeyInput !== '';
 
   // Any setting changed (including profile/folder) - enables save button
@@ -108,12 +115,6 @@ export function ArrSection({ service }: ArrSectionProps) {
   const hasSavedConnectionSettings = isDefined(settings.url) && settings.apiKeySet;
   const canTestConnection = hasSavedConnectionSettings && !connectionDirty;
   const connectionEstablished = canTestConnection && Boolean(testResult);
-  const status = deriveConnectionStatus({
-    isLoading,
-    isDirty: connectionDirty,
-    hasSavedSettings: hasSavedConnectionSettings,
-    testResult,
-  });
 
   const loadProfiles = useCallback(async () => {
     const [p, f] = await Promise.all([svc.listQualityProfiles(), svc.listRootFolders()]);
@@ -172,7 +173,8 @@ export function ArrSection({ service }: ArrSectionProps) {
     <IntegrationCard
       title={config.title}
       description={config.description}
-      status={status}
+      enabled={enabled}
+      onToggleEnabled={handleToggleEnabled}
       onSubmit={asVoid(handleSave)}
       actions={
         <ConnectionActions

@@ -6,7 +6,6 @@ import { createLibServiceApi } from '../../services/api';
 import { asVoid } from '../../utils/asyncHandlers';
 import { ConnectionActions } from './ConnectionActions';
 import { ConnectionCredentialsStep } from './ConnectionCredentialsStep';
-import { deriveConnectionStatus } from './connectionStatus';
 import { IntegrationCard } from './IntegrationCard';
 
 const libServiceConfig = {
@@ -30,19 +29,21 @@ const libServiceConfig = {
 
 interface LibSectionProps {
   service: keyof typeof libServiceConfig;
+  forceDisabled?: boolean;
+  onEnable?: () => void;
 }
 
-export function LibSection({ service }: LibSectionProps) {
+export function LibSection({ service, forceDisabled, onEnable }: LibSectionProps) {
   const svc = createLibServiceApi(service);
   const config = libServiceConfig[service];
 
   const [savedUrl, setSavedUrl] = useState<string | null>(null);
   const [savedApiKeySet, setSavedApiKeySet] = useState(false);
+  const [enabled, setEnabled] = useState(true);
   const [urlInput, setUrlInput] = useState('');
   const [apiKeyInput, setApiKeyInput] = useState('');
 
   const {
-    isLoading,
     isSaving,
     isTesting,
     testResult,
@@ -57,14 +58,23 @@ export function LibSection({ service }: LibSectionProps) {
     const settings = await svc.getSettings();
     setSavedUrl(settings.url);
     setSavedApiKeySet(settings.apiKeySet);
+    setEnabled(settings.enabled);
     setUrlInput(settings.url ?? '');
     setTestResult(null);
   });
 
+  const handleToggleEnabled = () => {
+    const next = !enabled;
+    setEnabled(next);
+    void svc.saveSettings({ enabled: next });
+    if (next) {
+      onEnable?.();
+    }
+  };
+
   const isDirty = urlInput !== (savedUrl ?? '') || apiKeyInput !== '';
   const hasSavedSettings = isDefined(savedUrl) && savedApiKeySet;
   const canTestConnection = hasSavedSettings && !isDirty;
-  const status = deriveConnectionStatus({ isLoading, isDirty, hasSavedSettings, testResult });
 
   const handleTest = async () =>
     wrapTest(async () => {
@@ -99,7 +109,8 @@ export function LibSection({ service }: LibSectionProps) {
     <IntegrationCard
       title={config.title}
       description="Media server — tracks availability of requested content"
-      status={status}
+      enabled={forceDisabled === true ? false : enabled}
+      onToggleEnabled={handleToggleEnabled}
       onSubmit={asVoid(handleSave)}
       actions={
         <ConnectionActions

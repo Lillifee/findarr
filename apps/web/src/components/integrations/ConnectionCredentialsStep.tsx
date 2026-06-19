@@ -4,24 +4,24 @@ import { StepPanel } from './StepPanel';
 
 interface ConnectionCredentialsStepProps {
   urlValue: string;
-  onUrlChange: (value: string) => void;
   urlPlaceholder: string;
   apiKeyValue: string;
-  onApiKeyChange: (value: string) => void;
   apiKeySet: boolean;
   apiKeyLabel?: string;
   apiKeyPlaceholder?: string;
+  onUrlChange: (value: string) => void;
+  onApiKeyChange: (value: string) => void;
 }
 
 export function ConnectionCredentialsStep({
   urlValue,
-  onUrlChange,
   urlPlaceholder,
   apiKeyValue,
-  onApiKeyChange,
   apiKeySet,
   apiKeyLabel = 'API Key',
   apiKeyPlaceholder = 'Enter API key',
+  onUrlChange,
+  onApiKeyChange,
 }: ConnectionCredentialsStepProps) {
   return (
     <StepPanel

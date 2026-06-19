@@ -211,6 +211,7 @@ function createArrSettingsFieldMap(service: ArrServiceType) {
     apiKey: `${service}ApiKey`,
     qualityProfileId: `${service}QualityProfileId`,
     rootFolderPath: `${service}RootFolderPath`,
+    enabled: `${service}Enabled`,
   };
 }
 
@@ -230,18 +231,16 @@ export async function getArrSettings(
       ? Number.parseInt(qualityProfileIdValue, 10)
       : null,
     rootFolderPath: storedSettings[fields.rootFolderPath] ?? null,
+    enabled: isDefined(storedSettings[fields.enabled])
+      ? storedSettings[fields.enabled] === 'true'
+      : isDefined(storedSettings[fields.url]),
   };
 }
 
 export async function setArrSettings(
   db: Database,
   config: ArrServiceConfig,
-  settings: {
-    url?: ArrSettingsQuery['url'] | undefined;
-    apiKey?: ArrSettingsQuery['apiKey'] | undefined;
-    qualityProfileId?: ArrSettingsQuery['qualityProfileId'] | undefined;
-    rootFolderPath?: ArrSettingsQuery['rootFolderPath'] | undefined;
-  },
+  settings: ArrSettingsQuery,
 ): Promise<void> {
   const fields = createArrSettingsFieldMap(config.service);
 
@@ -250,5 +249,6 @@ export async function setArrSettings(
     [fields.apiKey]: settings.apiKey,
     [fields.qualityProfileId]: settings.qualityProfileId?.toString(),
     [fields.rootFolderPath]: settings.rootFolderPath,
+    [fields.enabled]: settings.enabled?.toString(),
   } as Record<string, string | undefined>);
 }

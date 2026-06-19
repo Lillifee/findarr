@@ -41,6 +41,7 @@ export function createMockArrService<T extends ArrServiceConfig>(
   overrides: Partial<Mocked<ArrService<T>>> = {},
 ): Mocked<ArrService<T>> {
   const settings = {
+    enabled: true,
     url: `http://${config.service}`,
     apiKeySet: true,
     qualityProfileId: 1,
@@ -168,6 +169,7 @@ export function createMockSchedulerService(
     getState: vi.fn<SchedulerService['getState']>(),
     startOrchestration: vi.fn<SchedulerService['startOrchestration']>(),
     stopOrchestration: vi.fn<SchedulerService['stopOrchestration']>(),
+    setState: vi.fn<SchedulerService['setState']>(),
     trigger: vi.fn<SchedulerService['trigger']>(),
     ...overrides,
   };

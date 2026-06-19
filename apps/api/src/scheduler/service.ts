@@ -227,6 +227,21 @@ export function createSchedulerService(
     },
 
     /**
+     * Set enabled state of a scheduler only if it differs from current state.
+     * Avoids redundant start/stop calls and their log noise.
+     */
+    setState(params: SchedulerParams & { enabled: boolean }): void {
+      const scheduler = schedulers[params.name];
+      if (scheduler.state.enabled === params.enabled) {
+        return;
+      }
+      if (params.enabled) {
+        this.start(params);
+      } else {
+        this.stop(params);
+      }
+    },
+    /**
      * Get state of one or all schedulers
      */
     getState(): SchedulerInfo[] {

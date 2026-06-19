@@ -6,7 +6,6 @@ import { useSession } from '../../hooks/useSession';
 import { adminTmdbService } from '../../services/api';
 import { asVoid } from '../../utils/asyncHandlers';
 import { ConnectionActions } from './ConnectionActions';
-import { deriveConnectionStatus } from './connectionStatus';
 import { IntegrationCard } from './IntegrationCard';
 import { SecretField } from './SecretField';
 import { StepPanel } from './StepPanel';
@@ -17,7 +16,6 @@ export function TmdbSection() {
   const [tokenInput, setTokenInput] = useState('');
 
   const {
-    isLoading,
     isSaving,
     isTesting,
     testResult,
@@ -38,7 +36,6 @@ export function TmdbSection() {
   const isDirty = tokenInput !== '';
   const hasSavedSettings = savedTokenSet;
   const canTestConnection = hasSavedSettings && !isDirty;
-  const status = deriveConnectionStatus({ isLoading, isDirty, hasSavedSettings, testResult });
 
   function handleTokenChange(value: string) {
     clearFeedback();
@@ -73,7 +70,6 @@ export function TmdbSection() {
     <IntegrationCard
       title="TMDB"
       description="Metadata provider for search, discovery, and media details."
-      status={status}
       onSubmit={asVoid(handleSave)}
       actions={
         <ConnectionActions

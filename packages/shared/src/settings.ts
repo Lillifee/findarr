@@ -36,6 +36,7 @@ export const TmdbSettingsSchema = z.object({
 
 /** Request body for PUT /admin/radarr/settings and PUT /admin/sonarr/settings */
 export const ArrSettingsQuerySchema = z.object({
+  enabled: z.boolean().optional(),
   url: z.string().optional(),
   apiKey: z.string().optional(),
   qualityProfileId: z.coerce.number().int().positive().optional(),
@@ -44,6 +45,7 @@ export const ArrSettingsQuerySchema = z.object({
 
 /** Response shape for GET /admin/radarr/settings and GET /admin/sonarr/settings */
 export const ArrSettingsSchema = z.object({
+  enabled: z.boolean(),
   url: z.string().nullable(),
   apiKeySet: z.boolean(),
   qualityProfileId: z.number().int().nullable(),
@@ -65,12 +67,14 @@ export const ArrRootFolderSchema = z.object({
 
 /** Request body for PUT /admin/jellyfin/settings and PUT /admin/plex/settings */
 export const LibSettingsQuerySchema = z.object({
+  enabled: z.boolean().optional(),
   url: z.string().optional(),
   apiKey: z.string().optional(),
 });
 
 /** Response shape for GET /admin/jellyfin/settings and GET /admin/plex/settings */
 export const LibSettingsSchema = z.object({
+  enabled: z.boolean(),
   url: z.string().nullable(),
   apiKeySet: z.boolean(),
 });
