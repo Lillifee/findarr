@@ -1,4 +1,5 @@
 import { isDefined } from '@findarr/shared/utils';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 
 import { DetailBackButton } from '../components/media/DetailBackButton';
@@ -15,6 +16,7 @@ export function MediaDetailPage() {
 
   const type = location.pathname.startsWith('/movie') ? 'movie' : 'tv';
   const { details, loading, error } = useMediaDetails(type, id);
+  const { t } = useTranslation();
 
   const handleBack = () => {
     void navigate(-1);
@@ -24,14 +26,14 @@ export function MediaDetailPage() {
     <div className="pb-20 md:pb-8">
       <DetailBackButton onClick={handleBack} />
 
-      {loading && <LoadingState title="Loading details..." />}
+      {loading && <LoadingState />}
 
       {isDefined(error) && !loading && (
         <ErrorState
           message={error}
           action={
             <Button onClick={handleBack} variant="secondary">
-              Go Back
+              {t('mediaDetail.goBack')}
             </Button>
           }
         />

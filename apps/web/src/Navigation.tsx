@@ -1,6 +1,7 @@
 import type { User } from '@findarr/shared/auth';
 import { isDefined } from '@findarr/shared/utils';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { NavLink, useLocation } from 'react-router-dom';
 
 import { Icon } from './components/ui';
@@ -25,6 +26,7 @@ const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
   }`;
 
 export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin }) => {
+  const { t } = useTranslation();
   const [mobileAdvancedOpen, setMobileAdvancedOpen] = useState(false);
   const [hasAttention, setHasAttention] = useState(false);
   const location = useLocation();
@@ -72,51 +74,51 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
           <nav className="mt-4 space-y-2 p-4">
             <NavLink to="/" end className={navLinkClass}>
               <Icon name="home" />
-              <span className="font-medium">Home</span>
+              <span className="font-medium">{t('nav.home')}</span>
             </NavLink>
 
             <NavLink to="/vote" className={navLinkClass}>
               <Icon name="thumb_up" />
-              <span className="font-medium">Vote</span>
+              <span className="font-medium">{t('nav.vote')}</span>
             </NavLink>
 
             <NavLink to="/explore" className={navLinkClass}>
               <Icon name="explore" />
-              <span className="font-medium">Explore</span>
+              <span className="font-medium">{t('nav.explore')}</span>
             </NavLink>
 
             <NavLink to="/activity" className={navLinkClass}>
               <Icon name="fact_check" />
-              <span className="font-medium">Activity</span>
+              <span className="font-medium">{t('nav.activity')}</span>
               <span className="ml-auto">{attentionIndicator}</span>
             </NavLink>
 
             {/* Account Section - Always Visible on Desktop */}
             <div className="pt-4">
               <div className="mb-2 px-4 text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                Account
+                {t('nav.account')}
               </div>
               <div className="space-y-1">
                 <NavLink to="/settings" className={navLinkClass}>
                   <Icon name="tune" />
-                  <span className="text-sm font-medium">Settings</span>
+                  <span className="text-sm font-medium">{t('nav.settings')}</span>
                 </NavLink>
 
                 {isAdmin && (
                   <>
                     <NavLink to="/admin/users" className={navLinkClass}>
                       <Icon name="group" />
-                      <span className="text-sm font-medium">Users</span>
+                      <span className="text-sm font-medium">{t('nav.users')}</span>
                     </NavLink>
 
                     <NavLink to="/admin/integrations" className={navLinkClass}>
                       <Icon name="link" />
-                      <span className="text-sm font-medium">Integrations</span>
+                      <span className="text-sm font-medium">{t('nav.integrations')}</span>
                     </NavLink>
 
                     <NavLink to="/admin/schedulers" className={navLinkClass}>
                       <Icon name="schedule" />
-                      <span className="text-sm font-medium">Schedulers</span>
+                      <span className="text-sm font-medium">{t('nav.schedulers')}</span>
                     </NavLink>
                   </>
                 )}
@@ -133,10 +135,16 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
             <button
               onClick={onLogout}
               className={navLinkClass({ isActive: false })}
-              aria-label={isDefined(user?.displayName) ? `Logout ${user.displayName}` : 'Logout'}
+              aria-label={
+                isDefined(user?.displayName)
+                  ? `${t('nav.logout')} ${user.displayName}`
+                  : t('nav.logout')
+              }
             >
               <Icon name="logout" />
-              <span className="text-sm font-medium">Logout {user?.displayName}</span>
+              <span className="text-sm font-medium">
+                {t('nav.logout')} {user?.displayName}
+              </span>
             </button>
           </div>
         </div>
@@ -147,16 +155,16 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
         <div className="flex h-16 items-center justify-around">
           <NavLink to="/" end className={mobileNavLinkClass}>
             <Icon className="mb-1" name="home" size="lg" />
-            <span className="text-xs font-medium">Home</span>
+            <span className="text-xs font-medium">{t('nav.home')}</span>
           </NavLink>
 
           <NavLink to="/vote" className={mobileNavLinkClass}>
             <Icon className="mb-1" name="thumb_up" size="lg" />
-            <span className="text-xs font-medium">Vote</span>
+            <span className="text-xs font-medium">{t('nav.vote')}</span>
           </NavLink>
           <NavLink to="/explore" className={mobileNavLinkClass}>
             <Icon className="mb-1" name="explore" size="lg" />
-            <span className="text-xs font-medium">Explore</span>
+            <span className="text-xs font-medium">{t('nav.explore')}</span>
           </NavLink>
 
           <NavLink to="/activity" className={mobileNavLinkClass}>
@@ -166,7 +174,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                 <span className="absolute top-0 -right-1 inline-flex h-2.5 w-2.5 rounded-full bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.8)]" />
               )}
             </span>
-            <span className="text-xs font-medium">Activity</span>
+            <span className="text-xs font-medium">{t('nav.activity')}</span>
           </NavLink>
 
           <button
@@ -178,7 +186,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
             }`}
           >
             <Icon className="mb-1" name="more_vert" size="lg" />
-            <span className="text-xs font-medium">More</span>
+            <span className="text-xs font-medium">{t('nav.more')}</span>
           </button>
         </div>
 
@@ -187,7 +195,8 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
           <div className="animate-in fade-in slide-in-from-bottom-2 absolute right-0 bottom-full left-0 border-t border-zinc-800/80 bg-zinc-950 duration-200">
             <div className="space-y-2 p-4">
               <div className="mb-3 px-2 text-xs text-gray-400">
-                Logged in as <span className="font-medium text-white">{user?.displayName}</span>
+                {t('nav.loggedInAs')}{' '}
+                <span className="font-medium text-white">{user?.displayName}</span>
               </div>
 
               <NavLink
@@ -198,7 +207,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                 className={navLinkClass}
               >
                 <Icon name="tune" />
-                <span className="font-medium">Settings</span>
+                <span className="font-medium">{t('nav.settings')}</span>
               </NavLink>
 
               {isAdmin && (
@@ -211,7 +220,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                     className={navLinkClass}
                   >
                     <Icon name="group" />
-                    <span className="font-medium">Users</span>
+                    <span className="font-medium">{t('nav.users')}</span>
                   </NavLink>
 
                   <NavLink
@@ -222,7 +231,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                     className={navLinkClass}
                   >
                     <Icon name="link" />
-                    <span className="font-medium">Integrations</span>
+                    <span className="font-medium">{t('nav.integrations')}</span>
                   </NavLink>
 
                   <NavLink
@@ -233,7 +242,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                     className={navLinkClass}
                   >
                     <Icon name="schedule" />
-                    <span className="font-medium">Schedulers</span>
+                    <span className="font-medium">{t('nav.schedulers')}</span>
                   </NavLink>
                 </>
               )}
@@ -244,10 +253,10 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                   onLogout();
                 }}
                 className={navLinkClass({ isActive: false })}
-                aria-label="Logout"
+                aria-label={t('nav.logout')}
               >
                 <Icon name="logout" />
-                <span className="font-medium">Logout</span>
+                <span className="font-medium">{t('nav.logout')}</span>
               </button>
             </div>
           </div>

@@ -1,0 +1,318 @@
+{
+  "common": {
+    "saving": "Saving…",
+    "saveSettings": "Save Settings",
+    "testing": "Testing…",
+    "synchronize": "Synchronize",
+    "testAndSynchronize": "Test & Synchronize",
+    "loadMore": "Load more",
+    "loading": "Loading...",
+    "votingStatus": "Voting status",
+    "cancel": "Cancel",
+    "close": "Close",
+    "displayName": "Display Name",
+    "email": "Email",
+    "password": "Password",
+    "creating": "Creating...",
+    "noResults": "No results found"
+  },
+  "nav": {
+    "home": "Home",
+    "vote": "Vote",
+    "explore": "Explore",
+    "activity": "Activity",
+    "settings": "Settings",
+    "users": "Users",
+    "integrations": "Integrations",
+    "schedulers": "Schedulers",
+    "more": "More",
+    "account": "Account",
+    "logout": "Logout",
+    "loggedInAs": "Logged in as"
+  },
+  "login": {
+    "badge": "Findarr",
+    "title": "Findarr",
+    "subtitle": "Sign in to your account",
+    "submit": "Login",
+    "submitting": "Logging in...",
+    "error": "Login failed. Please try again."
+  },
+  "dashboard": {
+    "welcomeBack": "Welcome back, {{name}}",
+    "description": "Check out what's popular, vote on requests, and discover what's rising.",
+    "hero": {
+      "continueVoting": {
+        "eyebrow": "Continue voting",
+        "defaultDescription": "Your next voting pick is ready. Jump back into the stack and keep shaping what lands in your library.",
+        "posterLabel": "Ready to vote"
+      },
+      "votingUnavailable": {
+        "eyebrow": "Voting unavailable",
+        "title": "Explore while voting catches up.",
+        "posterLabel": "Explore catalog"
+      },
+      "votingComplete": {
+        "eyebrow": "Voting complete",
+        "title": "No more picks in the voting queue.",
+        "description": "You have already voted through the current stack. Browse the catalog to find something to watch while new voting candidates build up.",
+        "posterLabel": "Queue complete"
+      },
+      "actions": {
+        "exploreCatalog": "Explore Catalog",
+        "continueVoting": "Continue Voting",
+        "tryVotingAgain": "Try Voting Again",
+        "openActivity": "Open Activity"
+      }
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Manage your default language and region preferences for new browse and vote sessions.",
+    "contentPreferences": "Content Preferences",
+    "contentLanguage": "Content Language",
+    "contentLanguageDescription": "Language used for movie and TV titles, overviews, and posters from TMDB.",
+    "uiLanguage": "Interface Language",
+    "uiLanguageDescription": "Language of the Findarr application interface.",
+    "votingRange": "Voting range",
+    "items": "items",
+    "votingRangeDescription": "How many of the top-ranked titles are available to vote on.",
+    "password": "Password",
+    "passwordDescription": "Update your sign-in password."
+  },
+  "language": {
+    "en": "English",
+    "de": "German"
+  },
+  "integrations": {
+    "title": "Integrations",
+    "description": "Configure TMDB, Jellyfin, Plex, Radarr, and Sonarr for discovery and automatic media management."
+  },
+  "vote": {
+    "tryAgain": "Try Again",
+    "complete": {
+      "title": "All done",
+      "message": "You have voted on every item in your current range. Increase your voting range in settings to vote on more.",
+      "explore": "Explore",
+      "openSettings": "Open settings"
+    }
+  },
+  "schedulers": {
+    "title": "Schedulers",
+    "description": "Monitor recurring jobs and trigger them manually when needed.",
+    "interval": "Interval",
+    "duration": "Duration",
+    "lastRun": "Last Run",
+    "nextRun": "Next Run",
+    "trigger": "Trigger",
+    "stop": "Stop",
+    "start": "Start"
+  },
+  "activity": {
+    "title": "Your Activity",
+    "description": "Review your votes, requested media, and anything that still needs attention.",
+    "empty": "No activity yet",
+    "emptyMessage": "You have not voted on any media yet. Start exploring and your personal request activity will show up here.",
+    "adjustFilters": "Adjust your activity filters.",
+    "filter": {
+      "all": "All activity",
+      "allDesc": "Show everything you have voted on.",
+      "upvotes": "Upvotes",
+      "upvotesDesc": "Focus on titles you liked.",
+      "downvotes": "Downvotes",
+      "downvotesDesc": "Focus on titles you disliked."
+    }
+  },
+  "users": {
+    "title": "Users",
+    "description": "Manage access, roles, and invitations for people using Findarr.",
+    "createUser": "Create user",
+    "created": "Created",
+    "delete": "Delete",
+    "deleteConfirm": "Are you sure you want to delete this user?",
+    "deleteError": "Failed to delete user",
+    "form": {
+      "title": "Create New User",
+      "role": "Role",
+      "roleUser": "User",
+      "roleAdmin": "Admin",
+      "error": "Failed to create user",
+      "submit": "Create User"
+    }
+  },
+  "explore": {
+    "searchResults": "Search results",
+    "trending": "Trending & Popular",
+    "description": "Browse what is trending, search your next watch, and vote on what should be requested."
+  },
+  "mediaDetail": {
+    "goBack": "Go Back"
+  },
+  "catalog": {
+    "searchPlaceholder": "Search movies or TV shows...",
+    "clearSearch": "Clear search",
+    "filters": "Filters",
+    "filtersDefaultDescription": "Adjust genres and voting status.",
+    "typeAll": "All",
+    "typeMovies": "Movies",
+    "typeShows": "Shows",
+    "genresLabel": "Genres",
+    "genres": "Genres ({{count}})",
+    "clearAll": "Clear all",
+    "interactionFilter": {
+      "all": "All media",
+      "allDesc": "Mix together titles you have and have not voted on.",
+      "unvoted": "Unvoted only",
+      "unvotedDesc": "Keep the feed focused on titles you still need to rate.",
+      "voted": "Voted only",
+      "votedDesc": "Review titles you already liked or disliked."
+    }
+  },
+  "media": {
+    "noPoster": "No Poster",
+    "back": "Back",
+    "like": "Like",
+    "dislike": "Dislike",
+    "newlyAvailable": "Newly available",
+    "noNewlyAvailable": "No newly available titles yet.",
+    "mediaTypeMovie": "Movie",
+    "mediaTypeTv": "TV"
+  },
+  "passwordForm": {
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "submit": "Update Password",
+    "submitting": "Updating Password..."
+  },
+  "ownerSetup": {
+    "badge": "First Run",
+    "title": "Create admin account",
+    "description": "Set up the first Findarr user. This account will manage users and integrations.",
+    "passwordPlaceholder": "At least 8 characters",
+    "confirmPasswordLabel": "Confirm Password",
+    "confirmPasswordPlaceholder": "Repeat password",
+    "passwordMismatch": "Passwords do not match.",
+    "error": "Could not create the admin account. Please check the details and try again.",
+    "submit": "Create admin account"
+  },
+  "tmdbSetup": {
+    "badge": "Setup Required",
+    "title": "Connect TMDB",
+    "instructions": "Sign in or create an account at",
+    "instructionsCopy": "Copy that value and paste it into the field below.",
+    "breadcrumbSettings": "Settings",
+    "breadcrumbApi": "API",
+    "breadcrumbToken": "API Read Access Token",
+    "loadError": "Failed to load TMDB settings",
+    "saveError": "Failed to save and test the TMDB access token",
+    "success": "Connection successful. Findarr is ready to continue.",
+    "error": "Could not reach TMDB. Check the access token and try again."
+  },
+  "integrationCard": {
+    "secretAlreadySet": "already set — leave blank to keep",
+    "disabled": "Integration disabled. Toggle the switch to re-enable.",
+    "tmdb": {
+      "description": "Metadata provider for search, discovery, and media details.",
+      "stepMessage": "Save the TMDB access token before testing the connection.",
+      "accessTokenLabel": "Access Token",
+      "accessTokenPlaceholder": "Enter TMDB access token",
+      "success": "Connection successful. TMDB is ready.",
+      "error": "Could not reach TMDB. Save a valid access token, then test again."
+    },
+    "credentials": {
+      "stepMessage": "Save the server URL and API key before testing the connection.",
+      "serverUrlLabel": "Server URL",
+      "apiKeyLabel": "API Key",
+      "apiKeyPlaceholder": "Enter API key"
+    },
+    "arr": {
+      "step2Message": "Choose the quality profile and root folder for new requests.",
+      "qualityProfileLabel": "Quality Profile",
+      "qualityProfilePlaceholder": "— Select quality profile —",
+      "rootFolderLabel": "Root Folder",
+      "rootFolderPlaceholder": "— Select root folder —",
+      "availableAfterTest": "Available after a successful connection test.",
+      "success": "Connection successful. Quality profiles and root folders are ready.",
+      "error": "Could not reach {{title}}. Check the URL and API key, then test again."
+    },
+    "jellyfin": {
+      "success": "Connection successful. Jellyfin is ready.",
+      "error": "Could not reach Jellyfin. Check the URL and API key, then test again."
+    },
+    "plex": {
+      "success": "Connection successful. Plex is ready.",
+      "error": "Could not reach Plex. Check the URL and token, then test again."
+    },
+    "step1": "Step 1",
+    "step2": "Step 2"
+  },
+  "mediaView": {
+    "mediaType": "Media Type",
+    "movie": "Movie",
+    "tvSeries": "TV Series",
+    "rating": "Rating",
+    "releaseDate": "Release Date",
+    "duration": "Duration",
+    "episodes": "Episodes",
+    "tmdbStatus": "TMDB Status",
+    "unknown": "Unknown",
+    "overview": "Overview",
+    "cast": "Cast",
+    "keywords": "Keywords",
+    "trailer": "Trailer",
+    "searchTrailer": "Search Trailer",
+    "website": "Website",
+    "watch": "Watch"
+  },
+  "status": {
+    "available": "Available",
+    "downloaded": "Downloaded",
+    "downloading": "Downloading",
+    "monitored": "Monitored",
+    "requested": "Requested",
+    "warning": "Warning",
+    "running": "Running",
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
+  "regions": {
+    "label": "Content Regions",
+    "showing": "Showing {{count}} of {{total}} content regions",
+    "western": "Western",
+    "westernDesc": "English-speaking countries, Western Europe, and Nordic countries (US, UK, Germany, France, etc.)",
+    "easternEurope": "Eastern Europe",
+    "easternEuropeDesc": "Eastern European countries including Russia, Poland, Czech Republic, and Baltic states",
+    "asian": "Asian",
+    "asianDesc": "All Asian countries including Japan, Korea, China, India, Thailand, Indonesia, Philippines, etc.",
+    "latinAmerica": "Latin America",
+    "latinAmericaDesc": "Latin American countries including Mexico, Brazil, Argentina, Chile, Colombia, Peru, etc.",
+    "middleEastAfrica": "Middle East & Africa",
+    "middleEastAfricaDesc": "Middle Eastern and African countries including Saudi Arabia, Turkey, Egypt, Nigeria, Kenya, etc."
+  },
+  "seasonSelector": {
+    "title": "Select Seasons",
+    "requested_one": "{{count}} requested",
+    "requested_other": "{{count}} requested",
+    "chooseSeasons": "Choose seasons",
+    "selectAll": "Select All",
+    "newSeasons_one": "{{count}} new season to request",
+    "newSeasons_other": "{{count}} new seasons to request",
+    "episodes_one": "{{count}} ep",
+    "episodes_other": "{{count}} eps",
+    "removeAll": "Remove All Seasons",
+    "update": "Update Seasons",
+    "request": "Request Seasons",
+    "keep": "Keep Selection"
+  },
+  "scoreBreakdown": {
+    "title": "Score Breakdown",
+    "overall": "Overall Score",
+    "baseScore": "Base Score",
+    "userMatch": "User Match",
+    "popularity": "Popularity",
+    "rating": "Rating",
+    "genreMatch": "Genre Match",
+    "keywordMatch": "Keyword Match"
+  }
+}

@@ -1,21 +1,10 @@
 import type { InteractionsQuery } from '@findarr/shared/interaction';
+import { useTranslation } from 'react-i18next';
 
 import { OptionButton } from '../ui/OptionButton';
 import { PanelSection } from '../ui/PanelSection';
 
 type ActionFilter = InteractionsQuery['action'];
-
-interface StatusOption {
-  value: ActionFilter;
-  title: string;
-  description: string;
-}
-
-const statusOptions: StatusOption[] = [
-  { value: 'all', title: 'All activity', description: 'Show everything you have voted on.' },
-  { value: 'liked', title: 'Upvotes', description: 'Focus on titles you liked.' },
-  { value: 'disliked', title: 'Downvotes', description: 'Focus on titles you disliked.' },
-];
 
 interface ActivityStatusFilterProps {
   actionFilter: ActionFilter;
@@ -23,10 +12,30 @@ interface ActivityStatusFilterProps {
 }
 
 export function ActivityStatusFilter({ actionFilter, onActionChange }: ActivityStatusFilterProps) {
+  const { t } = useTranslation();
+
+  const statusOptions = [
+    {
+      value: 'all' as ActionFilter,
+      title: t('activity.filter.all'),
+      description: t('activity.filter.allDesc'),
+    },
+    {
+      value: 'liked' as ActionFilter,
+      title: t('activity.filter.upvotes'),
+      description: t('activity.filter.upvotesDesc'),
+    },
+    {
+      value: 'disliked' as ActionFilter,
+      title: t('activity.filter.downvotes'),
+      description: t('activity.filter.downvotesDesc'),
+    },
+  ];
+
   return (
     <PanelSection>
       <div className="mb-2.5">
-        <h4 className="text-sm font-semibold text-white">Voting status</h4>
+        <h4 className="text-sm font-semibold text-white">{t('common.votingStatus')}</h4>
       </div>
       <div className="grid gap-2.5 md:grid-cols-3">
         {statusOptions.map((option) => (

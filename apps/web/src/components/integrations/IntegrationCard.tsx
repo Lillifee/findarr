@@ -1,4 +1,5 @@
 import type { ChangeEvent, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Card } from '../ui/Card';
 
@@ -20,6 +21,7 @@ export function IntegrationCard({
   children,
   actions,
 }: React.PropsWithChildren<IntegrationCardProps>) {
+  const { t } = useTranslation();
   return (
     <Card variant="solid" padding="none" className="overflow-hidden">
       <div className="flex flex-col gap-2 border-b border-zinc-800 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-6">
@@ -49,7 +51,7 @@ export function IntegrationCard({
         </form>
       ) : (
         <div className="px-5 py-6 text-sm text-zinc-500 md:px-6">
-          Integration disabled. Toggle the switch to re-enable.
+          {t('integrationCard.disabled')}
         </div>
       )}
     </Card>

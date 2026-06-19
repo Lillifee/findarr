@@ -2,7 +2,8 @@ import type { User } from '@findarr/shared/auth';
 import { isDefined } from '@findarr/shared/utils';
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { api, authService } from '../services/api';
+import i18n from '../i18n.ts';
+import { api, authService, userSettingsService } from '../services/api';
 import { SessionContext, type SessionContextType } from './SessionContext';
 
 export function SessionProvider({ children }: { children: ReactNode }) {
@@ -31,6 +32,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
       const currentUser = await authService.me();
       setUser(currentUser);
+
+      try {
+        const settings = await userSettingsService.get();
+        void i18n.changeLanguage(settings.uiLanguage);
+      } catch {
+        // non-fatal: UI language falls back to browser default
+      }
     } catch {
       setUser(null);
       setIsTmdbConfigured(false);
@@ -71,6 +79,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setUser(currentUser);
     setIsTmdbConfigured(bootstrap.tmdbConfigured);
     setRequiresOwnerSetup(bootstrap.requiresOwnerSetup);
+
+    try {
+      const settings = await userSettingsService.get();
+      void i18n.changeLanguage(settings.uiLanguage);
+    } catch {
+      // non-fatal
+    }
   }, []);
 
   const setupOwner = useCallback(async (email: string, password: string, displayName: string) => {

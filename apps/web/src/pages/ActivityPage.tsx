@@ -1,4 +1,5 @@
 import type { Media } from '@findarr/shared/media';
+import { useTranslation } from 'react-i18next';
 
 import { ActivitySection } from '../components/activity/ActivitySection';
 import { ActivityStatusFilter } from '../components/activity/ActivityStatusFilter';
@@ -11,6 +12,7 @@ import { useActivityFeed } from '../hooks/useActivityFeed';
 import { useMediaNavigation } from '../hooks/useMediaNavigation';
 
 export function ActivityPage() {
+  const { t } = useTranslation();
   const { goToMedia } = useMediaNavigation();
   const feed = useActivityFeed();
 
@@ -26,7 +28,7 @@ export function ActivityPage() {
           onTypeChange={(type) => {
             feed.reloadActivityWith({ type });
           }}
-          filterDescription="Adjust your activity filters."
+          filterDescription={t('activity.adjustFilters')}
           extraFiltersContent={
             <ActivityStatusFilter
               actionFilter={feed.actionFilter}
@@ -40,10 +42,7 @@ export function ActivityPage() {
 
       <PageContainer>
         <div className="space-y-8 md:space-y-10">
-          <PageHeader
-            title="Your Activity"
-            description="Review your votes, requested media, and anything that still needs attention."
-          />
+          <PageHeader title={t('activity.title')} description={t('activity.description')} />
 
           <AttentionQueueSection
             results={feed.attentionResults}

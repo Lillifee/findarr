@@ -1,4 +1,5 @@
 import type { ChangeEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import type { PasswordChangeForm } from '../../hooks/usePasswordForm';
 import { Button } from '../ui/Button';
@@ -9,6 +10,7 @@ interface PasswordFormProps {
 }
 
 export function PasswordForm({ form }: PasswordFormProps) {
+  const { t } = useTranslation();
   const handleSubmit = (event: ChangeEvent<HTMLFormElement>) => {
     event.preventDefault();
     void form.submit();
@@ -18,7 +20,7 @@ export function PasswordForm({ form }: PasswordFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <Input
         type="password"
-        label="Current Password"
+        label={t('passwordForm.currentPassword')}
         value={form.currentPassword}
         onChange={(event) => {
           form.setCurrentPassword(event.target.value);
@@ -29,7 +31,7 @@ export function PasswordForm({ form }: PasswordFormProps) {
 
       <Input
         type="password"
-        label="New Password"
+        label={t('passwordForm.newPassword')}
         value={form.newPassword}
         onChange={(event) => {
           form.setNewPassword(event.target.value);
@@ -41,7 +43,7 @@ export function PasswordForm({ form }: PasswordFormProps) {
 
       <Input
         type="password"
-        label="Confirm New Password"
+        label={t('passwordForm.confirmPassword')}
         value={form.confirmPassword}
         onChange={(event) => {
           form.setConfirmPassword(event.target.value);
@@ -61,7 +63,7 @@ export function PasswordForm({ form }: PasswordFormProps) {
         loading={form.submitting}
         disabled={!form.canSubmit}
       >
-        {form.submitting ? 'Updating Password...' : 'Update Password'}
+        {form.submitting ? t('passwordForm.submitting') : t('passwordForm.submit')}
       </Button>
     </form>
   );

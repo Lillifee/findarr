@@ -1,5 +1,6 @@
 import { isDefined } from '@findarr/shared/utils';
 import { useState, type ChangeEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useConnectionState } from '../../hooks/useConnectionState';
 import { useSession } from '../../hooks/useSession';
@@ -11,6 +12,7 @@ import { SecretField } from './SecretField';
 import { StepPanel } from './StepPanel';
 
 export function TmdbSection() {
+  const { t } = useTranslation();
   const { refreshBootstrapStatus } = useSession();
   const [savedTokenSet, setSavedTokenSet] = useState(false);
   const [tokenInput, setTokenInput] = useState('');
@@ -47,10 +49,10 @@ export function TmdbSection() {
       const result = await adminTmdbService.test();
       setTestResult(result);
       if (result) {
-        setSuccess('Connection successful. TMDB is ready.');
+        setSuccess(t('integrationCard.tmdb.success'));
         await refreshBootstrapStatus();
       } else {
-        setError('Could not reach TMDB. Save a valid access token, then test again.');
+        setError(t('integrationCard.tmdb.error'));
       }
     });
 
@@ -69,7 +71,7 @@ export function TmdbSection() {
   return (
     <IntegrationCard
       title="TMDB"
-      description="Metadata provider for search, discovery, and media details."
+      description={t('integrationCard.tmdb.description')}
       onSubmit={asVoid(handleSave)}
       actions={
         <ConnectionActions
@@ -83,13 +85,13 @@ export function TmdbSection() {
         />
       }
     >
-      <StepPanel title="Step 1" message="Save the TMDB access token before testing the connection.">
+      <StepPanel step={1} message={t('integrationCard.tmdb.stepMessage')}>
         <SecretField
-          label="Access Token"
+          label={t('integrationCard.tmdb.accessTokenLabel')}
           value={tokenInput}
           onChange={handleTokenChange}
           isSet={savedTokenSet}
-          placeholder="Enter TMDB access token"
+          placeholder={t('integrationCard.tmdb.accessTokenPlaceholder')}
         />
       </StepPanel>
     </IntegrationCard>

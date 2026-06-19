@@ -1,5 +1,6 @@
 import { isDefined } from '@findarr/shared/utils';
 import { useState, type ChangeEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useConnectionState } from '../../hooks/useConnectionState';
 import { createLibServiceApi } from '../../services/api';
@@ -34,6 +35,7 @@ interface LibSectionProps {
 }
 
 export function LibSection({ service, forceDisabled, onEnable }: LibSectionProps) {
+  const { t } = useTranslation();
   const svc = createLibServiceApi(service);
   const config = libServiceConfig[service];
 
@@ -81,9 +83,9 @@ export function LibSection({ service, forceDisabled, onEnable }: LibSectionProps
       const result = await svc.test();
       setTestResult(result);
       if (result) {
-        setSuccess(config.successMessage);
+        setSuccess(t(`integrationCard.${service}.success`));
       } else {
-        setError(config.errorMessage);
+        setError(t(`integrationCard.${service}.error`));
       }
     });
 

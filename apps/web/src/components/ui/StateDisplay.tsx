@@ -4,7 +4,7 @@ import { Icon } from './Icon';
 import { Spinner, type SpinnerSize } from './Spinner';
 
 export interface StateDisplayProps {
-  title: string;
+  title?: string;
   message?: string;
   icon?: ReactNode;
   action?: ReactNode;
@@ -24,7 +24,7 @@ export function StateDisplay({
     <div className={`p-8 text-center text-zinc-500 md:p-16 ${className}`}>
       <div className="flex flex-col items-center gap-4">
         {icon}
-        <h3 className="text-xl font-semibold text-zinc-300">{title}</h3>
+        {title !== undefined && <h3 className="text-xl font-semibold text-zinc-300">{title}</h3>}
         {message !== undefined && <p className="max-w-md text-base md:text-lg">{message}</p>}
         {action !== undefined && (
           <div className="mt-2 flex flex-wrap justify-center gap-3">{action}</div>
@@ -39,16 +39,13 @@ export interface LoadingStateProps extends Omit<StateDisplayProps, 'icon' | 'tit
   spinnerSize?: SpinnerSize;
 }
 
-export function LoadingState({
-  title = 'Loading...',
-  spinnerSize = 'display',
-  ...props
-}: LoadingStateProps) {
+export function LoadingState({ title = '', spinnerSize = 'display', ...props }: LoadingStateProps) {
+  const titleProps = title ? { title } : {};
   return (
     <StateDisplay
       {...props}
-      icon={<Spinner className="text-amber-400" label={title} size={spinnerSize} />}
-      title={title}
+      {...titleProps}
+      icon={<Spinner className="text-amber-400" label="Loading" size={spinnerSize} />}
     />
   );
 }

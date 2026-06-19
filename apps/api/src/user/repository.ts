@@ -20,6 +20,7 @@ export async function getOrCreateUserSettings(db: Database, userId: number): Pro
   await db.insert(userSettings).values({
     userId,
     language: DEFAULT_USER_SETTINGS.language,
+    uiLanguage: DEFAULT_USER_SETTINGS.uiLanguage,
     regions: DEFAULT_USER_SETTINGS.regions,
     swipeLimit: DEFAULT_USER_SETTINGS.swipeLimit,
   });
@@ -36,6 +37,7 @@ export async function updateUserSettings(
 
   const merged: UserSettings = {
     language: updates.language ?? current.language,
+    uiLanguage: updates.uiLanguage ?? current.uiLanguage,
     regions: updates.regions ?? current.regions,
     swipeLimit: updates.swipeLimit ?? current.swipeLimit,
   };
@@ -44,6 +46,7 @@ export async function updateUserSettings(
     .update(userSettings)
     .set({
       language: merged.language,
+      uiLanguage: merged.uiLanguage,
       regions: merged.regions,
       swipeLimit: merged.swipeLimit,
       updatedAt: sql`(unixepoch() * 1000)`,

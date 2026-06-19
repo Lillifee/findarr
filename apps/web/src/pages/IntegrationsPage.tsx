@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { ArrSection } from '../components/integrations/ArrSection';
 import { LibSection } from '../components/integrations/LibSection';
@@ -8,6 +9,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { createLibServiceApi } from '../services/api';
 
 export function IntegrationsPage() {
+  const { t } = useTranslation();
   const [activeLib, setActiveLib] = useState<'jellyfin' | 'plex' | null>(null);
 
   const handleLibEnable = (enabled: 'jellyfin' | 'plex') => {
@@ -19,10 +21,7 @@ export function IntegrationsPage() {
   return (
     <PageContainer>
       <div className="space-y-5">
-        <PageHeader
-          title="Integrations"
-          description="Configure TMDB, Jellyfin, Plex, Radarr, and Sonarr for discovery and automatic media management."
-        />
+        <PageHeader title={t('integrations.title')} description={t('integrations.description')} />
         <div className="space-y-4">
           <TmdbSection />
           <LibSection

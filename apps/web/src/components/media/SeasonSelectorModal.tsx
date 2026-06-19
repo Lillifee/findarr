@@ -1,6 +1,7 @@
 import type { Season } from '@findarr/shared/media';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
@@ -26,6 +27,7 @@ export default function SeasonSelectorModal({
   alreadyRequestedSeasons = EMPTY_REQUESTED_SEASONS,
   showName,
 }: SeasonSelectorModalProps) {
+  const { t } = useTranslation();
   const [selectedSeasons, setSelectedSeasons] = useState<Set<number>>(new Set());
 
   // Initialize selection with already requested seasons when modal opens
@@ -95,7 +97,7 @@ export default function SeasonSelectorModal({
         {/* Header - More compact */}
         <div className="flex items-center justify-between border-b border-zinc-800 p-4">
           <div className="min-w-0 flex-1 pr-2">
-            <h2 className="text-lg font-bold text-white">Select Seasons</h2>
+            <h2 className="text-lg font-bold text-white">{t('seasonSelector.title')}</h2>
             <p className="mt-0.5 truncate text-xs text-zinc-400">{showName}</p>
           </div>
           <Button
@@ -114,8 +116,8 @@ export default function SeasonSelectorModal({
           <div className="mb-3 flex items-center justify-between">
             <p className="text-xs text-zinc-400">
               {alreadyRequestedSeasons.length > 0
-                ? `${alreadyRequestedSeasons.length} requested`
-                : 'Choose seasons'}
+                ? t('seasonSelector.requested', { count: alreadyRequestedSeasons.length })
+                : t('seasonSelector.chooseSeasons')}
             </p>
             <Button
               onClick={handleSelectAll}
@@ -124,7 +126,7 @@ export default function SeasonSelectorModal({
               size="sm"
               className="px-0"
             >
-              Select All
+              {t('seasonSelector.selectAll')}
             </Button>
           </div>
 
@@ -166,7 +168,7 @@ export default function SeasonSelectorModal({
                       )}
                     </div>
                     <div className="text-xs text-zinc-400">
-                      {season.episodeCount} ep{season.episodeCount === 1 ? '' : 's'}
+                      {t('seasonSelector.episodes', { count: season.episodeCount })}
                     </div>
                   </div>
                 </label>
@@ -179,22 +181,22 @@ export default function SeasonSelectorModal({
         <div className="border-t border-zinc-800 p-4">
           {newlySelectedCount > 0 && (
             <p className="mb-3 text-xs text-zinc-300">
-              {newlySelectedCount} new season{newlySelectedCount === 1 ? '' : 's'} to request
+              {t('seasonSelector.newSeasons', { count: newlySelectedCount })}
             </p>
           )}
 
           <div className="flex justify-end gap-2">
             <Button onClick={onClose} variant="secondary" size="sm">
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleConfirm} variant="primary" size="sm">
               {selectedSeasons.size === 0
-                ? 'Remove All Seasons'
+                ? t('seasonSelector.removeAll')
                 : newlySelectedCount > 0 && alreadyRequestedSeasons.length > 0
-                  ? 'Update Seasons'
+                  ? t('seasonSelector.update')
                   : newlySelectedCount > 0
-                    ? 'Request Seasons'
-                    : 'Keep Selection'}
+                    ? t('seasonSelector.request')
+                    : t('seasonSelector.keep')}
             </Button>
           </div>
         </div>

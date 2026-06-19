@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Icon } from './Icon';
 import { statusBadgeSizes, type Size } from './sizes';
@@ -26,42 +27,42 @@ const statusConfig = {
     bg: 'bg-emerald-500/88',
     border: 'border-emerald-300/35',
     text: 'text-white',
-    label: 'Available',
+    labelKey: 'status.available',
     icon: <Icon name="check" size="sm" weight={600} />,
   },
   downloaded: {
     bg: 'bg-cyan-500/88',
     border: 'border-cyan-300/35',
     text: 'text-white',
-    label: 'Downloaded',
+    labelKey: 'status.downloaded',
     icon: <Icon name="download" size="sm" weight={600} />,
   },
   downloading: {
     bg: 'bg-amber-500/90',
     border: 'border-amber-300/35',
     text: 'text-white',
-    label: 'Downloading',
+    labelKey: 'status.downloading',
     icon: <Spinner className="text-white" label={null} size="sm" />,
   },
   monitored: {
     bg: 'bg-zinc-700/92',
     border: 'border-zinc-300/20',
     text: 'text-white',
-    label: 'Monitored',
+    labelKey: 'status.monitored',
     icon: <Icon filled name="check_circle" size="sm" weight={600} />,
   },
   requested: {
     bg: 'bg-amber-500/90',
     border: 'border-amber-300/35',
     text: 'text-white',
-    label: 'Requested',
+    labelKey: 'status.requested',
     icon: <Icon filled name="notifications" size="sm" weight={600} />,
   },
   warning: {
     bg: 'bg-orange-500/90',
     border: 'border-orange-300/35',
     text: 'text-white',
-    label: 'Warning',
+    labelKey: 'status.warning',
     icon: <Icon filled name="warning" size="sm" weight={600} />,
   },
 };
@@ -75,6 +76,7 @@ const positionStyles = {
 };
 
 export function StatusBadge({ status, position = 'inline', size = 'md', icon }: StatusBadgeProps) {
+  const { t } = useTranslation();
   const config = statusConfig[status];
   if (!config) {
     return null;
@@ -90,7 +92,7 @@ export function StatusBadge({ status, position = 'inline', size = 'md', icon }: 
       <span className="inline-flex h-[1.125rem] w-[1.125rem] items-center justify-center">
         {icon ?? config.icon}
       </span>
-      <span>{config.label}</span>
+      <span>{t(config.labelKey)}</span>
     </div>
   );
 }

@@ -3,34 +3,13 @@ import type { InteractionFilter } from '@findarr/shared/interaction';
 import type { SearchType } from '@findarr/shared/media';
 import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 
 import { OptionButton } from '../ui/OptionButton';
 import { PanelSection } from '../ui/PanelSection';
 import { controlSurface } from '../ui/theme';
 import { GenreChips } from './GenreChips';
 import { MediaTypeChips } from './MediaTypeChips';
-
-const interactionOptions: {
-  value: InteractionFilter;
-  label: string;
-  description: string;
-}[] = [
-  {
-    value: 'all',
-    label: 'All media',
-    description: 'Mix together titles you have and have not voted on.',
-  },
-  {
-    value: 'unvoted',
-    label: 'Unvoted only',
-    description: 'Keep the feed focused on titles you still need to rate.',
-  },
-  {
-    value: 'voted',
-    label: 'Voted only',
-    description: 'Review titles you already liked or disliked.',
-  },
-];
 
 interface FiltersToolbarProps {
   selectedType: SearchType;
@@ -57,6 +36,7 @@ interface FilterPanelProps {
 }
 
 function FilterPanel({ description, children, onClose }: FilterPanelProps) {
+  const { t } = useTranslation();
   return (
     <>
       <div
@@ -69,7 +49,7 @@ function FilterPanel({ description, children, onClose }: FilterPanelProps) {
           <div className="shrink-0 border-b border-zinc-800 px-4 py-4 md:px-5">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="text-lg font-semibold text-white">Filters</h3>
+                <h3 className="text-lg font-semibold text-white">{t('catalog.filters')}</h3>
                 <p className="mt-1 text-sm text-gray-500">{description}</p>
               </div>
               <button
@@ -77,7 +57,7 @@ function FilterPanel({ description, children, onClose }: FilterPanelProps) {
                 onClick={onClose}
                 className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:border-zinc-700 hover:bg-zinc-800 hover:text-zinc-100"
               >
-                Close
+                {t('common.close')}
                 <span aria-hidden>x</span>
               </button>
             </div>
@@ -99,12 +79,32 @@ interface InteractionFilterSectionProps {
 }
 
 function InteractionFilterSection({ disabled, value, onChange }: InteractionFilterSectionProps) {
+  const { t } = useTranslation();
+
+  const options = [
+    {
+      value: 'all' as InteractionFilter,
+      label: t('catalog.interactionFilter.all'),
+      description: t('catalog.interactionFilter.allDesc'),
+    },
+    {
+      value: 'unvoted' as InteractionFilter,
+      label: t('catalog.interactionFilter.unvoted'),
+      description: t('catalog.interactionFilter.unvotedDesc'),
+    },
+    {
+      value: 'voted' as InteractionFilter,
+      label: t('catalog.interactionFilter.voted'),
+      description: t('catalog.interactionFilter.votedDesc'),
+    },
+  ];
+
   return (
     <PanelSection>
-      <h4 className="mb-2.5 text-sm font-semibold text-white">Voting status</h4>
+      <h4 className="mb-2.5 text-sm font-semibold text-white">{t('common.votingStatus')}</h4>
 
       <div className="grid gap-2.5 md:grid-cols-3">
-        {interactionOptions.map((option) => {
+        {options.map((option) => {
           const selected = value === option.value;
 
           return (
@@ -139,9 +139,11 @@ export function FiltersToolbar({
   onInteractionFilterChange,
   showFiltersButton = true,
   showGenreFilter = true,
-  filterDescription = 'Adjust genres and voting status.',
+  filterDescription,
   extraFiltersContent,
 }: FiltersToolbarProps) {
+  const { t } = useTranslation();
+  const resolvedFilterDescription = filterDescription ?? t('catalog.filtersDefaultDescription');
   const [filtersExpanded, setFiltersExpanded] = useState(false);
 
   const interactionFilterSection =
@@ -189,7 +191,7 @@ export function FiltersToolbar({
       aria-expanded={filtersExpanded}
       className={`ml-auto inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium whitespace-nowrap ${controlSurface}`}
     >
-      Filters
+      {t('catalog.filters')}
       <span
         className={`text-sm transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`}
       >
@@ -205,7 +207,7 @@ export function FiltersToolbar({
 
       {filtersExpanded &&
         createPortal(
-          <FilterPanel description={filterDescription} onClose={closeFilters}>
+          <FilterPanel description={resolvedFilterDescription} onClose={closeFilters}>
             {interactionFilterSection}
             {extraFiltersContent}
             {genreFilterSection}

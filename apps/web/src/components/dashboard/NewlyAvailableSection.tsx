@@ -1,5 +1,6 @@
 import type { Media } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
+import { useTranslation } from 'react-i18next';
 
 import { AvailableMediaStrip } from '../media/AvailableMediaStrip';
 import { Card } from '../ui/Card';
@@ -19,10 +20,13 @@ export function NewlyAvailableSection({
   error,
   onSelectItem,
 }: NewlyAvailableSectionProps) {
+  const { t } = useTranslation();
   return (
     <section>
       <div className="mb-4 flex items-end justify-between gap-4">
-        <h2 className="text-xl font-semibold text-white md:text-2xl">Newly available</h2>
+        <h2 className="text-xl font-semibold text-white md:text-2xl">
+          {t('media.newlyAvailable')}
+        </h2>
       </div>
 
       {isDefined(error) && !loading && (

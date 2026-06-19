@@ -50,10 +50,16 @@ export async function createLibService(config: LibServiceConfig, context: LibSer
     return settings;
   }
 
+  async function updateSchedulers() {
+    const enabled = lifecycle.isConfigured();
+    context.scheduler.setState({ name: config.syncScheduler, enabled });
+    context.scheduler.setState({ name: config.queueSyncScheduler, enabled });
+  }
+
   async function setSettings(query: LibSettingsQuery): Promise<LibSettings> {
     await setLibSettings(context.db, config, query);
     await lifecycle.reload();
-    context.scheduler.setState({ name: config.syncScheduler, enabled: lifecycle.isConfigured() });
+    await updateSchedulers();
     return getSettings();
   }
 
@@ -69,7 +75,7 @@ export async function createLibService(config: LibServiceConfig, context: LibSer
     if (!(await testConnection())) {
       return false;
     }
-    context.scheduler.setState({ name: config.syncScheduler, enabled: true });
+    await updateSchedulers();
     await context.scheduler.trigger({ name: config.syncScheduler });
     return true;
   }

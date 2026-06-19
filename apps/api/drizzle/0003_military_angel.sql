@@ -1,0 +1,1 @@
+ALTER TABLE `user_settings` ADD `uiLanguage` text DEFAULT 'en' NOT NULL;

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useSession } from '../../hooks/useSession';
 import { asVoid } from '../../utils/asyncHandlers';
@@ -8,6 +9,7 @@ import { InlineFeedback } from '../ui/InlineFeedback';
 import { Input } from '../ui/Input';
 
 export function OwnerSetupScreen() {
+  const { t } = useTranslation();
   const { setupOwner } = useSession();
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
@@ -21,7 +23,7 @@ export function OwnerSetupScreen() {
     setError('');
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError(t('ownerSetup.passwordMismatch'));
       return;
     }
 
@@ -30,7 +32,7 @@ export function OwnerSetupScreen() {
     try {
       await setupOwner(email, password, displayName);
     } catch {
-      setError('Could not create the admin account. Please check the details and try again.');
+      setError(t('ownerSetup.error'));
     } finally {
       setIsLoading(false);
     }
@@ -46,19 +48,17 @@ export function OwnerSetupScreen() {
         >
           <div className="mb-8 text-center">
             <p className="mb-5 inline-flex rounded-full border border-amber-400/25 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold tracking-[0.18em] text-amber-300 uppercase">
-              First Run
+              {t('ownerSetup.badge')}
             </p>
-            <h1 className="mb-2 text-3xl font-bold text-white">Create admin account</h1>
-            <p className="text-sm leading-5 text-zinc-400">
-              Set up the first Findarr user. This account will manage users and integrations.
-            </p>
+            <h1 className="mb-2 text-3xl font-bold text-white">{t('ownerSetup.title')}</h1>
+            <p className="text-sm leading-5 text-zinc-400">{t('ownerSetup.description')}</p>
           </div>
 
           <form onSubmit={asVoid(handleSubmit)} className="space-y-6">
             <Input
               id="displayName"
               type="text"
-              label="Display Name"
+              label={t('common.displayName')}
               value={displayName}
               onChange={(e) => {
                 setDisplayName(e.target.value);
@@ -71,41 +71,41 @@ export function OwnerSetupScreen() {
             <Input
               id="email"
               type="email"
-              label="Email"
+              label={t('common.email')}
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
               }}
               required
-              placeholder="you@example.com"
+              placeholder="mail@example.com"
               autoComplete="email"
             />
 
             <Input
               id="password"
               type="password"
-              label="Password"
+              label={t('common.password')}
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
               }}
               required
               minLength={8}
-              placeholder="At least 8 characters"
+              placeholder={t('ownerSetup.passwordPlaceholder')}
               autoComplete="new-password"
             />
 
             <Input
               id="confirmPassword"
               type="password"
-              label="Confirm Password"
+              label={t('ownerSetup.confirmPasswordLabel')}
               value={confirmPassword}
               onChange={(e) => {
                 setConfirmPassword(e.target.value);
               }}
               required
               minLength={8}
-              placeholder="Repeat password"
+              placeholder={t('ownerSetup.confirmPasswordPlaceholder')}
               autoComplete="new-password"
             />
 
@@ -118,7 +118,7 @@ export function OwnerSetupScreen() {
               variant="primary"
               className="w-full"
             >
-              {isLoading ? 'Creating...' : 'Create admin account'}
+              {isLoading ? t('common.creating') : t('ownerSetup.submit')}
             </Button>
           </form>
         </Card>

@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import { Input } from '../ui/Input';
 
 interface SecretFieldProps {
@@ -9,13 +11,14 @@ interface SecretFieldProps {
 }
 
 export function SecretField({ label, value, onChange, isSet, placeholder }: SecretFieldProps) {
+  const { t } = useTranslation();
   return (
     <div>
       <label className="mb-1.5 block text-sm text-zinc-300">
         {label}
         {isSet && !value && (
           <span className="ml-2 text-xs font-normal text-zinc-500">
-            (already set — leave blank to keep)
+            ({t('integrationCard.secretAlreadySet')})
           </span>
         )}
       </label>
