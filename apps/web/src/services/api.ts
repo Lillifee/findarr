@@ -23,9 +23,8 @@ import type {
   ArrSettings,
   ArrQualityProfile,
   ArrRootFolder,
-  JellyfinSettings,
+  LibSettings,
   TmdbSettings,
-  PlexSettings,
   UserSettings,
   UserSettingsQuery,
 } from '@findarr/shared/settings';
@@ -228,15 +227,12 @@ export const adminArrService = {
 };
 
 export const adminJellyfinService = {
-  getSettings: async (): Promise<JellyfinSettings> => {
-    const response = await api.get<JellyfinSettings>('/admin/jellyfin/settings');
+  getSettings: async (): Promise<LibSettings> => {
+    const response = await api.get<LibSettings>('/admin/jellyfin/settings');
     return response.data;
   },
-  saveSettings: async (settings: {
-    jellyfinUrl?: string;
-    jellyfinApiKey?: string;
-  }): Promise<JellyfinSettings> => {
-    const response = await api.put<JellyfinSettings>('/admin/jellyfin/settings', settings);
+  saveSettings: async (settings: { url?: string; apiKey?: string }): Promise<LibSettings> => {
+    const response = await api.put<LibSettings>('/admin/jellyfin/settings', settings);
     return response.data;
   },
   test: async (): Promise<boolean> => {
@@ -246,15 +242,12 @@ export const adminJellyfinService = {
 };
 
 export const adminPlexService = {
-  getSettings: async (): Promise<PlexSettings> => {
-    const response = await api.get<PlexSettings>('/admin/plex/settings');
+  getSettings: async (): Promise<LibSettings> => {
+    const response = await api.get<LibSettings>('/admin/plex/settings');
     return response.data;
   },
-  saveSettings: async (settings: {
-    plexUrl?: string;
-    plexToken?: string;
-  }): Promise<PlexSettings> => {
-    const response = await api.put<PlexSettings>('/admin/plex/settings', settings);
+  saveSettings: async (settings: { url?: string; apiKey?: string }): Promise<LibSettings> => {
+    const response = await api.put<LibSettings>('/admin/plex/settings', settings);
     return response.data;
   },
   test: async (): Promise<boolean> => {

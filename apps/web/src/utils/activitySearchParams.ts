@@ -1,5 +1,6 @@
 import type { InteractionsQuery } from '@findarr/shared/interaction';
 import type { SearchType } from '@findarr/shared/media';
+import { isDefined } from '@findarr/shared/utils';
 
 interface ActivitySearchParamDefaults {
   action?: InteractionsQuery['action'];
@@ -30,8 +31,8 @@ export const readActivitySearchParams = (
   const type = searchParams.get('type');
 
   return {
-    action: action !== null && isAction(action) ? action : (defaults.action ?? 'liked'),
-    type: type !== null && isSearchType(type) ? type : (defaults.type ?? 'both'),
+    action: isDefined(action) && isAction(action) ? action : (defaults.action ?? 'liked'),
+    type: isDefined(type) && isSearchType(type) ? type : (defaults.type ?? 'both'),
   };
 };
 

@@ -29,9 +29,9 @@ export function PlexSection() {
     wrapSave,
   } = useConnectionState(async () => {
     const settings = await adminPlexService.getSettings();
-    setSavedUrl(settings.plexUrl);
-    setSavedTokenSet(settings.plexTokenSet);
-    setUrlInput(settings.plexUrl ?? '');
+    setSavedUrl(settings.url);
+    setSavedTokenSet(settings.apiKeySet);
+    setUrlInput(settings.url ?? '');
     setTestResult(null);
   });
 
@@ -65,12 +65,12 @@ export function PlexSection() {
     const changedConnectionSettings = isDirty;
     void wrapSave(async () => {
       const savedSettings = await adminPlexService.saveSettings({
-        ...(urlInput ? { plexUrl: urlInput } : {}),
-        ...(tokenInput ? { plexToken: tokenInput } : {}),
+        ...(urlInput ? { url: urlInput } : {}),
+        ...(tokenInput ? { apiKey: tokenInput } : {}),
       });
-      setSavedUrl(savedSettings.plexUrl);
-      setSavedTokenSet(savedSettings.plexTokenSet);
-      setUrlInput(savedSettings.plexUrl ?? '');
+      setSavedUrl(savedSettings.url);
+      setSavedTokenSet(savedSettings.apiKeySet);
+      setUrlInput(savedSettings.url ?? '');
       setTokenInput('');
       if (changedConnectionSettings) {
         setTestResult(null);

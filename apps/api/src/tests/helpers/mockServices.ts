@@ -4,8 +4,8 @@ import { arrConfig, type ArrServiceConfig } from '../../arr/config.js';
 import type { ArrService } from '../../arr/service.js';
 import type { CatalogService } from '../../catalog/service.js';
 import type { Database } from '../../db/service.js';
-import type { JellyfinService } from '../../jellyfin/service.js';
-import type { PlexService } from '../../plex/service.js';
+import { libConfig } from '../../lib/config.js';
+import type { LibService } from '../../lib/service.js';
 import type { SchedulerService } from '../../scheduler/service.js';
 import type { LoggerService, SchedulerContext } from '../../scheduler/types.js';
 import type { TMDBService } from '../../tmdb/service.js';
@@ -130,29 +130,31 @@ export function createMockCatalogService(
 }
 
 export function createMockJellyfinService(
-  overrides: Partial<Mocked<JellyfinService>> = {},
-): Mocked<JellyfinService> {
+  overrides: Partial<Mocked<LibService>> = {},
+): Mocked<LibService> {
   return {
-    getSettings: vi.fn<JellyfinService['getSettings']>(),
-    setSettings: vi.fn<JellyfinService['setSettings']>(),
-    isConfigured: vi.fn<JellyfinService['isConfigured']>().mockReturnValue(false),
-    testConnection: vi.fn<JellyfinService['testConnection']>().mockResolvedValue(false),
-    testAndSync: vi.fn<JellyfinService['testAndSync']>(),
-    listLibraryItems: vi.fn<JellyfinService['listLibraryItems']>(),
+    config: libConfig.jellyfin,
+    getSettings: vi.fn<LibService['getSettings']>(),
+    setSettings: vi.fn<LibService['setSettings']>(),
+    isConfigured: vi.fn<LibService['isConfigured']>().mockReturnValue(false),
+    testConnection: vi.fn<LibService['testConnection']>().mockResolvedValue(false),
+    testAndSync: vi.fn<LibService['testAndSync']>(),
+    listLibraryItems: vi.fn<LibService['listLibraryItems']>(),
     ...overrides,
   };
 }
 
 export function createMockPlexService(
-  overrides: Partial<Mocked<PlexService>> = {},
-): Mocked<PlexService> {
+  overrides: Partial<Mocked<LibService>> = {},
+): Mocked<LibService> {
   return {
-    getSettings: vi.fn<PlexService['getSettings']>(),
-    setSettings: vi.fn<PlexService['setSettings']>(),
-    isConfigured: vi.fn<PlexService['isConfigured']>().mockReturnValue(false),
-    testConnection: vi.fn<PlexService['testConnection']>().mockResolvedValue(false),
-    testAndSync: vi.fn<PlexService['testAndSync']>(),
-    listLibraryItems: vi.fn<PlexService['listLibraryItems']>(),
+    config: libConfig.plex,
+    getSettings: vi.fn<LibService['getSettings']>(),
+    setSettings: vi.fn<LibService['setSettings']>(),
+    isConfigured: vi.fn<LibService['isConfigured']>().mockReturnValue(false),
+    testConnection: vi.fn<LibService['testConnection']>().mockResolvedValue(false),
+    testAndSync: vi.fn<LibService['testAndSync']>(),
+    listLibraryItems: vi.fn<LibService['listLibraryItems']>(),
     ...overrides,
   };
 }

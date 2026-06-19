@@ -29,9 +29,9 @@ export function JellyfinSection() {
     wrapSave,
   } = useConnectionState(async () => {
     const settings = await adminJellyfinService.getSettings();
-    setSavedUrl(settings.jellyfinUrl);
-    setSavedApiKeySet(settings.jellyfinApiKeySet);
-    setUrlInput(settings.jellyfinUrl ?? '');
+    setSavedUrl(settings.url);
+    setSavedApiKeySet(settings.apiKeySet);
+    setUrlInput(settings.url ?? '');
     setTestResult(null);
   });
 
@@ -65,12 +65,12 @@ export function JellyfinSection() {
     const changedConnectionSettings = isDirty;
     void wrapSave(async () => {
       const savedSettings = await adminJellyfinService.saveSettings({
-        ...(urlInput ? { jellyfinUrl: urlInput } : {}),
-        ...(apiKeyInput ? { jellyfinApiKey: apiKeyInput } : {}),
+        ...(urlInput ? { url: urlInput } : {}),
+        ...(apiKeyInput ? { apiKey: apiKeyInput } : {}),
       });
-      setSavedUrl(savedSettings.jellyfinUrl);
-      setSavedApiKeySet(savedSettings.jellyfinApiKeySet);
-      setUrlInput(savedSettings.jellyfinUrl ?? '');
+      setSavedUrl(savedSettings.url);
+      setSavedApiKeySet(savedSettings.apiKeySet);
+      setUrlInput(savedSettings.url ?? '');
       setApiKeyInput('');
       if (changedConnectionSettings) {
         setTestResult(null);

@@ -1,12 +1,13 @@
 import { media, type DbMedia } from '@findarr/shared/db';
 import type { MediaStatus, MediaType } from '@findarr/shared/media';
-import type { ArrSettings, ArrSettingsQuery } from '@findarr/shared/settings';
+import type { ArrSettingsQuery } from '@findarr/shared/settings';
 import { isDefined } from '@findarr/shared/utils';
 import { and, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';
 import { readSettings, writeSettings } from '../settings/repository.js';
 import type { ArrServiceConfig, ArrServiceType } from './config.js';
+import type { ArrSettingsFull } from './types.js';
 
 /**
  * Update media record with IDs from Radarr/Sonarr
@@ -176,7 +177,7 @@ export async function listMediaWithArrIds(db: Database, type: MediaType): Promis
     .from(media)
     .where(and(eq(media.type, type), isNotNull(media.arrId)));
 
-  return results.map((r) => r.arrId).filter((id): id is number => id !== null);
+  return results.map((r) => r.arrId).filter((id) => isDefined(id));
 }
 
 /**
@@ -204,10 +205,6 @@ export async function clearRemovedArrItems(
   return result.changes;
 }
 
-export interface ArrSettingsFull extends ArrSettings {
-  apiKey: string | null;
-}
-
 function createArrSettingsFieldMap(service: ArrServiceType) {
   return {
     url: `${service}Url`,
@@ -216,6 +213,7 @@ function createArrSettingsFieldMap(service: ArrServiceType) {
     rootFolderPath: `${service}RootFolderPath`,
   };
 }
+
 export async function getArrSettings(
   db: Database,
   config: ArrServiceConfig,

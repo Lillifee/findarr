@@ -1,26 +1,17 @@
-import type { MediaType } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
 
+import type { LibMedia } from '../types.js';
 import type { PlexMetadataItem } from './schemas.js';
 
-export interface PlexMedia {
-  tmdbId: number;
-  type: MediaType;
-  libId: string;
-  libUrl: string;
-  libAddedAt?: number;
-  availableSeasons?: number[];
-}
-
 /**
- * Transform Plex metadata item to application format.
- * Returns undefined if item doesn't have a TMDB Guid (can't match to our system).
+ * Transform a Plex metadata item to the shared LibMedia format.
+ * Returns undefined if the item has no TMDB GUID.
  */
 export function plexItemToMedia(
   item: PlexMetadataItem,
   baseUrl: string,
   machineIdentifier: string,
-): PlexMedia | undefined {
+): LibMedia | undefined {
   const tmdbGuid = item.Guid?.find((g) => g.id.startsWith('tmdb://'));
   if (!isDefined(tmdbGuid)) {
     return undefined;
@@ -31,8 +22,8 @@ export function plexItemToMedia(
     return undefined;
   }
 
-  const type: MediaType = item.type === 'movie' ? 'movie' : 'tv';
-  // Plex addedAt is unix seconds, convert to ms
+  const type = item.type === 'movie' ? 'movie' : 'tv';
+  // Plex addedAt is unix seconds → convert to ms
   const libAddedAt = isDefined(item.addedAt) ? item.addedAt * 1000 : undefined;
 
   return {

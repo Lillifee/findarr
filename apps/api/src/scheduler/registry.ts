@@ -9,26 +9,15 @@ import {
   createCatalogCacheSyncScheduler,
   createCatalogKeywordEnrichmentScheduler,
 } from '../catalog/schedulers.js';
-import {
-  createJellyfinLibrarySyncScheduler,
-  createJellyfinQueueSyncScheduler,
-} from '../jellyfin/schedulers.js';
-import {
-  createPlexLibrarySyncScheduler,
-  createPlexQueueSyncScheduler,
-} from '../plex/schedulers.js';
+import { createLibrarySyncScheduler, createLibraryQueueSyncScheduler } from '../lib/schedulers.js';
 import type { Scheduler } from './types.js';
 
-/**
- * Create scheduler registry with service instances from fastify
- * This factory function allows passing actual service instances instead of service type strings
- */
 export function createSchedulers(fastify: FastifyInstance) {
   return {
-    jellyfinLibrarySync: createJellyfinLibrarySyncScheduler(),
-    jellyfinQueueSync: createJellyfinQueueSyncScheduler(),
-    plexLibrarySync: createPlexLibrarySyncScheduler(),
-    plexQueueSync: createPlexQueueSyncScheduler(),
+    jellyfinLibrarySync: createLibrarySyncScheduler(fastify.jellyfin),
+    jellyfinQueueSync: createLibraryQueueSyncScheduler(fastify.jellyfin),
+    plexLibrarySync: createLibrarySyncScheduler(fastify.plex),
+    plexQueueSync: createLibraryQueueSyncScheduler(fastify.plex),
     radarrLibrarySync: createArrLibrarySyncScheduler(fastify.radarr),
     radarrQueueMonitor: createArrQueueMonitorScheduler(fastify.radarr),
     radarrQueueFastSync: createArrQueueFastSyncScheduler(fastify.radarr),
