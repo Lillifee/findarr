@@ -2,7 +2,7 @@ import { media, userMediaInteractions, type DbMedia } from '@findarr/shared/db';
 import type { InteractionsQuery, InteractionType } from '@findarr/shared/interaction';
 import type { Media, MediaStatus, MediaInteraction } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
-import { and, desc, eq, getTableColumns, inArray, isNotNull, sql } from 'drizzle-orm';
+import { and, eq, getTableColumns, inArray, isNotNull, sql } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';
 import { toMediaKey } from '../utils/helper.js';
@@ -181,11 +181,12 @@ export async function getMediaByUserInteractions(
   const totalCount = countResult[0]?.count ?? 0;
 
   let query = db
-    .selectDistinct(getTableColumns(media))
+    .select(getTableColumns(media))
     .from(media)
     .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
     .where(whereClause)
-    .orderBy(desc(userMediaInteractions.createdAt), desc(media.updatedAt))
+    .groupBy(media.id)
+    .orderBy(sql`MAX(${userMediaInteractions.createdAt}) DESC`)
     .$dynamic();
 
   if (options.limit !== undefined) {
@@ -233,11 +234,12 @@ export async function getMediaByUserAttention(
   const totalCount = countResult[0]?.count ?? 0;
 
   let query = db
-    .selectDistinct(getTableColumns(media))
+    .select(getTableColumns(media))
     .from(media)
     .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
     .where(whereClause)
-    .orderBy(desc(userMediaInteractions.createdAt), desc(media.updatedAt))
+    .groupBy(media.id)
+    .orderBy(sql`MAX(${userMediaInteractions.createdAt}) DESC`)
     .$dynamic();
 
   if (options.limit !== undefined) {
