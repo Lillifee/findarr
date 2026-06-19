@@ -9,6 +9,8 @@ interface ConnectionCredentialsStepProps {
   apiKeyValue: string;
   onApiKeyChange: (value: string) => void;
   apiKeySet: boolean;
+  apiKeyLabel?: string;
+  apiKeyPlaceholder?: string;
 }
 
 export function ConnectionCredentialsStep({
@@ -18,6 +20,8 @@ export function ConnectionCredentialsStep({
   apiKeyValue,
   onApiKeyChange,
   apiKeySet,
+  apiKeyLabel = 'API Key',
+  apiKeyPlaceholder = 'Enter API key',
 }: ConnectionCredentialsStepProps) {
   return (
     <StepPanel
@@ -37,11 +41,11 @@ export function ConnectionCredentialsStep({
       </div>
 
       <SecretField
-        label="API Key"
+        label={apiKeyLabel}
         value={apiKeyValue}
         onChange={onApiKeyChange}
         isSet={apiKeySet}
-        placeholder="Enter API key"
+        placeholder={apiKeyPlaceholder}
       />
     </StepPanel>
   );

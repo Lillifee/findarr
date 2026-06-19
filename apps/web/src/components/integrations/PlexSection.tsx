@@ -2,18 +2,18 @@ import { isDefined } from '@findarr/shared/utils';
 import { useState, type ChangeEvent } from 'react';
 
 import { useConnectionState } from '../../hooks/useConnectionState';
-import { adminJellyfinService } from '../../services/api';
+import { adminPlexService } from '../../services/api';
 import { asVoid } from '../../utils/asyncHandlers';
 import { ConnectionActions } from './ConnectionActions';
 import { ConnectionCredentialsStep } from './ConnectionCredentialsStep';
 import { deriveConnectionStatus } from './connectionStatus';
 import { IntegrationCard } from './IntegrationCard';
 
-export function JellyfinSection() {
+export function PlexSection() {
   const [savedUrl, setSavedUrl] = useState<string | null>(null);
-  const [savedApiKeySet, setSavedApiKeySet] = useState(false);
+  const [savedTokenSet, setSavedTokenSet] = useState(false);
   const [urlInput, setUrlInput] = useState('');
-  const [apiKeyInput, setApiKeyInput] = useState('');
+  const [tokenInput, setTokenInput] = useState('');
 
   const {
     isLoading,
@@ -28,15 +28,15 @@ export function JellyfinSection() {
     wrapTest,
     wrapSave,
   } = useConnectionState(async () => {
-    const settings = await adminJellyfinService.getSettings();
-    setSavedUrl(settings.jellyfinUrl);
-    setSavedApiKeySet(settings.jellyfinApiKeySet);
-    setUrlInput(settings.jellyfinUrl ?? '');
+    const settings = await adminPlexService.getSettings();
+    setSavedUrl(settings.plexUrl);
+    setSavedTokenSet(settings.plexTokenSet);
+    setUrlInput(settings.plexUrl ?? '');
     setTestResult(null);
   });
 
-  const isDirty = urlInput !== (savedUrl ?? '') || apiKeyInput !== '';
-  const hasSavedSettings = isDefined(savedUrl) && savedApiKeySet;
+  const isDirty = urlInput !== (savedUrl ?? '') || tokenInput !== '';
+  const hasSavedSettings = isDefined(savedUrl) && savedTokenSet;
   const canTestConnection = hasSavedSettings && !isDirty;
   const status = deriveConnectionStatus({ isLoading, isDirty, hasSavedSettings, testResult });
 
@@ -44,19 +44,19 @@ export function JellyfinSection() {
     clearFeedback();
     setUrlInput(value);
   }
-  function handleApiKeyChange(value: string) {
+  function handleTokenChange(value: string) {
     clearFeedback();
-    setApiKeyInput(value);
+    setTokenInput(value);
   }
 
   const handleTest = async () =>
     wrapTest(async () => {
-      const result = await adminJellyfinService.test();
+      const result = await adminPlexService.test();
       setTestResult(result);
       if (result) {
-        setSuccess('Connection successful. Jellyfin is ready.');
+        setSuccess('Connection successful. Plex is ready.');
       } else {
-        setError('Could not reach Jellyfin. Check the URL and API key, then test again.');
+        setError('Could not reach Plex. Check the URL and token, then test again.');
       }
     });
 
@@ -64,14 +64,14 @@ export function JellyfinSection() {
     e.preventDefault();
     const changedConnectionSettings = isDirty;
     void wrapSave(async () => {
-      const savedSettings = await adminJellyfinService.saveSettings({
-        ...(urlInput ? { jellyfinUrl: urlInput } : {}),
-        ...(apiKeyInput ? { jellyfinApiKey: apiKeyInput } : {}),
+      const savedSettings = await adminPlexService.saveSettings({
+        ...(urlInput ? { plexUrl: urlInput } : {}),
+        ...(tokenInput ? { plexToken: tokenInput } : {}),
       });
-      setSavedUrl(savedSettings.jellyfinUrl);
-      setSavedApiKeySet(savedSettings.jellyfinApiKeySet);
-      setUrlInput(savedSettings.jellyfinUrl ?? '');
-      setApiKeyInput('');
+      setSavedUrl(savedSettings.plexUrl);
+      setSavedTokenSet(savedSettings.plexTokenSet);
+      setUrlInput(savedSettings.plexUrl ?? '');
+      setTokenInput('');
       if (changedConnectionSettings) {
         setTestResult(null);
       }
@@ -80,7 +80,7 @@ export function JellyfinSection() {
 
   return (
     <IntegrationCard
-      title="Jellyfin"
+      title="Plex"
       description="Media server — tracks availability of requested content"
       status={status}
       onSubmit={asVoid(handleSave)}
@@ -99,10 +99,12 @@ export function JellyfinSection() {
       <ConnectionCredentialsStep
         urlValue={urlInput}
         onUrlChange={handleUrlChange}
-        urlPlaceholder="http://localhost:8096"
-        apiKeyValue={apiKeyInput}
-        onApiKeyChange={handleApiKeyChange}
-        apiKeySet={savedApiKeySet}
+        urlPlaceholder="http://localhost:32400"
+        apiKeyValue={tokenInput}
+        onApiKeyChange={handleTokenChange}
+        apiKeySet={savedTokenSet}
+        apiKeyLabel="Token"
+        apiKeyPlaceholder="Enter Plex token"
       />
     </IntegrationCard>
   );

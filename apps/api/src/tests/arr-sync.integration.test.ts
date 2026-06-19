@@ -52,8 +52,7 @@ describe('arr sync collision handling - integration tests', () => {
     const movieRows = await listMediaWithArrIds(db, 'movie');
 
     expect(movieRows).toHaveLength(1);
-    expect(movieRows[0]?.type).toBe('movie');
-    expect(movieRows[0]?.arrId).toBe(11);
+    expect(movieRows[0]).toBe(11);
   });
 
   it('should scope queue updates to the current arr service media type', async () => {

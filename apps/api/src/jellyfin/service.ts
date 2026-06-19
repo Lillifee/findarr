@@ -3,7 +3,6 @@ import { isDefined } from '@findarr/shared/utils';
 import type { FastifyBaseLogger } from 'fastify';
 
 import type { Database } from '../db/service.js';
-import { getMediaById } from '../media/repository.js';
 import type { SchedulerService } from '../scheduler/service.js';
 import { createClientLifecycle } from '../utils/clientLifecycleHepler.js';
 import { trimTrailingSlash } from '../utils/links.js';
@@ -64,6 +63,8 @@ export async function createJellyfinService(context: JellyfinContext) {
 
   async function listLibraryItems(): Promise<JellyfinMedia[]> {
     const currentClient = lifecycle.client();
+    const { jellyfinUrl } = getSettings();
+    const baseUrl = isDefined(jellyfinUrl) ? trimTrailingSlash(jellyfinUrl) : '';
 
     const allItems: JellyfinMedia[] = [];
     const limit = 100;
@@ -79,8 +80,8 @@ export async function createJellyfinService(context: JellyfinContext) {
         limit,
       });
 
-      const transformed = response.Items.map((item) => jellyfinItemToMedia(item)).filter((item) =>
-        isDefined(item),
+      const transformed = response.Items.map((item) => jellyfinItemToMedia(item, baseUrl)).filter(
+        (item) => isDefined(item),
       );
 
       allItems.push(...transformed);
@@ -95,7 +96,7 @@ export async function createJellyfinService(context: JellyfinContext) {
         try {
           const seasonsResponse = await currentClient.getItems({
             itemTypes: ['Season'],
-            parentId: item.jellyfinId,
+            parentId: item.libId,
           });
 
           const seasonNumbers = seasonsResponse.Items.filter(
@@ -109,7 +110,7 @@ export async function createJellyfinService(context: JellyfinContext) {
         } catch (err) {
           // Ignore per-series season lookup failures and keep the rest of the sync moving.
           context.log.debug(
-            { name: 'jellyfin', jellyfinId: item.jellyfinId, err },
+            { name: 'jellyfin', libId: item.libId, err },
             'Season lookup failed, skipping',
           );
         }
@@ -119,20 +120,6 @@ export async function createJellyfinService(context: JellyfinContext) {
     return allItems;
   }
 
-  async function resolveMediaUrl(mediaId: number): Promise<string | null> {
-    const mediaRecord = await getMediaById(context.db, mediaId);
-    if (!isDefined(mediaRecord?.jellyfinId)) {
-      return null;
-    }
-
-    const { jellyfinUrl } = getSettings();
-    if (!isDefined(jellyfinUrl)) {
-      return null;
-    }
-
-    return `${trimTrailingSlash(jellyfinUrl)}/web/index.html?#/details?id=${mediaRecord.jellyfinId}`;
-  }
-
   return {
     getSettings,
     setSettings,
@@ -140,7 +127,6 @@ export async function createJellyfinService(context: JellyfinContext) {
     testConnection,
     testAndSync,
     listLibraryItems,
-    resolveMediaUrl,
   };
 }
 

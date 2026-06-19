@@ -1,10 +1,10 @@
 import type { ArrSettings, ArrQualityProfile, ArrRootFolder } from '@findarr/shared/settings';
 import { isDefined } from '@findarr/shared/utils';
-import { useState, useEffect, useCallback, type ChangeEvent } from 'react';
+import { useState, useCallback, type ChangeEvent } from 'react';
 
+import { useConnectionState } from '../../hooks/useConnectionState';
 import { adminArrService } from '../../services/api';
 import { asVoid } from '../../utils/asyncHandlers';
-import { deriveFeedback } from '../ui/feedback';
 import { SelectInput } from '../ui/SelectInput';
 import { ConnectionActions } from './ConnectionActions';
 import { ConnectionCredentialsStep } from './ConnectionCredentialsStep';
@@ -39,38 +39,47 @@ export function ArrSection({ service, title, description }: ArrSectionProps) {
   const [settings, setSettings] = useState<ArrSettings>(defaultSettings);
   const [profiles, setProfiles] = useState<ArrQualityProfile[]>([]);
   const [rootFolders, setRootFolders] = useState<ArrRootFolder[]>([]);
-  const [testResult, setTestResult] = useState<boolean | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isTesting, setIsTesting] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   const [urlInput, setUrlInput] = useState('');
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [selectedProfileId, setSelectedProfileId] = useState('');
   const [selectedRootFolder, setSelectedRootFolder] = useState('');
 
-  function clearFeedback() {
-    setError('');
-    setSuccess('');
-  }
+  const {
+    isLoading,
+    isSaving,
+    isTesting,
+    testResult,
+    setTestResult,
+    setError,
+    setSuccess,
+    clearFeedback,
+    feedback,
+    wrapTest,
+    wrapSave,
+  } = useConnectionState(async () => {
+    const currentSettings = await svc.getSettings();
+    setSettings(currentSettings);
+    setUrlInput(currentSettings.url ?? '');
+    setSelectedProfileId(currentSettings.qualityProfileId?.toString() ?? '');
+    setSelectedRootFolder(currentSettings.rootFolderPath ?? '');
+    setTestResult(null);
+    setProfiles([]);
+    setRootFolders([]);
+  });
 
   function handleUrlChange(value: string) {
     clearFeedback();
     setUrlInput(value);
   }
-
   function handleApiKeyChange(value: string) {
     clearFeedback();
     setApiKeyInput(value);
   }
-
   function handleProfileChange(value: string) {
     clearFeedback();
     setSelectedProfileId(value);
   }
-
   function handleRootFolderChange(value: string) {
     clearFeedback();
     setSelectedRootFolder(value);
@@ -87,7 +96,6 @@ export function ArrSection({ service, title, description }: ArrSectionProps) {
   const hasSavedConnectionSettings = isDefined(settings.url) && settings.apiKeySet;
   const canTestConnection = hasSavedConnectionSettings && !connectionDirty;
   const connectionEstablished = canTestConnection && Boolean(testResult);
-  const feedback = deriveFeedback(error, success);
   const status = deriveConnectionStatus({
     isLoading,
     isDirty: connectionDirty,
@@ -101,34 +109,8 @@ export function ArrSection({ service, title, description }: ArrSectionProps) {
     setRootFolders(f);
   }, [svc]);
 
-  const init = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const currentSettings = await svc.getSettings();
-
-      setSettings(currentSettings);
-      setUrlInput(currentSettings.url ?? '');
-      setSelectedProfileId(currentSettings.qualityProfileId?.toString() ?? '');
-      setSelectedRootFolder(currentSettings.rootFolderPath ?? '');
-      setTestResult(null);
-      setProfiles([]);
-      setRootFolders([]);
-    } catch {
-      // ignore
-    } finally {
-      setIsLoading(false);
-    }
-  }, [svc]);
-
-  useEffect(() => {
-    void init();
-  }, [init]);
-
-  async function handleTest() {
-    setIsTesting(true);
-    setError('');
-    setSuccess('');
-    try {
+  const handleTest = async () =>
+    wrapTest(async () => {
       const result = await svc.test();
       setTestResult(result);
       if (result) {
@@ -139,20 +121,12 @@ export function ArrSection({ service, title, description }: ArrSectionProps) {
         setRootFolders([]);
         setError(`Could not reach ${title}. Check the URL and API key, then test again.`);
       }
-    } catch {
-      setError('Failed to test connection');
-    } finally {
-      setIsTesting(false);
-    }
-  }
+    });
 
-  async function handleSave(e: ChangeEvent<HTMLFormElement>) {
+  function handleSave(e: ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError('');
-    setSuccess('');
-    setIsSaving(true);
-    try {
-      const changedConnectionSettings = connectionDirty;
+    const changedConnectionSettings = connectionDirty;
+    void wrapSave(async () => {
       const body: Record<string, unknown> = {};
       if (urlInput) {
         body['url'] = urlInput;
@@ -166,8 +140,8 @@ export function ArrSection({ service, title, description }: ArrSectionProps) {
       if (selectedRootFolder) {
         body['rootFolderPath'] = selectedRootFolder;
       }
-      const savedSettings = await svc.saveSettings(body);
 
+      const savedSettings = await svc.saveSettings(body);
       setSettings(savedSettings);
       setUrlInput(savedSettings.url ?? '');
       setSelectedProfileId(savedSettings.qualityProfileId?.toString() ?? '');
@@ -179,11 +153,7 @@ export function ArrSection({ service, title, description }: ArrSectionProps) {
         setProfiles([]);
         setRootFolders([]);
       }
-    } catch {
-      setError('Failed to save settings');
-    } finally {
-      setIsSaving(false);
-    }
+    });
   }
 
   return (

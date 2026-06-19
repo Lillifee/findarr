@@ -4,10 +4,11 @@ import { isDefined } from '@findarr/shared/utils';
 import type { JellyfinItem } from './schemas.js';
 
 export interface JellyfinMedia {
-  jellyfinId: string;
-  jellyfinAddedAt?: number;
   tmdbId: number;
   type: MediaType;
+  libId: string;
+  libUrl: string;
+  libAddedAt?: number;
   availableSeasons?: number[];
 }
 
@@ -26,7 +27,7 @@ function toTimestamp(value: string | undefined): number | undefined {
  */
 export function jellyfinItemToMedia(
   item: JellyfinItem,
-  availableSeasons?: number[],
+  baseUrl: string,
 ): JellyfinMedia | undefined {
   // Must have TMDB ID to match with our media database
   const tmdbId = item.ProviderIds?.Tmdb;
@@ -41,13 +42,13 @@ export function jellyfinItemToMedia(
 
   // Map Jellyfin type to our media type
   const type = item.Type === 'Movie' ? 'movie' : 'tv';
-  const jellyfinAddedAt = toTimestamp(item.DateCreated);
+  const libAddedAt = toTimestamp(item.DateCreated);
 
   return {
     type,
-    jellyfinId: item.Id,
+    libId: item.Id,
+    libUrl: `${baseUrl}/web/index.html?#/details?id=${item.Id}`,
     tmdbId: tmdbIdNum,
-    ...(isDefined(jellyfinAddedAt) ? { jellyfinAddedAt } : {}),
-    ...(type === 'tv' && availableSeasons ? { availableSeasons } : {}),
+    ...(isDefined(libAddedAt) ? { libAddedAt } : {}),
   };
 }

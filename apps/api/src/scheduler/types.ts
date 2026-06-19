@@ -3,6 +3,7 @@ import type { FastifyLogFn } from 'fastify';
 
 import type { Database } from '../db/service.js';
 import type { JellyfinService } from '../jellyfin/service.js';
+import type { PlexService } from '../plex/service.js';
 import type { TMDBService } from '../tmdb/service.js';
 import type { SchedulerService } from './service.js';
 
@@ -18,6 +19,7 @@ export interface SchedulerContext {
   log: LoggerService;
   tmdb: TMDBService;
   jellyfin: JellyfinService;
+  plex: PlexService;
   scheduler: SchedulerService;
 }
 

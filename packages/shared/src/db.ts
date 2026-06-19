@@ -11,7 +11,7 @@ import {
 
 import type { RegionGroupId } from './constants.js';
 
-// Status progression: none (not in Sonarr) -> requested (user wants it) -> monitored (in Sonarr) -> downloaded (complete) -> available (in Jellyfin)
+// Status progression: none (not in Sonarr) -> requested (user wants it) -> monitored (in Sonarr) -> downloaded (complete) -> available (in streaming library)
 export type SeasonRecord = {
   seasonNumber: number;
   status: 'none' | 'requested' | 'monitored' | 'downloaded' | 'available';
@@ -61,14 +61,15 @@ export const media = sqliteTable(
     tvdbId: integer('tvdbId'),
     arrId: integer('arrId'),
     arrUrl: text('arrUrl'),
-    jellyfinId: text('jellyfinId'),
-    jellyfinAddedAt: integer('jellyfinAddedAt').$type<number | null>(),
+    libId: text('libId'),
+    libUrl: text('libUrl'),
+    libAddedAt: integer('libAddedAt').$type<number | null>(),
     status: text('status', {
       enum: ['pending', 'requested', 'downloading', 'downloaded', 'available', 'warning'],
     })
       .notNull()
       .default('pending'),
-    // TV only: season tracking synced from Sonarr/Jellyfin (none=not in Sonarr, requested=user wants it, monitored=in Sonarr, downloaded=complete in Sonarr, available=in Jellyfin)
+    // TV only: season tracking synced from Sonarr/Jellyfin/Plex (none=not in Sonarr, requested=user wants it, monitored=in Sonarr, downloaded=complete in Sonarr, available=in streaming library)
     seasons: text('seasons', { mode: 'json' }).$type<SeasonRecord[] | null>(),
     createdAt: integer('createdAt')
       .notNull()
@@ -84,7 +85,7 @@ export const media = sqliteTable(
     index('idx_media_tmdb').on(table.tmdbId, table.type),
     index('idx_media_arr').on(table.arrId),
     index('idx_media_status').on(table.status),
-    index('idx_media_jellyfin').on(table.jellyfinId),
+    index('idx_media_lib').on(table.libId),
     // Unique constraints:
     // - tmdbId + type: Canonical TMDB identifier (NULL allowed for TV before enrichment)
     // - tvdbId + type: TV show sync identifier (allows efficient batch upsert from Sonarr)

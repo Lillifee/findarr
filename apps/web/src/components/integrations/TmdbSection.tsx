@@ -1,10 +1,10 @@
 import { isDefined } from '@findarr/shared/utils';
-import { useState, useEffect, useCallback, type ChangeEvent } from 'react';
+import { useState, type ChangeEvent } from 'react';
 
+import { useConnectionState } from '../../hooks/useConnectionState';
 import { useSession } from '../../hooks/useSession';
 import { adminTmdbService } from '../../services/api';
 import { asVoid } from '../../utils/asyncHandlers';
-import { deriveFeedback } from '../ui/feedback';
 import { ConnectionActions } from './ConnectionActions';
 import { deriveConnectionStatus } from './connectionStatus';
 import { IntegrationCard } from './IntegrationCard';
@@ -13,55 +13,40 @@ import { StepPanel } from './StepPanel';
 
 export function TmdbSection() {
   const { refreshBootstrapStatus } = useSession();
-  const [testResult, setTestResult] = useState<boolean | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isTesting, setIsTesting] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-
   const [savedTokenSet, setSavedTokenSet] = useState(false);
   const [tokenInput, setTokenInput] = useState('');
 
-  function clearFeedback() {
-    setError('');
-    setSuccess('');
-  }
+  const {
+    isLoading,
+    isSaving,
+    isTesting,
+    testResult,
+    setTestResult,
+    setError,
+    setSuccess,
+    clearFeedback,
+    feedback,
+    wrapTest,
+    wrapSave,
+  } = useConnectionState(async () => {
+    const settings = await adminTmdbService.getSettings();
+    setSavedTokenSet(settings.tmdbAccessTokenSet);
+    setTokenInput('');
+    setTestResult(null);
+  });
+
+  const isDirty = tokenInput !== '';
+  const hasSavedSettings = savedTokenSet;
+  const canTestConnection = hasSavedSettings && !isDirty;
+  const status = deriveConnectionStatus({ isLoading, isDirty, hasSavedSettings, testResult });
 
   function handleTokenChange(value: string) {
     clearFeedback();
     setTokenInput(value);
   }
 
-  const isDirty = tokenInput !== '';
-  const hasSavedSettings = savedTokenSet;
-  const canTestConnection = hasSavedSettings && !isDirty;
-  const feedback = deriveFeedback(error, success);
-  const status = deriveConnectionStatus({ isLoading, isDirty, hasSavedSettings, testResult });
-
-  const init = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const settings = await adminTmdbService.getSettings();
-
-      setSavedTokenSet(settings.tmdbAccessTokenSet);
-      setTokenInput('');
-      setTestResult(null);
-    } catch {
-      // ignore
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void init();
-  }, [init]);
-
-  async function runTest() {
-    setError('');
-    setSuccess('');
-    try {
+  const handleTest = async () =>
+    wrapTest(async () => {
       const result = await adminTmdbService.test();
       setTestResult(result);
       if (result) {
@@ -70,45 +55,18 @@ export function TmdbSection() {
       } else {
         setError('Could not reach TMDB. Save a valid access token, then test again.');
       }
-    } catch {
-      setError('Failed to test connection');
-    }
-  }
+    });
 
-  async function handleTest() {
-    setIsTesting(true);
-    try {
-      await runTest();
-    } finally {
-      setIsTesting(false);
-    }
-  }
-
-  async function saveSettings() {
-    setError('');
-    setSuccess('');
-    try {
+  function handleSave(e: ChangeEvent<HTMLFormElement>) {
+    e.preventDefault();
+    void wrapSave(async () => {
       const savedSettings = await adminTmdbService.saveSettings(
         tokenInput ? { tmdbAccessToken: tokenInput } : {},
       );
-
       setSavedTokenSet(savedSettings.tmdbAccessTokenSet);
       setTokenInput('');
       setTestResult(null);
-    } catch {
-      setError('Failed to save settings');
-      throw new Error('save failed');
-    }
-  }
-
-  async function handleSave(e: ChangeEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setIsSaving(true);
-    try {
-      await saveSettings();
-    } finally {
-      setIsSaving(false);
-    }
+    });
   }
 
   return (

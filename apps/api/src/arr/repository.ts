@@ -170,25 +170,13 @@ export async function batchUpdateMediaStatuses(
 /**
  * Get all media with arr IDs for sync matching
  */
-export async function listMediaWithArrIds(
-  db: Database,
-  type: MediaType,
-): Promise<Omit<DbMedia, 'createdAt' | 'updatedAt'>[]> {
-  return db
-    .select({
-      id: media.id,
-      type: media.type,
-      tvdbId: media.tvdbId,
-      tmdbId: media.tmdbId,
-      arrId: media.arrId,
-      arrUrl: media.arrUrl,
-      jellyfinId: media.jellyfinId,
-      jellyfinAddedAt: media.jellyfinAddedAt,
-      seasons: media.seasons,
-      status: media.status,
-    })
+export async function listMediaWithArrIds(db: Database, type: MediaType): Promise<number[]> {
+  const results = await db
+    .select({ arrId: media.arrId })
     .from(media)
-    .where(eq(media.type, type));
+    .where(and(eq(media.type, type), isNotNull(media.arrId)));
+
+  return results.map((r) => r.arrId).filter((id): id is number => id !== null);
 }
 
 /**

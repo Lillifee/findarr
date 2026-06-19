@@ -2,7 +2,6 @@ import type { MovieDetails, TVDetails } from '@findarr/shared/media';
 import { isDefined, isNotEmpty } from '@findarr/shared/utils';
 import { useState } from 'react';
 
-import { linkService } from '../../services/api';
 import { tmdbImage, tmdbImageOrUndefined } from '../../utils/tmdb';
 import { Icon } from '../ui/Icon';
 import { StatusBadge, type StatusType } from '../ui/StatusBadge';
@@ -65,19 +64,16 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
   // Build Radarr/Sonarr link
   const arrLink = isDefined(media.state?.record?.arrUrl)
     ? {
-        url:
-          media.type === 'movie'
-            ? linkService.radarr({ mediaId: media.state.record.id })
-            : linkService.sonarr({ mediaId: media.state.record.id }),
+        url: media.state.record.arrUrl,
         label: media.type === 'movie' ? 'Radarr' : 'Sonarr',
       }
     : null;
 
-  // Build Jellyfin link
-  const jellyfinLink = isDefined(media.state?.record?.jellyfinId)
+  // Build library link (Jellyfin or Plex)
+  const libLink = isDefined(media.state?.record?.libUrl)
     ? {
-        url: linkService.jellyfin({ mediaId: media.state.record.id }),
-        label: 'Jellyfin',
+        url: media.state.record.libUrl,
+        label: 'Watch',
       }
     : null;
 
@@ -90,9 +86,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
     isDefined(arrLink)
       ? { key: arrLink.label.toLowerCase(), url: arrLink.url, label: arrLink.label }
       : null,
-    isDefined(jellyfinLink)
-      ? { key: 'jellyfin', url: jellyfinLink.url, label: jellyfinLink.label }
-      : null,
+    isDefined(libLink) ? { key: 'watch', url: libLink.url, label: libLink.label } : null,
   ].filter((link): link is { key: string; url: string; label: string } => !!link);
 
   return (

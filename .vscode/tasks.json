@@ -70,6 +70,12 @@
       "command": "vp run test",
       "group": "test",
       "problemMatcher": []
+    },
+    {
+      "label": "db:studio",
+      "type": "shell",
+      "command": "vp run db:studio",
+      "problemMatcher": []
     }
   ]
 }

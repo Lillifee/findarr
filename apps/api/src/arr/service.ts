@@ -3,7 +3,6 @@ import { isDefined } from '@findarr/shared/utils';
 import type { FastifyBaseLogger } from 'fastify';
 
 import type { Database } from '../db/service.js';
-import { getMediaById } from '../media/repository.js';
 import type { SchedulerService } from '../scheduler/service.js';
 import { createClientLifecycle } from '../utils/clientLifecycleHepler.js';
 import { trimTrailingSlash } from '../utils/links.js';
@@ -108,7 +107,7 @@ export async function createArrService<T extends ArrServiceConfig>(
       seasons,
     );
 
-    const libraryItem = transformArrMedia(response);
+    const libraryItem = transformArrMedia(response, trimTrailingSlash(settings.url ?? ''));
 
     await updateMediaIds(context.db, mediaId, {
       arrId: libraryItem.id,
@@ -131,27 +130,14 @@ export async function createArrService<T extends ArrServiceConfig>(
   }
 
   async function listLibraryItems(): Promise<ArrLibraryItem[]> {
+    const { url } = lifecycle.settings();
+    const baseUrl = isDefined(url) ? trimTrailingSlash(url) : '';
     const items = await lifecycle.client().listLibraryItems();
-    return items.map((x) => transformArrMedia(x));
+    return items.map((x) => transformArrMedia(x, baseUrl));
   }
 
   async function getQueue(pageSize: number): Promise<ArrQueueItem[]> {
     return lifecycle.client().getQueue(pageSize);
-  }
-
-  async function resolveMediaUrl(mediaId: number): Promise<string | null> {
-    const mediaRecord = await getMediaById(context.db, mediaId);
-
-    if (!isDefined(mediaRecord?.arrUrl)) {
-      return null;
-    }
-
-    const { url } = lifecycle.settings();
-    if (!isDefined(url)) {
-      return null;
-    }
-
-    return `${trimTrailingSlash(url)}${mediaRecord.arrUrl}`;
   }
 
   return {
@@ -166,7 +152,6 @@ export async function createArrService<T extends ArrServiceConfig>(
     listRootFolders,
     listLibraryItems,
     getQueue,
-    resolveMediaUrl,
   };
 }
 

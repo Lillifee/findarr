@@ -2,6 +2,7 @@ import { CreateUserSchema, DeleteUserSchema } from '@findarr/shared/auth';
 import {
   ArrSettingsQuerySchema,
   JellyfinSettingsQuerySchema,
+  PlexSettingsQuerySchema,
   TmdbSettingsQuerySchema,
 } from '@findarr/shared/settings';
 import type { FastifyInstance } from 'fastify';
@@ -52,6 +53,14 @@ const adminRoutes = (fastify: FastifyInstance) => {
   );
 
   fastify.post('/jellyfin/test', async () => fastify.jellyfin.testAndSync());
+
+  fastify.get('/plex/settings', () => fastify.plex.getSettings());
+
+  fastify.put('/plex/settings', async (r) =>
+    fastify.plex.setSettings(PlexSettingsQuerySchema.parse(r.body)),
+  );
+
+  fastify.post('/plex/test', async () => fastify.plex.testAndSync());
 
   fastify.get('/tmdb/settings', () => fastify.tmdb.getSettings());
 

@@ -42,6 +42,8 @@ export type SchedulerInfo = SchedulerConfig & SchedulerState;
 export const SchedulerNameSchema = z.enum([
   'jellyfinLibrarySync',
   'jellyfinQueueSync',
+  'plexLibrarySync',
+  'plexQueueSync',
   'radarrLibrarySync',
   'radarrQueueMonitor',
   'radarrQueueFastSync',
