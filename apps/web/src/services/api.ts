@@ -173,88 +173,49 @@ export const userSettingsService = {
   },
 };
 
-export const adminArrService = {
-  radarr: {
-    urlPlaceholder: 'http://localhost:7878',
+export function createArrServiceApi(service: 'radarr' | 'sonarr') {
+  return {
     getSettings: async (): Promise<ArrSettings> => {
-      const response = await api.get<ArrSettings>('/admin/radarr/settings');
+      const response = await api.get<ArrSettings>(`/admin/${service}/settings`);
       return response.data;
     },
     saveSettings: async (
       settings: Partial<ArrSettings & { apiKey?: string }>,
     ): Promise<ArrSettings> => {
-      const response = await api.put<ArrSettings>('/admin/radarr/settings', settings);
+      const response = await api.put<ArrSettings>(`/admin/${service}/settings`, settings);
       return response.data;
     },
     listQualityProfiles: async (): Promise<ArrQualityProfile[]> => {
-      const response = await api.get<ArrQualityProfile[]>('/admin/radarr/quality-profiles');
+      const response = await api.get<ArrQualityProfile[]>(`/admin/${service}/quality-profiles`);
       return response.data;
     },
     listRootFolders: async (): Promise<ArrRootFolder[]> => {
-      const response = await api.get<ArrRootFolder[]>('/admin/radarr/root-folders');
+      const response = await api.get<ArrRootFolder[]>(`/admin/${service}/root-folders`);
       return response.data;
     },
     test: async (): Promise<boolean> => {
-      const response = await api.post<boolean>('/admin/radarr/test');
+      const response = await api.post<boolean>(`/admin/${service}/test`);
       return response.data;
     },
-  },
-  sonarr: {
-    urlPlaceholder: 'http://localhost:8989',
-    getSettings: async (): Promise<ArrSettings> => {
-      const response = await api.get<ArrSettings>('/admin/sonarr/settings');
+  };
+}
+
+export function createLibServiceApi(service: 'jellyfin' | 'plex') {
+  return {
+    getSettings: async (): Promise<LibSettings> => {
+      const response = await api.get<LibSettings>(`/admin/${service}/settings`);
       return response.data;
     },
-    saveSettings: async (
-      settings: Partial<ArrSettings & { apiKey?: string }>,
-    ): Promise<ArrSettings> => {
-      const response = await api.put<ArrSettings>('/admin/sonarr/settings', settings);
-      return response.data;
-    },
-    listQualityProfiles: async (): Promise<ArrQualityProfile[]> => {
-      const response = await api.get<ArrQualityProfile[]>('/admin/sonarr/quality-profiles');
-      return response.data;
-    },
-    listRootFolders: async (): Promise<ArrRootFolder[]> => {
-      const response = await api.get<ArrRootFolder[]>('/admin/sonarr/root-folders');
+    saveSettings: async (settings: { url?: string; apiKey?: string }): Promise<LibSettings> => {
+      const response = await api.put<LibSettings>(`/admin/${service}/settings`, settings);
       return response.data;
     },
     test: async (): Promise<boolean> => {
-      const response = await api.post<boolean>('/admin/sonarr/test');
+      const response = await api.post<boolean>(`/admin/${service}/test`);
       return response.data;
     },
-  },
-};
-
-export const adminJellyfinService = {
-  getSettings: async (): Promise<LibSettings> => {
-    const response = await api.get<LibSettings>('/admin/jellyfin/settings');
-    return response.data;
-  },
-  saveSettings: async (settings: { url?: string; apiKey?: string }): Promise<LibSettings> => {
-    const response = await api.put<LibSettings>('/admin/jellyfin/settings', settings);
-    return response.data;
-  },
-  test: async (): Promise<boolean> => {
-    const response = await api.post<boolean>('/admin/jellyfin/test');
-    return response.data;
-  },
-};
-
-export const adminPlexService = {
-  getSettings: async (): Promise<LibSettings> => {
-    const response = await api.get<LibSettings>('/admin/plex/settings');
-    return response.data;
-  },
-  saveSettings: async (settings: { url?: string; apiKey?: string }): Promise<LibSettings> => {
-    const response = await api.put<LibSettings>('/admin/plex/settings', settings);
-    return response.data;
-  },
-  test: async (): Promise<boolean> => {
-    const response = await api.post<boolean>('/admin/plex/test');
-    return response.data;
-  },
-};
+  };
+}
 
 export const adminTmdbService = {
   getSettings: async (): Promise<TmdbSettings> => {

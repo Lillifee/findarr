@@ -2,14 +2,40 @@ import { isDefined } from '@findarr/shared/utils';
 import { useState, type ChangeEvent } from 'react';
 
 import { useConnectionState } from '../../hooks/useConnectionState';
-import { adminJellyfinService } from '../../services/api';
+import { createLibServiceApi } from '../../services/api';
 import { asVoid } from '../../utils/asyncHandlers';
 import { ConnectionActions } from './ConnectionActions';
 import { ConnectionCredentialsStep } from './ConnectionCredentialsStep';
 import { deriveConnectionStatus } from './connectionStatus';
 import { IntegrationCard } from './IntegrationCard';
 
-export function JellyfinSection() {
+const libServiceConfig = {
+  jellyfin: {
+    title: 'Jellyfin',
+    urlPlaceholder: 'http://localhost:8096',
+    apiKeyLabel: 'API Key' as const,
+    apiKeyPlaceholder: 'Enter API key',
+    successMessage: 'Connection successful. Jellyfin is ready.',
+    errorMessage: 'Could not reach Jellyfin. Check the URL and API key, then test again.',
+  },
+  plex: {
+    title: 'Plex',
+    urlPlaceholder: 'http://localhost:32400',
+    apiKeyLabel: 'Token' as const,
+    apiKeyPlaceholder: 'Enter Plex token',
+    successMessage: 'Connection successful. Plex is ready.',
+    errorMessage: 'Could not reach Plex. Check the URL and token, then test again.',
+  },
+} as const;
+
+interface LibSectionProps {
+  service: keyof typeof libServiceConfig;
+}
+
+export function LibSection({ service }: LibSectionProps) {
+  const svc = createLibServiceApi(service);
+  const config = libServiceConfig[service];
+
   const [savedUrl, setSavedUrl] = useState<string | null>(null);
   const [savedApiKeySet, setSavedApiKeySet] = useState(false);
   const [urlInput, setUrlInput] = useState('');
@@ -28,7 +54,7 @@ export function JellyfinSection() {
     wrapTest,
     wrapSave,
   } = useConnectionState(async () => {
-    const settings = await adminJellyfinService.getSettings();
+    const settings = await svc.getSettings();
     setSavedUrl(settings.url);
     setSavedApiKeySet(settings.apiKeySet);
     setUrlInput(settings.url ?? '');
@@ -40,23 +66,14 @@ export function JellyfinSection() {
   const canTestConnection = hasSavedSettings && !isDirty;
   const status = deriveConnectionStatus({ isLoading, isDirty, hasSavedSettings, testResult });
 
-  function handleUrlChange(value: string) {
-    clearFeedback();
-    setUrlInput(value);
-  }
-  function handleApiKeyChange(value: string) {
-    clearFeedback();
-    setApiKeyInput(value);
-  }
-
   const handleTest = async () =>
     wrapTest(async () => {
-      const result = await adminJellyfinService.test();
+      const result = await svc.test();
       setTestResult(result);
       if (result) {
-        setSuccess('Connection successful. Jellyfin is ready.');
+        setSuccess(config.successMessage);
       } else {
-        setError('Could not reach Jellyfin. Check the URL and API key, then test again.');
+        setError(config.errorMessage);
       }
     });
 
@@ -64,7 +81,7 @@ export function JellyfinSection() {
     e.preventDefault();
     const changedConnectionSettings = isDirty;
     void wrapSave(async () => {
-      const savedSettings = await adminJellyfinService.saveSettings({
+      const savedSettings = await svc.saveSettings({
         ...(urlInput ? { url: urlInput } : {}),
         ...(apiKeyInput ? { apiKey: apiKeyInput } : {}),
       });
@@ -80,7 +97,7 @@ export function JellyfinSection() {
 
   return (
     <IntegrationCard
-      title="Jellyfin"
+      title={config.title}
       description="Media server — tracks availability of requested content"
       status={status}
       onSubmit={asVoid(handleSave)}
@@ -98,11 +115,19 @@ export function JellyfinSection() {
     >
       <ConnectionCredentialsStep
         urlValue={urlInput}
-        onUrlChange={handleUrlChange}
-        urlPlaceholder="http://localhost:8096"
+        onUrlChange={(v) => {
+          clearFeedback();
+          setUrlInput(v);
+        }}
+        urlPlaceholder={config.urlPlaceholder}
         apiKeyValue={apiKeyInput}
-        onApiKeyChange={handleApiKeyChange}
+        onApiKeyChange={(v) => {
+          clearFeedback();
+          setApiKeyInput(v);
+        }}
         apiKeySet={savedApiKeySet}
+        apiKeyLabel={config.apiKeyLabel}
+        apiKeyPlaceholder={config.apiKeyPlaceholder}
       />
     </IntegrationCard>
   );
