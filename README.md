@@ -6,6 +6,7 @@
 ![Radarr](https://img.shields.io/badge/Radarr-supported-orange)
 ![Sonarr](https://img.shields.io/badge/Sonarr-supported-blue)
 ![Jellyfin](https://img.shields.io/badge/Jellyfin-supported-purple)
+![Plex](https://img.shields.io/badge/Plex-supported-red)
 
 > Stop searching. Start finding.
 
@@ -126,6 +127,8 @@ http://localhost:8585
 
 This product uses the TMDB API but is not endorsed or certified by TMDB.
 https://www.themoviedb.org/
+
+Plex® is a trademark of Plex Inc. This project is not affiliated with or endorsed by Plex Inc.
 
 ---
 
