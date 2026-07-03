@@ -17,7 +17,7 @@ export function plexItemToMedia(
     return undefined;
   }
 
-  const tmdbIdNum = Number.parseInt(tmdbGuid.id.replace('tmdb://', ''), 10);
+  const tmdbIdNum = Math.trunc(Number(tmdbGuid.id.replace('tmdb://', '')));
   if (Number.isNaN(tmdbIdNum)) {
     return undefined;
   }

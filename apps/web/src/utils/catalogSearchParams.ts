@@ -48,7 +48,7 @@ export const readCatalogSearchParams = (
 
   return {
     type: isDefined(rawType) && isSearchType(rawType) ? rawType : (defaults.type ?? 'both'),
-    page: Number.parseInt(searchParams.get('page') ?? String(defaults.page ?? 1), 10),
+    page: Math.trunc(Number(searchParams.get('page') ?? String(defaults.page ?? 1))),
     ...(interaction === undefined ? {} : { interaction }),
     q: searchParams.get('q') ?? '',
     genres: searchParams.getAll('genres').filter((genre) => isGenreKey(genre)),

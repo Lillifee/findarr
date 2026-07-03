@@ -102,18 +102,6 @@ interface ResultsGridProps {
 }
 
 export function ResultsGrid({ results, onSelectItem, onUpdateItem }: ResultsGridProps) {
-  if (results.length === 0) {
-    return (
-      <div className="py-16 text-center text-gray-400">
-        <div className="flex flex-col items-center gap-4">
-          <Icon className="text-zinc-600" name="search" size="display" />
-          <p className="text-lg">No results found</p>
-          <p className="text-sm text-gray-500">Try adjusting your search or filters</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5">
       {results.map((item) => (

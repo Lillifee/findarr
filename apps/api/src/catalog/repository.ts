@@ -165,7 +165,7 @@ export const listCatalogItemsMissingKeywords = async (
 
   return catalogItems.map((row) => ({
     tmdbId: row.tmdbId,
-    type: row.type as MediaType,
+    type: row.type,
   }));
 };
 

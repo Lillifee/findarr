@@ -13,9 +13,9 @@ function collectKeys(obj: NestedRecord, prefix = ''): string[] {
 }
 
 // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-const enKeys = collectKeys(en as unknown as NestedRecord);
+const enKeys = collectKeys(en);
 // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-const deKeys = new Set(collectKeys(de as unknown as NestedRecord));
+const deKeys = new Set(collectKeys(de));
 
 describe('locales', () => {
   it('de.json contains every key that en.json has', () => {

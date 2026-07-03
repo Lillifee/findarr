@@ -8,7 +8,7 @@ interface ScoreBreakdownProps {
 }
 
 // Helper to format percentage
-const toPercent = (value: number) => Math.round(value * 100);
+const toPercent = (value: number) => `${Math.round(value * 100)}%`;
 
 // Helper to get color based on score value
 const getColor = (value: number): string => {
@@ -43,7 +43,7 @@ export function ScoreBreakdown({ score }: ScoreBreakdownProps) {
         <div className="flex items-center justify-between">
           <span className="font-semibold text-white">{t('scoreBreakdown.overall')}</span>
           <div className="flex items-center gap-3">
-            <div className="text-3xl font-bold text-amber-400">{toPercent(score.finalScore)}%</div>
+            <div className="text-3xl font-bold text-amber-400">{toPercent(score.finalScore)}</div>
             <div className="relative h-16 w-16">
               <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 36 36">
                 {/* Background circle */}
@@ -82,12 +82,12 @@ export function ScoreBreakdown({ score }: ScoreBreakdownProps) {
                 <Icon name={icon} size="sm" />
                 {label}
               </span>
-              <span className="font-medium text-white">{toPercent(value)}%</span>
+              <span className="font-medium text-white">{toPercent(value)}</span>
             </div>
             <div className="relative h-2 w-full overflow-hidden rounded-full bg-zinc-800">
               <div
                 className={`absolute top-0 left-0 h-full ${getColor(value)} rounded-full transition-all duration-300`}
-                style={{ width: `${toPercent(value)}%` }}
+                style={{ width: toPercent(value) }}
               />
             </div>
           </div>
@@ -99,11 +99,11 @@ export function ScoreBreakdown({ score }: ScoreBreakdownProps) {
         <div className="mt-4 grid grid-cols-2 gap-3 text-center text-sm">
           <div className="rounded-lg border border-zinc-800 bg-zinc-900/35 p-3">
             <div className="mb-1 text-zinc-300">{t('scoreBreakdown.baseScore')}</div>
-            <div className="text-xl font-bold text-zinc-100">{toPercent(score.baseScore)}%</div>
+            <div className="text-xl font-bold text-zinc-100">{toPercent(score.baseScore)}</div>
           </div>
           <div className="rounded-lg border border-amber-400/35 bg-amber-400/10 p-3">
             <div className="mb-1 text-amber-100/80">{t('scoreBreakdown.userMatch')}</div>
-            <div className="text-xl font-bold text-amber-300">{toPercent(score.userScore)}%</div>
+            <div className="text-xl font-bold text-amber-300">{toPercent(score.userScore)}</div>
           </div>
         </div>
       )}

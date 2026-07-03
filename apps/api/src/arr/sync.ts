@@ -9,6 +9,7 @@ import {
   batchUpdateMediaStatuses,
   clearRemovedArrItems,
   getExistingTvdbIdSet,
+  type UpsertArrMedia,
 } from './repository.js';
 import type { ArrLibraryItem } from './schemas.js';
 import type { AnyArrService } from './service.js';
@@ -83,13 +84,13 @@ export async function syncLibrary(
   }
 
   // Map library items to upsert format
-  const itemsToUpsert = libraryItems.map((item) => ({
+  const itemsToUpsert: UpsertArrMedia[] = libraryItems.map((item) => ({
     type: mediaType,
     arrId: item.id,
     arrUrl: item.arrUrl ?? null,
     tvdbId: item.tvdbId ?? null,
     tmdbId: item.tmdbId ?? null,
-    status: (item.hasFile ? 'downloaded' : 'requested') as MediaStatus,
+    status: item.hasFile ? 'downloaded' : 'requested',
     seasons: item.seasons ?? null,
   }));
 

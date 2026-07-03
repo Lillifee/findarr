@@ -13,6 +13,8 @@ interface MediaDetailsProps {
   onVoteComplete?: () => void;
 }
 
+const createFormattedMeta = (text: string) => `(${text})`;
+
 // Format helpers
 const formatRuntime = (value: number | number[] | undefined, unknown: string) => {
   if (!isDefined(value)) {
@@ -206,7 +208,7 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
                     <Icon filled className="text-amber-300" name="star" size="sm" />
                     <span>{media.voteAverage.toFixed(1)}</span>
                     <span className="text-xs font-medium text-zinc-400">
-                      ({media.voteCount.toLocaleString()})
+                      {createFormattedMeta(media.voteCount.toLocaleString())}
                     </span>
                   </div>
                 </div>

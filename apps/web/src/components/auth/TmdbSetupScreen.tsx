@@ -10,6 +10,9 @@ import { deriveFeedback } from '../ui/feedback';
 import { InlineFeedback } from '../ui/InlineFeedback';
 import { Input } from '../ui/Input';
 
+const TMDB_URL = 'themoviedb.org';
+const BREADCRUMB_SEPARATOR = '/';
+
 export function TmdbSetupScreen() {
   const { t } = useTranslation();
   const { refreshBootstrapStatus } = useSession();
@@ -98,11 +101,10 @@ export function TmdbSetupScreen() {
                 {t('tmdbSetup.title')}
               </h1>
               <p className="mt-2 max-w-xl text-sm leading-5 text-zinc-400">
-                This product uses the TMDB API but is not endorsed or certified by TMDB.
+                {t('tmdbSetup.disclaimer')}
               </p>
               <p className="mt-2 max-w-xl text-sm leading-5 text-zinc-400">
-                Finish the initial Findarr setup by adding a TMDB read access token. This enables
-                search, discovery, and full media metadata throughout the app.
+                {t('tmdbSetup.description')}
               </p>
             </div>
           </div>
@@ -117,19 +119,19 @@ export function TmdbSetupScreen() {
                   rel="noreferrer"
                   className="font-medium text-amber-300 underline decoration-amber-400/50 underline-offset-3 hover:text-amber-200"
                 >
-                  themoviedb.org
+                  {TMDB_URL}
                 </a>
-                , then open the following section in your account:
+                {t('tmdbSetup.instructionsAfterLink')}
               </p>
               <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
                 <span className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 font-semibold text-white">
                   {t('tmdbSetup.breadcrumbSettings')}
                 </span>
-                <span className="text-zinc-500">/</span>
+                <span className="text-zinc-500">{BREADCRUMB_SEPARATOR}</span>
                 <span className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 font-semibold text-white">
                   {t('tmdbSetup.breadcrumbApi')}
                 </span>
-                <span className="text-zinc-500">/</span>
+                <span className="text-zinc-500">{BREADCRUMB_SEPARATOR}</span>
                 <span className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 font-semibold text-white">
                   {t('tmdbSetup.breadcrumbToken')}
                 </span>
@@ -150,7 +152,7 @@ export function TmdbSetupScreen() {
                 setSuccess('');
                 setTokenInput(e.target.value);
               }}
-              placeholder={savedTokenSet ? '••••••••••••••••' : 'Enter TMDB access token'}
+              placeholder={savedTokenSet ? '••••••••••••••••' : t('tmdbSetup.tokenPlaceholder')}
               autoComplete="new-password"
               className="min-h-12"
             />
@@ -162,7 +164,7 @@ export function TmdbSetupScreen() {
               disabled={isLoading || isSaving || isTesting || (!tokenInput && !savedTokenSet)}
               className="min-h-12 w-full text-sm"
             >
-              {isSaving || isTesting ? 'Finishing…' : 'Finish'}
+              {isSaving || isTesting ? t('tmdbSetup.finishing') : t('tmdbSetup.finish')}
             </Button>
           </form>
         </Card>

@@ -150,7 +150,7 @@ export function ArrSection({ service }: ArrSectionProps) {
         body['apiKey'] = apiKeyInput;
       }
       if (selectedProfileId) {
-        body['qualityProfileId'] = Number.parseInt(selectedProfileId, 10);
+        body['qualityProfileId'] = Math.trunc(Number(selectedProfileId));
       }
       if (selectedRootFolder) {
         body['rootFolderPath'] = selectedRootFolder;
