@@ -20,7 +20,7 @@ export function createLibrarySyncScheduler(service: LibService): Scheduler {
     },
     async (context: SchedulerContext) => {
       if (!service.isConfigured()) {
-        context.log.debug({ name }, 'Not configured - skipping sync');
+        context.appLog.debug({ name }, 'Not configured - skipping sync');
         return false;
       }
       await syncLibrary(context, service);
@@ -47,7 +47,7 @@ export function createLibraryQueueSyncScheduler(service: LibService): Scheduler 
     },
     async (context: SchedulerContext) => {
       if (!service.isConfigured()) {
-        context.log.debug({ name }, 'Not configured - skipping sync');
+        context.appLog.debug({ name }, 'Not configured - skipping sync');
         return false;
       }
 
@@ -59,7 +59,7 @@ export function createLibraryQueueSyncScheduler(service: LibService): Scheduler 
       });
 
       if (downloadedPage.totalCount === 0) {
-        context.log.info(
+        context.appLog.info(
           { name, schedulerName: queueSyncScheduler },
           'All downloaded items are now available - stopping queue sync',
         );

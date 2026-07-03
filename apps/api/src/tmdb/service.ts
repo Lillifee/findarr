@@ -13,12 +13,12 @@ import type {
 } from '@findarr/shared/media';
 import type { UserSettingsQuery, TmdbSettings, TmdbSettingsQuery } from '@findarr/shared/settings';
 import { isDefined } from '@findarr/shared/utils';
-import type { FastifyBaseLogger } from 'fastify';
 
 import type { Database } from '../db/service.js';
 import type { SchedulerService } from '../scheduler/service.js';
 import { createLruTtlCache } from '../utils/cacheHelper.js';
 import { createClientLifecycle } from '../utils/clientLifecycleHepler.js';
+import type { AppLogger } from '../utils/logger.js';
 import { createTMDBClient, type TMDBClient } from './client.js';
 import { buildDiscoverParams } from './helpers.js';
 import { getTmdbSettingsFull, setTmdbSettings, type TmdbSettingsFull } from './repository.js';
@@ -29,7 +29,7 @@ const MEDIA_TYPES = ['movie', 'tv'] as const;
 
 export interface TmdbServiceContext {
   db: Database;
-  log: FastifyBaseLogger;
+  appLog: AppLogger;
   scheduler: SchedulerService;
 }
 
@@ -46,7 +46,7 @@ export async function createTMDBService(context: TmdbServiceContext) {
     loadSettings: async () => getTmdbSettingsFull(context.db),
     createClient: (settings) =>
       isDefined(settings.tmdbAccessToken)
-        ? createTMDBClient(settings.tmdbAccessToken, context.log)
+        ? createTMDBClient(settings.tmdbAccessToken, context.appLog)
         : undefined,
   });
 
@@ -79,7 +79,7 @@ export async function createTMDBService(context: TmdbServiceContext) {
   }
 
   await reloadService().catch((error: unknown) => {
-    context.log.error({ name: 'tmdb', error }, 'Failed to initialize TMDB service');
+    context.appLog.error({ name: 'tmdb', error }, 'Failed to initialize TMDB service');
   });
 
   function getSettings(): TmdbSettings {

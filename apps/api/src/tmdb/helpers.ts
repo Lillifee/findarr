@@ -10,9 +10,9 @@ import type { MediaType } from '@findarr/shared/media';
 import type { UserSettingsQuery } from '@findarr/shared/settings';
 import { isDefined } from '@findarr/shared/utils';
 
-import type { LoggerService } from '../scheduler/types.js';
 import { HttpError } from '../utils/errors.js';
 import { sleep } from '../utils/helper.js';
+import type { AppLogger } from '../utils/logger.js';
 import type { TMDBDiscoverParams } from './schemas.js';
 
 /**
@@ -126,7 +126,7 @@ function backoffDelay(attempt: number, baseDelay: number): number {
  *   processFn: async (show) => {
  *     return await fastify.tmdb.findByExternalId({ tvdbId: show.tvdbId, type: 'tv' });
  *   },
- *   log: fastify.log,
+ *   appLog: fastify.appLog,
  * });
  * ```
  */
@@ -136,9 +136,9 @@ export async function processWithWorkerPool<TItem, TResult>(options: {
   /** Function to process each item (should return null on failure) */
   processFn: (item: TItem) => Promise<TResult | null>;
   /** Logger instance */
-  log: LoggerService;
+  appLog: AppLogger;
 }): Promise<{ successCount: number; results: TResult[] }> {
-  const { items, processFn, log } = options;
+  const { items, processFn, appLog } = options;
 
   // TMDB API rate limiting constants
   const CONCURRENCY = 8;
@@ -190,12 +190,12 @@ export async function processWithWorkerPool<TItem, TResult>(options: {
         }
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Unknown error';
-        log.warn({ name: 'tmdb', error: message }, 'Worker processing failed');
+        appLog.warn({ name: 'tmdb', error: message }, 'Worker processing failed');
       }
 
       // Progress logging
       if ((index + 1) % 50 === 0 || index + 1 === items.length) {
-        log.info(
+        appLog.info(
           {
             name: 'tmdb',
             processedItems: index + 1,

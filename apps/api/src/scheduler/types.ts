@@ -1,21 +1,14 @@
 import type { SchedulerConfig, SchedulerState } from '@findarr/shared/scheduler';
-import type { FastifyLogFn } from 'fastify';
 
 import type { Database } from '../db/service.js';
 import type { LibService } from '../lib/service.js';
 import type { TMDBService } from '../tmdb/service.js';
+import type { AppLogger } from '../utils/logger.js';
 import type { SchedulerService } from './service.js';
-
-export interface LoggerService {
-  debug: FastifyLogFn;
-  info: FastifyLogFn;
-  error: FastifyLogFn;
-  warn: FastifyLogFn;
-}
 
 export interface SchedulerContext {
   db: Database;
-  log: LoggerService;
+  appLog: AppLogger;
   tmdb: TMDBService;
   jellyfin: LibService;
   plex: LibService;

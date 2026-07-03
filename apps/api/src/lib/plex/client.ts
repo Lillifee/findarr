@@ -1,7 +1,7 @@
 import { isDefined } from '@findarr/shared/utils';
 import { create, type AxiosInstance } from 'axios';
-import type { FastifyBaseLogger } from 'fastify';
 
+import type { AppLogger } from '../../utils/logger.js';
 import type { LibClient, LibMedia } from '../types.js';
 import {
   PlexIdentitySchema,
@@ -19,11 +19,7 @@ function createHttpClient(baseUrl: string, token: string): AxiosInstance {
   });
 }
 
-export function createPlexLibClient(
-  baseUrl: string,
-  token: string,
-  log: FastifyBaseLogger,
-): LibClient {
+export function createPlexLibClient(baseUrl: string, token: string, appLog: AppLogger): LibClient {
   const client = createHttpClient(baseUrl, token);
 
   const getMachineIdentifier = async (): Promise<string> => {
@@ -67,7 +63,7 @@ export function createPlexLibClient(
         const response = await client.get('/identity', { timeout: 5000 });
         return response.status === 200;
       } catch (error) {
-        log.warn({ name: 'plex', err: error }, 'Connection test failed');
+        appLog.warn({ name: 'plex', err: error }, 'Connection test failed');
         return false;
       }
     },
@@ -104,7 +100,7 @@ export function createPlexLibClient(
               }
             }
           } catch (err) {
-            log.warn(
+            appLog.warn(
               { name: 'plex', sectionKey: section.key, sectionTitle: section.title, err },
               'Failed to fetch section items, skipping',
             );
@@ -125,7 +121,10 @@ export function createPlexLibClient(
               item.availableSeasons = seasonNumbers;
             }
           } catch (err) {
-            log.debug({ name: 'plex', libId: item.libId, err }, 'Season lookup failed, skipping');
+            appLog.debug(
+              { name: 'plex', libId: item.libId, err },
+              'Season lookup failed, skipping',
+            );
           }
         }),
       );

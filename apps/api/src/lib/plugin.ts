@@ -14,7 +14,7 @@ declare module 'fastify' {
 const libPlugin: FastifyPluginAsync = async (fastify) => {
   fastify.decorate('jellyfin', await createLibService(libConfig.jellyfin, fastify));
   fastify.decorate('plex', await createLibService(libConfig.plex, fastify));
-  fastify.log.info({ name: 'lib' }, 'Lib plugin registered (Jellyfin + Plex)');
+  fastify.appLog.info({ name: 'lib' }, 'Lib plugin registered (Jellyfin + Plex)');
 };
 
-export default fp(libPlugin, { name: 'lib', dependencies: ['database'] });
+export default fp(libPlugin, { name: 'lib', dependencies: ['database', 'logger'] });

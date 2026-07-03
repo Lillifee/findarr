@@ -2,11 +2,6 @@ import { CreateInteractionSchema, InteractionsQuerySchema } from '@findarr/share
 import type { FastifyInstance } from 'fastify';
 
 import { protectedRoute } from '../utils/routes.js';
-import {
-  createInteraction,
-  getUserActivityAttentionEnriched,
-  getUserInteractionsEnriched,
-} from './service.js';
 
 export const interactionRoutes = (fastify: FastifyInstance) => {
   // All interaction routes require authentication
@@ -14,12 +9,7 @@ export const interactionRoutes = (fastify: FastifyInstance) => {
 
   // Create or toggle a media interaction (like/dislike)
   fastify.post('/', async (request) =>
-    createInteraction(
-      fastify.tmdb,
-      fastify.radarr,
-      fastify.sonarr,
-      fastify.catalog,
-      fastify.db,
+    fastify.interaction.createInteraction(
       CreateInteractionSchema.parse(request.body),
       request.user,
     ),
@@ -30,9 +20,7 @@ export const interactionRoutes = (fastify: FastifyInstance) => {
   fastify.get(
     '/',
     protectedRoute(async (request) =>
-      getUserInteractionsEnriched(
-        fastify.tmdb,
-        fastify.db,
+      fastify.interaction.getUserInteractionsEnriched(
         request.user.id,
         InteractionsQuerySchema.parse(request.query),
       ),
@@ -42,9 +30,7 @@ export const interactionRoutes = (fastify: FastifyInstance) => {
   fastify.get(
     '/attention',
     protectedRoute(async (request) =>
-      getUserActivityAttentionEnriched(
-        fastify.tmdb,
-        fastify.db,
+      fastify.interaction.getUserActivityAttentionEnriched(
         request.user,
         InteractionsQuerySchema.parse(request.query),
       ),

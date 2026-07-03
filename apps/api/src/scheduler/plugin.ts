@@ -18,16 +18,16 @@ const schedulerPlugin = (fastify: FastifyInstance) => {
   // Decorate Fastify instance
   fastify.decorate('scheduler', schedulerService);
 
-  fastify.log.info({ name: 'scheduler' }, 'Scheduler plugin registered');
+  fastify.appLog.info({ name: 'scheduler' }, 'Scheduler plugin registered');
 
   // Cleanup on server close
   fastify.addHook('onClose', () => {
     schedulerService.stopOrchestration();
-    fastify.log.info({ name: 'scheduler' }, 'Scheduler service stopped');
+    fastify.appLog.info({ name: 'scheduler' }, 'Scheduler service stopped');
   });
 };
 
 export default fp(schedulerPlugin, {
   name: 'scheduler',
-  dependencies: ['arr', 'lib', 'catalog'],
+  dependencies: ['arr', 'lib', 'catalog', 'logger'],
 });

@@ -1,8 +1,8 @@
 import { isDefined } from '@findarr/shared/utils';
 import { create, type AxiosInstance } from 'axios';
-import type { FastifyBaseLogger } from 'fastify';
 import { z } from 'zod';
 
+import type { AppLogger } from '../utils/logger.js';
 import type { ArrServiceConfig } from './config.js';
 import {
   ArrSystemStatusSchema,
@@ -35,7 +35,7 @@ export function createArrClient(
   config: ArrServiceConfig,
   baseUrl: string,
   apiKey: string,
-  log: FastifyBaseLogger,
+  appLog: AppLogger,
 ) {
   const client = createHttpClient(baseUrl, apiKey);
   const isSonarr = config.service === 'sonarr';
@@ -47,7 +47,7 @@ export function createArrClient(
         ArrSystemStatusSchema.parse(response.data);
         return true;
       } catch (error) {
-        log.warn({ name: config.service, err: error }, 'Connection test failed');
+        appLog.warn({ name: config.service, err: error }, 'Connection test failed');
         return false;
       }
     },
@@ -138,8 +138,14 @@ export function createArrClient(
         ...config.extraFields,
       };
 
-      const response = await client.post(config.mediaEndpoint, payload);
-      return config.libraryItemSchema.parse(response.data);
+      return appLog.debugTiming(
+        async () => {
+          const response = await client.post(config.mediaEndpoint, payload);
+          return config.libraryItemSchema.parse(response.data);
+        },
+        { name: config.service, title: params.title },
+        `${config.service} request media`,
+      );
     },
 
     async updateLibrarySeasons(seriesId: number, seasons?: number[]) {

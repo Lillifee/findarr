@@ -4,11 +4,7 @@ import { describe, it, expect, beforeEach, vi, afterEach, type Mocked } from 'vi
 
 import { createDatabase, type Database } from '../db/service.js';
 import { hasInteraction, getVoteCounts } from '../interaction/repository.js';
-import {
-  createInteraction,
-  getUserActivityAttentionEnriched,
-  getUserInteractionsEnriched,
-} from '../interaction/service.js';
+import { createInteractionService, type InteractionService } from '../interaction/service.js';
 import { createMedia, getMediaByTmdbId, updateMediaStatus } from '../media/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
 import {
@@ -33,6 +29,41 @@ const interaction: CreateMediaInteraction = {
 const radarrService = createMockRadarrService();
 const sonarrService = createMockSonarrService();
 const catalogService = createMockCatalogService();
+
+// Thin adapters that build the interaction service from the mocked dependencies
+// and delegate to it, so the existing call sites exercise createInteractionService.
+const createInteraction = async (
+  tmdbService: TMDBService,
+  radarr: typeof radarrService,
+  sonarr: typeof sonarrService,
+  catalog: typeof catalogService,
+  db: Database,
+  ...args: Parameters<InteractionService['createInteraction']>
+) =>
+  createInteractionService({ db, tmdb: tmdbService, radarr, sonarr, catalog }).createInteraction(
+    ...args,
+  );
+
+const buildService = (tmdbService: TMDBService, db: Database): InteractionService =>
+  createInteractionService({
+    db,
+    tmdb: tmdbService,
+    radarr: radarrService,
+    sonarr: sonarrService,
+    catalog: catalogService,
+  });
+
+const getUserInteractionsEnriched = async (
+  tmdbService: TMDBService,
+  db: Database,
+  ...args: Parameters<InteractionService['getUserInteractionsEnriched']>
+) => buildService(tmdbService, db).getUserInteractionsEnriched(...args);
+
+const getUserActivityAttentionEnriched = async (
+  tmdbService: TMDBService,
+  db: Database,
+  ...args: Parameters<InteractionService['getUserActivityAttentionEnriched']>
+) => buildService(tmdbService, db).getUserActivityAttentionEnriched(...args);
 
 describe('interaction service - integration tests', () => {
   let db: Database;

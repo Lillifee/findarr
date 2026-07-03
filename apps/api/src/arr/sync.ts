@@ -22,9 +22,9 @@ export async function enrichTvShows(
   context: SchedulerContext,
   queue: ArrLibraryItem[],
 ): Promise<number> {
-  const { log } = context;
+  const { appLog } = context;
 
-  log.info({ name: 'sonarr', totalItems: queue.length }, 'Enriching new TV shows with TMDB IDs');
+  appLog.info({ name: 'sonarr', totalItems: queue.length }, 'Enriching new TV shows with TMDB IDs');
 
   const { successCount } = await processWithWorkerPool({
     items: queue,
@@ -40,10 +40,10 @@ export async function enrichTvShows(
 
       return tmdbId ?? null;
     },
-    log,
+    appLog,
   });
 
-  log.info({ name: 'sonarr', successCount, totalItems: queue.length }, 'Enrichment complete');
+  appLog.info({ name: 'sonarr', successCount, totalItems: queue.length }, 'Enrichment complete');
 
   return successCount;
 }
@@ -56,7 +56,7 @@ export async function syncLibrary(
   context: SchedulerContext,
   arrService: AnyArrService,
 ): Promise<void> {
-  const { db, log } = context;
+  const { db, appLog } = context;
   const { config } = arrService;
   const { mediaType, service } = config;
 
@@ -64,11 +64,11 @@ export async function syncLibrary(
   const libraryItems = await arrService.listLibraryItems();
 
   if (libraryItems.length === 0) {
-    log.info({ name: service }, 'No items found');
+    appLog.info({ name: service }, 'No items found');
     return;
   }
 
-  log.info({ name: service, totalItems: libraryItems.length }, 'Fetched items');
+  appLog.info({ name: service, totalItems: libraryItems.length }, 'Fetched items');
 
   // For TV shows: Enrich with tmdbId during sync to avoid duplicate records
   // This prevents conflicts when Jellyfin already has the same show with tmdbId
@@ -102,7 +102,7 @@ export async function syncLibrary(
 
   const skippedCount = itemsToUpsert.length - itemsWithRequiredIds.length;
   if (skippedCount > 0) {
-    log.warn(
+    appLog.warn(
       { name: service, skippedCount, mediaType },
       'Skipping items missing required external ID',
     );
@@ -116,10 +116,10 @@ export async function syncLibrary(
 
   if (removedArrIds.length > 0) {
     const clearedCount = await clearRemovedArrItems(db, removedArrIds, mediaType);
-    log.info({ name: service, clearedCount }, 'Cleaned up removed items (reset to pending)');
+    appLog.info({ name: service, clearedCount }, 'Cleaned up removed items (reset to pending)');
   }
 
-  log.info({ name: service, totalItems: libraryItems.length }, 'Library synced');
+  appLog.info({ name: service, totalItems: libraryItems.length }, 'Library synced');
 }
 
 /**
@@ -151,7 +151,7 @@ export async function syncQueue(
 
     if (item.trackedDownloadStatus === 'warning') {
       statusMap.set(item.arrId, 'warning');
-      context.log.warn(
+      context.appLog.warn(
         {
           name: arrService.config.service,
           arrId: item.arrId,

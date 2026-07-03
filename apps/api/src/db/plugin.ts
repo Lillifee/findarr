@@ -17,19 +17,20 @@ const databasePlugin: FastifyPluginAsync<DatabasePluginOptions> = async (fastify
   const { dbPath } = options;
   const { db, sqliteDb } = createDatabase(dbPath);
 
-  fastify.log.info({ name: 'db', dbPath }, 'Database initialized');
+  fastify.appLog.info({ name: 'db', dbPath }, 'Database initialized');
 
   // Decorate Fastify instance with Drizzle database
   fastify.decorate('db', db);
-  fastify.log.info({ name: 'db' }, 'Database plugin registered');
+  fastify.appLog.info({ name: 'db' }, 'Database plugin registered');
 
   // Close database connection on shutdown
   fastify.addHook('onClose', () => {
     sqliteDb.close();
-    fastify.log.info({ name: 'db' }, 'Database connection closed');
+    fastify.appLog.info({ name: 'db' }, 'Database connection closed');
   });
 };
 
 export default fp(databasePlugin, {
   name: 'database',
+  dependencies: ['logger'],
 });
