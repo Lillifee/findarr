@@ -27,6 +27,6 @@ export interface LibSettingsFull extends LibSettings {
 // ============================================================================
 
 export interface LibClient {
-  testConnection(): Promise<boolean>;
-  listLibraryItems(baseUrl: string): Promise<LibMedia[]>;
+  testConnection: () => Promise<boolean>;
+  listLibraryItems: (baseUrl: string) => Promise<LibMedia[]>;
 }

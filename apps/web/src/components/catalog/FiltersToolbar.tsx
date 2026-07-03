@@ -58,7 +58,7 @@ function FilterPanel({ description, children, onClose }: FilterPanelProps) {
                 className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:border-zinc-700 hover:bg-zinc-800 hover:text-zinc-100"
               >
                 {t('common.close')}
-                <span aria-hidden>x</span>
+                <span aria-hidden>{t('common.closeSymbol')}</span>
               </button>
             </div>
           </div>
@@ -195,7 +195,7 @@ export function FiltersToolbar({
       <span
         className={`text-sm transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`}
       >
-        ▼
+        {/* oxlint-disable-next-line react/jsx-no-literals */}▼
       </span>
     </button>
   ) : null;

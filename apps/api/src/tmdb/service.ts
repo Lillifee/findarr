@@ -191,7 +191,7 @@ export async function createTMDBService(context: TmdbServiceContext) {
 
     const results = responses.flatMap(({ results: res }) =>
       res.map((item) => {
-        const type = item.type as MediaType;
+        const { type } = item;
         const trendingRank = ranks[type] + 1;
         ranks[type] = trendingRank;
 

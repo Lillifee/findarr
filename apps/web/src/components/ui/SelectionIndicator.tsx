@@ -2,6 +2,8 @@ interface SelectionIndicatorProps {
   selected: boolean;
 }
 
+const CHECKMARK_SYMBOL = '✓';
+
 export function SelectionIndicator({ selected }: SelectionIndicatorProps) {
   return (
     <span
@@ -11,7 +13,7 @@ export function SelectionIndicator({ selected }: SelectionIndicatorProps) {
           : 'border-zinc-700 bg-transparent text-transparent'
       }`}
     >
-      ✓
+      {CHECKMARK_SYMBOL}
     </span>
   );
 }

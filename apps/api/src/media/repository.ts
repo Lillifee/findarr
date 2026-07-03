@@ -14,9 +14,9 @@ import type { MediaStats } from './scoring.js';
  * Get media record by internal database ID
  */
 export const getMediaById = async (db: Database, mediaId: number): Promise<DbMedia | undefined> =>
-  (await db.query.media.findFirst({
+  db.query.media.findFirst({
     where: eq(media.id, mediaId),
-  })) as DbMedia | undefined;
+  });
 
 /**
  * Get media record by TMDB ID and type
@@ -26,9 +26,9 @@ export const getMediaByTmdbId = async (
   tmdbId: number,
   type: MediaType,
 ): Promise<DbMedia | undefined> =>
-  (await db.query.media.findFirst({
+  db.query.media.findFirst({
     where: and(eq(media.tmdbId, tmdbId), eq(media.type, type)),
-  })) as DbMedia | undefined;
+  });
 
 /**
  * Create a new media record in the database
@@ -273,7 +273,7 @@ export const getMediaStats = async (db: Database): Promise<Map<MediaType, MediaS
 
   const statsMap = new Map<MediaType, MediaStats>();
   for (const row of rows) {
-    statsMap.set(row.mediaType, row as MediaStats);
+    statsMap.set(row.mediaType, row);
   }
 
   return statsMap;

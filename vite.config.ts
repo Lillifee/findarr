@@ -116,6 +116,7 @@ export default defineConfig({
       'typescript/parameter-properties': 'off',
       'unicorn/catch-error-name': 'off',
       'unicorn/filename-case': 'off',
+      'unicorn/max-nested-calls': 'off',
       'unicorn/no-nested-ternary': 'off',
       'unicorn/no-null': 'off',
       'vitest/max-expects': 'off',

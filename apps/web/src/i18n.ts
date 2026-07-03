@@ -4,6 +4,8 @@ import { initReactI18next } from 'react-i18next';
 import de from './locales/de.json';
 import en from './locales/en.json';
 
+export { default } from 'i18next';
+
 const [browserLanguage] = navigator.language.split('-');
 const defaultLanguage = browserLanguage === 'de' ? 'de' : 'en';
 
@@ -19,5 +21,3 @@ await i18n.use(initReactI18next).init({
     escapeValue: false,
   },
 });
-
-export default i18n;

@@ -65,15 +65,17 @@ export async function getExistingTvdbIdSet(db: Database): Promise<Set<number>> {
   return new Set(results.map((r) => r.tvdbId).filter((x) => isDefined(x)));
 }
 
+export type UpsertArrMedia = Pick<
+  DbMedia,
+  'type' | 'tvdbId' | 'tmdbId' | 'arrId' | 'arrUrl' | 'status' | 'seasons'
+>;
+
 /**
  * Upsert media from Radarr/Sonarr sync (batched for performance)
  * Movies: Use tmdbId constraint
  * TV shows: Use tmdbId constraint if available (enriched), otherwise tvdbId
  */
-export async function upsertMediaFromArr(
-  db: Database,
-  items: Pick<DbMedia, 'type' | 'tvdbId' | 'tmdbId' | 'arrId' | 'arrUrl' | 'status' | 'seasons'>[],
-): Promise<void> {
+export async function upsertMediaFromArr(db: Database, items: UpsertArrMedia[]): Promise<void> {
   if (items.length === 0) {
     return;
   }
@@ -228,7 +230,7 @@ export async function getArrSettings(
     apiKey: storedSettings[fields.apiKey] ?? null,
     apiKeySet: isDefined(storedSettings[fields.apiKey]),
     qualityProfileId: isDefined(qualityProfileIdValue)
-      ? Number.parseInt(qualityProfileIdValue, 10)
+      ? Math.trunc(Number(qualityProfileIdValue))
       : null,
     rootFolderPath: storedSettings[fields.rootFolderPath] ?? null,
     enabled: isDefined(storedSettings[fields.enabled])
@@ -250,5 +252,5 @@ export async function setArrSettings(
     [fields.qualityProfileId]: settings.qualityProfileId?.toString(),
     [fields.rootFolderPath]: settings.rootFolderPath,
     [fields.enabled]: settings.enabled?.toString(),
-  } as Record<string, string | undefined>);
+  });
 }

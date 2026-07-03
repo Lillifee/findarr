@@ -21,7 +21,7 @@ export function jellyfinItemToMedia(item: JellyfinItem, baseUrl: string): LibMed
     return undefined;
   }
 
-  const tmdbIdNum = Number.parseInt(tmdbId, 10);
+  const tmdbIdNum = Math.trunc(Number(tmdbId));
   if (Number.isNaN(tmdbIdNum)) {
     return undefined;
   }

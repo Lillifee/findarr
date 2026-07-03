@@ -7,9 +7,9 @@ allowBuilds:
   esbuild: true
 
 catalog:
-  vite: npm:@voidzero-dev/vite-plus-core@latest
-  vitest: npm:@voidzero-dev/vite-plus-test@latest
-  vite-plus: ^0.1.23
+  vite: npm:@voidzero-dev/vite-plus-core@0.2.2
+  vitest: 4.1.9
+  vite-plus: 0.2.2
   typescript: ^6.0.3
 
 overrides:
