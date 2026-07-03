@@ -113,7 +113,8 @@
   "logs": {
     "title": "Ereignisse",
     "description": "Die neuesten Anwendungsereignisse (300 Einträge) zur schnellen Fehlersuche anzeigen.",
-    "refresh": "Aktualisieren"
+    "refresh": "Aktualisieren",
+    "level": "Log-Level"
   },
   "activity": {
     "title": "Meine Aktivität",

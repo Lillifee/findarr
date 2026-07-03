@@ -8,7 +8,7 @@ import type {
 } from '@findarr/shared/auth';
 import type { SearchQuery, PopularQuery, DetailsQuery, GenresQuery } from '@findarr/shared/catalog';
 import type { AvailableMediaQuery, InteractionsQuery } from '@findarr/shared/interaction';
-import type { LogsResponse } from '@findarr/shared/logs';
+import type { LogLevel, LogLevelResponse, LogsResponse } from '@findarr/shared/logs';
 import type {
   AvailableMediaResponse,
   SearchResponse,
@@ -268,5 +268,15 @@ export const adminLogsService = {
   getLogs: async (): Promise<LogsResponse> => {
     const response = await api.get<LogsResponse>('/admin/logs');
     return response.data;
+  },
+  // Get the current runtime log level
+  getLevel: async (): Promise<LogLevel> => {
+    const response = await api.get<LogLevelResponse>('/admin/logs/level');
+    return response.data.level;
+  },
+  // Set the runtime log level (not persisted across restarts)
+  setLevel: async (level: LogLevel): Promise<LogLevel> => {
+    const response = await api.put<LogLevelResponse>('/admin/logs/level', { level });
+    return response.data.level;
   },
 };

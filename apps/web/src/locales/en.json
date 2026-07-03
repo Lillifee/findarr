@@ -113,7 +113,8 @@
   "logs": {
     "title": "Logs",
     "description": "View the most recent application logs (300 entries) for quick troubleshooting.",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "level": "Log level"
   },
   "activity": {
     "title": "Your Activity",
