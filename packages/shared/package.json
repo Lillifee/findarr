@@ -47,6 +47,10 @@
     "./env": {
       "types": "./dist/env.d.mts",
       "import": "./dist/env.mjs"
+    },
+    "./logs": {
+      "types": "./dist/logs.d.mts",
+      "import": "./dist/logs.mjs"
     }
   },
   "scripts": {

@@ -120,6 +120,11 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                       <Icon name="schedule" />
                       <span className="text-sm font-medium">{t('nav.schedulers')}</span>
                     </NavLink>
+
+                    <NavLink to="/admin/logs" className={navLinkClass}>
+                      <Icon name="checklist" />
+                      <span className="text-sm font-medium">{t('nav.logs')}</span>
+                    </NavLink>
                   </>
                 )}
 
@@ -243,6 +248,17 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                   >
                     <Icon name="schedule" />
                     <span className="font-medium">{t('nav.schedulers')}</span>
+                  </NavLink>
+
+                  <NavLink
+                    to="/admin/logs"
+                    onClick={() => {
+                      setMobileAdvancedOpen(false);
+                    }}
+                    className={navLinkClass}
+                  >
+                    <Icon name="checklist" />
+                    <span className="font-medium">{t('nav.logs')}</span>
                   </NavLink>
                 </>
               )}

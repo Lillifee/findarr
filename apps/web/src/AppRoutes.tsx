@@ -22,6 +22,7 @@ const IntegrationsPage = lazyPage(
   'IntegrationsPage',
 );
 const SchedulersPage = lazyPage(async () => import('./pages/SchedulersPage'), 'SchedulersPage');
+const LogsPage = lazyPage(async () => import('./pages/LogsPage'), 'LogsPage');
 
 interface AppRoutesProps {
   isAdmin: boolean;
@@ -43,6 +44,7 @@ export function AppRoutes({ isAdmin }: AppRoutesProps) {
             <Route path="/admin/users" element={<UsersPage />} />
             <Route path="/admin/integrations" element={<IntegrationsPage />} />
             <Route path="/admin/schedulers" element={<SchedulersPage />} />
+            <Route path="/admin/logs" element={<LogsPage />} />
           </>
         )}
         <Route path="*" element={<Navigate to="/" replace />} />

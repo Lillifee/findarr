@@ -14,6 +14,7 @@ export default defineConfig({
       'src/constants.ts',
       'src/utils.ts',
       'src/env.ts',
+      'src/logs.ts',
     ],
     dts: true,
   },

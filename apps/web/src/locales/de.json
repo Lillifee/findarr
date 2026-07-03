@@ -26,6 +26,7 @@
     "users": "Benutzer",
     "integrations": "Integrationen",
     "schedulers": "Aufgaben",
+    "logs": "Ereignisse",
     "more": "Mehr",
     "account": "Konto",
     "logout": "Abmelden",
@@ -108,6 +109,11 @@
     "trigger": "Ausführen",
     "stop": "Stoppen",
     "start": "Starten"
+  },
+  "logs": {
+    "title": "Ereignisse",
+    "description": "Die neuesten Anwendungsereignisse (300 Einträge) zur schnellen Fehlersuche anzeigen.",
+    "refresh": "Aktualisieren"
   },
   "activity": {
     "title": "Meine Aktivität",
