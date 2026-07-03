@@ -17,6 +17,7 @@ import type { FastifyBaseLogger } from 'fastify';
 
 import type { Database } from '../db/service.js';
 import type { SchedulerService } from '../scheduler/service.js';
+import { createLruTtlCache } from '../utils/cacheHelper.js';
 import { createClientLifecycle } from '../utils/clientLifecycleHepler.js';
 import { createTMDBClient, type TMDBClient } from './client.js';
 import { buildDiscoverParams } from './helpers.js';
@@ -38,6 +39,7 @@ export interface TmdbServiceContext {
  */
 export async function createTMDBService(context: TmdbServiceContext) {
   const genreMap = new Map<number, Genre>();
+  const detailsCache = createLruTtlCache<MediaDetails>(60_000, 500);
 
   const lifecycle = createClientLifecycle<TmdbSettingsFull, TMDBClient>({
     name: 'TMDB',
@@ -210,8 +212,10 @@ export async function createTMDBService(context: TmdbServiceContext) {
   async function details(params: DetailsQuery): Promise<MediaDetails> {
     const { id, type, language = 'en-US' } = params;
 
-    const tmdbMovie = await lifecycle.client().details(type, { id, language });
-    return transformDetails(tmdbMovie);
+    return detailsCache.getOrLoad(`${id}:${type}:${language}`, async () => {
+      const tmdbMovie = await lifecycle.client().details(type, { id, language });
+      return transformDetails(tmdbMovie);
+    });
   }
 
   /**

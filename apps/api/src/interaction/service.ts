@@ -172,7 +172,7 @@ export const createInteraction = async (
     await requestMediaToArr(tmdbService, radarrService, sonarrService, media, data);
   }
 
-  // Update user genre preferences (fire-and-forget - don't block response)
+  // Update user genre preferences based on the interaction.
   await updateUserPreferences(tmdbService, db, data, user.id, isToggle);
 
   // Return enriched media with updated state using catalog service
