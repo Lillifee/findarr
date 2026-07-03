@@ -54,8 +54,8 @@
     "dev": "vp pack --watch --no-clean"
   },
   "dependencies": {
-    "drizzle-orm": "^0.45.1",
-    "zod": "^4.3.6"
+    "drizzle-orm": "^0.45.2",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "typescript": "catalog:",
