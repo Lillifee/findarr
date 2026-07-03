@@ -1,42 +1,61 @@
+# syntax=docker/dockerfile:1
+
 # =========================
 # 🏗️ Build stage
 # =========================
-FROM node:24-bookworm-slim AS build
+# Official Vite+ toolchain image: bundles `vp` + a native build toolchain
+# (build-essential, python3) and provisions the exact Node.js from .node-version.
+FROM ghcr.io/voidzero-dev/vite-plus:0.2.2 AS build
 
 WORKDIR /app
 
-# Install CA certificates (required by vp pack, ~400KB)
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates && \
-    rm -rf /var/lib/apt/lists/*
+# Copy workspace metadata for dependency installation (better layer caching).
+# The image runs as the non-root `vp` user, so copy with --chown=vp:vp.
+COPY --chown=vp:vp package.json pnpm-lock.yaml pnpm-workspace.yaml .node-version ./
 
-# Enable pnpm
-RUN corepack enable
+COPY --chown=vp:vp packages/shared/package.json ./packages/shared/package.json
+COPY --chown=vp:vp apps/api/package.json ./apps/api/package.json
+COPY --chown=vp:vp apps/web/package.json ./apps/web/package.json
 
-# Copy workspace metadata for dependency installation
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-
-COPY packages/shared/package.json ./packages/shared/package.json
-COPY apps/api/package.json ./apps/api/package.json
-COPY apps/web/package.json ./apps/web/package.json
-
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile
+RUN vp install --frozen-lockfile
 
 # Copy source code
-COPY vite.config.ts ./
-COPY packages/shared ./packages/shared
-COPY apps/api ./apps/api
-COPY apps/web ./apps/web
+COPY --chown=vp:vp vite.config.ts ./
+COPY --chown=vp:vp packages/shared ./packages/shared
+COPY --chown=vp:vp apps/api ./apps/api
+COPY --chown=vp:vp apps/web ./apps/web
 
-# Build all workspaces
-RUN pnpm build
+# Build all workspaces (topological)
+RUN vp run -r build
+
+# Export the exact resolved Node.js binary for the runtime stage.
+RUN cp "$(vp env which node | head -1)" /tmp/node
+
+
+# =========================
+# 📦 Production deps stage
+# =========================
+# A separate --prod install so devDependencies (including the vite-plus
+# toolchain) are excluded from the runtime image.
+FROM ghcr.io/voidzero-dev/vite-plus:0.2.2 AS deps
+
+WORKDIR /app
+
+COPY --chown=vp:vp package.json pnpm-lock.yaml pnpm-workspace.yaml .node-version ./
+COPY --chown=vp:vp packages/shared/package.json ./packages/shared/package.json
+COPY --chown=vp:vp apps/api/package.json ./apps/api/package.json
+COPY --chown=vp:vp apps/web/package.json ./apps/web/package.json
+
+RUN vp install --frozen-lockfile --prod
 
 
 # =========================
 # 🚀 Runtime stage
 # =========================
-FROM node:24-bookworm-slim AS runtime
+# Small, vp-free, glibc runtime. Only the resolved Node.js binary, production
+# dependencies, and built artifacts are copied in. An entrypoint repairs the
+# data-volume ownership on startup, then drops privileges to the `node` user.
+FROM debian:bookworm-slim AS runtime
 
 WORKDIR /app
 
@@ -54,21 +73,18 @@ LABEL org.opencontainers.image.licenses="MIT"
 ENV NODE_ENV=production
 ENV DATA_PATH=/app/apps/api/data
 
-RUN corepack enable
+# Non-root runtime user (the entrypoint drops to it via runuser).
+RUN groupadd -g 1000 node && useradd -u 1000 -g node -m node
+
+# The exact Node.js from .node-version (official, signature-verified build).
+COPY --from=build /tmp/node /usr/local/bin/node
 
 # -------------------------
 # 📁 App files (only what is needed at runtime)
 # -------------------------
 
-# Workspace metadata
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages/shared/package.json ./packages/shared/package.json
-COPY apps/api/package.json ./apps/api/package.json
-COPY apps/web/package.json ./apps/web/package.json
-
-# Install production deps
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --prod --frozen-lockfile
+# Production dependencies + workspace manifests/symlinks (all workspaces).
+COPY --from=deps /app ./
 
 # Built artifacts
 COPY --from=build /app/packages/shared/dist ./packages/shared/dist
