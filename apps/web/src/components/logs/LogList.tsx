@@ -1,4 +1,4 @@
-import type { LogEntry } from '@findarr/shared/logs';
+import { LOG_BUFFER_LIMIT, type LogEntry } from '@findarr/shared/logs';
 import { isNotEmpty } from '@findarr/shared/utils';
 import { useEffect, useRef } from 'react';
 
@@ -42,6 +42,7 @@ interface LogListProps {
 
 export function LogList({ logs }: LogListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const truncated = logs.length >= LOG_BUFFER_LIMIT;
 
   useEffect(() => {
     const container = containerRef.current;
@@ -53,8 +54,13 @@ export function LogList({ logs }: LogListProps) {
   return (
     <div
       ref={containerRef}
-      className="min-h-0 flex-1 overflow-auto rounded-lg border border-zinc-800 bg-zinc-950 py-1 font-mono text-xs leading-relaxed"
+      className="min-h-0 flex-1 overflow-auto rounded-lg border border-zinc-800 bg-zinc-950 py-2 font-mono text-xs leading-relaxed"
     >
+      {truncated && (
+        <div className="px-3 py-0.5 text-zinc-600 select-none">
+          {`… older entries dropped (showing last ${LOG_BUFFER_LIMIT}). Check docker sys logs for full output.`}
+        </div>
+      )}
       {logs.map((entry) => (
         <LogRow key={entry.id} entry={entry} />
       ))}

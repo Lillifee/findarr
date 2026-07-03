@@ -33,9 +33,11 @@ export function buildLogger(isProduction: boolean, bufferStream: Writable): Fast
       level,
       serializers: { err: errSerializer },
     },
+    // Streams accept everything; the logger's own `level` is the single runtime gate,
+    // so it can be changed at runtime (admin log-level control).
     multistream([
-      { level, stream: consoleStream },
-      { level, stream: bufferStream },
+      { level: 'trace', stream: consoleStream },
+      { level: 'trace', stream: bufferStream },
     ]),
   );
 }

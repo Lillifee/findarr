@@ -1,8 +1,6 @@
 import { Writable } from 'node:stream';
 
-import type { LogEntry } from '@findarr/shared/logs';
-
-const MAX_ENTRIES = 300;
+import { LOG_BUFFER_LIMIT, type LogEntry } from '@findarr/shared/logs';
 
 const LEVEL_LABELS: Record<number, string> = {
   10: 'trace',
@@ -41,7 +39,7 @@ function normalize(raw: Record<string, unknown>): Omit<LogEntry, 'id'> {
   return entry;
 }
 
-export function createLoggerService(maxEntries: number = MAX_ENTRIES) {
+export function createLoggerService(maxEntries: number = LOG_BUFFER_LIMIT) {
   const entries: LogEntry[] = [];
   let nextId = 0;
 
