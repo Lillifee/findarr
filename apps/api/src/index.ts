@@ -15,6 +15,9 @@ import { catalogRoutes } from './catalog/routes.js';
 import databasePlugin from './db/plugin.js';
 import { interactionRoutes } from './interaction/routes.js';
 import libPlugin from './lib/plugin.js';
+import loggerPlugin from './logging/plugin.js';
+import { adminLogsRoutes } from './logging/routes.js';
+import { createLoggerService } from './logging/service.js';
 import schedulerPlugin from './scheduler/plugin.js';
 import { adminSchedulerRoutes, schedulerRoutes } from './scheduler/routes.js';
 import tmdbPlugin from './tmdb/plugin.js';
@@ -29,9 +32,11 @@ dotenv.config();
 const env = ServerEnvSchema.parse(process.env);
 const dataPath = env.DATA_PATH;
 
+const loggerService = createLoggerService();
+
 const server = fastify({
   disableRequestLogging: true,
-  logger: buildLogger(env.NODE_ENV === 'production'),
+  loggerInstance: buildLogger(env.NODE_ENV === 'production', loggerService.createStream()),
 });
 
 async function start() {
@@ -53,6 +58,7 @@ async function start() {
 
     // Register plugins
     await server.register(databasePlugin, { dbPath: path.join(dataPath, 'findarr.db') });
+    await server.register(loggerPlugin, { service: loggerService });
     await server.register(authPlugin, { secretPath: path.join(dataPath, 'session.secret') });
     await server.register(tmdbPlugin);
 
@@ -73,6 +79,7 @@ async function start() {
     await server.register(catalogRoutes, { prefix: '/api' });
     await server.register(schedulerRoutes, { prefix: '/api' });
     await server.register(adminSchedulerRoutes, { prefix: '/api/admin' });
+    await server.register(adminLogsRoutes, { prefix: '/api/admin' });
 
     // Start scheduler orchestration
     server.scheduler.startOrchestration();

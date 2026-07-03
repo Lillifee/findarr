@@ -26,6 +26,7 @@
     "users": "Users",
     "integrations": "Integrations",
     "schedulers": "Schedulers",
+    "logs": "Logs",
     "more": "More",
     "account": "Account",
     "logout": "Logout",
@@ -108,6 +109,11 @@
     "trigger": "Trigger",
     "stop": "Stop",
     "start": "Start"
+  },
+  "logs": {
+    "title": "Logs",
+    "description": "View the most recent application logs (300 entries) for quick troubleshooting.",
+    "refresh": "Refresh"
   },
   "activity": {
     "title": "Your Activity",

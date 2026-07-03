@@ -1,36 +1,41 @@
-import type { PinoLoggerOptions } from 'fastify/types/logger';
+import type { Writable } from 'node:stream';
 
-export function buildLogger(isProduction: boolean): PinoLoggerOptions {
-  const config: PinoLoggerOptions = {
-    level: 'info',
-    serializers: {
-      err: (err: Error & { code?: string; status?: number; response?: { data?: unknown } }) => ({
-        type: err.name,
-        message: err.message,
-        code: err.code,
-        status: err.status,
-        data: err.response?.data,
-        stack: err.stack ?? 'no stack trace',
-      }),
-    },
-  };
+import type { FastifyBaseLogger } from 'fastify';
+import { multistream, pino } from 'pino';
+import pretty from 'pino-pretty';
 
-  if (isProduction) {
-    return config;
-  }
+const errSerializer = (
+  err: Error & { code?: string; status?: number; response?: { data?: unknown } },
+) => ({
+  type: err.name,
+  message: err.message,
+  code: err.code,
+  status: err.status,
+  data: err.response?.data,
+  stack: err.stack ?? 'no stack trace',
+});
 
-  return {
-    ...config,
-    level: 'debug',
-    transport: {
-      target: 'pino-pretty',
-      options: {
+export function buildLogger(isProduction: boolean, bufferStream: Writable): FastifyBaseLogger {
+  const level = isProduction ? 'info' : 'debug';
+
+  const consoleStream = isProduction
+    ? process.stdout
+    : pretty({
         colorize: true,
         translateTime: 'HH:MM:ss',
         ignore: 'pid,hostname,req,res',
         singleLine: true,
         messageFormat: '{msg}',
-      },
+      });
+
+  return pino(
+    {
+      level,
+      serializers: { err: errSerializer },
     },
-  };
+    multistream([
+      { level, stream: consoleStream },
+      { level, stream: bufferStream },
+    ]),
+  );
 }

@@ -8,6 +8,7 @@ import type {
 } from '@findarr/shared/auth';
 import type { SearchQuery, PopularQuery, DetailsQuery, GenresQuery } from '@findarr/shared/catalog';
 import type { AvailableMediaQuery, InteractionsQuery } from '@findarr/shared/interaction';
+import type { LogsResponse } from '@findarr/shared/logs';
 import type {
   AvailableMediaResponse,
   SearchResponse,
@@ -258,5 +259,14 @@ export const adminSchedulerService = {
   // Stop/disable a scheduler
   stop: async (name: string): Promise<void> => {
     await api.post(`/admin/schedulers/${name}/stop`);
+  },
+};
+
+// Admin logs service
+export const adminLogsService = {
+  // Get recent application logs
+  getLogs: async (): Promise<LogsResponse> => {
+    const response = await api.get<LogsResponse>('/admin/logs');
+    return response.data;
   },
 };
