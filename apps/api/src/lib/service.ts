@@ -1,11 +1,11 @@
 import type { LibSettings, LibSettingsQuery } from '@findarr/shared/settings';
 import { isDefined } from '@findarr/shared/utils';
-import type { FastifyBaseLogger } from 'fastify';
 
 import type { Database } from '../db/service.js';
 import type { SchedulerService } from '../scheduler/service.js';
 import { createClientLifecycle } from '../utils/clientLifecycleHepler.js';
 import { trimTrailingSlash } from '../utils/links.js';
+import type { AppLogger } from '../utils/logger.js';
 import type { LibServiceConfig } from './config.js';
 import { createJellyfinLibClient } from './jellyfin/client.js';
 import { createPlexLibClient } from './plex/client.js';
@@ -14,7 +14,7 @@ import type { LibClient, LibMedia, LibSettingsFull } from './types.js';
 
 const clientFactories: Record<
   string,
-  (url: string, credential: string, log: FastifyBaseLogger) => LibClient
+  (url: string, credential: string, appLog: AppLogger) => LibClient
 > = {
   jellyfin: createJellyfinLibClient,
   plex: createPlexLibClient,
@@ -22,7 +22,7 @@ const clientFactories: Record<
 
 export interface LibServiceContext {
   db: Database;
-  log: FastifyBaseLogger;
+  appLog: AppLogger;
   scheduler: SchedulerService;
 }
 
@@ -36,13 +36,16 @@ export async function createLibService(config: LibServiceConfig, context: LibSer
       }
       const factory = clientFactories[config.service];
       return factory && isDefined(settings.url) && isDefined(settings.apiKey)
-        ? factory(settings.url, settings.apiKey, context.log)
+        ? factory(settings.url, settings.apiKey, context.appLog)
         : undefined;
     },
   });
 
   await lifecycle.reload().catch(() => {
-    context.log.error({ name: config.service }, `Failed to initialize ${config.service} service`);
+    context.appLog.error(
+      { name: config.service },
+      `Failed to initialize ${config.service} service`,
+    );
   });
 
   function getSettings(): LibSettings {
@@ -83,7 +86,11 @@ export async function createLibService(config: LibServiceConfig, context: LibSer
   async function listLibraryItems(): Promise<LibMedia[]> {
     const { url } = getSettings();
     const baseUrl = isDefined(url) ? trimTrailingSlash(url) : '';
-    return lifecycle.client().listLibraryItems(baseUrl);
+    return context.appLog.debugTiming(
+      async () => lifecycle.client().listLibraryItems(baseUrl),
+      { name: config.service },
+      `${config.service} list library items`,
+    );
   }
 
   return {

@@ -1,7 +1,7 @@
 import { isDefined } from '@findarr/shared/utils';
 import { create, type AxiosInstance } from 'axios';
-import type { FastifyBaseLogger } from 'fastify';
 
+import type { AppLogger } from '../../utils/logger.js';
 import type { LibClient, LibMedia } from '../types.js';
 import { JellyfinItemsResponseSchema } from './schemas.js';
 import { jellyfinItemToMedia } from './transformers.js';
@@ -25,7 +25,7 @@ function createHttpClient(baseUrl: string, apiKey: string): AxiosInstance {
 export function createJellyfinLibClient(
   baseUrl: string,
   apiKey: string,
-  log: FastifyBaseLogger,
+  appLog: AppLogger,
 ): LibClient {
   const client = createHttpClient(baseUrl, apiKey);
 
@@ -52,7 +52,7 @@ export function createJellyfinLibClient(
         const response = await client.get('/System/Info/Public', { timeout: 5000 });
         return response.status === 200;
       } catch (error) {
-        log.warn({ name: 'jellyfin', err: error }, 'Connection test failed');
+        appLog.warn({ name: 'jellyfin', err: error }, 'Connection test failed');
         return false;
       }
     },
@@ -94,7 +94,7 @@ export function createJellyfinLibClient(
               item.availableSeasons = seasonNumbers;
             }
           } catch (err) {
-            log.debug(
+            appLog.debug(
               { name: 'jellyfin', libId: item.libId, err },
               'Season lookup failed, skipping',
             );

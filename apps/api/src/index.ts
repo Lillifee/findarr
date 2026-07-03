@@ -13,11 +13,12 @@ import { authRoutes, protectedAuthRoutes } from './auth/routes.js';
 import catalogPlugin from './catalog/plugin.js';
 import { catalogRoutes } from './catalog/routes.js';
 import databasePlugin from './db/plugin.js';
+import interactionPlugin from './interaction/plugin.js';
 import { interactionRoutes } from './interaction/routes.js';
 import libPlugin from './lib/plugin.js';
 import loggerPlugin from './logging/plugin.js';
 import { adminLogsRoutes } from './logging/routes.js';
-import { createLoggerService } from './logging/service.js';
+import { createLogStore } from './logging/service.js';
 import schedulerPlugin from './scheduler/plugin.js';
 import { adminSchedulerRoutes, schedulerRoutes } from './scheduler/routes.js';
 import tmdbPlugin from './tmdb/plugin.js';
@@ -32,11 +33,11 @@ dotenv.config();
 const env = ServerEnvSchema.parse(process.env);
 const dataPath = env.DATA_PATH;
 
-const loggerService = createLoggerService();
+const logStore = createLogStore();
 
 const server = fastify({
   disableRequestLogging: true,
-  loggerInstance: buildLogger(env.NODE_ENV === 'production', loggerService.createStream()),
+  loggerInstance: buildLogger(env.NODE_ENV === 'production', logStore.createStream()),
 });
 
 async function start() {
@@ -57,14 +58,15 @@ async function start() {
     });
 
     // Register plugins
+    await server.register(loggerPlugin, { service: logStore });
     await server.register(databasePlugin, { dbPath: path.join(dataPath, 'findarr.db') });
-    await server.register(loggerPlugin, { service: loggerService });
     await server.register(authPlugin, { secretPath: path.join(dataPath, 'session.secret') });
     await server.register(tmdbPlugin);
 
     await server.register(libPlugin);
     await server.register(arrPlugin);
     await server.register(catalogPlugin);
+    await server.register(interactionPlugin);
     await server.register(schedulerPlugin);
 
     // Health check endpoint

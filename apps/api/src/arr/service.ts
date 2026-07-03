@@ -1,11 +1,11 @@
 import type { ArrSettings, ArrSettingsQuery } from '@findarr/shared/settings';
 import { isDefined } from '@findarr/shared/utils';
-import type { FastifyBaseLogger } from 'fastify';
 
 import type { Database } from '../db/service.js';
 import type { SchedulerService } from '../scheduler/service.js';
 import { createClientLifecycle } from '../utils/clientLifecycleHepler.js';
 import { trimTrailingSlash } from '../utils/links.js';
+import type { AppLogger } from '../utils/logger.js';
 import { createArrClient, type ArrClient } from './client.js';
 import type { arrConfig, ArrServiceConfig } from './config.js';
 import { getArrSettings, setArrSettings, updateMediaIds } from './repository.js';
@@ -15,7 +15,7 @@ import type { ArrSettingsFull } from './types.js';
 
 export interface ArrServiceContext {
   db: Database;
-  log: FastifyBaseLogger;
+  appLog: AppLogger;
   scheduler: SchedulerService;
 }
 
@@ -28,12 +28,12 @@ export async function createArrService<T extends ArrServiceConfig>(
     loadSettings: async () => getArrSettings(context.db, config),
     createClient: (settings) =>
       settings.enabled && isDefined(settings.url) && isDefined(settings.apiKey)
-        ? createArrClient(config, settings.url, settings.apiKey, context.log)
+        ? createArrClient(config, settings.url, settings.apiKey, context.appLog)
         : undefined,
   });
 
   await lifecycle.reload().catch((error: unknown) => {
-    context.log.error({ name: config.service, error }, 'Failed to initialize Arr service');
+    context.appLog.error({ name: config.service, error }, 'Failed to initialize Arr service');
   });
 
   function getSettings(): ArrSettings {

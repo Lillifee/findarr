@@ -7,8 +7,9 @@ import type { Database } from '../../db/service.js';
 import { libConfig } from '../../lib/config.js';
 import type { LibService } from '../../lib/service.js';
 import type { SchedulerService } from '../../scheduler/service.js';
-import type { LoggerService, SchedulerContext } from '../../scheduler/types.js';
+import type { SchedulerContext } from '../../scheduler/types.js';
 import type { TMDBService } from '../../tmdb/service.js';
+import type { AppLogger } from '../../utils/logger.js';
 import { createTestMovieDetail, createTestTVDetail } from './testHelper.js';
 
 // Mock factories for the application services. Each returns a fully mocked
@@ -175,16 +176,24 @@ export function createMockSchedulerService(
   };
 }
 
-export function createMockLoggerService(
-  overrides: Partial<Mocked<LoggerService>> = {},
-): Mocked<LoggerService> {
-  return {
-    debug: vi.fn<LoggerService['debug']>(),
-    info: vi.fn<LoggerService['info']>(),
-    error: vi.fn<LoggerService['error']>(),
-    warn: vi.fn<LoggerService['warn']>(),
+export function createMockAppLogger(overrides: Partial<Mocked<AppLogger>> = {}): Mocked<AppLogger> {
+  const logger = {
+    trace: vi.fn<AppLogger['trace']>(),
+    debug: vi.fn<AppLogger['debug']>(),
+    info: vi.fn<AppLogger['info']>(),
+    error: vi.fn<AppLogger['error']>(),
+    warn: vi.fn<AppLogger['warn']>(),
+    fatal: vi.fn<AppLogger['fatal']>(),
+    debugTiming: vi
+      .fn<AppLogger['debugTiming']>()
+      .mockImplementation(async (fn: () => Promise<unknown>) => fn()),
     ...overrides,
   };
+
+  // `debugTiming` is generic, which a mock cannot express exactly, so assert
+  // the fully-populated shape here.
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+  return logger as unknown as Mocked<AppLogger>;
 }
 
 export function createMockSchedulerContext(
@@ -193,7 +202,7 @@ export function createMockSchedulerContext(
 ): SchedulerContext {
   return {
     db,
-    log: createMockLoggerService(),
+    appLog: createMockAppLogger(),
     tmdb: createMockTMDBService(),
     jellyfin: createMockJellyfinService(),
     plex: createMockPlexService(),

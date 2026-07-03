@@ -39,7 +39,7 @@ function normalize(raw: Record<string, unknown>): Omit<LogEntry, 'id'> {
   return entry;
 }
 
-export function createLoggerService(maxEntries: number = LOG_BUFFER_LIMIT) {
+export function createLogStore(maxEntries: number = LOG_BUFFER_LIMIT) {
   const entries: LogEntry[] = [];
   let nextId = 0;
 
@@ -80,4 +80,4 @@ export function createLoggerService(maxEntries: number = LOG_BUFFER_LIMIT) {
   return { getLogs, createStream };
 }
 
-export type LoggerService = ReturnType<typeof createLoggerService>;
+export type LogStore = ReturnType<typeof createLogStore>;

@@ -1,7 +1,7 @@
 import type { MediaType } from '@findarr/shared/media';
 import { create, type AxiosInstance } from 'axios';
-import type { FastifyBaseLogger } from 'fastify';
 
+import type { AppLogger } from '../utils/logger.js';
 import {
   type TMDBSearchParams,
   type TMDBTVSearchParams,
@@ -26,7 +26,7 @@ function createHttpClient(accessToken: string): AxiosInstance {
   });
 }
 
-export function createTMDBClient(accessToken: string, log: FastifyBaseLogger) {
+export function createTMDBClient(accessToken: string, appLog: AppLogger) {
   const client = createHttpClient(accessToken);
 
   async function test(): Promise<boolean> {
@@ -34,15 +34,21 @@ export function createTMDBClient(accessToken: string, log: FastifyBaseLogger) {
       const auth = await client.get<{ success?: boolean }>('/authentication');
       return auth.data?.success ?? false;
     } catch (error) {
-      log.warn({ name: 'tmdb', err: error }, 'Connection test failed');
+      appLog.warn({ name: 'tmdb', err: error }, 'Connection test failed');
       return false;
     }
   }
 
   /** Search for movies or tv shows */
   async function search(type: MediaType, params: TMDBSearchParams | TMDBTVSearchParams) {
-    const response = await client.get(`/search/${type}`, { params });
-    return TMDBSearchResponseSchema.parse(response.data);
+    return appLog.debugTiming(
+      async () => {
+        const response = await client.get(`/search/${type}`, { params });
+        return TMDBSearchResponseSchema.parse(response.data);
+      },
+      { name: 'tmdb', type, params },
+      'tmdb search request',
+    );
   }
 
   /**
@@ -50,17 +56,29 @@ export function createTMDBClient(accessToken: string, log: FastifyBaseLogger) {
    * All TMDB discover parameters are supported - see TMDBDiscoverParams interface for full list.
    */
   async function discover(type: MediaType, params: Partial<TMDBDiscoverParams>) {
-    const response = await client.get(`/discover/${type}`, { params });
-    return TMDBSearchResponseSchema.parse(response.data);
+    return appLog.debugTiming(
+      async () => {
+        const response = await client.get(`/discover/${type}`, { params });
+        return TMDBSearchResponseSchema.parse(response.data);
+      },
+      { name: 'tmdb', type, params },
+      'tmdb discover request',
+    );
   }
 
   /** Get trending movies or shows */
   async function trending(type: MediaType, params: TMDBTrendingParams = {}) {
     const { time_window = 'week', page = 1, language } = params;
-    const response = await client.get(`/trending/${type}/${time_window}`, {
-      params: { page, language },
-    });
-    return TMDBSearchResponseSchema.parse(response.data);
+    return appLog.debugTiming(
+      async () => {
+        const response = await client.get(`/trending/${type}/${time_window}`, {
+          params: { page, language },
+        });
+        return TMDBSearchResponseSchema.parse(response.data);
+      },
+      { name: 'tmdb', type, time_window, params },
+      'tmdb trending request',
+    );
   }
 
   /**
@@ -74,12 +92,19 @@ export function createTMDBClient(accessToken: string, log: FastifyBaseLogger) {
       append_to_response = 'credits,keywords,external_ids,videos',
       ...queryParams
     } = params;
-    const response = await client.get(`/${type}/${id}`, {
-      params: { ...queryParams, append_to_response },
-    });
-    return type === 'movie'
-      ? TMDBMovieDetailsSchema.parse(response.data)
-      : TMDBTVDetailsSchema.parse(response.data);
+    return appLog.debugTiming(
+      async () => {
+        const response = await client.get(`/${type}/${id}`, {
+          params: { ...queryParams, append_to_response },
+        });
+
+        return type === 'movie'
+          ? TMDBMovieDetailsSchema.parse(response.data)
+          : TMDBTVDetailsSchema.parse(response.data);
+      },
+      { name: 'tmdb', type, id, params },
+      'tmdb details request',
+    );
   }
 
   /** Get movie or tv genres */

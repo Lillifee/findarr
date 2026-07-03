@@ -10,6 +10,8 @@ import authPlugin from '../auth/plugin.js';
 import { authRoutes, protectedAuthRoutes } from '../auth/routes.js';
 import databasePlugin from '../db/plugin.js';
 import type { Database } from '../db/service.js';
+import loggerPlugin from '../logging/plugin.js';
+import { createLogStore } from '../logging/service.js';
 import { registerErrorHandler } from '../utils/errors.js';
 import { createMockTMDBService } from './helpers/mockServices.js';
 import { createTestUserInDb } from './helpers/testHelper.js';
@@ -36,6 +38,7 @@ describe('auth routes - integration tests', () => {
     app = fastify();
     registerErrorHandler(app);
 
+    await app.register(loggerPlugin, { service: createLogStore() });
     await app.register(databasePlugin, {
       dbPath: path.join(tempDir, 'findarr.db'),
     });

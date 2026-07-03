@@ -104,10 +104,10 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, option
     }
   });
 
-  fastify.log.info({ name: 'auth' }, 'Authentication plugin initialized');
+  fastify.appLog.info({ name: 'auth' }, 'Authentication plugin initialized');
 };
 
 export default fp(authPlugin, {
   name: 'auth',
-  dependencies: ['database'],
+  dependencies: ['database', 'logger'],
 });

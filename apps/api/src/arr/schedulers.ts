@@ -13,7 +13,7 @@ export async function whenReady(
   const { service } = arrService.config;
 
   if (!arrService.isConfigured()) {
-    context.log.debug({ name: service }, 'Not configured - skipping run');
+    context.appLog.debug({ name: service }, 'Not configured - skipping run');
     return false;
   }
 
@@ -67,7 +67,7 @@ export function createArrQueueMonitorScheduler(arrService: AnyArrService): Sched
         const queueItems = await arrService.getQueue(1);
 
         if (queueItems.length > 0) {
-          context.log.info(
+          context.appLog.info(
             {
               name: arrService.config.service,
               activeDownloads: queueItems.length,
@@ -114,7 +114,7 @@ export function createArrQueueFastSyncScheduler(arrService: AnyArrService): Sche
 
         // Handle completions
         if (completedIds.length > 0) {
-          context.log.info(
+          context.appLog.info(
             {
               name: arrService.config.service,
               completedDownloads: completedIds.length,
