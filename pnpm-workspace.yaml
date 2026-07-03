@@ -15,6 +15,7 @@ catalog:
 overrides:
   vite: 'catalog:'
   vitest: 'catalog:'
+  '@types/node': ^24.0.0
 
 peerDependencyRules:
   allowAny:

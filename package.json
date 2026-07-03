@@ -13,6 +13,7 @@
     "check": "vp check",
     "fix": "vp check --fix",
     "ci": "vp run -r build && vp check && vp test",
+    "update": "vp update --latest -r",
     "db:generate": "vp run -r db:generate",
     "db:studio": "vp run -r db:studio",
     "clean": "del-cli **/node_modules **/dist **/*.tsbuildinfo",
