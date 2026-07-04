@@ -1,6 +1,6 @@
 import type { MovieDetails, TVDetails } from '@findarr/shared/media';
 import { isDefined, isNotEmpty } from '@findarr/shared/utils';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { tmdbImage, tmdbImageOrUndefined } from '../../utils/tmdb';
@@ -34,10 +34,16 @@ const formatRuntime = (value: number | number[] | undefined, unknown: string) =>
   return hours > 0 ? `${hours}h ${remainingMinutes}m` : `${value}m`;
 };
 
-export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
+export function MediaView({ media: initialMedia, onVoteComplete }: MediaDetailsProps) {
   const { t } = useTranslation();
-  // Track local media state for updates
-  const [localMedia, setLocalMedia] = useState<MovieDetails | TVDetails>(media);
+  // Render everything from local state so a vote's fresh data (e.g. updated
+  // status/interactions) is reflected across the whole view. Re-sync whenever
+  // the parent supplies a new item (e.g. the vote feed advances).
+  const [media, setMedia] = useState<MovieDetails | TVDetails>(initialMedia);
+
+  useEffect(() => {
+    setMedia(initialMedia);
+  }, [initialMedia]);
 
   // Common data extraction
   const title = media.name;
@@ -332,18 +338,18 @@ export function MediaView({ media, onVoteComplete }: MediaDetailsProps) {
       <div className="fixed right-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 z-40 border-t border-zinc-800/80 bg-zinc-950/95 shadow-[0_-18px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm md:bottom-0 md:left-64 md:z-30">
         <div className="mx-auto flex w-full max-w-7xl justify-center px-4 py-3 md:px-8 md:py-4">
           <LikeDislikeButton
-            tmdbId={localMedia.tmdbId}
-            mediaType={localMedia.type}
+            tmdbId={media.tmdbId}
+            mediaType={media.type}
             initialAction={
-              localMedia.state?.interactions?.find((i) => i.action === 'liked')
+              media.state?.interactions?.find((i) => i.action === 'liked')
                 ? 'liked'
-                : localMedia.state?.interactions?.find((i) => i.action === 'disliked')
+                : media.state?.interactions?.find((i) => i.action === 'disliked')
                   ? 'disliked'
                   : null
             }
-            existingMedia={localMedia}
+            existingMedia={media}
             onUpdate={(updatedMedia) => {
-              setLocalMedia(updatedMedia);
+              setMedia(updatedMedia);
               onVoteComplete?.();
             }}
           />

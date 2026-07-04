@@ -106,7 +106,6 @@ export function createInteractionService(context: InteractionContext) {
     }
 
     const { language } = await getUserSettings(db, user.id);
-
     const timer = log.timer('createInteraction', { action: data.action });
 
     // Get or create media record
@@ -150,7 +149,7 @@ export function createInteractionService(context: InteractionContext) {
     // re-request it — but a TV season update still needs to reach Sonarr.
     const shouldRequest =
       data.action === 'liked' &&
-      (likes >= LIKE_THRESHOLD || isAdmin) &&
+      (likes >= LIKE_THRESHOLD || (isAdmin && likes >= 1)) &&
       (media.status !== 'available' || isSeasonUpdate);
 
     if (shouldRequest) {
