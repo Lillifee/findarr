@@ -68,19 +68,21 @@ export const upsertCatalogCache = async (db: Database, items: Media[]): Promise<
     return;
   }
 
-  for (const item of items) {
-    const values = mapMediaToCatalogCacheValues(item);
-    const { keywords: _keywords, ...updateValues } = values;
+  // One transaction for the whole batch → a single commit instead of one per row.
+  db.transaction((tx) => {
+    for (const item of items) {
+      const values = mapMediaToCatalogCacheValues(item);
+      const { keywords: _keywords, ...updateValues } = values;
 
-    // oxlint-disable-next-line eslint/no-await-in-loop
-    await db
-      .insert(catalogCache)
-      .values(values)
-      .onConflictDoUpdate({
-        target: [catalogCache.tmdbId, catalogCache.type],
-        set: updateValues,
-      });
-  }
+      tx.insert(catalogCache)
+        .values(values)
+        .onConflictDoUpdate({
+          target: [catalogCache.tmdbId, catalogCache.type],
+          set: updateValues,
+        })
+        .run();
+    }
+  });
 };
 
 /**

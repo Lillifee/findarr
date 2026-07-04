@@ -29,6 +29,16 @@ export function createDatabase(dbPath: string): DatabaseConnection {
 
   // Open SQLite database
   const sqliteDb = new BetterSqlite3(dbPath);
+
+  // Performance & concurrency pragmas. WAL + synchronous=NORMAL avoids an fsync
+  // on every commit (fsync only happens at checkpoint), which is dramatically
+  // faster on slow/network storage such as a NAS — the difference between
+  // multi-second and single-digit-ms writes. It stays crash-safe: at most the
+  // last committed transaction can be lost on power loss, never corruption.
+  // busy_timeout prevents SQLITE_BUSY errors when a write overlaps a checkpoint.
+  sqliteDb.pragma('journal_mode = WAL');
+  sqliteDb.pragma('synchronous = NORMAL');
+  sqliteDb.pragma('busy_timeout = 5000');
   sqliteDb.pragma('foreign_keys = ON');
 
   // Create Drizzle instance with schema and relations for relational queries

@@ -15,56 +15,54 @@ import type { LibMedia, LibSettingsFull } from './types.js';
 // ============================================================================
 
 export async function upsertLibraryMedia(db: Database, items: LibMedia[]): Promise<number> {
-  let affectedRows = 0;
+  // One transaction for the whole batch → a single commit instead of one per row.
+  // better-sqlite3 is synchronous, so reads (.get) and writes (.run) run inline.
+  return db.transaction((tx) => {
+    let affectedRows = 0;
 
-  const upsertItem = async (item: LibMedia) => {
-    let updatedSeasons = null;
+    for (const item of items) {
+      let updatedSeasons = null;
 
-    if (item.type === 'tv') {
-      const existing = await db.query.media.findFirst({
-        where: eq(media.tmdbId, item.tmdbId),
-        columns: { seasons: true },
-      });
-      updatedSeasons = mergeAvailableSeasons(existing?.seasons ?? [], item.availableSeasons);
-    }
+      if (item.type === 'tv') {
+        const existing = tx
+          .select({ seasons: media.seasons })
+          .from(media)
+          .where(eq(media.tmdbId, item.tmdbId))
+          .get();
+        updatedSeasons = mergeAvailableSeasons(existing?.seasons ?? [], item.availableSeasons);
+      }
 
-    const result = await db
-      .insert(media)
-      .values({
-        tmdbId: item.tmdbId,
-        type: item.type,
-        libId: item.libId,
-        libUrl: item.libUrl,
-        libAddedAt: item.libAddedAt,
-        status: 'available',
-        seasons: updatedSeasons ?? undefined,
-      })
-      .onConflictDoUpdate({
-        target: [media.tmdbId, media.type],
-        set: {
+      const result = tx
+        .insert(media)
+        .values({
+          tmdbId: item.tmdbId,
+          type: item.type,
           libId: item.libId,
           libUrl: item.libUrl,
-          libAddedAt: sql`coalesce(${media.libAddedAt}, excluded.libAddedAt)`,
+          libAddedAt: item.libAddedAt,
           status: 'available',
           seasons: updatedSeasons ?? undefined,
-          updatedAt: sql`(unixepoch() * 1000)`,
-        },
-      });
+        })
+        .onConflictDoUpdate({
+          target: [media.tmdbId, media.type],
+          set: {
+            libId: item.libId,
+            libUrl: item.libUrl,
+            libAddedAt: sql`coalesce(${media.libAddedAt}, excluded.libAddedAt)`,
+            status: 'available',
+            seasons: updatedSeasons ?? undefined,
+            updatedAt: sql`(unixepoch() * 1000)`,
+          },
+        })
+        .run();
 
-    if (result.changes > 0) {
-      affectedRows += 1;
+      if (result.changes > 0) {
+        affectedRows += 1;
+      }
     }
-  };
 
-  for (const item of items) {
-    // Sequential read-modify-write: each upsert may read existing season JSON to
-    // merge availability. better-sqlite3 is synchronous so parallelising gives no
-    // benefit and would complicate the per-row merge.
-    // oxlint-disable-next-line eslint/no-await-in-loop
-    await upsertItem(item);
-  }
-
-  return affectedRows;
+    return affectedRows;
+  });
 }
 
 export async function getMediaWithLibIds(

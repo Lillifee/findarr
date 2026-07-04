@@ -8,7 +8,7 @@ import { createCatalogService } from '../catalog/service.js';
 import { createDatabase, type Database } from '../db/service.js';
 import { addInteraction } from '../interaction/repository.js';
 import { createMedia } from '../media/repository.js';
-import { updateGenrePreference, updateKeywordPreference } from '../preferences/repository.js';
+import { applyPreferenceDeltas } from '../preferences/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { saveUserSettings } from '../user/service.js';
 import { createMockAppLogger, createMockTMDBService } from './helpers/mockServices.js';
@@ -197,7 +197,7 @@ describe('catalog service - integration tests', () => {
     const user = await createTestUserInDb(db);
 
     // Add genre preferences for the user (Action = high score)
-    await updateGenrePreference(db, user.id, { id: 28, name: 'Action' }, 5);
+    await applyPreferenceDeltas(db, user.id, [{ id: 28, name: 'Action' }], [], 5);
 
     // Populate catalog cache with items - some with Action genre, some without
     const items = [
@@ -232,7 +232,7 @@ describe('catalog service - integration tests', () => {
     const user = await createTestUserInDb(db);
 
     // Add keyword preferences for the user
-    await updateKeywordPreference(db, user.id, { id: 123, name: 'superhero' }, 3);
+    await applyPreferenceDeltas(db, user.id, [], [{ id: 123, name: 'superhero' }], 3);
 
     // Populate catalog cache with items that have keywords
     const items = [

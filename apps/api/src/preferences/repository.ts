@@ -33,34 +33,6 @@ export async function getUserGenrePreferences(db: Database, userId: number) {
   return preferenceMap;
 }
 
-/**
- * Update genre preferences for a user (upsert pattern)
- * Increments/decrements preference score
- */
-export async function updateGenrePreference(
-  db: Database,
-  userId: number,
-  genre: Genre,
-  scoreDelta: number,
-) {
-  await db
-    .insert(userGenrePreferences)
-    .values({
-      userId,
-      genreId: genre.id,
-      genreName: genre.name,
-      score: scoreDelta,
-      count: 1,
-    })
-    .onConflictDoUpdate({
-      target: [userGenrePreferences.userId, userGenrePreferences.genreId],
-      set: {
-        score: sql`${userGenrePreferences.score} + ${scoreDelta}`,
-        count: sql`${userGenrePreferences.count} + 1`,
-      },
-    });
-}
-
 // ============================================================================
 // User Keyword Preferences - Repository
 // ============================================================================
@@ -90,29 +62,48 @@ export async function getUserKeywordPreferences(db: Database, userId: number) {
 }
 
 /**
- * Update keyword preferences for a user (upsert pattern)
- * Increments/decrements preference score
+ * Apply score deltas for all of a media item's genres and keywords in a single
+ * transaction. Batching the upserts into one commit avoids a separate fsync per
+ * row, which is a large win on slow storage (e.g. a NAS Docker volume).
  */
-export async function updateKeywordPreference(
+export async function applyPreferenceDeltas(
   db: Database,
   userId: number,
-  keyword: Keyword,
+  genres: Genre[],
+  keywords: Keyword[],
   scoreDelta: number,
-) {
-  await db
-    .insert(userKeywordPreferences)
-    .values({
-      userId,
-      keywordId: keyword.id,
-      keywordName: keyword.name,
-      score: scoreDelta,
-      count: 1,
-    })
-    .onConflictDoUpdate({
-      target: [userKeywordPreferences.userId, userKeywordPreferences.keywordId],
-      set: {
-        score: sql`${userKeywordPreferences.score} + ${scoreDelta}`,
-        count: sql`${userKeywordPreferences.count} + 1`,
-      },
-    });
+): Promise<void> {
+  db.transaction((tx) => {
+    for (const genre of genres) {
+      tx.insert(userGenrePreferences)
+        .values({ userId, genreId: genre.id, genreName: genre.name, score: scoreDelta, count: 1 })
+        .onConflictDoUpdate({
+          target: [userGenrePreferences.userId, userGenrePreferences.genreId],
+          set: {
+            score: sql`${userGenrePreferences.score} + ${scoreDelta}`,
+            count: sql`${userGenrePreferences.count} + 1`,
+          },
+        })
+        .run();
+    }
+
+    for (const keyword of keywords) {
+      tx.insert(userKeywordPreferences)
+        .values({
+          userId,
+          keywordId: keyword.id,
+          keywordName: keyword.name,
+          score: scoreDelta,
+          count: 1,
+        })
+        .onConflictDoUpdate({
+          target: [userKeywordPreferences.userId, userKeywordPreferences.keywordId],
+          set: {
+            score: sql`${userKeywordPreferences.score} + ${scoreDelta}`,
+            count: sql`${userKeywordPreferences.count} + 1`,
+          },
+        })
+        .run();
+    }
+  });
 }
