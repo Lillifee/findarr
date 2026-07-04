@@ -28,12 +28,14 @@ import { filterByCriteria, filterByInteraction } from '../media/filter.js';
 import { getMediaByStatusPaginated } from '../media/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { getUserSettings } from '../user/service.js';
+import type { AppLogger } from '../utils/logger.js';
 import { createFeedSnapshotStore } from './helper.js';
 import { getAllCatalogCache } from './repository.js';
 
 export interface CatalogContext {
   db: Database;
   tmdb: TMDBService;
+  appLog: AppLogger;
 }
 
 /**
@@ -41,17 +43,20 @@ export interface CatalogContext {
  */
 export function createCatalogService(context: CatalogContext) {
   const { db, tmdb } = context;
+  const log = context.appLog.scope('catalog');
   const popularFeedSnapshotStore = createFeedSnapshotStore<Media>();
 
   async function getPopularFeedSnapshot(params: PopularQuery, userId: number) {
     const { type = 'both', interaction, genres = [] } = params;
 
     return popularFeedSnapshotStore.getOrCreateSnapshot(params.feedId, async () => {
+      const timer = log.timer('getPopularFeedSnapshot');
       const [settings, cachedCatalogMedia, interactionKeys] = await Promise.all([
         getUserSettings(db, userId),
         getAllCatalogCache(db),
         getUserInteractionMediaKeys(db, userId),
       ]);
+      timer.lap('catalogCache');
 
       const { regions } = settings;
 
@@ -70,6 +75,8 @@ export function createCatalogService(context: CatalogContext) {
         (a, b) =>
           (b.state?.score?.finalTrendingScore ?? 0) - (a.state?.score?.finalTrendingScore ?? 0),
       );
+      timer.lap('scoring');
+      timer.end();
 
       return filteredMedia;
     });
@@ -178,12 +185,14 @@ export function createCatalogService(context: CatalogContext) {
     params: PopularQuery,
     userId: number,
   ): Promise<SwipeNextResponse> {
+    const timer = log.timer('getNextUnvotedMedia');
     const settings = await getUserSettings(db, userId);
 
     const [snapshot, interactionKeys] = await Promise.all([
       getPopularFeedSnapshot({ ...params, interaction: 'all' }, userId),
       getUserInteractionMediaKeys(db, userId),
     ]);
+    timer.lap('snapshot');
 
     const votableItems = snapshot.items.slice(0, settings.swipeLimit);
     const nextItem = votableItems.find((item) =>
@@ -196,6 +205,8 @@ export function createCatalogService(context: CatalogContext) {
         { id: nextItem.tmdbId, type: nextItem.type, language: settings.language },
         userId,
       ));
+    timer.lap('details');
+    timer.end();
 
     return { media, feedId: snapshot.id };
   }

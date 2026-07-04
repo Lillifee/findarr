@@ -11,7 +11,7 @@ import { createMedia } from '../media/repository.js';
 import { updateGenrePreference, updateKeywordPreference } from '../preferences/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { saveUserSettings } from '../user/service.js';
-import { createMockTMDBService } from './helpers/mockServices.js';
+import { createMockAppLogger, createMockTMDBService } from './helpers/mockServices.js';
 import {
   createTestMedia,
   createTestMovieDetail,
@@ -43,7 +43,11 @@ describe('catalog service - integration tests', () => {
       ),
     });
 
-    catalogService = createCatalogService({ db, tmdb: tmdbServiceMock });
+    catalogService = createCatalogService({
+      db,
+      tmdb: tmdbServiceMock,
+      appLog: createMockAppLogger(),
+    });
   });
 
   afterEach(() => {

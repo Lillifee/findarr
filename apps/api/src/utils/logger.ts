@@ -23,7 +23,7 @@ export function buildLogger(isProduction: boolean, bufferStream: Writable): Fast
     : pretty({
         colorize: true,
         translateTime: 'HH:MM:ss',
-        ignore: 'pid,hostname,req,res',
+        ignore: 'pid,hostname',
         singleLine: true,
         messageFormat: '{msg}',
       });
@@ -43,9 +43,21 @@ export function buildLogger(isProduction: boolean, bufferStream: Writable): Fast
 }
 
 /**
+ * A flat, step-based stopwatch for timing a multi-step flow without wrapping
+ * each step in a closure. Call `lap(step)` after each step to log its duration
+ * since the previous lap, and `end()` to log the total elapsed time.
+ * Every line is logged at `debug` with the timer's base fields plus `step` and
+ * `duration` (ms), so a whole flow reads as flat, aligned log lines.
+ */
+export interface Timer {
+  lap: (step: string) => void;
+  end: (step?: string) => void;
+}
+
+/**
  * Application logger: the standard logging methods we use plus custom helpers
- * like `debugTiming`. A thin wrapper around the base (pino) logger, so we get
- * our own methods without monkey-patching the logger instance.
+ * like `timed` and `timer`. A thin wrapper around the base (pino) logger, so we
+ * get our own methods without monkey-patching the logger instance.
  */
 export interface AppLogger {
   trace: FastifyLogFn;
@@ -55,10 +67,21 @@ export interface AppLogger {
   error: FastifyLogFn;
   fatal: FastifyLogFn;
 
-  debugTiming: <T>(fn: () => Promise<T>, obj: Record<string, unknown>, msg: string) => Promise<T>;
+  /**
+   * Start a flat, step-based stopwatch for a multi-step flow. Pass the
+   * operation/function name as `context` (reuse the real identifier, e.g. the
+   * enclosing function name) so logs are self-locating without inventing labels.
+   */
+  timer: (context: string, data?: Record<string, unknown>) => Timer;
+
+  /**
+   * Return a logger bound to a module/service `name` (e.g. `'catalog'`), so all
+   * of its timing lines carry that scope. Create one per service and reuse it.
+   */
+  scope: (name: string) => AppLogger;
 }
 
-export function createAppLogger(base: FastifyBaseLogger): AppLogger {
+function buildAppLogger(base: FastifyBaseLogger): AppLogger {
   return {
     trace: base.trace.bind(base),
     debug: base.debug.bind(base),
@@ -67,14 +90,38 @@ export function createAppLogger(base: FastifyBaseLogger): AppLogger {
     error: base.error.bind(base),
     fatal: base.fatal.bind(base),
 
-    async debugTiming(fn, obj, msg) {
+    timer(context, data) {
       const start = performance.now();
-      try {
-        return await fn();
-      } finally {
-        const duration = Math.round(performance.now() - start);
-        base.debug({ ...obj, duration }, msg);
-      }
+      let last = start;
+
+      const emit = (step: string, from: number) => {
+        base.debug(
+          { context, step, duration: Math.round(performance.now() - from), ...data },
+          'timing',
+        );
+      };
+
+      emit('start', start);
+
+      return {
+        lap(step) {
+          emit(step, last);
+          last = performance.now();
+        },
+        end(step = 'end') {
+          emit(step, start);
+        },
+      };
+    },
+
+    // Bind `name` via a pino child logger so the scope carries into *every*
+    // method (trace/debug/info/… as well as timed/timer), not just timing.
+    scope(name) {
+      return buildAppLogger(base.child({ name }));
     },
   };
+}
+
+export function createAppLogger(base: FastifyBaseLogger): AppLogger {
+  return buildAppLogger(base);
 }

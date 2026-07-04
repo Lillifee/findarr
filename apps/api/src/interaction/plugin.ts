@@ -15,7 +15,7 @@ const interactionPlugin = (fastify: FastifyInstance) => {
   const interactionService = createInteractionService(fastify);
 
   fastify.decorate('interaction', interactionService);
-  fastify.log.info({ name: 'interaction' }, 'Interaction plugin registered');
+  fastify.appLog.scope('interaction').info('Interaction plugin registered');
 };
 
 export default fp(interactionPlugin, {

@@ -79,7 +79,7 @@ export async function createTMDBService(context: TmdbServiceContext) {
   }
 
   await reloadService().catch((error: unknown) => {
-    context.appLog.error({ name: 'tmdb', error }, 'Failed to initialize TMDB service');
+    context.appLog.scope('tmdb').error({ error }, 'Failed to initialize TMDB service');
   });
 
   function getSettings(): TmdbSettings {

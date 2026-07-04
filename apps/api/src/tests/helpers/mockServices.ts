@@ -184,16 +184,23 @@ export function createMockAppLogger(overrides: Partial<Mocked<AppLogger>> = {}):
     error: vi.fn<AppLogger['error']>(),
     warn: vi.fn<AppLogger['warn']>(),
     fatal: vi.fn<AppLogger['fatal']>(),
-    debugTiming: vi
-      .fn<AppLogger['debugTiming']>()
-      .mockImplementation(async (fn: () => Promise<unknown>) => fn()),
+    timer: vi.fn<AppLogger['timer']>().mockReturnValue({
+      lap: vi.fn<(step: string) => void>(),
+      end: vi.fn<(step?: string) => void>(),
+    }),
+    scope: vi.fn<AppLogger['scope']>(),
     ...overrides,
   };
 
-  // `debugTiming` is generic, which a mock cannot express exactly, so assert
-  // the fully-populated shape here.
+  // The logger shape mixes generics and a self-referential `scope`, which a mock
+  // cannot express exactly, so assert the fully-populated shape here.
   // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-  return logger as unknown as Mocked<AppLogger>;
+  const appLogger = logger as unknown as Mocked<AppLogger>;
+
+  // A scoped logger returns another logger of the same shape.
+  appLogger.scope.mockReturnValue(appLogger);
+
+  return appLogger;
 }
 
 export function createMockSchedulerContext(

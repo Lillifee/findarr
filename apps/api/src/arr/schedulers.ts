@@ -13,7 +13,7 @@ export async function whenReady(
   const { service } = arrService.config;
 
   if (!arrService.isConfigured()) {
-    context.appLog.debug({ name: service }, 'Not configured - skipping run');
+    context.appLog.scope(service).debug('Not configured - skipping run');
     return false;
   }
 
@@ -67,13 +67,12 @@ export function createArrQueueMonitorScheduler(arrService: AnyArrService): Sched
         const queueItems = await arrService.getQueue(1);
 
         if (queueItems.length > 0) {
-          context.appLog.info(
-            {
-              name: arrService.config.service,
-              activeDownloads: queueItems.length,
-            },
-            'Active downloads detected - starting fast sync',
-          );
+          context.appLog
+            .scope(arrService.config.service)
+            .info(
+              { activeDownloads: queueItems.length },
+              'Active downloads detected - starting fast sync',
+            );
           context.scheduler.start({ name: fastSyncName });
         }
 
@@ -114,13 +113,12 @@ export function createArrQueueFastSyncScheduler(arrService: AnyArrService): Sche
 
         // Handle completions
         if (completedIds.length > 0) {
-          context.appLog.info(
-            {
-              name: arrService.config.service,
-              completedDownloads: completedIds.length,
-            },
-            'Downloads completed - triggering library sync',
-          );
+          context.appLog
+            .scope(arrService.config.service)
+            .info(
+              { completedDownloads: completedIds.length },
+              'Downloads completed - triggering library sync',
+            );
 
           // Trigger library sync to upgrade completed items to 'downloaded' status
           await syncLibrary(context, arrService);

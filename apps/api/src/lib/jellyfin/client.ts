@@ -28,6 +28,7 @@ export function createJellyfinLibClient(
   appLog: AppLogger,
 ): LibClient {
   const client = createHttpClient(baseUrl, apiKey);
+  const log = appLog.scope('jellyfin');
 
   const getItems = async (params: GetItemsParams) => {
     const { itemTypes, parentId, startIndex = 0, limit = 100, recursive = true } = params;
@@ -52,7 +53,7 @@ export function createJellyfinLibClient(
         const response = await client.get('/System/Info/Public', { timeout: 5000 });
         return response.status === 200;
       } catch (error) {
-        appLog.warn({ name: 'jellyfin', err: error }, 'Connection test failed');
+        log.warn({ err: error }, 'Connection test failed');
         return false;
       }
     },
@@ -94,10 +95,7 @@ export function createJellyfinLibClient(
               item.availableSeasons = seasonNumbers;
             }
           } catch (err) {
-            appLog.debug(
-              { name: 'jellyfin', libId: item.libId, err },
-              'Season lookup failed, skipping',
-            );
+            log.debug({ libId: item.libId, err }, 'Season lookup failed, skipping');
           }
         }),
       );

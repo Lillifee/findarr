@@ -104,7 +104,7 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, option
     }
   });
 
-  fastify.appLog.info({ name: 'auth' }, 'Authentication plugin initialized');
+  fastify.appLog.scope('auth').info('Authentication plugin initialized');
 };
 
 export default fp(authPlugin, {

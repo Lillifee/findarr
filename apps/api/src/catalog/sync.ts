@@ -43,16 +43,14 @@ export async function syncCatalogCache(context: SchedulerContext): Promise<void>
     return;
   }
 
+  const log = context.appLog.scope('catalog');
   const startTime = Date.now();
-  context.appLog.info({ name: 'catalog', phase: 'cache-sync' }, 'Starting cache sync');
+  log.info({ phase: 'cache-sync' }, 'Starting cache sync');
 
   const language = 'en-US';
 
   // Fetch both trending and recent releases (already includes basic metadata)
-  context.appLog.info(
-    { name: 'catalog', phase: 'cache-sync' },
-    'Fetching trending and discover results from TMDB',
-  );
+  log.info({ phase: 'cache-sync' }, 'Fetching trending and discover results from TMDB');
   const [trendingResult, discoverResult] = await Promise.all([
     context.tmdb.trending({ language, time_window: 'week' }, createPageRange(5)),
     context.tmdb.discover({ type: 'both', recentDays: 500 }, createPageRange(15)),
@@ -62,8 +60,8 @@ export async function syncCatalogCache(context: SchedulerContext): Promise<void>
   const mergedMedia = [...trendingResult.results, ...discoverResult.results];
   const deduplicatedMedia = deduplicateMediaByTmdbKey(mergedMedia);
 
-  context.appLog.info(
-    { name: 'catalog', phase: 'cache-sync', totalItems: deduplicatedMedia.length },
+  log.info(
+    { phase: 'cache-sync', totalItems: deduplicatedMedia.length },
     'Fetched unique items, storing to database',
   );
 
@@ -81,10 +79,7 @@ export async function syncCatalogCache(context: SchedulerContext): Promise<void>
   // Seed with defaults if first run, then update with growth strategy
   await seedMediaStats(context.db);
 
-  context.appLog.info(
-    { name: 'catalog', phase: 'cache-sync' },
-    'Computing catalog stats from current cache',
-  );
+  log.info({ phase: 'cache-sync' }, 'Computing catalog stats from current cache');
   const [movieStats, tvStats] = await Promise.all([
     computeCatalogMediaStats(context.db, 'movie'),
     computeCatalogMediaStats(context.db, 'tv'),
@@ -95,9 +90,8 @@ export async function syncCatalogCache(context: SchedulerContext): Promise<void>
     upsertMediaStats(context.db, 'tv', tvStats),
   ]);
 
-  context.appLog.info(
+  log.info(
     {
-      name: 'catalog',
       phase: 'cache-sync',
       movieStats: {
         maxPopularity: movieStats.maxPopularity,
@@ -116,9 +110,8 @@ export async function syncCatalogCache(context: SchedulerContext): Promise<void>
   const durationMs = Date.now() - startTime;
   const durationSec = Math.round(durationMs / 1000);
 
-  context.appLog.info(
+  log.info(
     {
-      name: 'catalog',
       phase: 'cache-sync',
       totalItems: deduplicatedMedia.length,
       deletedCount,
@@ -135,30 +128,21 @@ export async function syncCatalogCache(context: SchedulerContext): Promise<void>
  * Uses worker pool pattern with rate limiting to avoid overwhelming TMDB API
  */
 export async function enrichCatalogKeywords(context: SchedulerContext): Promise<void> {
+  const log = context.appLog.scope('catalog');
   const startTime = Date.now();
-  context.appLog.info(
-    { name: 'catalog', phase: 'keyword-enrichment' },
-    'Starting keyword enrichment',
-  );
+  log.info({ phase: 'keyword-enrichment' }, 'Starting keyword enrichment');
 
   try {
     // Get items that need keyword enrichment
     const mediaItemsMissingKeywords = await listCatalogItemsMissingKeywords(context.db);
 
     if (mediaItemsMissingKeywords.length === 0) {
-      context.appLog.info(
-        { name: 'catalog', phase: 'keyword-enrichment' },
-        'No items need keyword enrichment',
-      );
+      log.info({ phase: 'keyword-enrichment' }, 'No items need keyword enrichment');
       return;
     }
 
-    context.appLog.info(
-      {
-        name: 'catalog',
-        phase: 'keyword-enrichment',
-        totalItems: mediaItemsMissingKeywords.length,
-      },
+    log.info(
+      { phase: 'keyword-enrichment', totalItems: mediaItemsMissingKeywords.length },
       'Enriching items with keywords',
     );
 
@@ -169,16 +153,15 @@ export async function enrichCatalogKeywords(context: SchedulerContext): Promise<
         await updateCatalogKeywords(context.db, item.tmdbId, item.type, details.keywords ?? []);
         return item.tmdbId;
       },
-      appLog: context.appLog,
+      appLog: log,
     });
 
     const failCount = mediaItemsMissingKeywords.length - successCount;
     const durationMs = Date.now() - startTime;
     const durationSec = Math.round(durationMs / 1000);
 
-    context.appLog.info(
+    log.info(
       {
-        name: 'catalog',
         phase: 'keyword-enrichment',
         successCount,
         failCount,
@@ -188,10 +171,7 @@ export async function enrichCatalogKeywords(context: SchedulerContext): Promise<
       'Keyword enrichment completed',
     );
   } catch (error) {
-    context.appLog.error(
-      { name: 'catalog', phase: 'keyword-enrichment', err: error },
-      'Keyword enrichment failed',
-    );
+    log.error({ phase: 'keyword-enrichment', err: error }, 'Keyword enrichment failed');
     throw error;
   }
 }

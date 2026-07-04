@@ -21,6 +21,7 @@ function createHttpClient(baseUrl: string, token: string): AxiosInstance {
 
 export function createPlexLibClient(baseUrl: string, token: string, appLog: AppLogger): LibClient {
   const client = createHttpClient(baseUrl, token);
+  const log = appLog.scope('plex');
 
   const getMachineIdentifier = async (): Promise<string> => {
     const response = await client.get('/identity', { timeout: 5000 });
@@ -63,7 +64,7 @@ export function createPlexLibClient(baseUrl: string, token: string, appLog: AppL
         const response = await client.get('/identity', { timeout: 5000 });
         return response.status === 200;
       } catch (error) {
-        appLog.warn({ name: 'plex', err: error }, 'Connection test failed');
+        log.warn({ err: error }, 'Connection test failed');
         return false;
       }
     },
@@ -100,8 +101,8 @@ export function createPlexLibClient(baseUrl: string, token: string, appLog: AppL
               }
             }
           } catch (err) {
-            appLog.warn(
-              { name: 'plex', sectionKey: section.key, sectionTitle: section.title, err },
+            log.warn(
+              { sectionKey: section.key, sectionTitle: section.title, err },
               'Failed to fetch section items, skipping',
             );
           }
@@ -121,10 +122,7 @@ export function createPlexLibClient(baseUrl: string, token: string, appLog: AppL
               item.availableSeasons = seasonNumbers;
             }
           } catch (err) {
-            appLog.debug(
-              { name: 'plex', libId: item.libId, err },
-              'Season lookup failed, skipping',
-            );
+            log.debug({ libId: item.libId, err }, 'Season lookup failed, skipping');
           }
         }),
       );

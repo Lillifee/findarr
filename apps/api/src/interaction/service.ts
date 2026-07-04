@@ -18,6 +18,7 @@ import {
 import { updatePreferencesForInteraction } from '../preferences/service.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { getUserSettings } from '../user/service.js';
+import type { AppLogger } from '../utils/logger.js';
 import {
   addInteraction,
   hasInteraction,
@@ -35,6 +36,7 @@ export interface InteractionContext {
   radarr: AnyArrService;
   sonarr: AnyArrService;
   catalog: CatalogService;
+  appLog: AppLogger;
 }
 
 /**
@@ -42,7 +44,8 @@ export interface InteractionContext {
  * activity lists. Mandatory services are injected once via the context.
  */
 export function createInteractionService(context: InteractionContext) {
-  const { db, tmdb, radarr, sonarr, catalog } = context;
+  const { db, tmdb, radarr, sonarr, catalog, appLog } = context;
+  const log = appLog.scope('interaction');
 
   /**
    * Forward a media request to Radarr (movies) or Sonarr (TV shows).
@@ -102,6 +105,8 @@ export function createInteractionService(context: InteractionContext) {
       return undefined;
     }
 
+    const timer = log.timer('createInteraction', { action: data.action });
+
     // Get or create media record
     const existing = await getMediaByTmdbId(db, data.tmdbId, data.mediaType);
     const media =
@@ -132,12 +137,14 @@ export function createInteractionService(context: InteractionContext) {
     // Calculate votes and check if auto-request threshold is met
     const { likes } = await getVoteCounts(db, media.id);
     const isAdmin = user.role === 'admin';
+    timer.lap('persistVote');
 
     // Resolve the user's language once, then fetch TMDB details a single time and
     // reuse them for the request, preferences, and (via the shared cache) the
     // final enriched response.
     const { language } = await getUserSettings(db, user.id);
     const details = await tmdb.details({ id: data.tmdbId, type: data.mediaType, language });
+    timer.lap('detailsPrimary');
 
     // Request media
     if ((likes >= LIKE_THRESHOLD || isAdmin) && data.action === 'liked') {
@@ -149,6 +156,7 @@ export function createInteractionService(context: InteractionContext) {
       // Forward to Radarr/Sonarr (handles both create and update based on arrId)
       await requestMediaToArr(media, details, data.seasons);
     }
+    timer.lap('requestArr');
 
     // Update user genre preferences based on the interaction.
     await updatePreferencesForInteraction(
@@ -159,9 +167,17 @@ export function createInteractionService(context: InteractionContext) {
       data.action,
       isToggle,
     );
+    timer.lap('preferences');
 
     // Return enriched media with updated state using catalog service
-    return catalog.getMediaDetails({ id: data.tmdbId, type: data.mediaType }, user.id);
+    const enriched = await catalog.getMediaDetails(
+      { id: data.tmdbId, type: data.mediaType },
+      user.id,
+    );
+    timer.lap('detailsFinal');
+    timer.end();
+
+    return enriched;
   }
 
   /**

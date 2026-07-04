@@ -12,6 +12,7 @@ import {
   createMockRadarrService,
   createMockSonarrService,
   createMockTMDBService,
+  createMockAppLogger,
 } from './helpers/mockServices.js';
 import {
   assertDefined as expectDefined,
@@ -40,9 +41,14 @@ const createInteraction = async (
   db: Database,
   ...args: Parameters<InteractionService['createInteraction']>
 ) =>
-  createInteractionService({ db, tmdb: tmdbService, radarr, sonarr, catalog }).createInteraction(
-    ...args,
-  );
+  createInteractionService({
+    db,
+    tmdb: tmdbService,
+    radarr,
+    sonarr,
+    catalog,
+    appLog: createMockAppLogger(),
+  }).createInteraction(...args);
 
 const buildService = (tmdbService: TMDBService, db: Database): InteractionService =>
   createInteractionService({
@@ -51,6 +57,7 @@ const buildService = (tmdbService: TMDBService, db: Database): InteractionServic
     radarr: radarrService,
     sonarr: sonarrService,
     catalog: catalogService,
+    appLog: createMockAppLogger(),
   });
 
 const getUserInteractionsEnriched = async (

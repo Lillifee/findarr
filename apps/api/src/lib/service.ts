@@ -27,6 +27,7 @@ export interface LibServiceContext {
 }
 
 export async function createLibService(config: LibServiceConfig, context: LibServiceContext) {
+  const log = context.appLog.scope(config.service);
   const lifecycle = createClientLifecycle<LibSettingsFull, LibClient>({
     name: config.service,
     loadSettings: async () => getLibSettings(context.db, config),
@@ -42,10 +43,7 @@ export async function createLibService(config: LibServiceConfig, context: LibSer
   });
 
   await lifecycle.reload().catch(() => {
-    context.appLog.error(
-      { name: config.service },
-      `Failed to initialize ${config.service} service`,
-    );
+    log.error({}, `Failed to initialize ${config.service} service`);
   });
 
   function getSettings(): LibSettings {
@@ -84,13 +82,14 @@ export async function createLibService(config: LibServiceConfig, context: LibSer
   }
 
   async function listLibraryItems(): Promise<LibMedia[]> {
+    const timer = log.timer('listLibraryItems');
+
     const { url } = getSettings();
     const baseUrl = isDefined(url) ? trimTrailingSlash(url) : '';
-    return context.appLog.debugTiming(
-      async () => lifecycle.client().listLibraryItems(baseUrl),
-      { name: config.service },
-      `${config.service} list library items`,
-    );
+    const items = await lifecycle.client().listLibraryItems(baseUrl);
+
+    timer.end();
+    return items;
   }
 
   return {

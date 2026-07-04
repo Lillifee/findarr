@@ -36,7 +36,6 @@ const dataPath = env.DATA_PATH;
 const logStore = createLogStore();
 
 const server = fastify({
-  disableRequestLogging: true,
   loggerInstance: buildLogger(env.NODE_ENV === 'production', logStore.createStream()),
 });
 
