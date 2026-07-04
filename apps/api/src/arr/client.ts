@@ -39,32 +39,52 @@ export function createArrClient(
 ) {
   const client = createHttpClient(baseUrl, apiKey);
   const isSonarr = config.service === 'sonarr';
+  const log = appLog.scope(config.service);
 
   return {
     async testConnection(): Promise<boolean> {
       try {
+        const timer = log.timer('testConnection');
+
         const response = await client.get('/system/status', { timeout: 5000 });
         ArrSystemStatusSchema.parse(response.data);
+
+        timer.end();
         return true;
       } catch (error) {
-        appLog.warn({ name: config.service, err: error }, 'Connection test failed');
+        log.warn({ err: error }, 'Connection test failed');
         return false;
       }
     },
 
     async listQualityProfiles(): Promise<ArrQualityProfile[]> {
+      const timer = log.timer('listQualityProfiles');
+
       const response = await client.get('/qualityprofile');
-      return z.array(ArrQualityProfileSchema).parse(response.data);
+      const result = z.array(ArrQualityProfileSchema).parse(response.data);
+
+      timer.end();
+      return result;
     },
 
     async listRootFolders(): Promise<ArrRootFolder[]> {
+      const timer = log.timer('listRootFolders');
+
       const response = await client.get('/rootfolder');
-      return z.array(ArrRootFolderSchema).parse(response.data);
+      const result = z.array(ArrRootFolderSchema).parse(response.data);
+
+      timer.end();
+      return result;
     },
 
     async getQueue(pageSize: number): Promise<ArrQueueItem[]> {
+      const timer = log.timer('getQueue', { pageSize });
+
       const response = await client.get('/queue', { params: { page: 1, pageSize } });
-      return ArrQueueResponseSchema.parse(response.data).records;
+      const result = ArrQueueResponseSchema.parse(response.data).records;
+
+      timer.end();
+      return result;
     },
 
     async requestOrUpdateMedia(
@@ -124,6 +144,8 @@ export function createArrClient(
       },
       seasonNumbers?: number[],
     ): Promise<RadarrMovie | SonarrSeries> {
+      const timer = log.timer('requestMedia', { title: params.title });
+
       const seasons =
         isSonarr && isDefined(params.id) && isDefined(seasonNumbers)
           ? await this.buildSeasonList(params.id, seasonNumbers)
@@ -138,17 +160,16 @@ export function createArrClient(
         ...config.extraFields,
       };
 
-      return appLog.debugTiming(
-        async () => {
-          const response = await client.post(config.mediaEndpoint, payload);
-          return config.libraryItemSchema.parse(response.data);
-        },
-        { name: config.service, title: params.title },
-        `${config.service} request media`,
-      );
+      const response = await client.post(config.mediaEndpoint, payload);
+      const result = config.libraryItemSchema.parse(response.data);
+
+      timer.end();
+      return result;
     },
 
     async updateLibrarySeasons(seriesId: number, seasons?: number[]) {
+      const timer = log.timer('updateLibrarySeasons', { seriesId, seasons });
+
       const monitoredSeasons = new Set(seasons);
 
       // Fetch the full series object from Sonarr — our parsed schema strips many fields
@@ -180,17 +201,28 @@ export function createArrClient(
         await this.searchMissingEpisodes(seriesId);
       }
 
+      timer.end();
       return result;
     },
 
     async listLibraryItems(): Promise<(RadarrMovie | SonarrSeries)[]> {
+      const timer = log.timer('listLibraryItems');
+
       const response = await client.get(config.mediaEndpoint);
-      return z.array(config.libraryItemSchema).parse(response.data);
+      const result = z.array(config.libraryItemSchema).parse(response.data);
+
+      timer.end();
+      return result;
     },
 
     async getLibraryItemById(arrId: number): Promise<RadarrMovie | SonarrSeries> {
+      const timer = log.timer('getLibraryItemById', { arrId });
+
       const response = await client.get(`${config.mediaEndpoint}/${arrId}`);
-      return config.libraryItemSchema.parse(response.data);
+      const result = config.libraryItemSchema.parse(response.data);
+
+      timer.end();
+      return result;
     },
 
     async tryGetLibraryItemById(arrId?: number | null): Promise<RadarrMovie | SonarrSeries | null> {

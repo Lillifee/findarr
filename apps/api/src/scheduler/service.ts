@@ -16,6 +16,7 @@ export function createSchedulerService(
   schedulers: Record<SchedulerName, Scheduler>,
 ) {
   let timer: NodeJS.Timeout | null = null;
+  const log = fastify.appLog.scope('scheduler');
 
   /**
    * Execute a scheduler
@@ -38,10 +39,7 @@ export function createSchedulerService(
     };
 
     try {
-      fastify.appLog.debug(
-        { name: 'scheduler', schedulerName: scheduler.config.name },
-        'Executing scheduler',
-      );
+      log.debug({ schedulerName: scheduler.config.name }, 'Executing scheduler');
 
       const shouldContinue = await scheduler.run(fastify);
 
@@ -66,9 +64,8 @@ export function createSchedulerService(
       if (exceededMaxRuntime) {
         terminate();
 
-        fastify.appLog.debug(
+        log.debug(
           {
-            name: 'scheduler',
             schedulerName: scheduler.config.name,
             duration,
             totalRuntime,
@@ -83,9 +80,8 @@ export function createSchedulerService(
       if (belowMinRuntime || shouldContinue) {
         scheduleNext();
 
-        fastify.appLog.debug(
+        log.debug(
           {
-            name: 'scheduler',
             schedulerName: scheduler.config.name,
             duration,
             totalRuntime,
@@ -104,9 +100,8 @@ export function createSchedulerService(
 
       terminate();
 
-      fastify.appLog.info(
+      log.info(
         {
-          name: 'scheduler',
           schedulerName: scheduler.config.name,
           duration,
           totalRuntime,
@@ -122,9 +117,8 @@ export function createSchedulerService(
 
       scheduleNext();
 
-      fastify.appLog.error(
+      log.error(
         {
-          name: 'scheduler',
           schedulerName: scheduler.config.name,
           duration,
           error: scheduler.state.lastError,
@@ -156,8 +150,8 @@ export function createSchedulerService(
 
       // Execute scheduler (async, don't await to prevent blocking other schedulers)
       executeScheduler(scheduler).catch((error: unknown) => {
-        fastify.appLog.error(
-          { name: 'scheduler', schedulerName: scheduler.config.name, err: error },
+        log.error(
+          { schedulerName: scheduler.config.name, err: error },
           'Unexpected error in scheduler execution',
         );
       });
@@ -191,7 +185,7 @@ export function createSchedulerService(
         scheduler.state.nextRun = Date.now();
       }
 
-      fastify.appLog.info({ name: 'scheduler', schedulerName: params.name }, 'Scheduler started');
+      log.info({ schedulerName: params.name }, 'Scheduler started');
     },
 
     /**
@@ -206,7 +200,7 @@ export function createSchedulerService(
       scheduler.state.nextRun = null;
       scheduler.state.startedAt = null;
 
-      fastify.appLog.info({ name: 'scheduler', schedulerName: params.name }, 'Scheduler stopped');
+      log.info({ schedulerName: params.name }, 'Scheduler stopped');
     },
 
     /**
@@ -219,10 +213,7 @@ export function createSchedulerService(
         throw new Error(`Scheduler '${params.name}' is already running`);
       }
 
-      fastify.appLog.info(
-        { name: 'scheduler', schedulerName: params.name },
-        'Manually triggering scheduler',
-      );
+      log.info({ schedulerName: params.name }, 'Manually triggering scheduler');
       await executeScheduler(scheduler);
     },
 
@@ -252,10 +243,7 @@ export function createSchedulerService(
      * Start the orchestration loop
      */
     startOrchestration() {
-      fastify.appLog.info(
-        { name: 'scheduler', tickIntervalSec: TICK_INTERVAL_MS / 1000 },
-        'Starting scheduler orchestration',
-      );
+      log.info({ tickIntervalSec: TICK_INTERVAL_MS / 1000 }, 'Starting scheduler orchestration');
 
       // Initialize schedulers that should run on startup
       for (const scheduler of Object.values(schedulers)) {
@@ -279,7 +267,7 @@ export function createSchedulerService(
         clearTimeout(timer);
         timer = null;
       }
-      fastify.appLog.info({ name: 'scheduler' }, 'Stopped scheduler orchestration');
+      log.info('Stopped scheduler orchestration');
     },
   };
 }

@@ -28,27 +28,27 @@ function createHttpClient(accessToken: string): AxiosInstance {
 
 export function createTMDBClient(accessToken: string, appLog: AppLogger) {
   const client = createHttpClient(accessToken);
+  const log = appLog.scope('tmdb');
 
   async function test(): Promise<boolean> {
     try {
       const auth = await client.get<{ success?: boolean }>('/authentication');
       return auth.data?.success ?? false;
     } catch (error) {
-      appLog.warn({ name: 'tmdb', err: error }, 'Connection test failed');
+      log.warn({ err: error }, 'Connection test failed');
       return false;
     }
   }
 
   /** Search for movies or tv shows */
   async function search(type: MediaType, params: TMDBSearchParams | TMDBTVSearchParams) {
-    return appLog.debugTiming(
-      async () => {
-        const response = await client.get(`/search/${type}`, { params });
-        return TMDBSearchResponseSchema.parse(response.data);
-      },
-      { name: 'tmdb', type, params },
-      'tmdb search request',
-    );
+    const timer = log.timer('search', { type, params });
+
+    const response = await client.get(`/search/${type}`, { params });
+    const result = TMDBSearchResponseSchema.parse(response.data);
+
+    timer.end();
+    return result;
   }
 
   /**
@@ -56,29 +56,27 @@ export function createTMDBClient(accessToken: string, appLog: AppLogger) {
    * All TMDB discover parameters are supported - see TMDBDiscoverParams interface for full list.
    */
   async function discover(type: MediaType, params: Partial<TMDBDiscoverParams>) {
-    return appLog.debugTiming(
-      async () => {
-        const response = await client.get(`/discover/${type}`, { params });
-        return TMDBSearchResponseSchema.parse(response.data);
-      },
-      { name: 'tmdb', type, params },
-      'tmdb discover request',
-    );
+    const timer = log.timer('discover', { type, params });
+
+    const response = await client.get(`/discover/${type}`, { params });
+    const result = TMDBSearchResponseSchema.parse(response.data);
+
+    timer.end();
+    return result;
   }
 
   /** Get trending movies or shows */
   async function trending(type: MediaType, params: TMDBTrendingParams = {}) {
     const { time_window = 'week', page = 1, language } = params;
-    return appLog.debugTiming(
-      async () => {
-        const response = await client.get(`/trending/${type}/${time_window}`, {
-          params: { page, language },
-        });
-        return TMDBSearchResponseSchema.parse(response.data);
-      },
-      { name: 'tmdb', type, time_window, params },
-      'tmdb trending request',
-    );
+    const timer = log.timer('trending', { type, time_window, params });
+
+    const response = await client.get(`/trending/${type}/${time_window}`, {
+      params: { page, language },
+    });
+    const result = TMDBSearchResponseSchema.parse(response.data);
+
+    timer.end();
+    return result;
   }
 
   /**
@@ -92,25 +90,30 @@ export function createTMDBClient(accessToken: string, appLog: AppLogger) {
       append_to_response = 'credits,keywords,external_ids,videos',
       ...queryParams
     } = params;
-    return appLog.debugTiming(
-      async () => {
-        const response = await client.get(`/${type}/${id}`, {
-          params: { ...queryParams, append_to_response },
-        });
+    const timer = log.timer('details', { type, id, params });
 
-        return type === 'movie'
-          ? TMDBMovieDetailsSchema.parse(response.data)
-          : TMDBTVDetailsSchema.parse(response.data);
-      },
-      { name: 'tmdb', type, id, params },
-      'tmdb details request',
-    );
+    const response = await client.get(`/${type}/${id}`, {
+      params: { ...queryParams, append_to_response },
+    });
+
+    const result =
+      type === 'movie'
+        ? TMDBMovieDetailsSchema.parse(response.data)
+        : TMDBTVDetailsSchema.parse(response.data);
+
+    timer.end();
+    return result;
   }
 
   /** Get movie or tv genres */
   async function genres(type: MediaType, params?: TMDBGenresParams) {
+    const timer = log.timer('genres', { type, params });
+
     const response = await client.get(`/genre/${type}/list`, { params });
-    return TMDBGenresResponseSchema.parse(response.data);
+    const result = TMDBGenresResponseSchema.parse(response.data);
+
+    timer.end();
+    return result;
   }
 
   /**
@@ -121,10 +124,15 @@ export function createTMDBClient(accessToken: string, appLog: AppLogger) {
     externalId: string | number,
     externalSource: 'tvdb_id' | 'imdb_id',
   ) {
+    const timer = log.timer('findByExternalId', { externalId, externalSource });
+
     const response = await client.get(`/find/${externalId}`, {
       params: { external_source: externalSource },
     });
-    return TMDBFindResponseSchema.parse(response.data);
+    const result = TMDBFindResponseSchema.parse(response.data);
+
+    timer.end();
+    return result;
   }
 
   return {

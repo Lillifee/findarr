@@ -33,7 +33,7 @@ export async function createArrService<T extends ArrServiceConfig>(
   });
 
   await lifecycle.reload().catch((error: unknown) => {
-    context.appLog.error({ name: config.service, error }, 'Failed to initialize Arr service');
+    context.appLog.scope(config.service).error({ error }, 'Failed to initialize Arr service');
   });
 
   function getSettings(): ArrSettings {

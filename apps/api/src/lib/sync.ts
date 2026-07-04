@@ -10,20 +10,21 @@ import type { LibService } from './service.js';
  */
 export async function syncLibrary(context: SchedulerContext, service: LibService): Promise<void> {
   const { service: name } = service.config;
+  const log = context.appLog.scope(name);
   const syncStartedAt = Date.now();
-  context.appLog.info({ name }, 'Starting library sync');
+  log.info('Starting library sync');
 
   const isConnected = await service.testConnection();
   if (!isConnected) {
     throw new Error(`${name} connection test failed`);
   }
 
-  context.appLog.debug({ name }, 'Connection successful');
+  log.debug('Connection successful');
 
   const items = await service.listLibraryItems();
 
   if (items.length === 0) {
-    context.appLog.warn({ name }, 'No items found with TMDB IDs');
+    log.warn('No items found with TMDB IDs');
     return;
   }
 
@@ -38,11 +39,11 @@ export async function syncLibrary(context: SchedulerContext, service: LibService
 
   if (removedLibIds.length > 0) {
     const clearedCount = await clearRemovedLibItems(context.db, removedLibIds);
-    context.appLog.info({ name, clearedCount }, 'Cleaned up removed items');
+    log.info({ clearedCount }, 'Cleaned up removed items');
   }
 
-  context.appLog.info(
-    { name, totalFetched: items.length, affectedRows, durationMs: Date.now() - syncStartedAt },
+  log.info(
+    { totalFetched: items.length, affectedRows, durationMs: Date.now() - syncStartedAt },
     'Library sync completed',
   );
 }

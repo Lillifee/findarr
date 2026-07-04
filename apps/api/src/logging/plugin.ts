@@ -19,7 +19,7 @@ interface LoggerPluginOptions extends FastifyPluginOptions {
 const loggerPlugin: FastifyPluginAsync<LoggerPluginOptions> = async (fastify, options) => {
   fastify.decorate('logStore', options.service);
   fastify.decorate('appLog', createAppLogger(fastify.log));
-  fastify.appLog.info({ name: 'logger' }, 'Logger plugin registered');
+  fastify.appLog.scope('logger').info('Logger plugin registered');
 };
 
 export default fp(loggerPlugin, {

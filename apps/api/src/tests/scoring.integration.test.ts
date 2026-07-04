@@ -14,7 +14,11 @@ import { TMDBSearchResponseSchema } from '../tmdb/schemas.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { transformMedia } from '../tmdb/transformers.js';
 import { loadFixture } from './helpers/fixtureHelper.js';
-import { createMockSchedulerContext, createMockTMDBService } from './helpers/mockServices.js';
+import {
+  createMockAppLogger,
+  createMockSchedulerContext,
+  createMockTMDBService,
+} from './helpers/mockServices.js';
 import { createTestUserInDb } from './helpers/testHelper.js';
 
 // Helper to round score values for snapshots
@@ -86,7 +90,11 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     await syncCatalogCache(mockFastify);
 
     // Create catalog service for testing
-    catalogService = createCatalogService({ db, tmdb: tmdbServiceMock });
+    catalogService = createCatalogService({
+      db,
+      tmdb: tmdbServiceMock,
+      appLog: createMockAppLogger(),
+    });
   });
 
   afterEach(() => {

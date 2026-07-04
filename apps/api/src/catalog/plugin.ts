@@ -16,7 +16,7 @@ const catalogPlugin = (fastify: FastifyInstance) => {
 
   // Decorate fastify instance with catalog service
   fastify.decorate('catalog', catalogService);
-  fastify.appLog.info({ name: 'catalog' }, 'Catalog plugin registered');
+  fastify.appLog.scope('catalog').info('Catalog plugin registered');
 };
 
 export default fp(catalogPlugin, {
