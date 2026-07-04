@@ -9,7 +9,7 @@ import { computeCatalogMediaStats } from '../catalog/repository.js';
 import { createCatalogService } from '../catalog/service.js';
 import { syncCatalogCache } from '../catalog/sync.js';
 import { createDatabase, type Database } from '../db/service.js';
-import { updateGenrePreference, updateKeywordPreference } from '../preferences/repository.js';
+import { applyPreferenceDeltas } from '../preferences/repository.js';
 import { TMDBSearchResponseSchema } from '../tmdb/schemas.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { transformMedia } from '../tmdb/transformers.js';
@@ -146,16 +146,16 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
 
     // Add strong genre preferences
     // Action (28), Thriller (53), Drama (18) = high scores
-    await updateGenrePreference(db, user.id, { id: 28, name: 'Action' }, 5);
-    await updateGenrePreference(db, user.id, { id: 53, name: 'Thriller' }, 4);
-    await updateGenrePreference(db, user.id, { id: 18, name: 'Drama' }, 3);
+    await applyPreferenceDeltas(db, user.id, [{ id: 28, name: 'Action' }], [], 5);
+    await applyPreferenceDeltas(db, user.id, [{ id: 53, name: 'Thriller' }], [], 4);
+    await applyPreferenceDeltas(db, user.id, [{ id: 18, name: 'Drama' }], [], 3);
 
     // Comedy (35) = negative score
-    await updateGenrePreference(db, user.id, { id: 35, name: 'Comedy' }, -3);
+    await applyPreferenceDeltas(db, user.id, [{ id: 35, name: 'Comedy' }], [], -3);
 
     // Add keyword preference (dystopia, based on novel)
-    await updateKeywordPreference(db, user.id, { id: 4565, name: 'dystopia' }, 5);
-    await updateKeywordPreference(db, user.id, { id: 818, name: 'based on novel or book' }, 3);
+    await applyPreferenceDeltas(db, user.id, [], [{ id: 4565, name: 'dystopia' }], 5);
+    await applyPreferenceDeltas(db, user.id, [], [{ id: 818, name: 'based on novel or book' }], 3);
 
     // Get popular with user preferences
     const page1 = await catalogService.getPopularMedia({ type: 'both' }, user.id);

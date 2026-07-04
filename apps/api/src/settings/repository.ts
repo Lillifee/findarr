@@ -23,12 +23,16 @@ export async function writeSettings(
   if (entries.length === 0) {
     return;
   }
-  await Promise.all(
-    entries.map(([key, value]) =>
-      db.insert(appSettings).values({ key, value }).onConflictDoUpdate({
-        target: appSettings.key,
-        set: { value },
-      }),
-    ),
-  );
+  // One transaction for the whole batch → a single commit instead of one per key.
+  db.transaction((tx) => {
+    for (const [key, value] of entries) {
+      tx.insert(appSettings)
+        .values({ key, value })
+        .onConflictDoUpdate({
+          target: appSettings.key,
+          set: { value },
+        })
+        .run();
+    }
+  });
 }

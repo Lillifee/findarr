@@ -139,21 +139,6 @@ export async function upsertMediaFromArr(db: Database, items: UpsertArrMedia[]):
 }
 
 /**
- * Update media status by arrId
- */
-export async function updateMediaStatusByArrId(
-  db: Database,
-  arrId: number,
-  type: MediaType,
-  status: MediaStatus,
-): Promise<void> {
-  await db
-    .update(media)
-    .set({ status, updatedAt: Date.now() })
-    .where(and(eq(media.arrId, arrId), eq(media.type, type)));
-}
-
-/**
  * Batch update media status by arr IDs
  */
 export async function batchUpdateMediaStatuses(
@@ -164,10 +149,15 @@ export async function batchUpdateMediaStatuses(
     status: MediaStatus;
   }[],
 ): Promise<void> {
-  for (const { arrId, type, status } of updates) {
-    // oxlint-disable-next-line no-await-in-loop
-    await updateMediaStatusByArrId(db, arrId, type, status);
-  }
+  // One transaction for the whole batch → a single commit instead of one per row.
+  db.transaction((tx) => {
+    for (const { arrId, type, status } of updates) {
+      tx.update(media)
+        .set({ status, updatedAt: Date.now() })
+        .where(and(eq(media.arrId, arrId), eq(media.type, type)))
+        .run();
+    }
+  });
 }
 
 /**

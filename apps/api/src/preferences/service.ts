@@ -2,7 +2,7 @@ import type { InteractionType } from '@findarr/shared/interaction';
 import type { Genre, Keyword } from '@findarr/shared/media';
 
 import type { Database } from '../db/service.js';
-import { updateGenrePreference, updateKeywordPreference } from './repository.js';
+import { applyPreferenceDeltas } from './repository.js';
 
 // ============================================================================
 // User Preferences Service - Business Logic
@@ -13,47 +13,9 @@ const LIKE_SCORE = 1;
 const DISLIKE_SCORE = -1;
 
 /**
- * Update user genre preferences based on an interaction
- */
-export async function updateGenreFromInteraction(
-  db: Database,
-  userId: number,
-  genres: Genre[],
-  action: InteractionType,
-  isToggle: boolean,
-) {
-  // Calculate score delta based on action and toggle state
-  const baseScore = action === 'liked' ? LIKE_SCORE : DISLIKE_SCORE;
-  const scoreDelta = isToggle ? -baseScore : baseScore;
-
-  // Update preferences for all genres in the media item
-  await Promise.all(
-    genres.map(async (genre) => updateGenrePreference(db, userId, genre, scoreDelta)),
-  );
-}
-
-/**
- * Update user keyword preferences based on an interaction
- */
-export async function updateKeywordFromInteraction(
-  db: Database,
-  userId: number,
-  keywords: Keyword[],
-  action: InteractionType,
-  isToggle: boolean,
-) {
-  // Calculate score delta based on action and toggle state
-  const baseScore = action === 'liked' ? LIKE_SCORE : DISLIKE_SCORE;
-  const scoreDelta = isToggle ? -baseScore : baseScore;
-
-  // Update preferences for all keywords in the media item
-  await Promise.all(
-    keywords.map(async (keyword) => updateKeywordPreference(db, userId, keyword, scoreDelta)),
-  );
-}
-
-/**
- * Update user preferences (both genres and keywords) based on an interaction
+ * Update user genre + keyword preferences based on an interaction. All upserts
+ * run in a single transaction (one commit) to avoid a per-row fsync on slow
+ * storage.
  */
 export async function updatePreferencesForInteraction(
   db: Database,
@@ -63,11 +25,9 @@ export async function updatePreferencesForInteraction(
   action: InteractionType,
   isToggle: boolean,
 ) {
-  // Update genre preferences
-  await updateGenreFromInteraction(db, userId, genres, action, isToggle);
+  // Calculate score delta based on action and toggle state.
+  const baseScore = action === 'liked' ? LIKE_SCORE : DISLIKE_SCORE;
+  const scoreDelta = isToggle ? -baseScore : baseScore;
 
-  // Update keyword preferences if keywords are available (from catalog_cache)
-  if (keywords && keywords.length > 0) {
-    await updateKeywordFromInteraction(db, userId, keywords, action, isToggle);
-  }
+  await applyPreferenceDeltas(db, userId, genres, keywords ?? [], scoreDelta);
 }
