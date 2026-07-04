@@ -40,9 +40,6 @@ const createFeedState = (next: Partial<VoteFeedState>): VoteFeedState => ({
   ...next,
 });
 
-const areGenresEqual = (left: GenreKey[], right: GenreKey[]) =>
-  left.length === right.length && left.every((genre, index) => genre === right[index]);
-
 export function useVoteFeed(): VoteFeed {
   const [searchParams, setSearchParams] = useSearchParams();
   const { type: selectedType, genres: selectedGenres } = useMemo(
@@ -52,19 +49,10 @@ export function useVoteFeed(): VoteFeed {
 
   const [feedState, setFeedState] = useState<VoteFeedState>(initialFeedState);
   const feedIdRef = useRef<string | null>(null);
-  const lastFiltersRef = useRef({ genres: selectedGenres, type: selectedType });
-
-  useEffect(() => {
-    const lastFilters = lastFiltersRef.current;
-    const filtersChanged =
-      lastFilters.type !== selectedType || !areGenresEqual(lastFilters.genres, selectedGenres);
-
-    if (filtersChanged) {
-      lastFiltersRef.current = { genres: selectedGenres, type: selectedType };
-      feedIdRef.current = null;
-      setFeedState(createFeedState({}));
-    }
-  }, [selectedType, selectedGenres]);
+  // Signature of the filters we last kicked off a fetch for. Guards against
+  // duplicate initial fetches (e.g. React StrictMode double-invoking the effect)
+  // while still refetching whenever the filters actually change.
+  const lastFetchSignatureRef = useRef<string | null>(null);
 
   const fetchNextItem = useCallback(async () => {
     setFeedState(createFeedState({ isLoading: true }));
@@ -90,8 +78,16 @@ export function useVoteFeed(): VoteFeed {
   }, [selectedType, selectedGenres]);
 
   useEffect(() => {
+    const signature = `${selectedType}|${selectedGenres.join(',')}`;
+    if (lastFetchSignatureRef.current === signature) {
+      return;
+    }
+
+    // New filter combination → start a fresh snapshot and load its first item.
+    lastFetchSignatureRef.current = signature;
+    feedIdRef.current = null;
     void fetchNextItem();
-  }, [fetchNextItem]);
+  }, [selectedType, selectedGenres, fetchNextItem]);
 
   const onTypeChange = (type: SearchType) => {
     setSearchParams(buildCatalogSearchParams({ type, genres: selectedGenres }));
