@@ -79,6 +79,9 @@ export function Icon({
 }: IconProps) {
   const variationStyle: CSSProperties = {
     fontSize: fontSizes[size],
+    width: fontSizes[size],
+    height: fontSizes[size],
+    overflow: 'hidden',
     fontVariationSettings: `'FILL' ${filled ? 1 : 0}, 'wght' ${weight}, 'GRAD' 0, 'opsz' ${opticalSize[size]}`,
     ...style,
   };
