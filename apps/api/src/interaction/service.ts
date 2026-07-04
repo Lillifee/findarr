@@ -105,12 +105,13 @@ export function createInteractionService(context: InteractionContext) {
       return undefined;
     }
 
+    const { language } = await getUserSettings(db, user.id);
+
     const timer = log.timer('createInteraction', { action: data.action });
 
     // Get or create media record
     const existing = await getMediaByTmdbId(db, data.tmdbId, data.mediaType);
-    const media =
-      existing ?? (await createMedia(db, data.tmdbId, data.mediaType, 'pending', data.seasons));
+    const media = existing ?? (await createMedia(db, data.tmdbId, data.mediaType, 'pending'));
 
     // Update seasons if provided (TV shows only)
     if (data.mediaType === 'tv' && data.seasons !== undefined) {
@@ -139,24 +140,30 @@ export function createInteractionService(context: InteractionContext) {
     const isAdmin = user.role === 'admin';
     timer.lap('persistVote');
 
-    // Resolve the user's language once, then fetch TMDB details a single time and
-    // reuse them for the request, preferences, and (via the shared cache) the
-    // final enriched response.
-    const { language } = await getUserSettings(db, user.id);
+    // Fetch TMDB details a single time and reuse them for the request, preferences,
+    // and (via the shared cache) the final enriched response.
     const details = await tmdb.details({ id: data.tmdbId, type: data.mediaType, language });
-    timer.lap('detailsPrimary');
+    timer.lap('details');
 
-    // Request media
-    if ((likes >= LIKE_THRESHOLD || isAdmin) && data.action === 'liked') {
-      if (media.status === 'pending') {
-        // Update to requested status (trigger download workflow)
-        await updateMediaStatus(db, media.id, 'requested');
-      }
+    // Request media. Skip if it's already available in the library (e.g. still on
+    // Jellyfin/Plex after being removed from Radarr/Sonarr) so we don't needlessly
+    // re-request it — but a TV season update still needs to reach Sonarr.
+    const shouldRequest =
+      data.action === 'liked' &&
+      (likes >= LIKE_THRESHOLD || isAdmin) &&
+      (media.status !== 'available' || isSeasonUpdate);
 
+    if (shouldRequest) {
       // Forward to Radarr/Sonarr (handles both create and update based on arrId)
       await requestMediaToArr(media, details, data.seasons);
+      timer.lap('requestArr');
+
+      if (media.status === 'pending') {
+        // Mark as requested only after the request actually reached Radarr/Sonarr
+        await updateMediaStatus(db, media.id, 'requested');
+        timer.lap('updateMediaStatus');
+      }
     }
-    timer.lap('requestArr');
 
     // Update user genre preferences based on the interaction.
     await updatePreferencesForInteraction(
@@ -174,7 +181,8 @@ export function createInteractionService(context: InteractionContext) {
       { id: data.tmdbId, type: data.mediaType },
       user.id,
     );
-    timer.lap('detailsFinal');
+
+    timer.lap('getMediaDetails');
     timer.end();
 
     return enriched;
