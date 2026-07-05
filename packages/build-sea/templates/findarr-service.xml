@@ -1,0 +1,22 @@
+<service>
+  <id>findarr</id>
+  <name>Findarr</name>
+  <description>Findarr media discovery and request server.</description>
+
+  <!-- %BASE% is the folder that contains this file and findarr.exe. -->
+  <executable>%BASE%\findarr.exe</executable>
+  <workingdirectory>%BASE%</workingdirectory>
+
+  <env name="NODE_ENV" value="production" />
+  <env name="HOST" value="0.0.0.0" />
+  <env name="PORT" value="8585" />
+  <env name="DATA_PATH" value="%BASE%\data" />
+
+  <!-- Restart the server automatically if it crashes. -->
+  <onfailure action="restart" delay="10 sec" />
+
+  <log mode="roll-by-size">
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>8</keepFiles>
+  </log>
+</service>

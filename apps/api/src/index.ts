@@ -101,4 +101,10 @@ async function start() {
   }
 }
 
-await start();
+// Not top-level await: the API is bundled into a CommonJS Single Executable
+// Application (SEA), whose format does not support top-level await.
+// oxlint-disable-next-line unicorn/prefer-top-level-await
+start().catch((error: unknown) => {
+  server.log.error({ name: 'server', err: error }, 'Failed to start');
+  process.exitCode = 1;
+});

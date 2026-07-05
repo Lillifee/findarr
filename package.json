@@ -8,6 +8,7 @@
     "dev:shared": "vp run --filter @findarr/shared build",
     "dev:apps": "vp run -r --parallel dev",
     "build": "vp run -r build",
+    "build:sea": "vp run -r build:sea",
     "preview": "vp run -r preview",
     "test": "vp test",
     "check": "vp check",

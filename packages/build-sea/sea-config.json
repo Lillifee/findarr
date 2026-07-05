@@ -1,0 +1,7 @@
+{
+  "main": "build/sea/findarr.cjs",
+  "output": "build/sea/findarr.blob",
+  "disableExperimentalSEAWarning": true,
+  "useSnapshot": false,
+  "useCodeCache": false
+}

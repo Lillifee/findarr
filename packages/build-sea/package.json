@@ -1,0 +1,21 @@
+{
+  "name": "@findarr/build-sea",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Single Executable Application (SEA) builder for Findarr",
+  "type": "module",
+  "scripts": {
+    "build:sea": "tsx src/build-sea.ts"
+  },
+  "dependencies": {
+    "esbuild": "^0.25.0",
+    "postject": "^1.0.0-alpha.6"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "tsx": "^4.22.4",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}
