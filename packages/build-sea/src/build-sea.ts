@@ -59,6 +59,11 @@ const config = {
   // executable. Their full runtime dependency closure is copied automatically
   // (see copyNativeModules).
   nativePackages: ['better-sqlite3', '@node-rs/argon2'],
+  // Build-time-only dependencies to skip when copying the closure. Excluding a
+  // package also drops its (otherwise unused) subtree. `prebuild-install` only
+  // downloads prebuilt binaries during `npm install`; at runtime better-sqlite3
+  // loads its .node via `bindings`, so none of that tree is needed.
+  excludePackages: ['prebuild-install'],
   platformName,
   archName,
   isWindows,
@@ -154,7 +159,7 @@ const resolvePkgJson = (pkg: string, requirer: NodeRequire): string | null => {
 // output node_modules, dereferencing pnpm's symlinks. `copied` tracks packages
 // already handled to avoid duplicate work and cycles.
 const copyPackageTree = (pkg: string, requirer: NodeRequire, copied: Set<string>): void => {
-  if (copied.has(pkg)) {
+  if (copied.has(pkg) || config.excludePackages.includes(pkg)) {
     return;
   }
   const pkgJsonPath = resolvePkgJson(pkg, requirer);
@@ -224,9 +229,11 @@ const cleanOutput = (): void => {
   mkdirSync(config.outDir, { recursive: true });
 };
 
-// 1. Build all workspace packages (shared, api, web).
+// 1. Build all workspace packages (shared, api, web). Cache is bypassed so a
+// release build always regenerates outputs, even if a previous cached build's
+// dist folders were later deleted (e.g. by `clean` or a git checkout).
 const buildPackages = (): void => {
-  runCommand('pnpm', ['run', 'build']);
+  runCommand('vp', ['run', '-r', '--no-cache', 'build']);
 };
 
 // 2. Bundle the API into a single CommonJS file.
