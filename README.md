@@ -88,7 +88,9 @@ No separate request buttons. Just like it and move on.
 
 ## 🚀 Quick start
 
-<details open>
+### Installation
+
+<details>
 <summary>🐳 <b>Docker</b></summary>
 
 Create or copy the docker-compose.yml file:
