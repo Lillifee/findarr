@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { isSea } from 'node:sea';
 
 import { fastifyStatic } from '@fastify/static';
 import { isDefined } from '@findarr/shared/utils';
@@ -7,8 +8,10 @@ import type { FastifyInstance } from 'fastify';
 
 dotenv.config();
 
-const currentDirectory = import.meta.dirname;
-const clientDistDir = path.join(currentDirectory, '..', '..', '..', 'web', 'dist');
+const clientDistDir = isSea()
+  ? path.join(path.dirname(process.execPath), 'web', 'dist')
+  : path.join(import.meta.dirname, '..', '..', '..', 'web', 'dist');
+
 const clientAssetsDir = path.join(clientDistDir, 'assets');
 
 export async function registerStatic(server: FastifyInstance) {
