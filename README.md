@@ -88,7 +88,10 @@ No separate request buttons. Just like it and move on.
 
 ## 🚀 Quick start
 
-Create or copy the [`docker-compose.yml`](/docker-compose.yml) file:
+<details open>
+<summary>🐳 <b>Docker</b></summary>
+
+Create or copy the docker-compose.yml file:
 
 ```yaml
 services:
@@ -101,13 +104,41 @@ services:
       - ./data:/app/apps/api/data
 ```
 
+> This is a minimal example. For all available options (environment variables,
+> volume/bind-mount setup, etc.) see the full
+> [`docker-compose.yml`](/docker-compose.yml).
+
 Run:
 
 ```bash
 docker compose up -d
 ```
 
-Open:
+</details>
+
+<details>
+<summary>🪟 <b>Windows</b></summary>
+
+Grab the `findarr-…-win-x64.zip` from the
+[releases](https://github.com/lillifee/findarr/releases) and extract it.
+
+Run directly:
+
+```txt
+./findarr.exe
+```
+
+Or run as a service — from an elevated (Administrator) terminal in the extracted
+folder:
+
+```bash
+./install-service.sh     # install and start on boot
+./uninstall-service.sh   # remove the service
+```
+
+</details>
+
+### Open
 
 ```txt
 http://localhost:8585
