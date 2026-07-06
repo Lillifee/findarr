@@ -227,13 +227,15 @@
   "integrationCard": {
     "secretAlreadySet": "already set — leave blank to keep",
     "disabled": "Integration disabled. Toggle the switch to re-enable.",
+    "connectionTest": {
+      "success": "Connection established and synced.",
+      "error": "Could not connect. Check the connection details, then test again."
+    },
     "tmdb": {
       "description": "Metadata provider for search, discovery, and media details.",
       "stepMessage": "Save the TMDB access token before testing the connection.",
       "accessTokenLabel": "Access Token",
-      "accessTokenPlaceholder": "Enter TMDB access token",
-      "success": "Connection successful. TMDB is ready.",
-      "error": "Could not reach TMDB. Save a valid access token, then test again."
+      "accessTokenPlaceholder": "Enter TMDB access token"
     },
     "credentials": {
       "stepMessage": "Save the server URL and API key before testing the connection.",
@@ -247,17 +249,7 @@
       "qualityProfilePlaceholder": "— Select quality profile —",
       "rootFolderLabel": "Root Folder",
       "rootFolderPlaceholder": "— Select root folder —",
-      "availableAfterTest": "Available after a successful connection test.",
-      "success": "Connection successful. Quality profiles and root folders are ready.",
-      "error": "Could not reach {{title}}. Check the URL and API key, then test again."
-    },
-    "jellyfin": {
-      "success": "Connection successful. Jellyfin is ready.",
-      "error": "Could not reach Jellyfin. Check the URL and API key, then test again."
-    },
-    "plex": {
-      "success": "Connection successful. Plex is ready.",
-      "error": "Could not reach Plex. Check the URL and token, then test again."
+      "availableAfterTest": "Available after a successful connection test."
     },
     "step1": "Step 1",
     "step2": "Step 2"

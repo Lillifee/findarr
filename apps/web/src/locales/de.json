@@ -227,13 +227,15 @@
   "integrationCard": {
     "secretAlreadySet": "bereits gesetzt — leer lassen zum Beibehalten",
     "disabled": "Integration deaktiviert. Schalter umlegen, um sie wieder zu aktivieren.",
+    "connectionTest": {
+      "success": "Verbindung hergestellt und synchronisiert.",
+      "error": "Verbindung fehlgeschlagen. Überprüfe die Verbindungsdaten und teste erneut."
+    },
     "tmdb": {
       "description": "Metadatenanbieter für Suche, Entdeckung und Mediendetails.",
       "stepMessage": "Speichere den TMDB-Zugriffstoken, bevor du die Verbindung testest.",
       "accessTokenLabel": "Zugriffstoken",
-      "accessTokenPlaceholder": "TMDB-Zugriffstoken eingeben",
-      "success": "Verbindung erfolgreich. TMDB ist bereit.",
-      "error": "TMDB konnte nicht erreicht werden. Speichere einen gültigen Zugriffstoken und teste erneut."
+      "accessTokenPlaceholder": "TMDB-Zugriffstoken eingeben"
     },
     "credentials": {
       "stepMessage": "Speichere die Server-URL und den API-Schlüssel, bevor du die Verbindung testest.",
@@ -247,17 +249,7 @@
       "qualityProfilePlaceholder": "— Qualitätsprofil auswählen —",
       "rootFolderLabel": "Stammordner",
       "rootFolderPlaceholder": "— Stammordner auswählen —",
-      "availableAfterTest": "Verfügbar nach einem erfolgreichen Verbindungstest.",
-      "success": "Verbindung erfolgreich. Qualitätsprofile und Stammordner sind bereit.",
-      "error": "{{title}} konnte nicht erreicht werden. Überprüfe die URL und den API-Schlüssel."
-    },
-    "jellyfin": {
-      "success": "Verbindung erfolgreich. Jellyfin ist bereit.",
-      "error": "Jellyfin konnte nicht erreicht werden. URL und API-Schlüssel überprüfen."
-    },
-    "plex": {
-      "success": "Verbindung erfolgreich. Plex ist bereit.",
-      "error": "Plex konnte nicht erreicht werden. URL und Token überprüfen."
+      "availableAfterTest": "Verfügbar nach einem erfolgreichen Verbindungstest."
     },
     "step1": "Schritt 1",
     "step2": "Schritt 2"

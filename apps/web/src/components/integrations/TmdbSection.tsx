@@ -49,10 +49,10 @@ export function TmdbSection() {
       const result = await adminTmdbService.test();
       setTestResult(result);
       if (result) {
-        setSuccess(t('integrationCard.tmdb.success'));
+        setSuccess(t('integrationCard.connectionTest.success'));
         await refreshBootstrapStatus();
       } else {
-        setError(t('integrationCard.tmdb.error'));
+        setError(t('integrationCard.connectionTest.error'));
       }
     });
 
