@@ -29,6 +29,7 @@ import type {
   UserSettings,
   UserSettingsQuery,
 } from '@findarr/shared/settings';
+import type { VersionInfo } from '@findarr/shared/version';
 import { create } from 'axios';
 
 export const api = create({
@@ -278,5 +279,14 @@ export const adminLogsService = {
   setLevel: async (level: LogLevel): Promise<LogLevel> => {
     const response = await api.put<LogLevelResponse>('/admin/logs/level', { level });
     return response.data.level;
+  },
+};
+
+// Admin version service
+export const adminVersionService = {
+  // Current app version vs. the latest GitHub release
+  get: async (): Promise<VersionInfo> => {
+    const response = await api.get<VersionInfo>('/admin/version');
+    return response.data;
   },
 };

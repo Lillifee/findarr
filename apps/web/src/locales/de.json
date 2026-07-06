@@ -114,7 +114,11 @@
     "title": "Ereignisse",
     "description": "Die neuesten Anwendungsereignisse (300 Einträge) zur schnellen Fehlersuche anzeigen.",
     "refresh": "Aktualisieren",
-    "level": "Log-Level"
+    "level": "Log-Level",
+    "appName": "Findarr",
+    "appVersion": "Findarr - Version {{version}}",
+    "updateAvailable": "Eine neue Version ist verfügbar: {{latest}} (aktuell: {{current}})",
+    "viewRelease": "Release ansehen"
   },
   "activity": {
     "title": "Meine Aktivität",

@@ -114,7 +114,11 @@
     "title": "Logs",
     "description": "View the most recent application logs (300 entries) for quick troubleshooting.",
     "refresh": "Refresh",
-    "level": "Log level"
+    "level": "Log level",
+    "appName": "Findarr",
+    "appVersion": "Findarr - version {{version}}",
+    "updateAvailable": "A new version is available: {{latest}} (current: {{current}})",
+    "viewRelease": "View release"
   },
   "activity": {
     "title": "Your Activity",

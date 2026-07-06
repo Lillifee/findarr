@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { NavLink, useLocation } from 'react-router-dom';
 
 import { Icon } from './components/ui';
+import { useVersionInfo } from './hooks/useVersionInfo';
 import { interactionService } from './services/api';
 
 interface NavigationProps {
@@ -25,12 +26,19 @@ const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
     isActive ? 'text-amber-100' : 'text-zinc-500'
   }`;
 
+function StatusIndicator() {
+  return (
+    <span className="inline-flex h-2.5 w-2.5 rounded-full bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.8)] ring-1 ring-amber-800 outline-none" />
+  );
+}
+
 export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin }) => {
   const { t } = useTranslation();
   const [mobileAdvancedOpen, setMobileAdvancedOpen] = useState(false);
   const [hasAttention, setHasAttention] = useState(false);
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const versionInfo = useVersionInfo(isAdmin);
 
   useEffect(() => {
     let cancelled = false;
@@ -60,9 +68,8 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
     };
   }, []);
 
-  const attentionIndicator = hasAttention ? (
-    <span className="inline-flex h-2.5 w-2.5 rounded-full bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.8)] ring-1 ring-amber-800 outline-none" />
-  ) : null;
+  const attentionIndicator = hasAttention ? <StatusIndicator /> : null;
+  const updateIndicator = versionInfo?.updateAvailable === true ? <StatusIndicator /> : null;
 
   return (
     <>
@@ -124,6 +131,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                     <NavLink to="/admin/logs" className={navLinkClass}>
                       <Icon name="checklist" />
                       <span className="text-sm font-medium">{t('nav.logs')}</span>
+                      <span className="ml-auto">{updateIndicator}</span>
                     </NavLink>
                   </>
                 )}
@@ -176,7 +184,9 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
             <span className="relative">
               <Icon className="mb-1" name="fact_check" size="lg" />
               {hasAttention && (
-                <span className="absolute top-0 -right-1 inline-flex h-2.5 w-2.5 rounded-full bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.8)]" />
+                <span className="absolute top-0 -right-1">
+                  <StatusIndicator />
+                </span>
               )}
             </span>
             <span className="text-xs font-medium">{t('nav.activity')}</span>
@@ -190,7 +200,14 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
               mobileAdvancedOpen || isAdminRoute ? 'text-amber-100' : 'text-zinc-500'
             }`}
           >
-            <Icon className="mb-1" name="more_vert" size="lg" />
+            <span className="relative">
+              <Icon className="mb-1" name="more_vert" size="lg" />
+              {updateIndicator && (
+                <span className="absolute top-0 -right-1">
+                  <StatusIndicator />
+                </span>
+              )}
+            </span>
             <span className="text-xs font-medium">{t('nav.more')}</span>
           </button>
         </div>
@@ -259,6 +276,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                   >
                     <Icon name="checklist" />
                     <span className="font-medium">{t('nav.logs')}</span>
+                    <span className="ml-auto">{updateIndicator}</span>
                   </NavLink>
                 </>
               )}

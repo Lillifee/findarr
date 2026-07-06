@@ -24,7 +24,7 @@ export function IntegrationCard({
   const { t } = useTranslation();
   return (
     <Card variant="solid" padding="none" className="overflow-hidden">
-      <div className="flex flex-col gap-2 border-b border-zinc-800 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-6">
+      <div className="flex items-start justify-between gap-3 border-b border-zinc-800 px-5 py-4 md:items-center md:px-6">
         <div className="min-w-0">
           <h3 className="text-lg font-semibold text-white">{title}</h3>
           <p className="mt-1 text-sm text-zinc-400">{description}</p>

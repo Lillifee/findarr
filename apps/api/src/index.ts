@@ -25,6 +25,8 @@ import tmdbPlugin from './tmdb/plugin.js';
 import { settingsRoutes } from './user/routes.js';
 import { registerErrorHandler } from './utils/errors.js';
 import { buildLogger, registerRequestLogging } from './utils/logger.js';
+import versionPlugin from './version/plugin.js';
+import { versionRoutes } from './version/routes.js';
 import { registerStatic } from './web/static.js';
 
 dotenv.config();
@@ -71,6 +73,7 @@ async function start() {
     await server.register(catalogPlugin);
     await server.register(interactionPlugin);
     await server.register(schedulerPlugin);
+    await server.register(versionPlugin);
 
     // Health check endpoint
     server.get('/health', () => ({ status: 'ok', timestamp: new Date().toISOString() }));
@@ -85,6 +88,7 @@ async function start() {
     await server.register(schedulerRoutes, { prefix: '/api' });
     await server.register(adminSchedulerRoutes, { prefix: '/api/admin' });
     await server.register(adminLogsRoutes, { prefix: '/api/admin' });
+    await server.register(versionRoutes, { prefix: '/api/admin' });
 
     // Start scheduler orchestration
     server.scheduler.startOrchestration();
