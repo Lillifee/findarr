@@ -51,6 +51,10 @@
     "./logs": {
       "types": "./dist/logs.d.mts",
       "import": "./dist/logs.mjs"
+    },
+    "./version": {
+      "types": "./dist/version.d.mts",
+      "import": "./dist/version.mjs"
     }
   },
   "scripts": {
