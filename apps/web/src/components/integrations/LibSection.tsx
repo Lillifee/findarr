@@ -15,16 +15,12 @@ const libServiceConfig = {
     urlPlaceholder: 'http://localhost:8096',
     apiKeyLabel: 'API Key' as const,
     apiKeyPlaceholder: 'Enter API key',
-    successMessage: 'Connection successful. Jellyfin is ready.',
-    errorMessage: 'Could not reach Jellyfin. Check the URL and API key, then test again.',
   },
   plex: {
     title: 'Plex',
     urlPlaceholder: 'http://localhost:32400',
     apiKeyLabel: 'Token' as const,
     apiKeyPlaceholder: 'Enter Plex token',
-    successMessage: 'Connection successful. Plex is ready.',
-    errorMessage: 'Could not reach Plex. Check the URL and token, then test again.',
   },
 } as const;
 
@@ -83,9 +79,9 @@ export function LibSection({ service, forceDisabled, onEnable }: LibSectionProps
       const result = await svc.test();
       setTestResult(result);
       if (result) {
-        setSuccess(t(`integrationCard.${service}.success`));
+        setSuccess(t('integrationCard.connectionTest.success'));
       } else {
-        setError(t(`integrationCard.${service}.error`));
+        setError(t('integrationCard.connectionTest.error'));
       }
     });
 

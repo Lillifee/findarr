@@ -130,11 +130,11 @@ export function ArrSection({ service }: ArrSectionProps) {
       setTestResult(result);
       if (result) {
         await loadProfiles();
-        setSuccess(t('integrationCard.arr.success'));
+        setSuccess(t('integrationCard.connectionTest.success'));
       } else {
         setProfiles([]);
         setRootFolders([]);
-        setError(t('integrationCard.arr.error', { title: config.title }));
+        setError(t('integrationCard.connectionTest.error'));
       }
     });
 
