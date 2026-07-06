@@ -1,6 +1,6 @@
 import type { Writable } from 'node:stream';
 
-import type { FastifyBaseLogger, FastifyLogFn } from 'fastify';
+import type { FastifyBaseLogger, FastifyInstance, FastifyLogFn } from 'fastify';
 import { multistream, pino } from 'pino';
 import pretty from 'pino-pretty';
 
@@ -40,6 +40,27 @@ export function buildLogger(isProduction: boolean, bufferStream: Writable): Fast
       { level: 'trace', stream: bufferStream },
     ]),
   );
+}
+
+/**
+ * Fastify's built-in request logging always logs at 'info', which is noisy for
+ * production. Call this with `disableRequestLogging: true` set on the Fastify
+ * instance to log completed requests ourselves at 'trace' (or 'warn' on
+ * errors), so raw HTTP traffic stays separate from meaningful 'debug'-level
+ * domain events (e.g. tmdb/radarr/sonarr timing).
+ */
+export function registerRequestLogging(server: FastifyInstance): void {
+  server.addHook('onResponse', async (request, reply) => {
+    const level = reply.statusCode >= 400 ? 'warn' : 'trace';
+    request.log[level](
+      {
+        req: { method: request.method, url: request.url },
+        res: { statusCode: reply.statusCode },
+        responseTime: reply.elapsedTime,
+      },
+      'request completed',
+    );
+  });
 }
 
 /**

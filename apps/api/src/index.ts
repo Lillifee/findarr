@@ -24,7 +24,7 @@ import { adminSchedulerRoutes, schedulerRoutes } from './scheduler/routes.js';
 import tmdbPlugin from './tmdb/plugin.js';
 import { settingsRoutes } from './user/routes.js';
 import { registerErrorHandler } from './utils/errors.js';
-import { buildLogger } from './utils/logger.js';
+import { buildLogger, registerRequestLogging } from './utils/logger.js';
 import { registerStatic } from './web/static.js';
 
 dotenv.config();
@@ -36,6 +36,9 @@ const dataPath = env.DATA_PATH;
 const logStore = createLogStore();
 
 const server = fastify({
+  // Fastify's built-in request logging always logs at 'info', which is noisy for
+  // production. Log completed requests ourselves at 'debug' (or 'warn' on errors).
+  disableRequestLogging: true,
   loggerInstance: buildLogger(env.NODE_ENV === 'production', logStore.createStream()),
 });
 
@@ -43,6 +46,7 @@ async function start() {
   try {
     // Register global error handler
     registerErrorHandler(server);
+    registerRequestLogging(server);
 
     // Register CORS with credentials support
     await server.register(cors, {
