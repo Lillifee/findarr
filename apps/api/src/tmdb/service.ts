@@ -17,7 +17,7 @@ import { isDefined } from '@findarr/shared/utils';
 import type { Database } from '../db/service.js';
 import type { SchedulerService } from '../scheduler/service.js';
 import { createLruTtlCache } from '../utils/cacheHelper.js';
-import { createClientLifecycle } from '../utils/clientLifecycleHepler.js';
+import { createClientLifecycle } from '../utils/clientLifecycleHelper.js';
 import type { AppLogger } from '../utils/logger.js';
 import { createTMDBClient, type TMDBClient } from './client.js';
 import { buildDiscoverParams } from './helpers.js';

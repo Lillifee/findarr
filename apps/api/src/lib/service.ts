@@ -3,7 +3,7 @@ import { isDefined } from '@findarr/shared/utils';
 
 import type { Database } from '../db/service.js';
 import type { SchedulerService } from '../scheduler/service.js';
-import { createClientLifecycle } from '../utils/clientLifecycleHepler.js';
+import { createClientLifecycle } from '../utils/clientLifecycleHelper.js';
 import { trimTrailingSlash } from '../utils/links.js';
 import type { AppLogger } from '../utils/logger.js';
 import type { LibServiceConfig } from './config.js';
