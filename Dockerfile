@@ -73,6 +73,10 @@ LABEL org.opencontainers.image.licenses="MIT"
 ENV NODE_ENV=production
 ENV DATA_PATH=/app/apps/api/data
 
+# Node's prebuilt binary requires libatomic1 on debian-slim.
+RUN apt-get update && apt-get install -y --no-install-recommends libatomic1 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Non-root runtime user (the entrypoint drops to it via runuser).
 RUN groupadd -g 1000 node && useradd -u 1000 -g node -m node
 
