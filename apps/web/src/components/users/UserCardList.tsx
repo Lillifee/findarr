@@ -1,6 +1,7 @@
 import type { User } from '@findarr/shared/auth';
 import { useTranslation } from 'react-i18next';
 
+import { getInitials } from '../../utils/formatting';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { UserRoleBadge } from './UserRoleBadge';
@@ -8,21 +9,6 @@ import { UserRoleBadge } from './UserRoleBadge';
 interface UserCardListProps {
   users: User[];
   onDelete: (userId: number) => void;
-}
-
-function getInitials(name: string) {
-  const parts = name.trim().split(/\s+/u).filter(Boolean);
-  const first = parts.at(0);
-
-  if (first === undefined) {
-    return '?';
-  }
-  if (parts.length === 1) {
-    return first.slice(0, 2).toUpperCase();
-  }
-
-  const last = parts.at(-1) ?? first;
-  return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
 }
 
 export function UserCardList({ users, onDelete }: UserCardListProps) {

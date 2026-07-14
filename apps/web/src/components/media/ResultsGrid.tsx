@@ -18,8 +18,8 @@ function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
   const { t } = useTranslation();
   const title = item.name;
   const year = releaseYear(item.date);
-  const isLiked = item.state?.interactions?.find((i) => i.action === 'liked');
-  const isDisliked = item.state?.interactions?.find((i) => i.action === 'disliked');
+  const isLiked = item.state?.interaction?.action === 'liked';
+  const isDisliked = item.state?.interaction?.action === 'disliked';
 
   return (
     <div

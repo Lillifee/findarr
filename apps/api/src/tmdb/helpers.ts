@@ -1,4 +1,3 @@
-import type { DiscoverQuery } from '@findarr/shared/catalog';
 import {
   regionGroups,
   unifiedGenres,
@@ -7,13 +6,11 @@ import {
   type GenreKey,
 } from '@findarr/shared/constants';
 import type { MediaType } from '@findarr/shared/media';
-import type { UserSettingsQuery } from '@findarr/shared/settings';
 import { isDefined } from '@findarr/shared/utils';
 
 import { HttpError } from '../utils/errors.js';
 import { sleep } from '../utils/helper.js';
 import type { AppLogger } from '../utils/logger.js';
-import type { TMDBDiscoverParams } from './schemas.js';
 
 /**
  * Build region filters from selected region groups
@@ -55,54 +52,22 @@ const formatDate = (date: Date) => date.toISOString().split('T')[0] ?? '';
 /**
  * Build date parameters for discover queries
  */
-export const buildDateParams = (recentDays: number | undefined, type: MediaType | 'both') => {
-  if (!isDefined(recentDays)) {
-    return {};
-  }
-
+export const buildDateParams = (type: MediaType, recentDays: number) => {
   const { pastDate, futureDate } = getDateRangeFromDays(recentDays);
 
   const dateParams: Record<string, string> = {};
 
-  if (type === 'movie' || type === 'both') {
+  if (type === 'movie') {
     dateParams['primary_release_date.gte'] = formatDate(pastDate);
     dateParams['primary_release_date.lte'] = formatDate(futureDate);
   }
 
-  if (type === 'tv' || type === 'both') {
+  if (type === 'tv') {
     dateParams['air_date.gte'] = formatDate(pastDate);
     dateParams['air_date.lte'] = formatDate(futureDate);
   }
 
   return dateParams;
-};
-
-export const buildDiscoverParams = (
-  params: DiscoverQuery & UserSettingsQuery,
-): TMDBDiscoverParams => {
-  // Extract with defaults to ensure proper types
-  const type = params.type ?? 'both';
-  const language = params.language ?? 'en-US';
-  const { recentDays } = params;
-  const page = params.page ?? 1;
-  const genres = params.genres ?? [];
-  const regions = params.regions ?? [];
-
-  const region = language.split('-')[1] ?? 'US';
-  const { languageFilter, countryFilter } = buildRegionFilters(regions);
-  const genreFilter = buildGenreFilter(genres);
-  const dateParams = buildDateParams(recentDays, type);
-
-  return {
-    page,
-    region,
-    language,
-    watch_region: region,
-    ...dateParams,
-    ...(languageFilter && { with_original_language: languageFilter }),
-    ...(countryFilter && { with_origin_country: countryFilter }),
-    ...(genreFilter && { with_genres: genreFilter }),
-  };
 };
 
 /**

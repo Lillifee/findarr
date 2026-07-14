@@ -19,9 +19,11 @@ import libPlugin from './lib/plugin.js';
 import loggerPlugin from './logging/plugin.js';
 import { adminLogsRoutes } from './logging/routes.js';
 import { createLogStore } from './logging/service.js';
+import mediaPlugin from './media/plugin.js';
 import schedulerPlugin from './scheduler/plugin.js';
 import { adminSchedulerRoutes, schedulerRoutes } from './scheduler/routes.js';
 import tmdbPlugin from './tmdb/plugin.js';
+import userPlugin from './user/plugin.js';
 import { settingsRoutes } from './user/routes.js';
 import { registerErrorHandler } from './utils/errors.js';
 import { buildLogger, registerRequestLogging } from './utils/logger.js';
@@ -67,7 +69,8 @@ async function start() {
     await server.register(databasePlugin, { dbPath: path.join(dataPath, 'findarr.db') });
     await server.register(authPlugin, { secretPath: path.join(dataPath, 'session.secret') });
     await server.register(tmdbPlugin);
-
+    await server.register(userPlugin);
+    await server.register(mediaPlugin);
     await server.register(libPlugin);
     await server.register(arrPlugin);
     await server.register(catalogPlugin);

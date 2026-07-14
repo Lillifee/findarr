@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vite-plus/test';
 
 import { LoginSchema, CreateUserSchema } from './auth.js';
-import { SearchQuerySchema, DetailsQuerySchema, DiscoverQuerySchema } from './catalog.js';
+import { SearchQuerySchema, DetailsQuerySchema } from './catalog.js';
 import { ServerEnvSchema } from './env.js';
 import { CreateInteractionSchema, InteractionIdSchema } from './interaction.js';
 
@@ -98,67 +98,6 @@ describe('schemas', () => {
     });
   });
 
-  describe('DiscoverQuerySchema', () => {
-    it('should accept empty object and apply defaults', () => {
-      const result = DiscoverQuerySchema.parse({});
-      expect(result.page).toBeUndefined();
-      expect(result.type).toBeUndefined();
-      expect(result.recentDays).toBeUndefined();
-    });
-
-    it('should coerce string numbers to numbers for page and recentDays', () => {
-      const result = DiscoverQuerySchema.parse({
-        page: '5',
-        recentDays: '30',
-      });
-      expect(result.page).toBe(5);
-      expect(result.recentDays).toBe(30);
-    });
-
-    it('should reject invalid page numbers', () => {
-      expect(DiscoverQuerySchema.safeParse({ page: 0 }).success).toBe(false);
-      expect(DiscoverQuerySchema.safeParse({ page: 1001 }).success).toBe(false);
-      expect(DiscoverQuerySchema.safeParse({ page: 'abc' }).success).toBe(false);
-    });
-
-    it('should reject invalid recentDays', () => {
-      expect(DiscoverQuerySchema.safeParse({ recentDays: 0 }).success).toBe(false);
-      expect(DiscoverQuerySchema.safeParse({ recentDays: 5000 }).success).toBe(false);
-      expect(DiscoverQuerySchema.safeParse({ recentDays: 'abc' }).success).toBe(false);
-    });
-
-    it('should accept valid type values', () => {
-      expect(DiscoverQuerySchema.safeParse({ type: 'movie' }).success).toBe(true);
-      expect(DiscoverQuerySchema.safeParse({ type: 'tv' }).success).toBe(true);
-      expect(DiscoverQuerySchema.safeParse({ type: 'both' }).success).toBe(true);
-      expect(DiscoverQuerySchema.safeParse({ type: 'invalid' }).success).toBe(false);
-    });
-
-    it('should ignore user settings fields that are server-owned', () => {
-      expect(DiscoverQuerySchema.parse({ regions: ['western'] })).toStrictEqual({ genres: [] });
-      expect(DiscoverQuerySchema.parse({ language: 'de-DE' })).toStrictEqual({ genres: [] });
-    });
-
-    it('should accept genre filters from query params', () => {
-      expect(DiscoverQuerySchema.parse({ genres: ['Action'] })).toStrictEqual({
-        genres: ['Action'],
-      });
-      expect(DiscoverQuerySchema.parse({ genres: 'Action' })).toStrictEqual({
-        genres: ['Action'],
-      });
-    });
-
-    it('should handle full valid input', () => {
-      const input = {
-        page: 10,
-        type: 'movie',
-        recentDays: 30,
-        genres: ['Action'],
-      };
-      const result = DiscoverQuerySchema.parse(input);
-      expect(result).toStrictEqual(input);
-    });
-  });
   describe('DetailsQuerySchema', () => {
     it('should require id and type', () => {
       expect(DetailsQuerySchema.safeParse({}).success).toBe(false);

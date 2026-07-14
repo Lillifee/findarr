@@ -50,5 +50,9 @@ export function createLruTtlCache<T>(ttlMs: number, maxEntries: number) {
     store.clear();
   }
 
-  return { get, set, getOrLoad, clear };
+  function remove(key: string): void {
+    store.delete(key);
+  }
+
+  return { get, set, getOrLoad, clear, remove };
 }

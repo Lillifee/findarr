@@ -31,8 +31,6 @@ function deduplicateMediaByTmdbKey(items: Media[]): Media[] {
   return [...mediaByTmdbKey.values()];
 }
 
-const createPageRange = (length: number) => Array.from({ length }).map((_, i) => i + 1);
-
 /**
  * Sync catalog cache with latest popular media from TMDB
  * Phase 1: Quick sync - stores basic media immediately (without keywords)
@@ -47,17 +45,15 @@ export async function syncCatalogCache(context: SchedulerContext): Promise<void>
   const startTime = Date.now();
   log.info({ phase: 'cache-sync' }, 'Starting cache sync');
 
-  const language = 'en-US';
-
   // Fetch both trending and recent releases (already includes basic metadata)
   log.info({ phase: 'cache-sync' }, 'Fetching trending and discover results from TMDB');
   const [trendingResult, discoverResult] = await Promise.all([
-    context.tmdb.trending({ language, time_window: 'week' }, createPageRange(5)),
-    context.tmdb.discover({ type: 'both', recentDays: 500 }, createPageRange(15)),
+    context.tmdb.trending({ pages: 5, tmdbParams: { time_window: 'week' } }),
+    context.tmdb.discover({ pages: 15, recentDays: 500 }),
   ]);
 
   // Merge and deduplicate (prefer items with trendingRank)
-  const mergedMedia = [...trendingResult.results, ...discoverResult.results];
+  const mergedMedia = [...trendingResult, ...discoverResult];
   const deduplicatedMedia = deduplicateMediaByTmdbKey(mergedMedia);
 
   log.info(
@@ -116,7 +112,6 @@ export async function syncCatalogCache(context: SchedulerContext): Promise<void>
       totalItems: deduplicatedMedia.length,
       deletedCount,
       durationSec,
-      language,
     },
     'Catalog cache sync completed',
   );

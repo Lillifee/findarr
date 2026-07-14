@@ -1,15 +1,8 @@
-import type {
-  SearchQuery,
-  DiscoverQuery,
-  PopularQuery,
-  DetailsQuery,
-  GenresQuery,
-} from '@findarr/shared/catalog';
+import type { SearchQuery, PopularQuery, DetailsQuery, GenresQuery } from '@findarr/shared/catalog';
 import type { AvailableMediaQuery } from '@findarr/shared/interaction';
 import type {
   AvailableMediaResponse,
   SearchResponse,
-  DiscoverResponse,
   PopularResponse,
   Genre,
   Media,
@@ -18,16 +11,11 @@ import type {
 
 import type { Database } from '../db/service.js';
 import { getUserInteractionMediaKeys } from '../interaction/repository.js';
-import {
-  enrichWithRecords,
-  enrichWithInteractions,
-  enrichWithScoring,
-  fetchTMDBDetails,
-} from '../media/enrichment.js';
 import { filterByCriteria, filterByInteraction } from '../media/filter.js';
 import { getMediaByStatusPaginated } from '../media/repository.js';
+import type { MediaService } from '../media/service.js';
 import type { TMDBService } from '../tmdb/service.js';
-import { getUserSettings } from '../user/service.js';
+import type { UserService } from '../user/service.js';
 import type { AppLogger } from '../utils/logger.js';
 import { createFeedSnapshotStore } from './helper.js';
 import { getAllCatalogCache } from './repository.js';
@@ -35,6 +23,8 @@ import { getAllCatalogCache } from './repository.js';
 export interface CatalogContext {
   db: Database;
   tmdb: TMDBService;
+  user: UserService;
+  media: MediaService;
   appLog: AppLogger;
 }
 
@@ -42,7 +32,7 @@ export interface CatalogContext {
  * Catalog service - orchestrates multiple data sources and applies business logic
  */
 export function createCatalogService(context: CatalogContext) {
-  const { db, tmdb } = context;
+  const { db, tmdb, user, media } = context;
   const log = context.appLog.scope('catalog');
   const popularFeedSnapshotStore = createFeedSnapshotStore<Media>();
 
@@ -51,14 +41,14 @@ export function createCatalogService(context: CatalogContext) {
 
     return popularFeedSnapshotStore.getOrCreateSnapshot(params.feedId, async () => {
       const timer = log.timer('getPopularFeedSnapshot');
-      const [settings, cachedCatalogMedia, interactionKeys] = await Promise.all([
-        getUserSettings(db, userId),
+
+      const { regions } = await user.getSettings(userId);
+      const [cachedCatalogMedia, interactionKeys] = await Promise.all([
         getAllCatalogCache(db),
         getUserInteractionMediaKeys(db, userId),
       ]);
-      timer.lap('catalogCache');
 
-      const { regions } = settings;
+      timer.lap('catalogCache');
 
       let filteredMedia = cachedCatalogMedia.filter(
         (item) =>
@@ -69,7 +59,7 @@ export function createCatalogService(context: CatalogContext) {
           }) && filterByInteraction(item, interactionKeys, interaction),
       );
 
-      filteredMedia = await enrichWithScoring(db, filteredMedia, userId);
+      filteredMedia = await media.enrichWithScoring(filteredMedia, userId);
 
       filteredMedia.sort(
         (a, b) =>
@@ -96,17 +86,17 @@ export function createCatalogService(context: CatalogContext) {
 
     // Add scores
     if (scoring) {
-      enriched = await enrichWithScoring(db, enriched, userId);
+      enriched = await media.enrichWithScoring(enriched, userId);
     }
 
     // Add database records (status, arrId, jellyfinId)
     if (records) {
-      enriched = await enrichWithRecords(db, enriched);
+      enriched = await media.enrichWithRecords(enriched);
     }
 
     // Add user interactions and vote counts
     if (interactions) {
-      enriched = await enrichWithInteractions(db, enriched, userId);
+      enriched = await media.enrichWithInteractions(enriched, userId);
     }
 
     return enriched;
@@ -117,19 +107,8 @@ export function createCatalogService(context: CatalogContext) {
    * Currently delegates to TMDB
    */
   async function searchMedia(params: SearchQuery, userId: number): Promise<SearchResponse> {
-    const { language } = await getUserSettings(db, userId);
+    const { language } = await user.getSettings(userId);
     const response = await tmdb.search({ ...params, language });
-    const results = await enrichMediaResults(response.results, userId);
-    return { ...response, results };
-  }
-
-  /**
-   * Discover media - direct TMDB passthrough for browse mode
-   * Allows custom date ranges and filters without caching
-   */
-  async function discoverMedia(params: DiscoverQuery, userId: number): Promise<DiscoverResponse> {
-    const settings = await getUserSettings(db, userId);
-    const response = await tmdb.discover({ ...params, ...settings });
     const results = await enrichMediaResults(response.results, userId);
     return { ...response, results };
   }
@@ -140,7 +119,7 @@ export function createCatalogService(context: CatalogContext) {
    * Does NOT create a database record - only fetches existing state
    */
   async function getMediaDetails(params: DetailsQuery, userId: number) {
-    const { language } = await getUserSettings(db, userId);
+    const { language } = await user.getSettings(userId);
     const mediaItem = await tmdb.details({ ...params, language });
     const [enriched] = await enrichMediaResults([mediaItem], userId);
     return enriched;
@@ -162,18 +141,18 @@ export function createCatalogService(context: CatalogContext) {
     userId: number,
   ): Promise<AvailableMediaResponse> {
     const { type = 'both', page = 1 } = params;
-    const itemsPerPage = 10;
-    const offset = (page - 1) * itemsPerPage;
+    const limit = 10;
+    const offset = (page - 1) * limit;
 
     const { results: dbRecords, totalCount } = await getMediaByStatusPaginated(db, ['available'], {
       type,
       offset,
-      limit: itemsPerPage,
+      limit,
     });
 
-    const availableMedia = await fetchTMDBDetails(tmdb, dbRecords);
-    const results = await enrichWithInteractions(db, availableMedia, userId);
-    const totalPages = Math.ceil(totalCount / itemsPerPage);
+    const availableMedia = await media.fetchTMDBDetails(dbRecords);
+    const results = await media.enrichWithInteractions(availableMedia, userId);
+    const totalPages = Math.ceil(totalCount / limit);
 
     return { results, page, totalPages };
   }
@@ -186,7 +165,7 @@ export function createCatalogService(context: CatalogContext) {
     userId: number,
   ): Promise<SwipeNextResponse> {
     const timer = log.timer('getNextUnvotedMedia');
-    const settings = await getUserSettings(db, userId);
+    const { swipeLimit } = await user.getSettings(userId);
 
     const [snapshot, interactionKeys] = await Promise.all([
       getPopularFeedSnapshot({ ...params, interaction: 'all' }, userId),
@@ -194,21 +173,17 @@ export function createCatalogService(context: CatalogContext) {
     ]);
     timer.lap('snapshot');
 
-    const votableItems = snapshot.items.slice(0, settings.swipeLimit);
+    const votableItems = snapshot.items.slice(0, swipeLimit);
     const nextItem = votableItems.find((item) =>
       filterByInteraction(item, interactionKeys, 'unvoted'),
     );
 
-    const media =
-      nextItem &&
-      (await getMediaDetails(
-        { id: nextItem.tmdbId, type: nextItem.type, language: settings.language },
-        userId,
-      ));
+    const nextMediaDetails =
+      nextItem && (await getMediaDetails({ id: nextItem.tmdbId, type: nextItem.type }, userId));
     timer.lap('details');
     timer.end();
 
-    return { media, feedId: snapshot.id };
+    return { media: nextMediaDetails, feedId: snapshot.id };
   }
 
   /**
@@ -239,7 +214,6 @@ export function createCatalogService(context: CatalogContext) {
 
   return {
     searchMedia,
-    discoverMedia,
     listGenres,
     getPopularMedia,
     getMediaDetails,

@@ -3,6 +3,7 @@ import { isDefined, isNotEmpty } from '@findarr/shared/utils';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { getInitials } from '../../utils/formatting';
 import { tmdbImage, tmdbImageOrUndefined } from '../../utils/tmdb';
 import { Icon } from '../ui/Icon';
 import { StatusBadge, type StatusType } from '../ui/StatusBadge';
@@ -61,10 +62,10 @@ export function MediaView({ media: initialMedia, onVoteComplete }: MediaDetailsP
     ? undefined
     : `https://www.youtube.com/results?search_query=${encodeURIComponent(`${title} ${releaseYear} trailer`)}`;
 
-  // Get cast members - show more based on available data
-  // Mobile: 6, Tablet: 8, Desktop: 10
-  const availableCast = media.cast ?? [];
-  const topCast = availableCast.slice(0, Math.min(10, availableCast.length));
+  const topCast = (media.cast ?? []).slice(0, 12);
+  const voters = (media.state?.voters ?? [])
+    .filter((voter) => voter.action === 'liked')
+    .slice(0, 6);
 
   const availabilityStatus = media.state?.record?.status as StatusType | undefined;
   const infoTileClass =
@@ -330,6 +331,29 @@ export function MediaView({ media: initialMedia, onVoteComplete }: MediaDetailsP
                 </div>
               </div>
             )}
+
+            {voters.length > 0 && (
+              <div className="mb-8">
+                <h2 className="mb-4 text-2xl font-semibold text-white drop-shadow-md">
+                  {t('mediaView.upvotedBy')}
+                </h2>
+                <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
+                  {voters.map((voter) => (
+                    <div key={voter.id} className="flex flex-col items-center">
+                      <div className="mb-2 flex h-20 w-20 items-center justify-center rounded-full bg-amber-500/15 text-lg font-semibold text-amber-300">
+                        {getInitials(voter.user?.displayName ?? '?')}
+                      </div>
+                      <div className="w-full text-center">
+                        <p className="truncate text-xs font-medium text-white">
+                          {voter.user?.email}
+                        </p>
+                        <p className="text-2xs truncate text-gray-400">{voter.user?.displayName}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -340,13 +364,7 @@ export function MediaView({ media: initialMedia, onVoteComplete }: MediaDetailsP
           <LikeDislikeButton
             tmdbId={media.tmdbId}
             mediaType={media.type}
-            initialAction={
-              media.state?.interactions?.find((i) => i.action === 'liked')
-                ? 'liked'
-                : media.state?.interactions?.find((i) => i.action === 'disliked')
-                  ? 'disliked'
-                  : null
-            }
+            initialAction={media.state?.interaction?.action ?? null}
             existingMedia={media}
             onUpdate={(updatedMedia) => {
               setMedia(updatedMedia);

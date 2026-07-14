@@ -13,11 +13,6 @@ export interface MediaInteractionWithUser extends MediaInteraction {
   user?: MediaUser;
 }
 
-export interface MediaVotes {
-  likes?: number;
-  dislikes?: number;
-}
-
 // ============================================================================
 // Core Media Types
 // ============================================================================
@@ -105,11 +100,11 @@ export interface MediaState {
   // Database record (if media exists in our system)
   record?: MediaRecord;
 
-  // Current user's interactions
-  interactions?: MediaInteractionWithUser[];
+  // User's media interaction
+  interaction?: MediaInteraction;
 
-  // Vote counts
-  votes?: MediaVotes;
+  // Everyone who interacted with this media (liked)
+  voters?: MediaInteractionWithUser[];
 }
 
 /**
@@ -199,7 +194,6 @@ export interface PaginatedMediaResponse {
 }
 
 export type SearchResponse = PaginatedMediaResponse;
-export type DiscoverResponse = PaginatedMediaResponse;
 export type UserInteractionsResponse = PaginatedMediaResponse;
 export type AvailableMediaResponse = PaginatedMediaResponse;
 
