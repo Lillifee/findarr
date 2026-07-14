@@ -58,9 +58,7 @@ export function CreateUserForm({ onCreate, onClose }: CreateUserFormProps) {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm text-zinc-300">
-              {t('users.form.displayName')}
-            </label>
+            <label className="mb-1.5 block text-sm text-zinc-300">{t('common.displayName')}</label>
             <Input
               type="text"
               value={formData.displayName}

@@ -6,7 +6,9 @@ import { createDatabase, type Database } from '../db/service.js';
 import { hasInteraction, getVoteCounts } from '../interaction/repository.js';
 import { createInteractionService, type InteractionService } from '../interaction/service.js';
 import { createMedia, getMediaByTmdbId, updateMediaStatus } from '../media/repository.js';
+import { createMediaService } from '../media/service.js';
 import type { TMDBService } from '../tmdb/service.js';
+import { createUserService } from '../user/service.js';
 import {
   createMockCatalogService,
   createMockRadarrService,
@@ -34,31 +36,45 @@ const catalogService = createMockCatalogService();
 // Thin adapters that build the interaction service from the mocked dependencies
 // and delegate to it, so the existing call sites exercise createInteractionService.
 const createInteraction = async (
-  tmdbService: TMDBService,
+  db: Database,
+  tmdb: TMDBService,
   radarr: typeof radarrService,
   sonarr: typeof sonarrService,
   catalog: typeof catalogService,
-  db: Database,
   ...args: Parameters<InteractionService['createInteraction']>
-) =>
-  createInteractionService({
+) => {
+  const userService = createUserService({ db });
+  const mediaService = createMediaService({ db, tmdb, user: userService });
+  const appLogService = createMockAppLogger();
+
+  return createInteractionService({
     db,
-    tmdb: tmdbService,
+    tmdb,
     radarr,
     sonarr,
     catalog,
-    appLog: createMockAppLogger(),
+    user: userService,
+    media: mediaService,
+    appLog: appLogService,
   }).createInteraction(...args);
+};
 
-const buildService = (tmdbService: TMDBService, db: Database): InteractionService =>
-  createInteractionService({
+const buildService = (tmdbService: TMDBService, db: Database): InteractionService => {
+  const userService = createUserService({ db });
+  const mediaService = createMediaService({ db, tmdb: tmdbService, user: userService });
+  const appLogService = createMockAppLogger();
+
+  return createInteractionService({
     db,
     tmdb: tmdbService,
     radarr: radarrService,
     sonarr: sonarrService,
     catalog: catalogService,
-    appLog: createMockAppLogger(),
+    user: userService,
+    media: mediaService,
+    appLog: appLogService,
   });
+};
 
 const getUserInteractionsEnriched = async (
   tmdbService: TMDBService,
@@ -107,11 +123,11 @@ describe('interaction service - integration tests', () => {
       expectDefined(user);
 
       const result = await createInteraction(
+        db,
         tmdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         interaction,
         user,
       );
@@ -135,11 +151,11 @@ describe('interaction service - integration tests', () => {
 
     it('should return undefined if no user provided', async () => {
       const result = await createInteraction(
+        db,
         tmdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         interaction,
       );
       expect(result).toBeUndefined();
@@ -155,11 +171,11 @@ describe('interaction service - integration tests', () => {
 
       // Create initial interaction
       await createInteraction(
+        db,
         tmdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         interaction,
         user,
       );
@@ -172,11 +188,11 @@ describe('interaction service - integration tests', () => {
 
       // Toggle off - click the same action again
       await createInteraction(
+        db,
         tmdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         interaction,
         user,
       );
@@ -191,11 +207,11 @@ describe('interaction service - integration tests', () => {
 
       // First dislike
       await createInteraction(
+        db,
         tmdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         { ...interaction, action: 'disliked' },
         user,
       );
@@ -209,11 +225,11 @@ describe('interaction service - integration tests', () => {
 
       // Switch to like
       await createInteraction(
+        db,
         tmdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         interaction,
         user,
       );
@@ -232,11 +248,11 @@ describe('interaction service - integration tests', () => {
       expectDefined(admin);
 
       await createInteraction(
+        db,
         tmdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         interaction,
         admin,
       );
@@ -266,29 +282,29 @@ describe('interaction service - integration tests', () => {
 
       // Three users dislike
       await createInteraction(
+        db,
         tmdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         { ...interaction, action: 'disliked' },
         user1,
       );
       await createInteraction(
+        db,
         tmdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         { ...interaction, action: 'disliked' },
         user2,
       );
       await createInteraction(
+        db,
         tmdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         { ...interaction, action: 'disliked' },
         user3,
       );
@@ -310,20 +326,20 @@ describe('interaction service - integration tests', () => {
 
       // Create media and interaction
       await createInteraction(
+        db,
         tmdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         interaction,
         user,
       );
       await createInteraction(
+        db,
         tmdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         { mediaType: 'tv', tmdbId: 456, action: 'liked' },
         user,
       );
@@ -336,7 +352,7 @@ describe('interaction service - integration tests', () => {
         .mockResolvedValueOnce(mockMedia1)
         .mockResolvedValueOnce(mockMedia2);
 
-      const result = await getUserInteractionsEnriched(tmdb, db, user.id);
+      const result = await getUserInteractionsEnriched(tmdb, db, {}, user);
 
       expect(result.results).toHaveLength(2);
       expect(result.page).toBe(1);
@@ -352,7 +368,7 @@ describe('interaction service - integration tests', () => {
       const user = await createTestUserInDb(db, { email: 'no-interactions@test.com' });
       expectDefined(user);
 
-      const result = await getUserInteractionsEnriched(tmdb, db, user.id);
+      const result = await getUserInteractionsEnriched(tmdb, db, {}, user);
       expect(result).toStrictEqual({ results: [], page: 1, totalPages: 0 });
     });
 
@@ -361,11 +377,11 @@ describe('interaction service - integration tests', () => {
       expectDefined(user);
 
       await createInteraction(
+        db,
         tmdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         interaction,
         user,
       );
@@ -383,11 +399,11 @@ describe('interaction service - integration tests', () => {
       );
 
       await createInteraction(
+        db,
         tmdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         { mediaType: 'tv', tmdbId: 456, action: 'liked' },
         user,
       );
@@ -399,7 +415,7 @@ describe('interaction service - integration tests', () => {
           createTestMovieDetail({ tmdbId: 123, type: 'movie', name: 'Older Download' }),
         );
 
-      const result = await getUserInteractionsEnriched(tmdb, db, user.id);
+      const result = await getUserInteractionsEnriched(tmdb, db, {}, user);
 
       expect(result.results.map((item) => item.tmdbId)).toStrictEqual([456, 123]);
     });
@@ -411,11 +427,11 @@ describe('interaction service - integration tests', () => {
       expectDefined(user);
 
       await createInteraction(
+        db,
         tmdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         interaction,
         user,
       );
@@ -429,11 +445,11 @@ describe('interaction service - integration tests', () => {
       );
 
       await createInteraction(
+        db,
         tmdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         { mediaType: 'tv', tmdbId: 456, action: 'liked' },
         user,
       );
@@ -455,7 +471,7 @@ describe('interaction service - integration tests', () => {
           createTestMovieDetail({ tmdbId: 123, type: 'movie', name: 'Downloading Movie' }),
         );
 
-      const result = await getUserActivityAttentionEnriched(tmdb, db, user);
+      const result = await getUserActivityAttentionEnriched(tmdb, db, {}, user);
 
       expect(result.page).toBe(1);
       expect(result.totalPages).toBe(1);
@@ -483,7 +499,7 @@ describe('interaction service - integration tests', () => {
           createTestMovieDetail({ tmdbId: 777, type: 'movie', name: 'Needs Attention' }),
         );
 
-      const result = await getUserActivityAttentionEnriched(tmdb, db, admin);
+      const result = await getUserActivityAttentionEnriched(tmdb, db, {}, admin);
 
       expect(result.page).toBe(1);
       expect(result.totalPages).toBe(1);
@@ -533,29 +549,29 @@ describe('interaction service - integration tests', () => {
       expectDefined(user3);
 
       await createInteraction(
+        db,
         tmdbWithTvdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         interaction,
         user1,
       );
       await createInteraction(
+        db,
         tmdbWithTvdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         interaction,
         user2,
       );
       await createInteraction(
+        db,
         tmdbWithTvdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         interaction,
         user3,
       );
@@ -591,29 +607,29 @@ describe('interaction service - integration tests', () => {
       expectDefined(user3);
 
       await createInteraction(
+        db,
         tmdbWithTvdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         tvInteraction,
         user1,
       );
       await createInteraction(
+        db,
         tmdbWithTvdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         tvInteraction,
         user2,
       );
       await createInteraction(
+        db,
         tmdbWithTvdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         tvInteraction,
         user3,
       );
@@ -642,29 +658,29 @@ describe('interaction service - integration tests', () => {
       vi.mocked(radarrService.requestMedia).mockResolvedValue(undefinedArrItem);
 
       await createInteraction(
+        db,
         tmdbWithTvdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         interaction,
         user1,
       );
       await createInteraction(
+        db,
         tmdbWithTvdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         interaction,
         user2,
       );
       await createInteraction(
+        db,
         tmdbWithTvdb,
         radarrService,
         sonarrService,
         catalogService,
-        db,
         interaction,
         user3,
       );

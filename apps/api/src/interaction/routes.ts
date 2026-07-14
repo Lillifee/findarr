@@ -8,10 +8,13 @@ export const interactionRoutes = (fastify: FastifyInstance) => {
   fastify.addHook('preHandler', fastify.requireAuth);
 
   // Create or toggle a media interaction (like/dislike)
-  fastify.post('/', async (request) =>
-    fastify.interaction.createInteraction(
-      CreateInteractionSchema.parse(request.body),
-      request.user,
+  fastify.post(
+    '/',
+    protectedRoute(async (request) =>
+      fastify.interaction.createInteraction(
+        CreateInteractionSchema.parse(request.body),
+        request.user,
+      ),
     ),
   );
 
@@ -21,8 +24,8 @@ export const interactionRoutes = (fastify: FastifyInstance) => {
     '/',
     protectedRoute(async (request) =>
       fastify.interaction.getUserInteractionsEnriched(
-        request.user.id,
         InteractionsQuerySchema.parse(request.query),
+        request.user,
       ),
     ),
   );
@@ -31,8 +34,8 @@ export const interactionRoutes = (fastify: FastifyInstance) => {
     '/attention',
     protectedRoute(async (request) =>
       fastify.interaction.getUserActivityAttentionEnriched(
-        request.user,
         InteractionsQuerySchema.parse(request.query),
+        request.user,
       ),
     ),
   );

@@ -1,17 +1,6 @@
-import type {
-  SearchQuery,
-  DetailsQuery,
-  GenresQuery,
-  DiscoverQuery,
-} from '@findarr/shared/catalog';
-import type {
-  SearchResponse,
-  Genre,
-  DiscoverResponse,
-  MediaDetails,
-  MediaType,
-} from '@findarr/shared/media';
-import type { UserSettingsQuery, TmdbSettings, TmdbSettingsQuery } from '@findarr/shared/settings';
+import type { SearchQuery, DetailsQuery, GenresQuery } from '@findarr/shared/catalog';
+import type { SearchResponse, Genre, MediaDetails, MediaType, Media } from '@findarr/shared/media';
+import type { TmdbSettings, TmdbSettingsQuery } from '@findarr/shared/settings';
 import { isDefined } from '@findarr/shared/utils';
 
 import type { Database } from '../db/service.js';
@@ -20,17 +9,25 @@ import { createLruTtlCache } from '../utils/cacheHelper.js';
 import { createClientLifecycle } from '../utils/clientLifecycleHelper.js';
 import type { AppLogger } from '../utils/logger.js';
 import { createTMDBClient, type TMDBClient } from './client.js';
-import { buildDiscoverParams } from './helpers.js';
+import { buildDateParams } from './helpers.js';
 import { getTmdbSettingsFull, setTmdbSettings, type TmdbSettingsFull } from './repository.js';
-import type { TMDBTrendingParams } from './schemas.js';
+import type { TMDBDiscoverParams, TMDBTrendingParams } from './schemas.js';
 import { transformMedia, transformDetails } from './transformers.js';
 
 const MEDIA_TYPES = ['movie', 'tv'] as const;
+
+function createPageRange(length: number) {
+  return Array.from({ length }).map((_, i) => i + 1);
+}
 
 export interface TmdbServiceContext {
   db: Database;
   appLog: AppLogger;
   scheduler: SchedulerService;
+}
+
+export interface TmdbBaseParams {
+  language?: string;
 }
 
 /**
@@ -110,9 +107,74 @@ export async function createTMDBService(context: TmdbServiceContext) {
   }
 
   /**
+   * Fetch discover results from TMDB
+   * Fetches specified pages and transforms to application format
+   */
+  async function discover(params: {
+    pages: number;
+    recentDays: number;
+    tmdbParams?: TMDBDiscoverParams;
+  }): Promise<Media[]> {
+    const client = lifecycle.client();
+    const { recentDays, pages, tmdbParams } = params;
+    const pagesToFetch = createPageRange(pages);
+
+    const responses = await Promise.all(
+      MEDIA_TYPES.flatMap((discoverType) =>
+        pagesToFetch.map(async (page) =>
+          client.discover(discoverType, {
+            page,
+            ...buildDateParams(discoverType, recentDays),
+            ...tmdbParams,
+          }),
+        ),
+      ),
+    );
+
+    const results = responses.flatMap((response) =>
+      response.results.map((item) => transformMedia(item, genreMap)),
+    );
+
+    return results;
+  }
+
+  /**
+   * Fetch trending results from TMDB
+   * Fetches specified pages and transforms to application format
+   */
+  async function trending(params: {
+    pages: number;
+    tmdbParams: TMDBTrendingParams;
+  }): Promise<Media[]> {
+    const client = lifecycle.client();
+    const { pages, tmdbParams } = params;
+    const pagesToFetch = createPageRange(pages);
+
+    const ranks: Record<MediaType, number> = { movie: 0, tv: 0 };
+
+    const responses = await Promise.all(
+      MEDIA_TYPES.flatMap((type) =>
+        pagesToFetch.map(async (page) => client.trending(type, { ...tmdbParams, page })),
+      ),
+    );
+
+    const results = responses.flatMap(({ results: res }) =>
+      res.map((item) => {
+        const { type } = item;
+        const trendingRank = ranks[type] + 1;
+        ranks[type] = trendingRank;
+
+        return transformMedia(item, genreMap, { trendingRank });
+      }),
+    );
+
+    return results;
+  }
+
+  /**
    * Search for movies and TV shows
    */
-  async function search(params: SearchQuery): Promise<SearchResponse> {
+  async function search(params: SearchQuery & TmdbBaseParams): Promise<SearchResponse> {
     const { query, type, page, language = 'en-US' } = params;
     const region = language.split('-')[1] ?? 'US';
     const client = lifecycle.client();
@@ -139,77 +201,9 @@ export async function createTMDBService(context: TmdbServiceContext) {
   }
 
   /**
-   * Fetch discover results from TMDB
-   * Fetches specified pages and transforms to application format
-   */
-  async function discover(
-    params: DiscoverQuery & UserSettingsQuery,
-    pages?: number[],
-  ): Promise<DiscoverResponse> {
-    const { type = 'both', page = 1 } = params;
-    const client = lifecycle.client();
-
-    const discoverTypes = type === 'both' ? MEDIA_TYPES : [type];
-    const pagesToFetch = pages ?? [page];
-
-    const discoverParams = buildDiscoverParams(params);
-    const discoverPromises = discoverTypes.flatMap((discoverType) =>
-      pagesToFetch.map(async (pageNum) =>
-        client.discover(discoverType, { ...discoverParams, page: pageNum }),
-      ),
-    );
-
-    const responses = await Promise.all(discoverPromises);
-
-    const results = responses.flatMap((response) =>
-      response.results.map((item) => transformMedia(item, genreMap)),
-    );
-
-    // Aggregate pagination metadata (max of both types)
-    const totalPages = Math.max(...responses.map((r) => r.total_pages));
-
-    return { results, page, totalPages };
-  }
-
-  /**
-   * Fetch trending results from TMDB
-   * Fetches specified pages and transforms to application format
-   */
-  async function trending(
-    params: TMDBTrendingParams = {},
-    pages?: number[],
-  ): Promise<DiscoverResponse> {
-    const { language = 'en-US', time_window = 'week' } = params;
-    const client = lifecycle.client();
-
-    const pagesToFetch = pages ?? [1];
-    const ranks: Record<MediaType, number> = { movie: 0, tv: 0 };
-
-    const responses = await Promise.all(
-      MEDIA_TYPES.flatMap((type) =>
-        pagesToFetch.map(async (page) => client.trending(type, { language, time_window, page })),
-      ),
-    );
-
-    const results = responses.flatMap(({ results: res }) =>
-      res.map((item) => {
-        const { type } = item;
-        const trendingRank = ranks[type] + 1;
-        ranks[type] = trendingRank;
-
-        return transformMedia(item, genreMap, { trendingRank });
-      }),
-    );
-
-    const totalPages = Math.max(...responses.map((r) => r.total_pages));
-
-    return { results, page: 1, totalPages };
-  }
-
-  /**
    * Get movie or TV show details
    */
-  async function details(params: DetailsQuery): Promise<MediaDetails> {
+  async function details(params: DetailsQuery & TmdbBaseParams): Promise<MediaDetails> {
     const { id, type, language = 'en-US' } = params;
 
     return detailsCache.getOrLoad(`${id}:${type}:${language}`, async () => {

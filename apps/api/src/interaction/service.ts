@@ -7,7 +7,6 @@ import { isDefined } from '@findarr/shared/utils';
 import type { AnyArrService } from '../arr/service.js';
 import type { CatalogService } from '../catalog/service.js';
 import type { Database } from '../db/service.js';
-import { fetchTMDBDetails, enrichWithInteractions } from '../media/enrichment.js';
 import {
   createMedia,
   getMediaByStatusPaginated,
@@ -15,9 +14,10 @@ import {
   updateMediaStatus,
   updateMediaSeasons,
 } from '../media/repository.js';
+import type { MediaService } from '../media/service.js';
 import { updatePreferencesForInteraction } from '../preferences/service.js';
 import type { TMDBService } from '../tmdb/service.js';
-import { getUserSettings } from '../user/service.js';
+import type { UserService } from '../user/service.js';
 import type { AppLogger } from '../utils/logger.js';
 import {
   addInteraction,
@@ -36,6 +36,8 @@ export interface InteractionContext {
   radarr: AnyArrService;
   sonarr: AnyArrService;
   catalog: CatalogService;
+  user: UserService;
+  media: MediaService;
   appLog: AppLogger;
 }
 
@@ -44,7 +46,7 @@ export interface InteractionContext {
  * activity lists. Mandatory services are injected once via the context.
  */
 export function createInteractionService(context: InteractionContext) {
-  const { db, tmdb, radarr, sonarr, catalog, appLog } = context;
+  const { db, tmdb, radarr, sonarr, catalog, user: userService, media, appLog } = context;
   const log = appLog.scope('interaction');
 
   /**
@@ -83,10 +85,10 @@ export function createInteractionService(context: InteractionContext) {
     const totalPages = Math.ceil(items.totalCount / limit);
 
     // Fetch TMDB details for all interacted media
-    const enrichedMedia = await fetchTMDBDetails(tmdb, items.results);
+    const enrichedMedia = await media.fetchTMDBDetails(items.results);
 
     // Add user interactions and vote counts in optimized batch query
-    const results = await enrichWithInteractions(db, enrichedMedia, userId);
+    const results = await media.enrichWithInteractions(enrichedMedia, userId);
 
     return { results, page, totalPages };
   }
@@ -105,37 +107,38 @@ export function createInteractionService(context: InteractionContext) {
       return undefined;
     }
 
-    const { language } = await getUserSettings(db, user.id);
+    const { language } = await userService.getSettings(user.id);
     const timer = log.timer('createInteraction', { action: data.action });
 
     // Get or create media record
     const existing = await getMediaByTmdbId(db, data.tmdbId, data.mediaType);
-    const media = existing ?? (await createMedia(db, data.tmdbId, data.mediaType, 'pending'));
+    const mediaRow = existing ?? (await createMedia(db, data.tmdbId, data.mediaType, 'pending'));
 
     // Update seasons if provided (TV shows only)
     if (data.mediaType === 'tv' && data.seasons !== undefined) {
-      await updateMediaSeasons(db, media.id, data.seasons);
+      await updateMediaSeasons(db, mediaRow.id, data.seasons);
     }
 
     // Determine if this is a toggle vs an update:
     // - Toggle: clicking same action without seasons (movies or direct button click)
     // - Update: providing seasons array (TV shows via modal confirmation)
     const isSeasonUpdate = data.seasons !== undefined;
-    const isToggle = !isSeasonUpdate && (await hasInteraction(db, user.id, media.id, data.action));
+    const isToggle =
+      !isSeasonUpdate && (await hasInteraction(db, user.id, mediaRow.id, data.action));
 
     // Handle empty season selection as "unlike" (user deselected all seasons)
     const isUnlike = isSeasonUpdate && data.seasons?.length === 0;
 
     // Remove all existing interactions for this user on this media
-    await removeAllInteractions(db, user.id, media.id);
+    await removeAllInteractions(db, user.id, mediaRow.id);
 
     // Add new interaction unless toggling off or unliking with empty seasons
     if (!isToggle && !isUnlike) {
-      await addInteraction(db, user.id, media.id, data.action);
+      await addInteraction(db, user.id, mediaRow.id, data.action);
     }
 
     // Calculate votes and check if auto-request threshold is met
-    const { likes } = await getVoteCounts(db, media.id);
+    const { likes } = await getVoteCounts(db, mediaRow.id);
     const isAdmin = user.role === 'admin';
     timer.lap('persistVote');
 
@@ -150,16 +153,16 @@ export function createInteractionService(context: InteractionContext) {
     const shouldRequest =
       data.action === 'liked' &&
       (likes >= LIKE_THRESHOLD || (isAdmin && likes >= 1)) &&
-      (media.status !== 'available' || isSeasonUpdate);
+      (mediaRow.status !== 'available' || isSeasonUpdate);
 
     if (shouldRequest) {
       // Forward to Radarr/Sonarr (handles both create and update based on arrId)
-      await requestMediaToArr(media, details, data.seasons);
+      await requestMediaToArr(mediaRow, details, data.seasons);
       timer.lap('requestArr');
 
-      if (media.status === 'pending') {
+      if (mediaRow.status === 'pending') {
         // Mark as requested only after the request actually reached Radarr/Sonarr
-        await updateMediaStatus(db, media.id, 'requested');
+        await updateMediaStatus(db, mediaRow.id, 'requested');
         timer.lap('updateMediaStatus');
       }
     }
@@ -192,28 +195,28 @@ export function createInteractionService(context: InteractionContext) {
    * interactions, and vote counts. Supports pagination for large vote lists.
    */
   async function getUserInteractionsEnriched(
-    userId: number,
-    params?: InteractionsQuery,
+    params: InteractionsQuery,
+    user: User,
   ): Promise<UserInteractionsResponse> {
-    const { action = 'all', page = 1, type = 'both' } = params ?? {};
+    const { action = 'all', page = 1, type = 'both' } = params;
     const limit = 20;
     const offset = (page - 1) * limit;
 
-    const items = await getMediaByUserInteractions(db, userId, {
+    const items = await getMediaByUserInteractions(db, user.id, {
       type,
       action,
       limit,
       offset,
     });
 
-    return enrichInteractionPage(userId, items, page, limit);
+    return enrichInteractionPage(user.id, items, page, limit);
   }
 
   async function getUserActivityAttentionEnriched(
+    params: InteractionsQuery,
     user: User,
-    params?: InteractionsQuery,
   ): Promise<UserInteractionsResponse> {
-    const { page = 1, type = 'both' } = params ?? {};
+    const { page = 1, type = 'both' } = params;
     const limit = 20;
     const offset = (page - 1) * limit;
 

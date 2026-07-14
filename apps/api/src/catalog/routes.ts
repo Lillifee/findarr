@@ -2,7 +2,6 @@ import {
   SearchQuerySchema,
   DetailsQuerySchema,
   GenresQuerySchema,
-  DiscoverQuerySchema,
   PopularQuerySchema,
 } from '@findarr/shared/catalog';
 import { AvailableMediaQuerySchema } from '@findarr/shared/interaction';
@@ -27,14 +26,6 @@ export const catalogRoutes = (fastify: FastifyInstance) => {
     '/popular',
     protectedRoute(async (request) =>
       fastify.catalog.getPopularMedia(PopularQuerySchema.parse(request.query), request.user.id),
-    ),
-  );
-
-  // Discover endpoint: GET /discover?type=both&recent_days=30 (direct TMDB passthrough)
-  fastify.get(
-    '/discover',
-    protectedRoute(async (request) =>
-      fastify.catalog.discoverMedia(DiscoverQuerySchema.parse(request.query), request.user.id),
     ),
   );
 

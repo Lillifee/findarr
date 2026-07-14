@@ -9,10 +9,12 @@ import { computeCatalogMediaStats } from '../catalog/repository.js';
 import { createCatalogService } from '../catalog/service.js';
 import { syncCatalogCache } from '../catalog/sync.js';
 import { createDatabase, type Database } from '../db/service.js';
+import { createMediaService } from '../media/service.js';
 import { applyPreferenceDeltas } from '../preferences/repository.js';
 import { TMDBSearchResponseSchema } from '../tmdb/schemas.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { transformMedia } from '../tmdb/transformers.js';
+import { createUserService } from '../user/service.js';
 import { loadFixture } from './helpers/fixtureHelper.js';
 import {
   createMockAppLogger,
@@ -70,16 +72,8 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
 
     // Mock TMDB service with fixture data (already transformed)
     const tmdbServiceMock = createMockTMDBService({
-      discover: vi.fn<TMDBService['discover']>().mockResolvedValue({
-        results: [...movieItems, ...tvItems],
-        page: 1,
-        totalPages: 1,
-      }),
-      trending: vi.fn<TMDBService['trending']>().mockResolvedValue({
-        results: trendingItems,
-        page: 1,
-        totalPages: 1,
-      }),
+      discover: vi.fn<TMDBService['discover']>().mockResolvedValue([...movieItems, ...tvItems]),
+      trending: vi.fn<TMDBService['trending']>().mockResolvedValue(trendingItems),
       genres: vi.fn<TMDBService['genres']>().mockResolvedValue([...genreMap.values()]),
     });
 
@@ -90,10 +84,16 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     await syncCatalogCache(mockFastify);
 
     // Create catalog service for testing
+    const userService = createUserService({ db });
+    const mediaService = createMediaService({ db, tmdb: tmdbServiceMock, user: userService });
+    const appLogService = createMockAppLogger();
+
     catalogService = createCatalogService({
       db,
       tmdb: tmdbServiceMock,
-      appLog: createMockAppLogger(),
+      user: userService,
+      media: mediaService,
+      appLog: appLogService,
     });
   });
 

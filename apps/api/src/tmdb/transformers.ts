@@ -25,14 +25,13 @@ import type {
 
 /**
  * Helper: Extract and transform cast members
- * Limits to top 15 actors sorted by order field
  */
 function extractCast(credits: TMDBCredits | undefined): CastMember[] | undefined {
   if (!credits?.cast || credits.cast.length === 0) {
     return undefined;
   }
 
-  return credits.cast.slice(0, 6).map((member) => ({
+  return credits.cast.map((member) => ({
     id: member.id,
     name: member.name,
     character: member.character,

@@ -21,5 +21,5 @@ const catalogPlugin = (fastify: FastifyInstance) => {
 
 export default fp(catalogPlugin, {
   name: 'catalog',
-  dependencies: ['database', 'tmdb'],
+  dependencies: ['database', 'tmdb', 'user', 'media'],
 });

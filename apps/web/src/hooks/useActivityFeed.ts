@@ -1,5 +1,6 @@
 import type { InteractionsQuery } from '@findarr/shared/interaction';
 import type { Media, SearchType } from '@findarr/shared/media';
+import { isDefined } from '@findarr/shared/utils';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -223,7 +224,7 @@ export function useActivityFeed(): ActivityFeed {
       const nextResults = prev.map((item) =>
         keyOf(item) === keyOf(updatedItem) ? updatedItem : item,
       );
-      const hasUserInteraction = (updatedItem.state?.interactions?.length ?? 0) > 0;
+      const hasUserInteraction = isDefined(updatedItem.state?.interaction);
       const isAttentionStatus = attentionStatuses.has(updatedItem.state?.record?.status ?? '');
 
       if (!hasUserInteraction || !isAttentionStatus) {

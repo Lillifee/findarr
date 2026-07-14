@@ -1,6 +1,6 @@
-import { media, userMediaInteractions, type DbMedia } from '@findarr/shared/db';
+import { media, users, userMediaInteractions, type DbMedia } from '@findarr/shared/db';
 import type { InteractionsQuery, InteractionType } from '@findarr/shared/interaction';
-import type { Media, MediaStatus, MediaInteraction } from '@findarr/shared/media';
+import type { Media, MediaStatus, MediaInteractionWithUser } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
 import { and, eq, getTableColumns, inArray, isNotNull, sql } from 'drizzle-orm';
 
@@ -71,74 +71,53 @@ export async function removeAllInteractions(
 // ============================================================================
 
 /**
- * Batch query for user interactions on multiple media items
- * Used for enriching media arrays with user-specific interaction state
+ * Batch query for ALL interactions (any user) on the given media items, joined with basic
+ * user info. Single query used to derive both "my own interaction" and, for admins, "who
+ * liked" each item — avoids querying per-user and per-media separately.
  */
 export async function getInteractionsBatch(
   db: Database,
   mediaItems: Media[],
-  userId: number,
-): Promise<Map<number, MediaInteraction[]>> {
-  const interactionsMap = new Map<number, MediaInteraction[]>();
+): Promise<Map<number, MediaInteractionWithUser[]>> {
+  const interactionsMap = new Map<number, MediaInteractionWithUser[]>();
 
-  // Extract media IDs from items that have records
   const mediaIds = mediaItems.map((item) => item.state?.record?.id).filter((x) => isDefined(x));
   if (mediaIds.length === 0) {
     return interactionsMap;
   }
 
-  const rows = await db.query.userMediaInteractions.findMany({
-    columns: {
-      id: true,
-      mediaId: true,
-      action: true,
-      createdAt: true,
-    },
-    where: and(
-      eq(userMediaInteractions.userId, userId),
-      inArray(userMediaInteractions.mediaId, mediaIds),
-    ),
-  });
+  const rows = await db
+    .select({
+      id: userMediaInteractions.id,
+      mediaId: userMediaInteractions.mediaId,
+      action: userMediaInteractions.action,
+      createdAt: userMediaInteractions.createdAt,
+      userId: users.id,
+      email: users.email,
+      displayName: users.displayName,
+      userCreatedAt: users.createdAt,
+    })
+    .from(userMediaInteractions)
+    .innerJoin(users, eq(userMediaInteractions.userId, users.id))
+    .where(inArray(userMediaInteractions.mediaId, mediaIds));
 
-  for (const { mediaId, id, action, createdAt } of rows) {
-    const interactions = interactionsMap.get(mediaId) ?? [];
-    interactions.push({ id, action, createdAt });
-    interactionsMap.set(mediaId, interactions);
+  for (const row of rows) {
+    const interactions = interactionsMap.get(row.mediaId) ?? [];
+    interactions.push({
+      id: row.id,
+      action: row.action,
+      createdAt: row.createdAt,
+      user: {
+        id: row.userId,
+        email: row.email,
+        displayName: row.displayName,
+        createdAt: row.userCreatedAt,
+      },
+    });
+    interactionsMap.set(row.mediaId, interactions);
   }
 
   return interactionsMap;
-}
-
-/**
- * Batch query for vote counts on multiple media items
- * Returns aggregated like and dislike counts for all media
- */
-export async function getVoteCountsBatch(
-  db: Database,
-  mediaItems: Media[],
-): Promise<Map<number, { likes: number; dislikes: number }>> {
-  const votesMap = new Map<number, { likes: number; dislikes: number }>();
-
-  const mediaIds = mediaItems.map((item) => item.state?.record?.id).filter((x) => isDefined(x));
-  if (mediaIds.length === 0) {
-    return votesMap;
-  }
-
-  const rows = await db
-    .select({
-      mediaId: userMediaInteractions.mediaId,
-      likes: sql<number>`SUM(CASE WHEN ${userMediaInteractions.action} = 'liked' THEN 1 ELSE 0 END)`,
-      dislikes: sql<number>`SUM(CASE WHEN ${userMediaInteractions.action} = 'disliked' THEN 1 ELSE 0 END)`,
-    })
-    .from(userMediaInteractions)
-    .where(inArray(userMediaInteractions.mediaId, mediaIds))
-    .groupBy(userMediaInteractions.mediaId);
-
-  for (const { mediaId, likes, dislikes } of rows) {
-    votesMap.set(mediaId, { likes: likes || 0, dislikes: dislikes || 0 });
-  }
-
-  return votesMap;
 }
 
 // ============================================================================

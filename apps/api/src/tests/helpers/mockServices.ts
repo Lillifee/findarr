@@ -99,9 +99,6 @@ export function createMockCatalogService(
     searchMedia: vi
       .fn<CatalogService['searchMedia']>()
       .mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
-    discoverMedia: vi
-      .fn<CatalogService['discoverMedia']>()
-      .mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
     getPopularMedia: vi.fn<CatalogService['getPopularMedia']>().mockResolvedValue({
       results: [],
       page: 1,
