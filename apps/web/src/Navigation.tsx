@@ -181,10 +181,10 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
           </NavLink>
 
           <NavLink to="/activity" className={mobileNavLinkClass}>
-            <span className="relative">
+            <span className="relative inline-flex">
               <Icon className="mb-1" name="fact_check" size="lg" />
               {hasAttention && (
-                <span className="absolute top-0 -right-1">
+                <span className="absolute top-2 -right-1">
                   <StatusIndicator />
                 </span>
               )}
@@ -200,10 +200,10 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
               mobileAdvancedOpen || isAdminRoute ? 'text-amber-100' : 'text-zinc-500'
             }`}
           >
-            <span className="relative">
+            <span className="relative inline-flex">
               <Icon className="mb-1" name="more_vert" size="lg" />
               {updateIndicator && (
-                <span className="absolute top-0 -right-1">
+                <span className="absolute top-2 -right-1">
                   <StatusIndicator />
                 </span>
               )}

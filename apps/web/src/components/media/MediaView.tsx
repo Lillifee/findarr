@@ -3,7 +3,7 @@ import { isDefined, isNotEmpty } from '@findarr/shared/utils';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { getInitials } from '../../utils/formatting';
+import { getAvatarColorClass, getInitials } from '../../utils/formatting';
 import { tmdbImage, tmdbImageOrUndefined } from '../../utils/tmdb';
 import { Icon } from '../ui/Icon';
 import { StatusBadge, type StatusType } from '../ui/StatusBadge';
@@ -116,7 +116,7 @@ export function MediaView({ media: initialMedia, onVoteComplete }: MediaDetailsP
             style={{ objectPosition: 'center 30%' }}
           />
           {/* Gradient overlays for readability */}
-          <div className="absolute inset-0 bg-linear-to-b from-zinc-950/70 via-zinc-950/90 to-zinc-950" />
+          <div className="absolute inset-0 bg-linear-to-b from-zinc-950/50 via-zinc-950/80 to-zinc-950" />
           <div className="absolute inset-0 bg-linear-to-r from-zinc-950/95 via-zinc-950/62 to-transparent" />
         </div>
       )}
@@ -316,9 +316,9 @@ export function MediaView({ media: initialMedia, onVoteComplete }: MediaDetailsP
             {/* Keywords */}
             {media.keywords && media.keywords.length > 0 && (
               <div className="mb-8">
-                <h3 className="mb-3 text-xl font-semibold text-white drop-shadow-md">
+                <h2 className="mb-4 text-2xl font-semibold text-white drop-shadow-md">
                   {t('mediaView.keywords')}
-                </h3>
+                </h2>
                 <div className="flex flex-wrap gap-2">
                   {media.keywords.map((keyword) => (
                     <span
@@ -338,19 +338,21 @@ export function MediaView({ media: initialMedia, onVoteComplete }: MediaDetailsP
                   {t('mediaView.upvotedBy')}
                 </h2>
                 <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
-                  {voters.map((voter) => (
-                    <div key={voter.id} className="flex flex-col items-center">
-                      <div className="mb-2 flex h-20 w-20 items-center justify-center rounded-full bg-amber-500/15 text-lg font-semibold text-amber-300">
-                        {getInitials(voter.user?.displayName ?? '?')}
+                  {voters.map((voter) => {
+                    const displayName = voter.user?.displayName ?? voter.user?.email ?? '?';
+                    return (
+                      <div key={voter.id} className="flex flex-col items-center">
+                        <div
+                          className={`mb-2 flex h-20 w-20 items-center justify-center rounded-full border border-zinc-800/80 text-lg font-semibold shadow-lg ${getAvatarColorClass(displayName)}`}
+                        >
+                          {getInitials(displayName)}
+                        </div>
+                        <div className="w-full text-center">
+                          <p className="truncate text-xs font-medium text-white">{displayName}</p>
+                        </div>
                       </div>
-                      <div className="w-full text-center">
-                        <p className="truncate text-xs font-medium text-white">
-                          {voter.user?.email}
-                        </p>
-                        <p className="text-2xs truncate text-gray-400">{voter.user?.displayName}</p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
