@@ -243,7 +243,7 @@ const bundleApi = async (): Promise<void> => {
     bundle: true,
     platform: 'node',
     format: 'cjs',
-    target: 'node22',
+    target: 'node26',
     outfile: config.bundleFile,
     banner: { js: createSeaBanner() },
     plugins: [createSeaExternalPlugin()],
