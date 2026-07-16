@@ -160,17 +160,17 @@ export default function SeasonSelectorModal({
                     }`}
                   />
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <div className="truncate text-sm font-medium text-white">{season.name}</div>
-                      {/* Show status badge based on season.status field */}
-                      {badgeStatusMap[status] && (
-                        <StatusBadge status={badgeStatusMap[status]} size="sm" />
-                      )}
-                    </div>
+                    <div className="truncate text-sm font-medium text-white">{season.name}</div>
                     <div className="text-xs text-zinc-400">
                       {t('seasonSelector.episodes', { count: season.episodeCount })}
                     </div>
                   </div>
+                  {/* Show status badge based on season.status field */}
+                  {badgeStatusMap[status] && (
+                    <div className="ml-2 shrink-0">
+                      <StatusBadge status={badgeStatusMap[status]} size="sm" />
+                    </div>
+                  )}
                 </label>
               );
             })}

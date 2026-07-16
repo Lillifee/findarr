@@ -39,7 +39,7 @@ describe('arr sync collision handling - integration tests', () => {
     const updatedShow = await getMediaByTmdbId(db, 456, 'tv');
 
     expect(updatedMovie?.status).toBe('warning');
-    expect(updatedShow?.status).toBe('pending');
+    expect(updatedShow?.status).toBe('none');
   });
 
   it('should filter media with arr ids by requested type', async () => {
@@ -77,6 +77,6 @@ describe('arr sync collision handling - integration tests', () => {
     const updatedShow = await getMediaByTmdbId(db, 456, 'tv');
 
     expect(updatedMovie?.status).toBe('downloading');
-    expect(updatedShow?.status).toBe('pending');
+    expect(updatedShow?.status).toBe('none');
   });
 });

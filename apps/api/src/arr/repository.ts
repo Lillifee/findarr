@@ -189,7 +189,7 @@ export async function clearRemovedArrItems(
     .set({
       arrId: null,
       arrUrl: null,
-      status: sql`CASE WHEN ${media.status} = 'available' THEN 'available' ELSE 'pending' END`,
+      status: sql`CASE WHEN ${media.status} = 'available' THEN 'available' ELSE 'none' END`,
       updatedAt: Date.now(),
     })
     .where(and(inArray(media.arrId, ids), eq(media.type, type)));

@@ -21,6 +21,8 @@ export type MediaType = 'movie' | 'tv';
 export type SearchType = 'movie' | 'tv' | 'both';
 
 export type MediaStatus =
+  | 'none'
+  | 'voted'
   | 'pending'
   | 'requested'
   | 'downloading'

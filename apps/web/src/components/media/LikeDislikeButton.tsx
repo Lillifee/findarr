@@ -118,12 +118,20 @@ export function LikeDislikeButton({
 
   // Get already requested seasons from existing media (from database state)
   // Only include seasons with actual status (not 'none')
-  const alreadyRequestedSeasons =
-    existingMedia?.type === 'tv' && existingMedia.state?.record?.seasons
-      ? existingMedia.state.record.seasons
-          .filter((s) => s.status !== 'none')
-          .map((s) => s.seasonNumber)
-      : [];
+  const dbSeasons = existingMedia?.type === 'tv' ? existingMedia.state?.record?.seasons : undefined;
+  const alreadyRequestedSeasons = dbSeasons
+    ? dbSeasons.filter((s) => s.status !== 'none').map((s) => s.seasonNumber)
+    : [];
+
+  // Merge each DB-tracked status onto the TMDB season list by season number so the
+  // modal can show sync status badges (season.status is not set on the raw TMDB response).
+  const seasonsWithStatus =
+    tvDetails && dbSeasons
+      ? tvDetails.seasons.map((season) => {
+          const record = dbSeasons.find((s) => s.seasonNumber === season.seasonNumber);
+          return record ? { ...season, status: record.status } : season;
+        })
+      : tvDetails?.seasons;
 
   return (
     <>
@@ -204,12 +212,12 @@ export function LikeDislikeButton({
       )}
 
       {/* Season Selector Modal for TV shows */}
-      {tvDetails && (
+      {tvDetails && seasonsWithStatus && (
         <SeasonSelectorModal
           isOpen={isSeasonModalOpen}
           onClose={handleSeasonCancel}
           onConfirm={asVoid(handleSeasonConfirm)}
-          seasons={tvDetails.seasons}
+          seasons={seasonsWithStatus}
           alreadyRequestedSeasons={alreadyRequestedSeasons}
           showName={tvDetails.name}
         />

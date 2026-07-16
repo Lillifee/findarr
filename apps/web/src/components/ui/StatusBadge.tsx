@@ -1,3 +1,4 @@
+import type { MediaStatus } from '@findarr/shared/media';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -5,14 +6,9 @@ import { Icon } from './Icon';
 import { statusBadgeSizes, type Size } from './sizes';
 import { Spinner } from './Spinner';
 
-export type StatusType =
-  | 'available'
-  | 'downloaded'
-  | 'downloading'
-  | 'monitored'
-  | 'requested'
-  | 'pending'
-  | 'warning';
+// 'monitored' is season-only (see SeasonRecord/Season.status in @findarr/shared/db|media) —
+// not part of the top-level MediaStatus, but this badge renders both.
+export type StatusType = MediaStatus | 'monitored';
 
 export interface StatusBadgeProps {
   status: StatusType;
@@ -23,6 +19,7 @@ export interface StatusBadgeProps {
 
 const statusConfig = {
   pending: undefined,
+  none: undefined,
   available: {
     bg: 'bg-emerald-500/88',
     border: 'border-emerald-300/35',
@@ -58,6 +55,13 @@ const statusConfig = {
     labelKey: 'status.requested',
     icon: <Icon filled name="notifications" size="sm" weight={600} />,
   },
+  voted: {
+    bg: 'bg-zinc-600/90',
+    border: 'border-zinc-300/25',
+    text: 'text-white',
+    labelKey: 'status.voted',
+    icon: <Icon filled name="how_to_vote" size="sm" weight={600} />,
+  },
   warning: {
     bg: 'bg-orange-500/90',
     border: 'border-orange-300/35',
@@ -89,7 +93,7 @@ export function StatusBadge({ status, position = 'inline', size = 'md', icon }: 
     <div
       className={`${baseStyles} ${config.bg} ${config.border} ${config.text} ${statusBadgeSizes[size]} ${positionStyles[position]}`}
     >
-      <span className="inline-flex h-[1.125rem] w-[1.125rem] items-center justify-center">
+      <span className="inline-flex h-4.5 w-4.5 items-center justify-center">
         {icon ?? config.icon}
       </span>
       <span>{t(config.labelKey)}</span>

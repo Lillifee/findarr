@@ -38,9 +38,9 @@ export const createMedia = async (
   db: Database,
   tmdbId: number,
   type: MediaType,
-  status: MediaStatus = 'pending',
+  status: MediaStatus = 'none',
   seasonNumbers?: number[],
-) => {
+): Promise<DbMedia> => {
   // Check if media already exists (prevent duplicates since we removed the unique constraint)
   const existing = await getMediaByTmdbId(db, tmdbId, type);
   if (existing) {
@@ -95,6 +95,34 @@ export const updateMediaStatus = async (
   if (result.changes === 0) {
     throw notFound('Media not found');
   }
+};
+
+// Community-voting + arr lifecycle order.
+const STATUS_ORDER: MediaStatus[] = [
+  'none',
+  'pending',
+  'voted',
+  'requested',
+  'downloading',
+  'downloaded',
+  'warning',
+  'available',
+];
+
+/**
+ * Advance a media record's status forward along the community-voting/arr lifecycle
+ * ('none' -> 'voted' -> 'pending' -> 'requested' -> ...)
+ */
+export const advanceMediaStatus = async (
+  db: Database,
+  item: DbMedia,
+  nextStatus: MediaStatus,
+): Promise<void> => {
+  if (STATUS_ORDER.indexOf(nextStatus) <= STATUS_ORDER.indexOf(item.status)) {
+    return;
+  }
+
+  await updateMediaStatus(db, item.id, nextStatus);
 };
 
 /**

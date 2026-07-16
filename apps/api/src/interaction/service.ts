@@ -1,4 +1,5 @@
 import type { User } from '@findarr/shared/auth';
+import { COMMUNITY_VOTE_THRESHOLD } from '@findarr/shared/constants';
 import type { DbMedia } from '@findarr/shared/db';
 import type { CreateMediaInteraction, InteractionsQuery } from '@findarr/shared/interaction';
 import type { UserInteractionsResponse, MediaStatus, MediaDetails } from '@findarr/shared/media';
@@ -11,7 +12,7 @@ import {
   createMedia,
   getMediaByStatusPaginated,
   getMediaByTmdbId,
-  updateMediaStatus,
+  advanceMediaStatus,
   updateMediaSeasons,
 } from '../media/repository.js';
 import type { MediaService } from '../media/service.js';
@@ -27,8 +28,6 @@ import {
   getMediaByUserAttention,
   getMediaByUserInteractions,
 } from './repository.js';
-
-const LIKE_THRESHOLD = 1;
 
 export interface InteractionContext {
   db: Database;
@@ -112,7 +111,7 @@ export function createInteractionService(context: InteractionContext) {
 
     // Get or create media record
     const existing = await getMediaByTmdbId(db, data.tmdbId, data.mediaType);
-    const mediaRow = existing ?? (await createMedia(db, data.tmdbId, data.mediaType, 'pending'));
+    const mediaRow = existing ?? (await createMedia(db, data.tmdbId, data.mediaType));
 
     // Update seasons if provided (TV shows only)
     if (data.mediaType === 'tv' && data.seasons !== undefined) {
@@ -147,24 +146,30 @@ export function createInteractionService(context: InteractionContext) {
     const details = await tmdb.details({ id: data.tmdbId, type: data.mediaType, language });
     timer.lap('details');
 
+    // Advance media status to 'voted' if the user liked it (even if below threshold)
+    if (data.action === 'liked') {
+      await advanceMediaStatus(db, mediaRow, 'voted');
+    }
+
     // Request media. Skip if it's already available in the library (e.g. still on
     // Jellyfin/Plex after being removed from Radarr/Sonarr) so we don't needlessly
     // re-request it — but a TV season update still needs to reach Sonarr.
     const shouldRequest =
       data.action === 'liked' &&
-      (likes >= LIKE_THRESHOLD || (isAdmin && likes >= 1)) &&
+      (likes >= COMMUNITY_VOTE_THRESHOLD || (isAdmin && likes >= 1)) &&
       (mediaRow.status !== 'available' || isSeasonUpdate);
 
     if (shouldRequest) {
+      // Mark the request as in-flight before forwarding to Radarr/Sonarr
+      await advanceMediaStatus(db, mediaRow, 'pending');
+
       // Forward to Radarr/Sonarr (handles both create and update based on arrId)
       await requestMediaToArr(mediaRow, details, data.seasons);
       timer.lap('requestArr');
 
-      if (mediaRow.status === 'pending') {
-        // Mark as requested only after the request actually reached Radarr/Sonarr
-        await updateMediaStatus(db, mediaRow.id, 'requested');
-        timer.lap('updateMediaStatus');
-      }
+      // Mark as requested only after the request actually reached Radarr/Sonarr
+      await advanceMediaStatus(db, mediaRow, 'requested');
+      timer.lap('updateMediaStatus');
     }
 
     // Update user genre preferences based on the interaction.

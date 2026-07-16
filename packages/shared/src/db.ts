@@ -65,10 +65,19 @@ export const media = sqliteTable(
     libUrl: text('libUrl'),
     libAddedAt: integer('libAddedAt').$type<number | null>(),
     status: text('status', {
-      enum: ['pending', 'requested', 'downloading', 'downloaded', 'available', 'warning'],
+      enum: [
+        'none',
+        'voted',
+        'pending',
+        'requested',
+        'downloading',
+        'downloaded',
+        'available',
+        'warning',
+      ],
     })
       .notNull()
-      .default('pending'),
+      .default('none'),
     // TV only: season tracking synced from Sonarr/Jellyfin/Plex (none=not in Sonarr, requested=user wants it, monitored=in Sonarr, downloaded=complete in Sonarr, available=in streaming library)
     seasons: text('seasons', { mode: 'json' }).$type<SeasonRecord[] | null>(),
     createdAt: integer('createdAt')

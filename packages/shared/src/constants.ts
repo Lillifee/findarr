@@ -1,5 +1,12 @@
 import { objectKeys } from './utils.js';
 
+/**
+ * Number of distinct user likes required before a movie or TV show (or an
+ * individual TV season) is automatically requested from Radarr/Sonarr.
+ * Admin likes always bypass this threshold.
+ */
+export const COMMUNITY_VOTE_THRESHOLD = 3;
+
 export interface RegionGroup {
   name: string;
   languages: string[];

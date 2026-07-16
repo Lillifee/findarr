@@ -83,7 +83,7 @@ export async function clearRemovedLibItems(db: Database, libIds: string[]): Prom
 
   const result = await db
     .update(media)
-    .set({ libId: null, libUrl: null, libAddedAt: null, status: 'pending', updatedAt: Date.now() })
+    .set({ libId: null, libUrl: null, libAddedAt: null, status: 'none', updatedAt: Date.now() })
     .where(inArray(media.libId, libIds));
 
   return result.changes;
