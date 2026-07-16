@@ -137,7 +137,7 @@ describe('interaction service - integration tests', () => {
       expectDefined(media);
       expect(media.tmdbId).toBe(123);
       expect(media.type).toBe('movie');
-      expect(media.status).toBe('requested');
+      expect(media.status).toBe('voted');
 
       // Verify interaction was created
       expect(await hasInteraction(db, user.id, media.id, 'liked')).toBe(true);
@@ -311,7 +311,7 @@ describe('interaction service - integration tests', () => {
 
       const media = await getMediaByTmdbId(db, 123, 'movie');
       expectDefined(media);
-      expect(media.status).toBe('pending');
+      expect(media.status).toBe('none');
 
       const votes = await getVoteCounts(db, media.id);
       expect(votes.likes).toBe(0);

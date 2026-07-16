@@ -17,6 +17,7 @@ export type IconName =
   | 'grid_view'
   | 'group'
   | 'home'
+  | 'how_to_vote'
   | 'info'
   | 'language'
   | 'link'

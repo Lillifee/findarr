@@ -80,7 +80,7 @@ export const createMockSonarrService = (
 
 const createDefaultMediaRecord = () => ({
   id: 1,
-  status: 'pending' as const,
+  status: 'none' as const,
   libId: null,
   libUrl: null,
   libAddedAt: null,

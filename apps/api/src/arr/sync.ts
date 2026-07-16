@@ -115,7 +115,7 @@ export async function syncLibrary(
 
   if (removedArrIds.length > 0) {
     const clearedCount = await clearRemovedArrItems(db, removedArrIds, mediaType);
-    log.info({ clearedCount }, 'Cleaned up removed items (reset to pending)');
+    log.info({ clearedCount }, 'Cleaned up removed items (reset to none)');
   }
 
   log.info({ totalItems: libraryItems.length }, 'Library synced');
