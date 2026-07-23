@@ -191,12 +191,10 @@ export async function createTMDBService(context: TmdbServiceContext) {
     );
 
     const sortedResults = allResults.toSorted((a, b) => b.popularity - a.popularity);
-    const totalPages = Math.max(...searchResponses.map((response) => response.total_pages));
 
     return {
       page,
       results: sortedResults,
-      totalPages,
     };
   }
 

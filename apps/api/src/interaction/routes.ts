@@ -29,14 +29,4 @@ export const interactionRoutes = (fastify: FastifyInstance) => {
       ),
     ),
   );
-
-  fastify.get(
-    '/attention',
-    protectedRoute(async (request) =>
-      fastify.interaction.getUserActivityAttentionEnriched(
-        InteractionsQuerySchema.parse(request.query),
-        request.user,
-      ),
-    ),
-  );
 };

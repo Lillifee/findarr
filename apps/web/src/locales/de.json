@@ -122,11 +122,31 @@
   },
   "activity": {
     "title": "Meine Aktivität",
-    "description": "Deine Abstimmungen, angefragte Medien und alles, was noch Aufmerksamkeit benötigt.",
+    "description": "Sieh deine Aktivität, wechsle zwischen deinen Titeln und dem Community-Feed und grenze nach Status ein.",
     "empty": "Noch keine Aktivität",
-    "emptyMessage": "Du hast noch keine Medien bewertet. Starte mit der Entdeckung und deine persönliche Aktivität erscheint hier.",
+    "emptyMessage": "Für die aktuellen Filter gibt es noch keine Ergebnisse. Wechsle das Publikum oder die Statusgruppe.",
     "adjustFilters": "Aktivitätsfilter anpassen.",
     "queue": "Warteschlange",
+    "audienceLabel": "Publikum",
+    "statusLabel": "Statusgruppe",
+    "audience": {
+      "mine": "Meine",
+      "mineDesc": "Nur Titel, mit denen du interagiert hast.",
+      "everyone": "Alle",
+      "everyoneDesc": "Community-weite Aktivität aller Benutzer anzeigen."
+    },
+    "status": {
+      "all": "Alle Status",
+      "allDesc": "Alle Lebenszyklus-Buckets anzeigen.",
+      "voted": "Bewertet",
+      "votedDesc": "Nur Titel, über die abgestimmt wurde.",
+      "requested": "Angefragt",
+      "requestedDesc": "Nur Titel, die bereits angefragt wurden.",
+      "available": "Verfügbar",
+      "availableDesc": "Heruntergeladen oder bereits in der Bibliothek verfügbar.",
+      "attention": "Aufmerksamkeit",
+      "attentionDesc": "Herunterladen oder Warnzustände, die Nachverfolgung brauchen."
+    },
     "filter": {
       "all": "Alle Aktivitäten",
       "allDesc": "Alles anzeigen, über das du abgestimmt hast.",

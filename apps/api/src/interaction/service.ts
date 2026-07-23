@@ -2,7 +2,7 @@ import type { User } from '@findarr/shared/auth';
 import { COMMUNITY_VOTE_THRESHOLD } from '@findarr/shared/constants';
 import type { DbMedia } from '@findarr/shared/db';
 import type { CreateMediaInteraction, InteractionsQuery } from '@findarr/shared/interaction';
-import type { UserInteractionsResponse, MediaStatus, MediaDetails } from '@findarr/shared/media';
+import type { MediaDetails, UserInteractionsResponse } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
 
 import type { AnyArrService } from '../arr/service.js';
@@ -10,7 +10,6 @@ import type { CatalogService } from '../catalog/service.js';
 import type { Database } from '../db/service.js';
 import {
   createMedia,
-  getMediaByStatusPaginated,
   getMediaByTmdbId,
   advanceMediaStatus,
   updateMediaSeasons,
@@ -25,8 +24,7 @@ import {
   hasInteraction,
   removeAllInteractions,
   getVoteCounts,
-  getMediaByUserAttention,
-  getMediaByUserInteractions,
+  getMediaByActivityStatusPaginated,
 } from './repository.js';
 
 export interface InteractionContext {
@@ -76,20 +74,16 @@ export function createInteractionService(context: InteractionContext) {
 
   async function enrichInteractionPage(
     userId: number,
-    items: { results: DbMedia[]; totalCount: number },
+    items: DbMedia[],
     page: number,
-    limit: number,
   ): Promise<UserInteractionsResponse> {
-    // Calculate pagination metadata
-    const totalPages = Math.ceil(items.totalCount / limit);
-
     // Fetch TMDB details for all interacted media
-    const enrichedMedia = await media.fetchTMDBDetails(items.results);
+    const enrichedMedia = await media.fetchTMDBDetails(items);
 
     // Add user interactions and vote counts in optimized batch query
     const results = await media.enrichWithInteractions(enrichedMedia, userId);
 
-    return { results, page, totalPages };
+    return { results, page };
   }
 
   /**
@@ -195,6 +189,21 @@ export function createInteractionService(context: InteractionContext) {
     return enriched;
   }
 
+  async function getActivityItems(params: InteractionsQuery): Promise<DbMedia[]> {
+    const { page = 1, action = 'all', statuses, type = 'both', userId } = params;
+    const limit = 20;
+    const offset = (page - 1) * limit;
+
+    return getMediaByActivityStatusPaginated(db, {
+      type,
+      action,
+      statuses,
+      limit,
+      offset,
+      ...(userId === undefined ? {} : { userId }),
+    });
+  }
+
   /**
    * Get user's interacted media (likes AND dislikes) enriched with TMDB metadata,
    * interactions, and vote counts. Supports pagination for large vote lists.
@@ -203,42 +212,15 @@ export function createInteractionService(context: InteractionContext) {
     params: InteractionsQuery,
     user: User,
   ): Promise<UserInteractionsResponse> {
-    const { action = 'all', page = 1, type = 'both' } = params;
-    const limit = 20;
-    const offset = (page - 1) * limit;
+    const { page = 1 } = params;
+    const items = await getActivityItems(params);
 
-    const items = await getMediaByUserInteractions(db, user.id, {
-      type,
-      action,
-      limit,
-      offset,
-    });
-
-    return enrichInteractionPage(user.id, items, page, limit);
-  }
-
-  async function getUserActivityAttentionEnriched(
-    params: InteractionsQuery,
-    user: User,
-  ): Promise<UserInteractionsResponse> {
-    const { page = 1, type = 'both' } = params;
-    const limit = 20;
-    const offset = (page - 1) * limit;
-
-    const statuses: MediaStatus[] = ['downloading', 'warning'];
-
-    const items =
-      user.role === 'admin'
-        ? await getMediaByStatusPaginated(db, statuses, { limit, offset, type })
-        : await getMediaByUserAttention(db, user.id, { type, statuses, limit, offset });
-
-    return enrichInteractionPage(user.id, items, page, limit);
+    return enrichInteractionPage(user.id, items, page);
   }
 
   return {
     createInteraction,
     getUserInteractionsEnriched,
-    getUserActivityAttentionEnriched,
   };
 }
 

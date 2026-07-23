@@ -57,8 +57,7 @@ export function ExplorePage() {
             results={feed.results}
             loading={feed.loading}
             loadingMore={feed.loadingMore}
-            currentPage={feed.currentPage}
-            totalPages={feed.totalPages}
+            hasMore={feed.hasMore}
             onSelectItem={handleSelectItem}
             onUpdateItem={feed.updateItem}
             onLoadMore={feed.loadMore}

@@ -154,13 +154,6 @@ export const interactionService = {
     const response = await api.get<UserInteractionsResponse>('/interactions', { params });
     return response.data;
   },
-
-  listAttention: async (
-    params: Partial<InteractionsQuery> = {},
-  ): Promise<UserInteractionsResponse> => {
-    const response = await api.get<UserInteractionsResponse>('/interactions/attention', { params });
-    return response.data;
-  },
 };
 
 export const userSettingsService = {

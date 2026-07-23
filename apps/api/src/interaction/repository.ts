@@ -124,101 +124,46 @@ export async function getInteractionsBatch(
 // Query Operations - Fetch media by interaction criteria
 // ============================================================================
 
-/**
- * Get all media records where a user has ANY interaction (liked or disliked)
- * Returns the media DB rows ordered by interaction creation time (most recent first)
- * Supports pagination with limit and offset
- */
-export async function getMediaByUserInteractions(
+export async function getMediaByActivityStatusPaginated(
   db: Database,
-  userId: number,
   options: {
-    type?: InteractionsQuery['type'];
+    userId?: number;
     action?: InteractionsQuery['action'];
+    type?: InteractionsQuery['type'];
+    statuses?: MediaStatus[] | undefined;
     limit?: number;
     offset?: number;
-  } = {},
-): Promise<{ results: DbMedia[]; totalCount: number }> {
-  const conditions = [eq(userMediaInteractions.userId, userId)];
+  },
+): Promise<DbMedia[]> {
+  const conditions = [];
 
-  if (options.type && options.type !== 'both') {
-    conditions.push(eq(media.type, options.type));
+  if (options.userId !== undefined) {
+    conditions.push(eq(userMediaInteractions.userId, options.userId));
   }
 
   if (options.action && options.action !== 'all') {
     conditions.push(eq(userMediaInteractions.action, options.action));
   }
 
-  const whereClause = and(...conditions);
-
-  const countResult = await db
-    .select({ count: sql<number>`count(distinct ${media.id})` })
-    .from(media)
-    .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
-    .where(whereClause);
-
-  const totalCount = countResult[0]?.count ?? 0;
-
-  let query = db
-    .select(getTableColumns(media))
-    .from(media)
-    .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
-    .where(whereClause)
-    .groupBy(media.id)
-    .orderBy(sql`MAX(${userMediaInteractions.createdAt}) DESC`)
-    .$dynamic();
-
-  if (options.limit !== undefined) {
-    query = query.limit(options.limit);
-  }
-  if (options.offset !== undefined) {
-    query = query.offset(options.offset);
-  }
-
-  const results = await query;
-
-  return { results, totalCount };
-}
-
-export async function getMediaByUserAttention(
-  db: Database,
-  userId: number,
-  options: {
-    type?: InteractionsQuery['type'];
-    statuses: MediaStatus[];
-    limit?: number;
-    offset?: number;
-  },
-): Promise<{ results: DbMedia[]; totalCount: number }> {
-  const conditions = [eq(userMediaInteractions.userId, userId)];
-
   if (options.type && options.type !== 'both') {
     conditions.push(eq(media.type, options.type));
   }
 
-  if (options.statuses.length === 0) {
-    return { results: [], totalCount: 0 };
+  if (options.statuses && options.statuses.length > 0) {
+    conditions.push(inArray(media.status, options.statuses));
   }
 
-  conditions.push(inArray(media.status, options.statuses));
-
   const whereClause = and(...conditions);
-
-  const countResult = await db
-    .select({ count: sql<number>`count(distinct ${media.id})` })
-    .from(media)
-    .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
-    .where(whereClause);
-
-  const totalCount = countResult[0]?.count ?? 0;
 
   let query = db
     .select(getTableColumns(media))
     .from(media)
-    .innerJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
+    .leftJoin(userMediaInteractions, eq(media.id, userMediaInteractions.mediaId))
     .where(whereClause)
     .groupBy(media.id)
-    .orderBy(sql`MAX(${userMediaInteractions.createdAt}) DESC`)
+    .orderBy(
+      sql`COALESCE(MAX(${userMediaInteractions.createdAt}), MAX(${media.updatedAt}), MAX(${media.createdAt})) DESC`,
+    )
     .$dynamic();
 
   if (options.limit !== undefined) {
@@ -230,7 +175,7 @@ export async function getMediaByUserAttention(
 
   const results = await query;
 
-  return { results, totalCount };
+  return results;
 }
 
 export async function getUserInteractionMediaKeys(db: Database, userId: number) {

@@ -122,11 +122,31 @@
   },
   "activity": {
     "title": "Your Activity",
-    "description": "Review your votes, requested media, and anything that still needs attention.",
+    "description": "Review your activity, switch between your items and the community feed, and narrow results by lifecycle.",
     "empty": "No activity yet",
-    "emptyMessage": "You have not voted on any media yet. Start exploring and your personal request activity will show up here.",
+    "emptyMessage": "No results match the current filters yet. Try switching the audience or status group.",
     "adjustFilters": "Adjust your activity filters.",
     "queue": "Queue",
+    "audienceLabel": "Audience",
+    "statusLabel": "Status group",
+    "audience": {
+      "mine": "Mine",
+      "mineDesc": "Only titles you interacted with.",
+      "everyone": "Everyone",
+      "everyoneDesc": "Show community-wide activity from all users."
+    },
+    "status": {
+      "all": "All statuses",
+      "allDesc": "Show every lifecycle bucket.",
+      "voted": "Voted",
+      "votedDesc": "Only titles that have been voted on.",
+      "requested": "Requested",
+      "requestedDesc": "Only titles that have already been requested.",
+      "available": "Available",
+      "availableDesc": "Downloaded or already available in the library.",
+      "attention": "Attention",
+      "attentionDesc": "Downloading or warning states that need follow-up."
+    },
     "filter": {
       "all": "All activity",
       "allDesc": "Show everything you have voted on.",

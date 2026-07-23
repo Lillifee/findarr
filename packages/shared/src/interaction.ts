@@ -25,6 +25,24 @@ export const InteractionIdSchema = z.object({
 export const InteractionsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).max(1000).default(1).optional(),
   action: z.enum(['all', 'liked', 'disliked']).default('all').optional(),
+  userId: z.coerce.number().int().positive().optional(),
+  statuses: z
+    .preprocess(
+      (value) => (typeof value === 'string' ? [value] : value),
+      z.array(
+        z.enum([
+          'none',
+          'voted',
+          'pending',
+          'requested',
+          'downloading',
+          'downloaded',
+          'available',
+          'warning',
+        ]),
+      ),
+    )
+    .optional(),
   type: z.enum(['movie', 'tv', 'both']).default('both').optional(),
 });
 

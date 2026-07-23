@@ -186,13 +186,9 @@ export type MediaDetails = MovieDetails | TVDetails;
 // Response Wrappers
 // ============================================================================
 
-/**
- * Shared paginated media response wrapper
- */
 export interface PaginatedMediaResponse {
   results: Media[];
   page: number;
-  totalPages: number;
 }
 
 export type SearchResponse = PaginatedMediaResponse;

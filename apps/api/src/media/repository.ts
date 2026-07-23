@@ -216,9 +216,9 @@ export async function getMediaByStatusPaginated(
     offset: number;
     type?: SearchType;
   },
-): Promise<{ results: DbMedia[]; totalCount: number }> {
+): Promise<DbMedia[]> {
   if (statuses.length === 0) {
-    return { results: [], totalCount: 0 };
+    return [];
   }
 
   const statusConditions = statuses.map((status) => eq(media.status, status));
@@ -227,12 +227,7 @@ export async function getMediaByStatusPaginated(
       ? and(or(...statusConditions), eq(media.type, options.type))
       : or(...statusConditions);
 
-  const countResult = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(media)
-    .where(whereClause);
-
-  const results = await db.query.media.findMany({
+  return db.query.media.findMany({
     columns: {
       id: true,
       type: true,
@@ -253,11 +248,6 @@ export async function getMediaByStatusPaginated(
     limit: options.limit,
     offset: options.offset,
   });
-
-  return {
-    results,
-    totalCount: countResult[0]?.count ?? 0,
-  };
 }
 
 // ============================================================================

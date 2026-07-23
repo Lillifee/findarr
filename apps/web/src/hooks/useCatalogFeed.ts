@@ -13,7 +13,7 @@ interface CatalogFeedState {
   currentPage: number;
   feedId?: string;
   results: Media[];
-  totalPages: number;
+  hasMore: boolean;
 }
 
 interface CatalogFilters {
@@ -41,7 +41,7 @@ interface LoadingState {
 const emptyFeed: CatalogFeedState = {
   currentPage: 0,
   results: [],
-  totalPages: 0,
+  hasMore: false,
 };
 
 const idleLoadingState: LoadingState = {
@@ -87,7 +87,7 @@ function isSameFeed(left: CatalogFeedState, right: CatalogFeedState) {
     left.currentPage === right.currentPage &&
     left.feedId === right.feedId &&
     left.results === right.results &&
-    left.totalPages === right.totalPages
+    left.hasMore === right.hasMore
   );
 }
 
@@ -150,7 +150,7 @@ export interface CatalogFeed {
   loading: boolean;
   loadingMore: boolean;
   currentPage: number;
-  totalPages: number;
+  hasMore: boolean;
   isSearchMode: boolean;
   currentSearchType: SearchType;
   currentQuery: string;
@@ -208,7 +208,7 @@ export function useCatalogFeed(): CatalogFeed {
         currentPage: nextFeed.currentPage,
         ...(isDefined(nextFeed.feedId) ? { feedId: nextFeed.feedId } : {}),
         results: nextFeed.results,
-        totalPages: nextFeed.totalPages,
+        hasMore: nextFeed.hasMore,
       });
     },
     [updateFeed],
@@ -242,7 +242,7 @@ export function useCatalogFeed(): CatalogFeed {
             results: append
               ? mergeUniqueResults(feedRef.current.results, response.results)
               : response.results,
-            totalPages: response.totalPages,
+            hasMore: response.results.length > 0,
           };
 
           updateFeed(nextFeed);
@@ -267,7 +267,7 @@ export function useCatalogFeed(): CatalogFeed {
           results: append
             ? mergeUniqueResults(feedRef.current.results, response.results)
             : response.results,
-          totalPages: response.totalPages,
+          hasMore: response.results.length > 0,
         };
 
         updateFeed(nextFeed);
@@ -349,7 +349,7 @@ export function useCatalogFeed(): CatalogFeed {
   const loadMore = () => {
     const currentFeed = feedRef.current;
 
-    if (currentFeed.currentPage >= currentFeed.totalPages) {
+    if (!currentFeed.hasMore) {
       return;
     }
 
@@ -388,7 +388,7 @@ export function useCatalogFeed(): CatalogFeed {
     loadingMore: loadingState.loadingMore,
     results: feed.results,
     currentPage: feed.currentPage,
-    totalPages: feed.totalPages,
+    hasMore: feed.hasMore,
     currentSearchType: filters.type,
     currentQuery: filters.query,
     selectedGenres: filters.genres,

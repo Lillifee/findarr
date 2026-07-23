@@ -67,7 +67,7 @@ describe('catalog service - integration tests', () => {
     vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
     const user = await createTestUserInDb(db, { email: 'delegate@test.com' });
 
-    const searchResult: SearchResponse = { results: [], totalPages: 1, page: 0 };
+    const searchResult: SearchResponse = { results: [], page: 0 };
     const detailsResult: MediaDetails = createTestMovieDetail({ tmdbId: 1 });
     const genresResult: Genre[] = [];
 
@@ -132,7 +132,6 @@ describe('catalog service - integration tests', () => {
     const items = [createTestMedia({ tmdbId: 1 })];
     tmdbService.search.mockResolvedValue({
       results: items,
-      totalPages: 1,
       page: 1,
     });
 

@@ -1,55 +1,104 @@
-import type { InteractionsQuery } from '@findarr/shared/interaction';
 import { useTranslation } from 'react-i18next';
 
+import type { ActivityAudience, ActivityStatusGroup } from '../../utils/activityFilters';
 import { OptionButton } from '../ui/OptionButton';
 import { PanelSection } from '../ui/PanelSection';
 
-type ActionFilter = InteractionsQuery['action'];
-
 interface ActivityStatusFilterProps {
-  actionFilter: ActionFilter;
-  onActionChange: (action: ActionFilter) => void;
+  audience: ActivityAudience;
+  statusGroup: ActivityStatusGroup;
+  onAudienceChange: (audience: ActivityAudience) => void;
+  onStatusGroupChange: (statusGroup: ActivityStatusGroup) => void;
 }
 
-export function ActivityStatusFilter({ actionFilter, onActionChange }: ActivityStatusFilterProps) {
+export function ActivityStatusFilter({
+  audience,
+  statusGroup,
+  onAudienceChange,
+  onStatusGroupChange,
+}: ActivityStatusFilterProps) {
   const { t } = useTranslation();
+
+  const audienceOptions = [
+    {
+      value: 'mine' as const,
+      title: t('activity.audience.mine'),
+      description: t('activity.audience.mineDesc'),
+    },
+    {
+      value: 'everyone' as const,
+      title: t('activity.audience.everyone'),
+      description: t('activity.audience.everyoneDesc'),
+    },
+  ];
 
   const statusOptions = [
     {
-      value: 'all' as ActionFilter,
-      title: t('activity.filter.all'),
-      description: t('activity.filter.allDesc'),
+      value: 'all' as const,
+      title: t('activity.status.all'),
+      description: t('activity.status.allDesc'),
     },
     {
-      value: 'liked' as ActionFilter,
-      title: t('activity.filter.upvotes'),
-      description: t('activity.filter.upvotesDesc'),
+      value: 'voted' as const,
+      title: t('activity.status.voted'),
+      description: t('activity.status.votedDesc'),
     },
     {
-      value: 'disliked' as ActionFilter,
-      title: t('activity.filter.downvotes'),
-      description: t('activity.filter.downvotesDesc'),
+      value: 'requested' as const,
+      title: t('activity.status.requested'),
+      description: t('activity.status.requestedDesc'),
+    },
+    {
+      value: 'available' as const,
+      title: t('activity.status.available'),
+      description: t('activity.status.availableDesc'),
+    },
+    {
+      value: 'attention' as const,
+      title: t('activity.status.attention'),
+      description: t('activity.status.attentionDesc'),
     },
   ];
 
   return (
-    <PanelSection>
-      <div className="mb-2.5">
-        <h4 className="text-sm font-semibold text-white">{t('common.votingStatus')}</h4>
-      </div>
-      <div className="grid gap-2.5 md:grid-cols-3">
-        {statusOptions.map((option) => (
-          <OptionButton
-            key={option.value}
-            selected={actionFilter === option.value}
-            onClick={() => {
-              onActionChange(option.value);
-            }}
-            title={option.title}
-            description={option.description}
-          />
-        ))}
-      </div>
-    </PanelSection>
+    <div className="space-y-4">
+      <PanelSection>
+        <div className="mb-2.5">
+          <h4 className="text-sm font-semibold text-white">{t('activity.audienceLabel')}</h4>
+        </div>
+        <div className="grid gap-2.5 md:grid-cols-2">
+          {audienceOptions.map((option) => (
+            <OptionButton
+              key={option.value}
+              selected={audience === option.value}
+              onClick={() => {
+                onAudienceChange(option.value);
+              }}
+              title={option.title}
+              description={option.description}
+            />
+          ))}
+        </div>
+      </PanelSection>
+
+      <PanelSection>
+        <div className="mb-2.5">
+          <h4 className="text-sm font-semibold text-white">{t('activity.statusLabel')}</h4>
+        </div>
+        <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-4">
+          {statusOptions.map((option) => (
+            <OptionButton
+              key={option.value}
+              selected={statusGroup === option.value}
+              onClick={() => {
+                onStatusGroupChange(option.value);
+              }}
+              title={option.title}
+              description={option.description}
+            />
+          ))}
+        </div>
+      </PanelSection>
+    </div>
   );
 }

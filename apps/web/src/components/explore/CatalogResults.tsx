@@ -9,8 +9,7 @@ interface CatalogResultsProps {
   results: Media[];
   loading: boolean;
   loadingMore: boolean;
-  currentPage: number;
-  totalPages: number;
+  hasMore: boolean;
   onSelectItem: (item: Media) => void;
   onUpdateItem: (updatedItem: Media) => void;
   onLoadMore: () => void;
@@ -20,14 +19,12 @@ export function CatalogResults({
   results,
   loading,
   loadingMore,
-  currentPage,
-  totalPages,
+  hasMore,
   onSelectItem,
   onUpdateItem,
   onLoadMore,
 }: CatalogResultsProps) {
   const { t } = useTranslation();
-  const hasMore = currentPage < totalPages;
 
   if (results.length === 0) {
     return loading ? <LoadingState /> : <StateDisplay title={t('common.noResults')} />;
