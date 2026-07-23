@@ -58,7 +58,7 @@ export function createLibraryQueueSyncScheduler(service: LibService): Scheduler 
         limit: 1,
       });
 
-      if (downloadedPage.totalCount === 0) {
+      if (downloadedPage.length === 0) {
         context.appLog
           .scope(name)
           .info(

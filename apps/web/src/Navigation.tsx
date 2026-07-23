@@ -45,7 +45,10 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
 
     const loadAttention = async () => {
       try {
-        const response = await interactionService.listAttention();
+        const response = await interactionService.listActivity({
+          ...(isAdmin ? {} : { userId: user?.id }),
+          statuses: ['downloading', 'warning'],
+        });
 
         if (!cancelled) {
           setHasAttention(response.results.length > 0);
@@ -66,7 +69,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
       cancelled = true;
       globalThis.clearInterval(timer);
     };
-  }, []);
+  }, [isAdmin, user?.id]);
 
   const attentionIndicator = hasAttention ? <StatusIndicator /> : null;
   const updateIndicator = versionInfo?.updateAvailable === true ? <StatusIndicator /> : null;

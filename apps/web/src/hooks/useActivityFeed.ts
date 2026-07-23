@@ -1,39 +1,44 @@
-import type { InteractionsQuery } from '@findarr/shared/interaction';
-import type { Media, SearchType } from '@findarr/shared/media';
-import { isDefined } from '@findarr/shared/utils';
+import type { Media, MediaStatus, SearchType } from '@findarr/shared/media';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { interactionService } from '../services/api';
+import {
+  activityStatusGroups,
+  type ActivityAudience,
+  type ActivityStatusGroup,
+} from '../utils/activityFilters';
 import { buildActivitySearchParams, readActivitySearchParams } from '../utils/activitySearchParams';
 import { useHistoryRestoreState } from './useHistoryRestoreState';
+import { useSession } from './useSession';
 
-type ActionFilter = InteractionsQuery['action'];
+type StatusGroupFilter = ActivityStatusGroup;
+type AudienceFilter = ActivityAudience;
 
 interface ActivityPageState {
-  actionFilter: ActionFilter;
+  audience: AudienceFilter;
   activityPage: number;
   activityResults: Media[];
   selectedType: SearchType;
+  statusGroup: StatusGroupFilter;
   scrollY: number;
-  totalPages: number;
+  hasMore: boolean;
 }
 
 interface ActivityState {
   results: Media[];
   page: number;
-  totalPages: number;
+  hasMore: boolean;
 }
 
 interface LoadingState {
   activity: boolean;
-  attention: boolean;
   more: boolean;
 }
 
-const attentionStatuses = new Set(['downloading', 'warning']);
-
 const keyOf = (item: Media) => `${item.type}_${item.tmdbId}`;
+
+const ACTIVITY_PAGE_SIZE = 20;
 
 function mergeUniqueResults(existing: Media[], incoming: Media[]) {
   const seen = new Set(existing.map((item) => keyOf(item)));
@@ -51,25 +56,33 @@ function mergeUniqueResults(existing: Media[], incoming: Media[]) {
 
 export interface ActivityFeed {
   activityResults: Media[];
-  attentionResults: Media[];
-  actionFilter: ActionFilter;
+  audience: AudienceFilter;
   selectedType: SearchType;
+  statusGroup: StatusGroupFilter;
   loadingActivity: boolean;
-  loadingAttention: boolean;
   loadingMore: boolean;
   currentPage: number;
-  totalPages: number;
   hasMore: boolean;
-  reloadActivityWith: (next: { action?: ActionFilter; type?: SearchType }) => void;
+  reloadActivityWith: (next: {
+    audience?: AudienceFilter;
+    statusGroup?: StatusGroupFilter;
+    type?: SearchType;
+  }) => void;
   loadMore: () => void;
   updateItem: (updatedItem: Media) => void;
   persistHistoryState: () => void;
 }
 
 export function useActivityFeed(): ActivityFeed {
+  const { user } = useSession();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { action: actionFilter, type: selectedType } = readActivitySearchParams(searchParams, {
-    action: 'liked',
+  const {
+    audience,
+    statusGroup,
+    type: selectedType,
+  } = readActivitySearchParams(searchParams, {
+    audience: 'mine',
+    statusGroup: 'all',
     type: 'both',
   });
   const { restoredState, persistState } = useHistoryRestoreState<ActivityPageState>();
@@ -77,30 +90,38 @@ export function useActivityFeed(): ActivityFeed {
   const [activityState, setActivityState] = useState<ActivityState>({
     results: [],
     page: 1,
-    totalPages: 0,
+    hasMore: false,
   });
-  const [attentionResults, setAttentionResults] = useState<Media[]>([]);
   const [loading, setLoading] = useState<LoadingState>({
     activity: false,
-    attention: false,
     more: false,
   });
   const activityRequestIdRef = useRef(0);
-  const attentionRequestIdRef = useRef(0);
 
   const activityResults = activityState.results;
   const currentPage = activityState.page;
-  const { totalPages } = activityState;
-  const hasMore = currentPage < totalPages;
+  const { hasMore } = activityState;
 
   const loadActivity = useCallback(
-    async (options: { action: ActionFilter; append: boolean; page: number; type: SearchType }) => {
+    async (options: {
+      append: boolean;
+      page: number;
+      type: SearchType;
+      userId?: number;
+      statuses: MediaStatus[];
+    }) => {
       const requestId = (activityRequestIdRef.current += 1);
+      const requestParams = {
+        page: options.page,
+        type: options.type,
+        statuses: options.statuses,
+        ...(options.userId === undefined ? {} : { userId: options.userId }),
+      };
 
       setLoading((prev) => ({ ...prev, [options.append ? 'more' : 'activity']: true }));
 
       try {
-        const response = await interactionService.listActivity(options);
+        const response = await interactionService.listActivity(requestParams);
         const responsePage = response.page;
 
         if (requestId !== activityRequestIdRef.current) {
@@ -112,7 +133,7 @@ export function useActivityFeed(): ActivityFeed {
             ? mergeUniqueResults(prev.results, response.results)
             : response.results,
           page: responsePage,
-          totalPages: response.totalPages,
+          hasMore: response.results.length === ACTIVITY_PAGE_SIZE,
         }));
       } catch (error) {
         console.error('Failed to load personal activity:', error);
@@ -125,47 +146,28 @@ export function useActivityFeed(): ActivityFeed {
     [],
   );
 
-  const loadAttention = useCallback(async (type: SearchType) => {
-    const requestId = (attentionRequestIdRef.current += 1);
-
-    setLoading((prev) => ({ ...prev, attention: true }));
-
-    try {
-      const response = await interactionService.listAttention({ type });
-
-      if (requestId !== attentionRequestIdRef.current) {
-        return;
-      }
-
-      setAttentionResults(response.results);
-    } catch (error) {
-      console.error('Failed to load activity attention items:', error);
-    } finally {
-      if (requestId === attentionRequestIdRef.current) {
-        setLoading((prev) => ({ ...prev, attention: false }));
-      }
-    }
-  }, []);
-
   const persistHistoryState = useCallback(() => {
     if (activityResults.length === 0) {
       return;
     }
 
     persistState({
-      actionFilter,
+      audience,
       activityPage: currentPage,
       activityResults,
       selectedType,
-      totalPages,
+      statusGroup,
+      hasMore,
       scrollY: window.scrollY,
     });
-  }, [actionFilter, activityResults, currentPage, persistState, selectedType, totalPages]);
+  }, [activityResults, audience, currentPage, hasMore, persistState, selectedType, statusGroup]);
 
   const matchesCurrentFilters = useCallback(
-    (state: Pick<ActivityPageState, 'actionFilter' | 'selectedType'>) =>
-      state.actionFilter === actionFilter && state.selectedType === selectedType,
-    [actionFilter, selectedType],
+    (state: Pick<ActivityPageState, 'audience' | 'selectedType' | 'statusGroup'>) =>
+      state.audience === audience &&
+      state.selectedType === selectedType &&
+      state.statusGroup === statusGroup,
+    [audience, selectedType, statusGroup],
   );
 
   useEffect(() => {
@@ -173,42 +175,59 @@ export function useActivityFeed(): ActivityFeed {
       setActivityState({
         results: restoredState.activityResults,
         page: restoredState.activityPage,
-        totalPages: restoredState.totalPages,
+        hasMore: restoredState.hasMore,
       });
-      void loadAttention(restoredState.selectedType);
       requestAnimationFrame(() => {
         window.scrollTo({ top: restoredState.scrollY, behavior: 'auto' });
       });
       return;
     }
 
-    void loadActivity({ action: actionFilter, append: false, page: 1, type: selectedType });
-    void loadAttention(selectedType);
+    const statusList = [...activityStatusGroups[statusGroup]];
+
+    void loadActivity({
+      append: false,
+      page: 1,
+      type: selectedType,
+      ...(audience === 'mine' && user?.id !== undefined ? { userId: user.id } : {}),
+      statuses: [...statusList],
+    });
   }, [
-    actionFilter,
+    audience,
     loadActivity,
-    loadAttention,
     matchesCurrentFilters,
     restoredState,
+    user?.id,
     selectedType,
+    statusGroup,
   ]);
 
   const reloadActivityWith = useCallback(
-    (next: { action?: ActionFilter; type?: SearchType }) => {
-      const nextAction = next.action ?? actionFilter;
+    (next: { audience?: AudienceFilter; statusGroup?: StatusGroupFilter; type?: SearchType }) => {
+      const nextAudience = next.audience ?? audience;
+      const nextStatusGroup = next.statusGroup ?? statusGroup;
       const nextType = next.type ?? selectedType;
 
-      setSearchParams(buildActivitySearchParams({ action: nextAction, type: nextType }));
+      setSearchParams(
+        buildActivitySearchParams({
+          audience: nextAudience,
+          statusGroup: nextStatusGroup,
+          type: nextType,
+        }),
+      );
     },
-    [actionFilter, selectedType, setSearchParams],
+    [audience, selectedType, setSearchParams, statusGroup],
   );
 
   const loadMore = () => {
+    const statusList = [...activityStatusGroups[statusGroup]];
+
     void loadActivity({
-      action: actionFilter,
       append: true,
       page: currentPage + 1,
       type: selectedType,
+      ...(audience === 'mine' && user?.id !== undefined ? { userId: user.id } : {}),
+      statuses: [...statusList],
     });
   };
 
@@ -219,32 +238,16 @@ export function useActivityFeed(): ActivityFeed {
         keyOf(item) === keyOf(updatedItem) ? updatedItem : item,
       ),
     }));
-
-    setAttentionResults((prev) => {
-      const nextResults = prev.map((item) =>
-        keyOf(item) === keyOf(updatedItem) ? updatedItem : item,
-      );
-      const hasUserInteraction = isDefined(updatedItem.state?.interaction);
-      const isAttentionStatus = attentionStatuses.has(updatedItem.state?.record?.status ?? '');
-
-      if (!hasUserInteraction || !isAttentionStatus) {
-        return nextResults.filter((item) => keyOf(item) !== keyOf(updatedItem));
-      }
-
-      return nextResults;
-    });
   };
 
   return {
     activityResults,
-    attentionResults,
-    actionFilter,
+    audience,
     selectedType,
+    statusGroup,
     loadingActivity: loading.activity,
-    loadingAttention: loading.attention,
     loadingMore: loading.more,
     currentPage,
-    totalPages,
     hasMore,
     reloadActivityWith,
     loadMore,

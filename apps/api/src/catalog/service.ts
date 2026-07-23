@@ -52,11 +52,8 @@ export function createCatalogService(context: CatalogContext) {
 
       let filteredMedia = cachedCatalogMedia.filter(
         (item) =>
-          filterByCriteria(item, {
-            type,
-            regions,
-            genres: genres ?? [],
-          }) && filterByInteraction(item, interactionKeys, interaction),
+          filterByCriteria(item, { type, regions, genres }) &&
+          filterByInteraction(item, interactionKeys, interaction),
       );
 
       filteredMedia = await media.enrichWithScoring(filteredMedia, userId);
@@ -144,7 +141,7 @@ export function createCatalogService(context: CatalogContext) {
     const limit = 10;
     const offset = (page - 1) * limit;
 
-    const { results: dbRecords, totalCount } = await getMediaByStatusPaginated(db, ['available'], {
+    const dbRecords = await getMediaByStatusPaginated(db, ['available'], {
       type,
       offset,
       limit,
@@ -152,9 +149,8 @@ export function createCatalogService(context: CatalogContext) {
 
     const availableMedia = await media.fetchTMDBDetails(dbRecords);
     const results = await media.enrichWithInteractions(availableMedia, userId);
-    const totalPages = Math.ceil(totalCount / limit);
 
-    return { results, page, totalPages };
+    return { results, page };
   }
 
   /**

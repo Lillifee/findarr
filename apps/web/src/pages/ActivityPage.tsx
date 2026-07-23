@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 
 import { ActivitySection } from '../components/activity/ActivitySection';
 import { ActivityStatusFilter } from '../components/activity/ActivityStatusFilter';
-import { AttentionQueueSection } from '../components/activity/AttentionQueueSection';
 import { FiltersToolbar } from '../components/catalog/FiltersToolbar';
 import { PageContainer } from '../components/ui/PageContainer';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -31,9 +30,13 @@ export function ActivityPage() {
           filterDescription={t('activity.adjustFilters')}
           extraFiltersContent={
             <ActivityStatusFilter
-              actionFilter={feed.actionFilter}
-              onActionChange={(action) => {
-                feed.reloadActivityWith({ action });
+              audience={feed.audience}
+              statusGroup={feed.statusGroup}
+              onAudienceChange={(audience) => {
+                feed.reloadActivityWith({ audience });
+              }}
+              onStatusGroupChange={(statusGroup) => {
+                feed.reloadActivityWith({ statusGroup });
               }}
             />
           }
@@ -43,12 +46,6 @@ export function ActivityPage() {
       <PageContainer>
         <div className="space-y-8 md:space-y-10">
           <PageHeader title={t('activity.title')} description={t('activity.description')} />
-
-          <AttentionQueueSection
-            results={feed.attentionResults}
-            onSelectItem={handleSelectItem}
-            onUpdateItem={feed.updateItem}
-          />
 
           <ActivitySection
             results={feed.activityResults}

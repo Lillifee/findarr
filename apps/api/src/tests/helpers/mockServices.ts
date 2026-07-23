@@ -96,9 +96,7 @@ export function createMockCatalogService(
   overrides: Partial<Mocked<CatalogService>> = {},
 ): Mocked<CatalogService> {
   return {
-    searchMedia: vi
-      .fn<CatalogService['searchMedia']>()
-      .mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
+    searchMedia: vi.fn<CatalogService['searchMedia']>().mockResolvedValue({ results: [], page: 1 }),
     getPopularMedia: vi.fn<CatalogService['getPopularMedia']>().mockResolvedValue({
       results: [],
       page: 1,
@@ -119,7 +117,7 @@ export function createMockCatalogService(
     listGenres: vi.fn<CatalogService['listGenres']>().mockResolvedValue([]),
     getAvailableMedia: vi
       .fn<CatalogService['getAvailableMedia']>()
-      .mockResolvedValue({ results: [], page: 1, totalPages: 0 }),
+      .mockResolvedValue({ results: [], page: 1 }),
     getNextUnvotedMedia: vi.fn<CatalogService['getNextUnvotedMedia']>().mockResolvedValue({
       media: undefined,
       feedId: 'feed-1',

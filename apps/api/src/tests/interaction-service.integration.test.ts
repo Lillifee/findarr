@@ -82,12 +82,6 @@ const getUserInteractionsEnriched = async (
   ...args: Parameters<InteractionService['getUserInteractionsEnriched']>
 ) => buildService(tmdbService, db).getUserInteractionsEnriched(...args);
 
-const getUserActivityAttentionEnriched = async (
-  tmdbService: TMDBService,
-  db: Database,
-  ...args: Parameters<InteractionService['getUserActivityAttentionEnriched']>
-) => buildService(tmdbService, db).getUserActivityAttentionEnriched(...args);
-
 describe('interaction service - integration tests', () => {
   let db: Database;
   let sqliteDb: SqlDatabase.Database;
@@ -356,7 +350,6 @@ describe('interaction service - integration tests', () => {
 
       expect(result.results).toHaveLength(2);
       expect(result.page).toBe(1);
-      expect(result.totalPages).toBe(1);
       // Verify both items are present (order may vary)
       const ids = result.results.map((r) => r.tmdbId);
       expect(ids).toContain(123);
@@ -369,7 +362,7 @@ describe('interaction service - integration tests', () => {
       expectDefined(user);
 
       const result = await getUserInteractionsEnriched(tmdb, db, {}, user);
-      expect(result).toStrictEqual({ results: [], page: 1, totalPages: 0 });
+      expect(result).toStrictEqual({ results: [], page: 1 });
     });
 
     it('should keep the main activity list ordered by newest interaction instead of status priority', async () => {
@@ -421,7 +414,7 @@ describe('interaction service - integration tests', () => {
     });
   });
 
-  describe('getUserActivityAttentionEnriched', () => {
+  describe('status-filtered activity', () => {
     it('should return only interacted media that need attention or are in progress', async () => {
       const user = await createTestUserInDb(db, { email: 'attention@test.com' });
       expectDefined(user);
@@ -471,10 +464,14 @@ describe('interaction service - integration tests', () => {
           createTestMovieDetail({ tmdbId: 123, type: 'movie', name: 'Downloading Movie' }),
         );
 
-      const result = await getUserActivityAttentionEnriched(tmdb, db, {}, user);
+      const result = await getUserInteractionsEnriched(
+        tmdb,
+        db,
+        { statuses: ['downloading', 'warning'], userId: user.id },
+        user,
+      );
 
       expect(result.page).toBe(1);
-      expect(result.totalPages).toBe(1);
       expect(result.results).toHaveLength(2);
       expect(result.results.map((item) => item.tmdbId)).toStrictEqual(
         expect.arrayContaining([123, 456]),
@@ -499,10 +496,14 @@ describe('interaction service - integration tests', () => {
           createTestMovieDetail({ tmdbId: 777, type: 'movie', name: 'Needs Attention' }),
         );
 
-      const result = await getUserActivityAttentionEnriched(tmdb, db, {}, admin);
+      const result = await getUserInteractionsEnriched(
+        tmdb,
+        db,
+        { statuses: ['downloading', 'warning'] },
+        admin,
+      );
 
       expect(result.page).toBe(1);
-      expect(result.totalPages).toBe(1);
       expect(result.results).toHaveLength(1);
       expect(result.results[0]?.tmdbId).toBe(777);
       expect(result.results[0]?.state?.record?.status).toBe('warning');
