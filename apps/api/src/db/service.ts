@@ -42,13 +42,20 @@ export function createDatabase(dbPath: string): DatabaseConnection {
   sqliteDb.pragma('journal_mode = WAL');
   sqliteDb.pragma('synchronous = NORMAL');
   sqliteDb.pragma('busy_timeout = 5000');
-  sqliteDb.pragma('foreign_keys = ON');
 
   // Create Drizzle instance with schema and relations for relational queries
   const db = drizzle(sqliteDb, { schema: combinedSchema });
 
-  // Apply migrations (from drizzle-kit generated folder)
+  // FKs must be off during migrations: some migrations recreate tables via
+  // DROP + rename, which would cascade-delete related rows (e.g.
+  // user_media_interactions) if enforcement were on.
+  sqliteDb.pragma('foreign_keys = OFF');
+
+  // Migrate database to latest version using migrations from drizzle-kit
   migrate(db, { migrationsFolder });
+
+  // Enable foreign key enforcement only after migrations have completed.
+  sqliteDb.pragma('foreign_keys = ON');
 
   return { db, sqliteDb };
 }

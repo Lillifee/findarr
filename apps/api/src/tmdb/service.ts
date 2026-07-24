@@ -42,10 +42,7 @@ export async function createTMDBService(context: TmdbServiceContext) {
 
   const lifecycle = createClientLifecycle<TmdbSettingsFull, TMDBClient>({
     name: 'TMDB',
-    loadSettings: async () => {
-      context.appLog.warn(await context.settings.getAll());
-      return getTmdbSettingsFull(context.settings);
-    },
+    loadSettings: async () => getTmdbSettingsFull(context.settings),
     createClient: (settings) =>
       isDefined(settings.tmdbAccessToken)
         ? createTMDBClient(settings.tmdbAccessToken, context.appLog)
