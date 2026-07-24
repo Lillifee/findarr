@@ -17,8 +17,15 @@ export interface StatusBadgeProps {
   icon?: ReactNode;
 }
 
-const statusConfig = {
-  pending: undefined,
+type StatusConfig = {
+  bg: string;
+  border: string;
+  text: string;
+  labelKey: string;
+  icon: ReactNode;
+};
+
+const statusConfig: Record<StatusType, StatusConfig | undefined> = {
   none: undefined,
   available: {
     bg: 'bg-emerald-500/88',

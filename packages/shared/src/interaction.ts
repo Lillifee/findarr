@@ -30,16 +30,7 @@ export const InteractionsQuerySchema = z.object({
     .preprocess(
       (value) => (typeof value === 'string' ? [value] : value),
       z.array(
-        z.enum([
-          'none',
-          'voted',
-          'pending',
-          'requested',
-          'downloading',
-          'downloaded',
-          'available',
-          'warning',
-        ]),
+        z.enum(['none', 'voted', 'requested', 'downloading', 'downloaded', 'available', 'warning']),
       ),
     )
     .optional(),
