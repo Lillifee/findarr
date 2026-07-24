@@ -1,6 +1,5 @@
 import type { RegionGroupId } from '@findarr/shared/constants';
 import { objectKeys } from '@findarr/shared/utils';
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { OptionButton } from '../ui/OptionButton';
@@ -22,11 +21,11 @@ interface RegionSelectorProps {
   disabled?: boolean;
 }
 
-export const RegionSelector: React.FC<RegionSelectorProps> = ({
+export function RegionSelector({
   selectedRegions,
   onRegionsChange,
   disabled = false,
-}) => {
+}: RegionSelectorProps) {
   const { t } = useTranslation();
   const allRegions = objectKeys(REGION_KEYS);
 
@@ -73,4 +72,4 @@ export const RegionSelector: React.FC<RegionSelectorProps> = ({
       )}
     </div>
   );
-};
+}

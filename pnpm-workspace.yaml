@@ -7,10 +7,10 @@ allowBuilds:
   esbuild: true
 
 catalog:
-  vite: npm:@voidzero-dev/vite-plus-core@0.2.4
+  vite: npm:@voidzero-dev/vite-plus-core@0.2.6
   vitest: 4.1.10
-  vite-plus: 0.2.4
-  typescript: ^6.0.3
+  vite-plus: 0.2.6
+  typescript: ^7.0.2
 
 overrides:
   vite: 'catalog:'

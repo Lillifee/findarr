@@ -1,6 +1,6 @@
 import type { User } from '@findarr/shared/auth';
 import { isDefined } from '@findarr/shared/utils';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, useLocation } from 'react-router-dom';
 
@@ -32,7 +32,7 @@ function StatusIndicator() {
   );
 }
 
-export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin }) => {
+export function Navigation({ onLogout, user, isAdmin }: NavigationProps) {
   const { t } = useTranslation();
   const [mobileAdvancedOpen, setMobileAdvancedOpen] = useState(false);
   const [hasAttention, setHasAttention] = useState(false);
@@ -304,4 +304,4 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
       </nav>
     </>
   );
-};
+}
