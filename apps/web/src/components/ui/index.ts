@@ -22,6 +22,7 @@ export { InlineFeedback } from './InlineFeedback';
 export { PanelSection } from './PanelSection';
 export { SelectionIndicator } from './SelectionIndicator';
 export { Icon, type IconName, type IconProps } from './Icon';
+export { QuickActionBar, type QuickActionItem } from './QuickActionBar';
 export { deriveFeedback, type Feedback, type FeedbackTone } from './feedback';
 export { appGradient } from './theme';
 export { type Size } from './sizes';

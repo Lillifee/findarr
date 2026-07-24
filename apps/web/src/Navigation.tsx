@@ -39,6 +39,9 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
   const versionInfo = useVersionInfo(isAdmin);
+  const activityLinkTarget = hasAttention
+    ? '/activity?audience=everyone&statusGroup=downloading&statusGroup=warning&type=both'
+    : '/activity';
 
   useEffect(() => {
     let cancelled = false;
@@ -97,7 +100,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
               <span className="font-medium">{t('nav.explore')}</span>
             </NavLink>
 
-            <NavLink to="/activity" className={navLinkClass}>
+            <NavLink to={activityLinkTarget} className={navLinkClass}>
               <Icon name="fact_check" />
               <span className="font-medium">{t('nav.activity')}</span>
               <span className="ml-auto">{attentionIndicator}</span>
@@ -183,7 +186,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
             <span className="text-xs font-medium">{t('nav.explore')}</span>
           </NavLink>
 
-          <NavLink to="/activity" className={mobileNavLinkClass}>
+          <NavLink to={activityLinkTarget} className={mobileNavLinkClass}>
             <span className="relative inline-flex">
               <Icon className="mb-1" name="fact_check" size="lg" />
               {hasAttention && (

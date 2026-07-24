@@ -126,6 +126,12 @@
     "empty": "No activity yet",
     "emptyMessage": "No results match the current filters yet. Try switching the audience or status group.",
     "queue": "Queue",
+    "quickNavLabel": "Quick filters",
+    "quickNav": {
+      "needsAttention": "Needs attention",
+      "voting": "Voting",
+      "newlyAvailable": "Newly available"
+    },
     "audienceLabel": "Audience",
     "statusLabel": "Status group",
     "audience": {
