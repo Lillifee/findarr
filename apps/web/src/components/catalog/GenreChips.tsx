@@ -3,6 +3,7 @@ import { objectEntries } from '@findarr/shared/utils';
 import { useTranslation } from 'react-i18next';
 
 import { Badge } from '../ui/Badge';
+import { ClearAllButton } from '../ui/ClearAllButton';
 import { Icon } from '../ui/Icon';
 
 interface GenreChipsProps {
@@ -33,18 +34,13 @@ export function GenreChips({ selectedGenres, onGenreChange, disabled = false }: 
             ? t('catalog.genres', { count: selectedGenres.length })
             : t('catalog.genresLabel')}
         </label>
-        <button
-          type="button"
+        <ClearAllButton
           onClick={clearAllGenres}
           disabled={disabled || selectedGenres.length === 0}
-          aria-hidden={selectedGenres.length === 0}
-          tabIndex={selectedGenres.length === 0 ? -1 : 0}
-          className={`inline-flex min-h-8 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-700 hover:bg-zinc-800 hover:text-zinc-100 disabled:cursor-not-allowed ${
-            selectedGenres.length === 0 ? 'pointer-events-none invisible opacity-0' : 'opacity-100'
-          } ${disabled ? 'opacity-50' : ''}`}
+          hidden={selectedGenres.length === 0}
         >
           {t('catalog.clearAll')}
-        </button>
+        </ClearAllButton>
       </div>
 
       <div className="flex flex-wrap gap-1.5">

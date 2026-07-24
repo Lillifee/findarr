@@ -135,16 +135,11 @@
       "everyoneDesc": "Community-weite Aktivität aller Benutzer anzeigen."
     },
     "status": {
-      "all": "Alle Status",
-      "allDesc": "Alle Lebenszyklus-Buckets anzeigen.",
       "voting": "Abstimmung",
-      "votingDesc": "Nur Titel, über die gerade abgestimmt wird.",
       "requested": "Angefragt",
-      "requestedDesc": "Nur Titel, die bereits angefragt wurden.",
       "available": "Verfügbar",
-      "availableDesc": "Heruntergeladen oder bereits in der Bibliothek verfügbar.",
-      "attention": "Aufmerksamkeit",
-      "attentionDesc": "Herunterladen oder Warnzustände, die Nachverfolgung brauchen."
+      "downloading": "Wird heruntergeladen",
+      "warning": "Warnung"
     },
     "filter": {
       "all": "Alle Aktivitäten",

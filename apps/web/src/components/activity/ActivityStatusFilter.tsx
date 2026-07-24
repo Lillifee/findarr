@@ -1,21 +1,24 @@
 import { useTranslation } from 'react-i18next';
 
 import type { ActivityAudience, ActivityStatusGroup } from '../../utils/activityFilters';
+import { Badge } from '../ui/Badge';
+import { ClearAllButton } from '../ui/ClearAllButton';
+import { Icon } from '../ui/Icon';
 import { OptionButton } from '../ui/OptionButton';
 import { PanelSection } from '../ui/PanelSection';
 
 interface ActivityStatusFilterProps {
   audience: ActivityAudience;
-  statusGroup: ActivityStatusGroup;
+  statusGroups: ActivityStatusGroup[];
   onAudienceChange: (audience: ActivityAudience) => void;
-  onStatusGroupChange: (statusGroup: ActivityStatusGroup) => void;
+  onStatusGroupsChange: (statusGroups: ActivityStatusGroup[]) => void;
 }
 
 export function ActivityStatusFilter({
   audience,
-  statusGroup,
+  statusGroups,
   onAudienceChange,
-  onStatusGroupChange,
+  onStatusGroupsChange,
 }: ActivityStatusFilterProps) {
   const { t } = useTranslation();
 
@@ -32,33 +35,24 @@ export function ActivityStatusFilter({
     },
   ];
 
-  const statusOptions = [
-    {
-      value: 'all' as const,
-      title: t('activity.status.all'),
-      description: t('activity.status.allDesc'),
-    },
-    {
-      value: 'voting' as const,
-      title: t('activity.status.voting'),
-      description: t('activity.status.votingDesc'),
-    },
-    {
-      value: 'requested' as const,
-      title: t('activity.status.requested'),
-      description: t('activity.status.requestedDesc'),
-    },
-    {
-      value: 'available' as const,
-      title: t('activity.status.available'),
-      description: t('activity.status.availableDesc'),
-    },
-    {
-      value: 'attention' as const,
-      title: t('activity.status.attention'),
-      description: t('activity.status.attentionDesc'),
-    },
-  ];
+  const statusOptions = (
+    ['voting', 'requested', 'available', 'downloading', 'warning'] as const
+  ).map((value) => ({
+    value,
+    title: t(`activity.status.${value}`),
+  }));
+
+  const toggleStatusGroup = (value: ActivityStatusGroup) => {
+    const nextStatusGroups = statusGroups.includes(value)
+      ? statusGroups.filter((group) => group !== value)
+      : [...statusGroups, value];
+
+    onStatusGroupsChange(nextStatusGroups);
+  };
+
+  const clearAllStatusGroups = () => {
+    onStatusGroupsChange([]);
+  };
 
   return (
     <div className="space-y-4">
@@ -82,20 +76,37 @@ export function ActivityStatusFilter({
       </PanelSection>
 
       <PanelSection>
-        <div className="mb-2.5">
-          <h4 className="text-sm font-semibold text-white">{t('activity.statusLabel')}</h4>
+        <div className="flex items-center justify-between gap-3">
+          <label className="text-sm font-medium text-gray-300">{t('activity.statusLabel')}</label>
+          <ClearAllButton
+            onClick={clearAllStatusGroups}
+            disabled={statusGroups.length === 0}
+            hidden={statusGroups.length === 0}
+          >
+            {t('catalog.clearAll')}
+          </ClearAllButton>
         </div>
-        <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-2 flex flex-wrap gap-1.5">
           {statusOptions.map((option) => (
-            <OptionButton
+            <Badge
               key={option.value}
-              selected={statusGroup === option.value}
+              variant="secondary"
+              selected={statusGroups.includes(option.value)}
+              interactive
               onClick={() => {
-                onStatusGroupChange(option.value);
+                toggleStatusGroup(option.value);
               }}
-              title={option.title}
-              description={option.description}
-            />
+              className="px-3 py-1.5 text-xs shadow-none backdrop-blur-none"
+            >
+              <span>{option.title}</span>
+              <span className="flex h-3 w-3 items-center justify-center">
+                <Icon
+                  className={`transition-opacity ${statusGroups.includes(option.value) ? 'opacity-100' : 'opacity-0'}`}
+                  name="check"
+                  size="xs"
+                />
+              </span>
+            </Badge>
           ))}
         </div>
       </PanelSection>

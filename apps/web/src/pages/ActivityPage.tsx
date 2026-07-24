@@ -30,12 +30,12 @@ export function ActivityPage() {
           extraFiltersContent={
             <ActivityStatusFilter
               audience={feed.audience}
-              statusGroup={feed.statusGroup}
+              statusGroups={feed.statusGroups}
               onAudienceChange={(audience) => {
                 feed.reloadActivityWith({ audience });
               }}
-              onStatusGroupChange={(statusGroup) => {
-                feed.reloadActivityWith({ statusGroup });
+              onStatusGroupsChange={(statusGroups) => {
+                feed.reloadActivityWith({ statusGroups });
               }}
             />
           }
