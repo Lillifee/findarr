@@ -1,5 +1,4 @@
 import type { User } from '@findarr/shared/auth';
-import { COMMUNITY_VOTE_THRESHOLD } from '@findarr/shared/constants';
 import type { DbMedia } from '@findarr/shared/db';
 import type { CreateMediaInteraction, InteractionsQuery } from '@findarr/shared/interaction';
 import type { MediaDetails, UserInteractionsResponse } from '@findarr/shared/media';
@@ -16,6 +15,7 @@ import {
 } from '../media/repository.js';
 import type { MediaService } from '../media/service.js';
 import { updatePreferencesForInteraction } from '../preferences/service.js';
+import type { AdministrationService } from '../settings/administration';
 import type { TMDBService } from '../tmdb/service.js';
 import type { UserService } from '../user/service.js';
 import type { AppLogger } from '../utils/logger.js';
@@ -35,6 +35,7 @@ export interface InteractionContext {
   catalog: CatalogService;
   user: UserService;
   media: MediaService;
+  administration: AdministrationService;
   appLog: AppLogger;
 }
 
@@ -43,7 +44,17 @@ export interface InteractionContext {
  * activity lists. Mandatory services are injected once via the context.
  */
 export function createInteractionService(context: InteractionContext) {
-  const { db, tmdb, radarr, sonarr, catalog, user: userService, media, appLog } = context;
+  const {
+    db,
+    tmdb,
+    radarr,
+    sonarr,
+    catalog,
+    user: userService,
+    media,
+    administration,
+    appLog,
+  } = context;
   const log = appLog.scope('interaction');
 
   /**
@@ -100,6 +111,7 @@ export function createInteractionService(context: InteractionContext) {
       return undefined;
     }
 
+    const { voteThreshold } = await administration.getSettings();
     const { language } = await userService.getSettings(user.id);
     const timer = log.timer('createInteraction', { action: data.action });
 
@@ -132,6 +144,7 @@ export function createInteractionService(context: InteractionContext) {
 
     // Calculate votes and check if auto-request threshold is met
     const { likes } = await getVoteCounts(db, mediaRow.id);
+
     const isAdmin = user.role === 'admin';
     timer.lap('persistVote');
 
@@ -150,7 +163,7 @@ export function createInteractionService(context: InteractionContext) {
     // re-request it — but a TV season update still needs to reach Sonarr.
     const shouldRequest =
       data.action === 'liked' &&
-      (likes >= COMMUNITY_VOTE_THRESHOLD || (isAdmin && likes >= 1)) &&
+      (likes >= voteThreshold || (isAdmin && likes >= 1)) &&
       (mediaRow.status !== 'available' || isSeasonUpdate);
 
     if (shouldRequest) {

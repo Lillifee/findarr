@@ -7,6 +7,7 @@ import { hasInteraction, getVoteCounts } from '../interaction/repository.js';
 import { createInteractionService, type InteractionService } from '../interaction/service.js';
 import { createMedia, getMediaByTmdbId, updateMediaStatus } from '../media/repository.js';
 import { createMediaService } from '../media/service.js';
+import { createAdministrationService } from '../settings/administration';
 import type { TMDBService } from '../tmdb/service.js';
 import { createUserService } from '../user/service.js';
 import {
@@ -45,6 +46,7 @@ const createInteraction = async (
 ) => {
   const userService = createUserService({ db });
   const mediaService = createMediaService({ db, tmdb, user: userService });
+  const administrationService = createAdministrationService(db);
   const appLogService = createMockAppLogger();
 
   return createInteractionService({
@@ -55,6 +57,7 @@ const createInteraction = async (
     catalog,
     user: userService,
     media: mediaService,
+    administration: administrationService,
     appLog: appLogService,
   }).createInteraction(...args);
 };
@@ -62,6 +65,7 @@ const createInteraction = async (
 const buildService = (tmdbService: TMDBService, db: Database): InteractionService => {
   const userService = createUserService({ db });
   const mediaService = createMediaService({ db, tmdb: tmdbService, user: userService });
+  const administrationService = createAdministrationService(db);
   const appLogService = createMockAppLogger();
 
   return createInteractionService({
@@ -72,6 +76,7 @@ const buildService = (tmdbService: TMDBService, db: Database): InteractionServic
     catalog: catalogService,
     user: userService,
     media: mediaService,
+    administration: administrationService,
     appLog: appLogService,
   });
 };
@@ -131,7 +136,7 @@ describe('interaction service - integration tests', () => {
       expectDefined(media);
       expect(media.tmdbId).toBe(123);
       expect(media.type).toBe('movie');
-      expect(media.status).toBe('voting');
+      expect(media.status).toBe('requested');
 
       // Verify interaction was created
       expect(await hasInteraction(db, user.id, media.id, 'liked')).toBe(true);

@@ -11,7 +11,7 @@ declare module 'fastify' {
 }
 
 const interactionPlugin = (fastify: FastifyInstance) => {
-  // Create interaction service using existing db, tmdb, arr, and catalog services
+  // Create interaction service using existing services
   const interactionService = createInteractionService(fastify);
 
   fastify.decorate('interaction', interactionService);
@@ -20,5 +20,5 @@ const interactionPlugin = (fastify: FastifyInstance) => {
 
 export default fp(interactionPlugin, {
   name: 'interaction',
-  dependencies: ['database', 'tmdb', 'arr', 'catalog', 'user', 'media'],
+  dependencies: ['database', 'tmdb', 'arr', 'catalog', 'user', 'media', 'administration'],
 });

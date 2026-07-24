@@ -6,6 +6,7 @@ import type { UserSettingsForm } from '../../hooks/useUserSettings';
 import { Button } from '../ui/Button';
 import { SelectInput } from '../ui/SelectInput';
 import { LoadingState } from '../ui/StateDisplay';
+import { RangeSetting } from './RangeSetting';
 import { RegionSelector } from './RegionSelector';
 
 const CONTENT_LANGUAGE_OPTIONS = [
@@ -82,29 +83,17 @@ export function ContentPreferencesForm({ settings }: ContentPreferencesFormProps
         disabled={false}
       />
 
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <label htmlFor="swipe-limit" className="text-sm font-medium text-gray-200">
-            {t('settings.votingRange')}
-          </label>
-          <span className="text-sm font-semibold text-amber-500">
-            {settings.swipeLimit} {t('settings.items')}
-          </span>
-        </div>
-        <input
-          id="swipe-limit"
-          type="range"
-          min={60}
-          max={240}
-          step={20}
-          value={settings.swipeLimit}
-          onChange={(event) => {
-            settings.setSwipeLimit(Number(event.target.value));
-          }}
-          className="range-input w-full"
-        />
-        <p className="text-xs text-gray-500">{t('settings.votingRangeDescription')}</p>
-      </div>
+      <RangeSetting
+        id="swipe-limit"
+        label={t('settings.votingRange')}
+        value={settings.swipeLimit}
+        min={60}
+        max={240}
+        step={20}
+        onChange={settings.setSwipeLimit}
+        description={t('settings.votingRangeDescription')}
+        suffix={` ${t('settings.items')}`}
+      />
 
       {isDefined(settings.error) && <p className="text-sm text-red-400">{settings.error}</p>}
 

@@ -17,9 +17,9 @@ const MediaDetailPage = lazyPage(async () => import('./pages/MediaDetailPage'), 
 const ActivityPage = lazyPage(async () => import('./pages/ActivityPage'), 'ActivityPage');
 const SettingsPage = lazyPage(async () => import('./pages/SettingsPage'), 'SettingsPage');
 const UsersPage = lazyPage(async () => import('./pages/UserPage'), 'UsersPage');
-const IntegrationsPage = lazyPage(
-  async () => import('./pages/IntegrationsPage'),
-  'IntegrationsPage',
+const AdministrationPage = lazyPage(
+  async () => import('./pages/AdministrationPage'),
+  'AdministrationPage',
 );
 const SchedulersPage = lazyPage(async () => import('./pages/SchedulersPage'), 'SchedulersPage');
 const LogsPage = lazyPage(async () => import('./pages/LogsPage'), 'LogsPage');
@@ -42,7 +42,7 @@ export function AppRoutes({ isAdmin }: AppRoutesProps) {
         {isAdmin && (
           <>
             <Route path="/admin/users" element={<UsersPage />} />
-            <Route path="/admin/integrations" element={<IntegrationsPage />} />
+            <Route path="/admin/administration" element={<AdministrationPage />} />
             <Route path="/admin/schedulers" element={<SchedulersPage />} />
             <Route path="/admin/logs" element={<LogsPage />} />
           </>

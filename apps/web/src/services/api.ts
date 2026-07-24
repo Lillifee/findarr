@@ -21,6 +21,8 @@ import type {
 } from '@findarr/shared/media';
 import type { SchedulerInfo } from '@findarr/shared/scheduler';
 import type {
+  AdministrationSettings,
+  AdministrationSettingsQuery,
   ArrSettings,
   ArrQualityProfile,
   ArrRootFolder,
@@ -125,6 +127,21 @@ export const adminUserService = {
 
   deleteUser: async (userId: number): Promise<void> => {
     await api.delete(`/admin/users/${userId}`);
+  },
+};
+
+export const adminAdministrationSettingsService = {
+  get: async (): Promise<AdministrationSettings> => {
+    const response = await api.get<AdministrationSettings>('/admin/administration/settings');
+    return response.data;
+  },
+
+  update: async (settings: AdministrationSettingsQuery): Promise<AdministrationSettings> => {
+    const response = await api.put<AdministrationSettings>(
+      '/admin/administration/settings',
+      settings,
+    );
+    return response.data;
   },
 };
 

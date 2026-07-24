@@ -25,6 +25,7 @@
     "settings": "Einstellungen",
     "users": "Benutzer",
     "integrations": "Integrationen",
+    "admin": "Administration",
     "schedulers": "Aufgaben",
     "logs": "Ereignisse",
     "more": "Mehr",
@@ -89,6 +90,15 @@
   "integrations": {
     "title": "Integrationen",
     "description": "TMDB, Jellyfin, Plex, Radarr und Sonarr für Entdeckung und automatische Medienverwaltung konfigurieren."
+  },
+  "admin": {
+    "title": "Administration",
+    "description": "Globale App-Funktionen und Service-Integrationen verwalten.",
+    "globalSettingsTitle": "Globale Einstellungen",
+    "globalSettingsDescription": "App-weite Verhaltensweisen anpassen, die Abstimmungen und zukünftige Admin-Optionen beeinflussen.",
+    "voteThreshold": "Anforderungs-Schwelle",
+    "votes": "Stimme(n)",
+    "voteThresholdDescription": "Ein Film oder eine Serie wird automatisch angefordert, sobald diese Anzahl an Upvotes erreicht ist. Admin-Votes umgehen diese Schwelle immer und lösen die Anforderung direkt aus."
   },
   "vote": {
     "tryAgain": "Erneut versuchen",

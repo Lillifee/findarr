@@ -3,6 +3,18 @@ import { z } from 'zod';
 import { regionGroupKeys } from './constants.js';
 
 // ============================================================================
+// Administration Settings Schemas
+// ============================================================================
+
+export const AdministrationSettingsSchema = z.object({
+  voteThreshold: z.number().int().min(1).max(10),
+});
+
+export const AdministrationSettingsQuerySchema = z.object({
+  voteThreshold: z.coerce.number().int().min(1).max(10),
+});
+
+// ============================================================================
 // User Settings Schemas
 // ============================================================================
 
@@ -83,6 +95,9 @@ export const LibSettingsSchema = z.object({
 
 export type UserSettingsQuery = z.infer<typeof UserSettingsQuerySchema>;
 export type UserSettings = z.infer<typeof UserSettingsSchema>;
+
+export type AdministrationSettings = z.infer<typeof AdministrationSettingsSchema>;
+export type AdministrationSettingsQuery = z.infer<typeof AdministrationSettingsQuerySchema>;
 
 export type TmdbSettingsQuery = z.infer<typeof TmdbSettingsQuerySchema>;
 export type TmdbSettings = z.infer<typeof TmdbSettingsSchema>;

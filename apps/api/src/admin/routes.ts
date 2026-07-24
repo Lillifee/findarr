@@ -1,5 +1,6 @@
 import { CreateUserSchema, DeleteUserSchema } from '@findarr/shared/auth';
 import {
+  AdministrationSettingsQuerySchema,
   ArrSettingsQuerySchema,
   LibSettingsQuerySchema,
   TmdbSettingsQuerySchema,
@@ -19,6 +20,11 @@ const adminRoutes = (fastify: FastifyInstance) => {
     protectedRoute(async (r) =>
       deleteUser(fastify.db, DeleteUserSchema.parse(r.params).id, r.user.id),
     ),
+  );
+
+  fastify.get('/administration/settings', async () => fastify.administration.getSettings());
+  fastify.put('/administration/settings', async (r) =>
+    fastify.administration.saveSettings(AdministrationSettingsQuerySchema.parse(r.body)),
   );
 
   // Generic settings + test routes for all integrations
