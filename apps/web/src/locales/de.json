@@ -126,6 +126,12 @@
     "empty": "Noch keine Aktivität",
     "emptyMessage": "Für die aktuellen Filter gibt es noch keine Ergebnisse. Wechsle das Publikum oder die Statusgruppe.",
     "queue": "Warteschlange",
+    "quickNavLabel": "Schnellfilter",
+    "quickNav": {
+      "needsAttention": "Braucht Aufmerksamkeit",
+      "voting": "Abstimmung",
+      "newlyAvailable": "Neu verfügbar"
+    },
     "audienceLabel": "Publikum",
     "statusLabel": "Statusgruppe",
     "audience": {
