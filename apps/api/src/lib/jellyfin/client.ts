@@ -14,6 +14,11 @@ export interface GetItemsParams {
   recursive?: boolean;
 }
 
+interface JellyfinUser {
+  Id: string;
+  Policy?: { IsAdministrator?: boolean };
+}
+
 function createHttpClient(baseUrl: string, apiKey: string): AxiosInstance {
   return create({
     baseURL: baseUrl,
@@ -30,12 +35,28 @@ export function createJellyfinLibClient(
   const client = createHttpClient(baseUrl, apiKey);
   const log = appLog.scope('jellyfin');
 
+  // The generic /Items endpoint (no userId) reads from a stale index that can
+  // miss recently added items. Passing an admin userId forces Jellyfin to use
+  // the up-to-date per-user item list instead.
+  let adminUserId: string | undefined;
+  const getAdminUserId = async (): Promise<string | undefined> => {
+    if (isDefined(adminUserId)) {
+      return adminUserId;
+    }
+    const response = await client.get<JellyfinUser[]>('/Users');
+    const admin = response.data.find((user) => Boolean(user.Policy?.IsAdministrator));
+    adminUserId = admin?.Id;
+    return adminUserId;
+  };
+
   const getItems = async (params: GetItemsParams) => {
     const { itemTypes, parentId, startIndex = 0, limit = 100, recursive = true } = params;
+    const userId = await getAdminUserId();
     const response = await client.get('/Items', {
       params: {
-        IncludeItemTypes: itemTypes.join(','),
+        ...(isDefined(userId) && { UserId: userId }),
         ...(isDefined(parentId) && { ParentId: parentId }),
+        IncludeItemTypes: itemTypes.join(','),
         StartIndex: startIndex,
         Limit: limit,
         Recursive: recursive,
