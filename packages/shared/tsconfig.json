@@ -21,7 +21,9 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "skipLibCheck": true,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+
+    "types": ["vitest/globals"]
   },
   "include": ["src"]
 }

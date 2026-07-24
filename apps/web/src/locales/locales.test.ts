@@ -1,5 +1,3 @@
-import { describe, it, expect } from 'vite-plus/test';
-
 import de from './de.json';
 import en from './en.json';
 

@@ -1,6 +1,6 @@
 import type { CreateMediaInteraction } from '@findarr/shared/interaction';
 import type SqlDatabase from 'better-sqlite3';
-import { describe, it, expect, beforeEach, vi, afterEach, type Mocked } from 'vite-plus/test';
+import type { Mocked } from 'vite-plus/test';
 
 import { createDatabase, type Database } from '../db/service.js';
 import { hasInteraction, getVoteCounts } from '../interaction/repository.js';

@@ -22,10 +22,11 @@
     "docker:run": "docker compose up"
   },
   "devDependencies": {
+    "@types/node": "catalog:",
     "del-cli": "^7.0.0",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:"
   },
-  "packageManager": "pnpm@11.12.0"
+  "packageManager": "pnpm@11.16.0"
 }
