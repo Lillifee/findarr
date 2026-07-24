@@ -131,7 +131,7 @@ describe('interaction service - integration tests', () => {
       expectDefined(media);
       expect(media.tmdbId).toBe(123);
       expect(media.type).toBe('movie');
-      expect(media.status).toBe('voted');
+      expect(media.status).toBe('voting');
 
       // Verify interaction was created
       expect(await hasInteraction(db, user.id, media.id, 'liked')).toBe(true);

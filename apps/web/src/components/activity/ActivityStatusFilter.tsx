@@ -39,9 +39,9 @@ export function ActivityStatusFilter({
       description: t('activity.status.allDesc'),
     },
     {
-      value: 'voted' as const,
-      title: t('activity.status.voted'),
-      description: t('activity.status.votedDesc'),
+      value: 'voting' as const,
+      title: t('activity.status.voting'),
+      description: t('activity.status.votingDesc'),
     },
     {
       value: 'requested' as const,

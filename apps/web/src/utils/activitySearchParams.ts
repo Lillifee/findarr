@@ -26,7 +26,7 @@ const isAudience = (value: string): value is ActivityAudience =>
 
 const isStatusGroup = (value: string): value is ActivityStatusGroup =>
   value === 'all' ||
-  value === 'voted' ||
+  value === 'voting' ||
   value === 'requested' ||
   value === 'available' ||
   value === 'attention';
