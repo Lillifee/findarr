@@ -140,9 +140,9 @@ export function createInteractionService(context: InteractionContext) {
     const details = await tmdb.details({ id: data.tmdbId, type: data.mediaType, language });
     timer.lap('details');
 
-    // Advance media status to 'voted' if the user liked it (even if below threshold)
+    // Advance media status to 'voting' if the user liked it (even if below threshold)
     if (data.action === 'liked') {
-      await advanceMediaStatus(db, mediaRow, 'voted');
+      await advanceMediaStatus(db, mediaRow, 'voting');
     }
 
     // Request media. Skip if it's already available in the library (e.g. still on

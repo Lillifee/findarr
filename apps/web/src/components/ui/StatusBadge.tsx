@@ -62,11 +62,11 @@ const statusConfig: Record<StatusType, StatusConfig | undefined> = {
     labelKey: 'status.requested',
     icon: <Icon filled name="notifications" size="sm" weight={600} />,
   },
-  voted: {
+  voting: {
     bg: 'bg-zinc-600/90',
     border: 'border-zinc-300/25',
     text: 'text-white',
-    labelKey: 'status.voted',
+    labelKey: 'status.voting',
     icon: <Icon filled name="how_to_vote" size="sm" weight={600} />,
   },
   warning: {

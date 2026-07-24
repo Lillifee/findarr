@@ -170,6 +170,7 @@ export function FiltersToolbar({
     Boolean(interactionFilterSection) ||
     Boolean(extraFiltersContent) ||
     Boolean(genreFilterSection);
+
   const showFilterTrigger = showFiltersButton && hasFilterContent;
 
   useEffect(() => {
