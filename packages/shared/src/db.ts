@@ -65,16 +65,7 @@ export const media = sqliteTable(
     libUrl: text('libUrl'),
     libAddedAt: integer('libAddedAt').$type<number | null>(),
     status: text('status', {
-      enum: [
-        'none',
-        'voted',
-        'pending',
-        'requested',
-        'downloading',
-        'downloaded',
-        'available',
-        'warning',
-      ],
+      enum: ['none', 'voted', 'requested', 'downloading', 'downloaded', 'available', 'warning'],
     })
       .notNull()
       .default('none'),

@@ -154,9 +154,6 @@ export function createInteractionService(context: InteractionContext) {
       (mediaRow.status !== 'available' || isSeasonUpdate);
 
     if (shouldRequest) {
-      // Mark the request as in-flight before forwarding to Radarr/Sonarr
-      await advanceMediaStatus(db, mediaRow, 'pending');
-
       // Forward to Radarr/Sonarr (handles both create and update based on arrId)
       await requestMediaToArr(mediaRow, details, data.seasons);
       timer.lap('requestArr');

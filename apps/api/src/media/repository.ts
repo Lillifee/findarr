@@ -100,7 +100,6 @@ export const updateMediaStatus = async (
 // Community-voting + arr lifecycle order.
 const STATUS_ORDER: MediaStatus[] = [
   'none',
-  'pending',
   'voted',
   'requested',
   'downloading',
@@ -111,7 +110,7 @@ const STATUS_ORDER: MediaStatus[] = [
 
 /**
  * Advance a media record's status forward along the community-voting/arr lifecycle
- * ('none' -> 'voted' -> 'pending' -> 'requested' -> ...)
+ * ('none' -> 'voted' -> 'requested' -> ...)
  */
 export const advanceMediaStatus = async (
   db: Database,
