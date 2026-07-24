@@ -1,5 +1,5 @@
 import type { Media, MediaStatus, SearchType } from '@findarr/shared/media';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { interactionService } from '../services/api';
@@ -20,7 +20,7 @@ interface ActivityPageState {
   activityPage: number;
   activityResults: Media[];
   selectedType: SearchType;
-  statusGroup: StatusGroupFilter;
+  statusGroups: StatusGroupFilter[];
   scrollY: number;
   hasMore: boolean;
 }
@@ -40,6 +40,15 @@ const keyOf = (item: Media) => `${item.type}_${item.tmdbId}`;
 
 const ACTIVITY_PAGE_SIZE = 20;
 
+const ALL_ACTIVITY_STATUSES: MediaStatus[] = [
+  'voting',
+  'requested',
+  'downloading',
+  'downloaded',
+  'available',
+  'warning',
+];
+
 function mergeUniqueResults(existing: Media[], incoming: Media[]) {
   const seen = new Set(existing.map((item) => keyOf(item)));
   const merged = [...existing];
@@ -58,14 +67,14 @@ export interface ActivityFeed {
   activityResults: Media[];
   audience: AudienceFilter;
   selectedType: SearchType;
-  statusGroup: StatusGroupFilter;
+  statusGroups: StatusGroupFilter[];
   loadingActivity: boolean;
   loadingMore: boolean;
   currentPage: number;
   hasMore: boolean;
   reloadActivityWith: (next: {
     audience?: AudienceFilter;
-    statusGroup?: StatusGroupFilter;
+    statusGroups?: StatusGroupFilter[];
     type?: SearchType;
   }) => void;
   loadMore: () => void;
@@ -78,13 +87,17 @@ export function useActivityFeed(): ActivityFeed {
   const [searchParams, setSearchParams] = useSearchParams();
   const {
     audience,
-    statusGroup,
+    statusGroups,
     type: selectedType,
-  } = readActivitySearchParams(searchParams, {
-    audience: 'mine',
-    statusGroup: 'all',
-    type: 'both',
-  });
+  } = useMemo(
+    () =>
+      readActivitySearchParams(searchParams, {
+        audience: 'mine',
+        statusGroups: [],
+        type: 'both',
+      }),
+    [searchParams],
+  );
   const { restoredState, persistState } = useHistoryRestoreState<ActivityPageState>();
 
   const [activityState, setActivityState] = useState<ActivityState>({
@@ -156,18 +169,19 @@ export function useActivityFeed(): ActivityFeed {
       activityPage: currentPage,
       activityResults,
       selectedType,
-      statusGroup,
+      statusGroups,
       hasMore,
       scrollY: window.scrollY,
     });
-  }, [activityResults, audience, currentPage, hasMore, persistState, selectedType, statusGroup]);
+  }, [activityResults, audience, currentPage, hasMore, persistState, selectedType, statusGroups]);
 
   const matchesCurrentFilters = useCallback(
-    (state: Pick<ActivityPageState, 'audience' | 'selectedType' | 'statusGroup'>) =>
+    (state: Pick<ActivityPageState, 'audience' | 'selectedType' | 'statusGroups'>) =>
       state.audience === audience &&
       state.selectedType === selectedType &&
-      state.statusGroup === statusGroup,
-    [audience, selectedType, statusGroup],
+      state.statusGroups.length === statusGroups.length &&
+      state.statusGroups.every((group, index) => group === statusGroups[index]),
+    [audience, selectedType, statusGroups],
   );
 
   useEffect(() => {
@@ -183,7 +197,10 @@ export function useActivityFeed(): ActivityFeed {
       return;
     }
 
-    const statusList = [...activityStatusGroups[statusGroup]];
+    const statusList =
+      statusGroups.length > 0
+        ? statusGroups.flatMap((group) => activityStatusGroups[group])
+        : ALL_ACTIVITY_STATUSES;
 
     void loadActivity({
       append: false,
@@ -199,28 +216,35 @@ export function useActivityFeed(): ActivityFeed {
     restoredState,
     user?.id,
     selectedType,
-    statusGroup,
+    statusGroups,
   ]);
 
   const reloadActivityWith = useCallback(
-    (next: { audience?: AudienceFilter; statusGroup?: StatusGroupFilter; type?: SearchType }) => {
+    (next: {
+      audience?: AudienceFilter;
+      statusGroups?: StatusGroupFilter[];
+      type?: SearchType;
+    }) => {
       const nextAudience = next.audience ?? audience;
-      const nextStatusGroup = next.statusGroup ?? statusGroup;
+      const nextStatusGroups = next.statusGroups ?? statusGroups;
       const nextType = next.type ?? selectedType;
 
       setSearchParams(
         buildActivitySearchParams({
           audience: nextAudience,
-          statusGroup: nextStatusGroup,
+          statusGroups: nextStatusGroups,
           type: nextType,
         }),
       );
     },
-    [audience, selectedType, setSearchParams, statusGroup],
+    [audience, selectedType, setSearchParams, statusGroups],
   );
 
   const loadMore = () => {
-    const statusList = [...activityStatusGroups[statusGroup]];
+    const statusList =
+      statusGroups.length > 0
+        ? statusGroups.flatMap((group) => activityStatusGroups[group])
+        : ALL_ACTIVITY_STATUSES;
 
     void loadActivity({
       append: true,
@@ -244,7 +268,7 @@ export function useActivityFeed(): ActivityFeed {
     activityResults,
     audience,
     selectedType,
-    statusGroup,
+    statusGroups,
     loadingActivity: loading.activity,
     loadingMore: loading.more,
     currentPage,

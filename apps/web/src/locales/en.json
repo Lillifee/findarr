@@ -135,16 +135,11 @@
       "everyoneDesc": "Show community-wide activity from all users."
     },
     "status": {
-      "all": "All statuses",
-      "allDesc": "Show every lifecycle bucket.",
       "voting": "Voting",
-      "votingDesc": "Only titles that are currently being voted on.",
       "requested": "Requested",
-      "requestedDesc": "Only titles that have already been requested.",
       "available": "Available",
-      "availableDesc": "Downloaded or already available in the library.",
-      "attention": "Attention",
-      "attentionDesc": "Downloading or warning states that need follow-up."
+      "downloading": "Downloading",
+      "warning": "Warning"
     },
     "filter": {
       "all": "All activity",

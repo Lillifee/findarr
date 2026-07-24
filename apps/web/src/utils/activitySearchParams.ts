@@ -5,19 +5,19 @@ import type { ActivityAudience, ActivityStatusGroup } from './activityFilters';
 
 interface ActivitySearchParamDefaults {
   audience?: ActivityAudience;
-  statusGroup?: ActivityStatusGroup;
+  statusGroups?: ActivityStatusGroup[];
   type?: SearchType;
 }
 
 interface ActivitySearchParamState {
   audience: ActivityAudience;
-  statusGroup: ActivityStatusGroup;
+  statusGroups: ActivityStatusGroup[];
   type: SearchType;
 }
 
 interface ActivitySearchParamInput {
   audience?: ActivityAudience;
-  statusGroup?: ActivityStatusGroup;
+  statusGroups?: ActivityStatusGroup[];
   type?: SearchType;
 }
 
@@ -25,11 +25,11 @@ const isAudience = (value: string): value is ActivityAudience =>
   value === 'mine' || value === 'everyone';
 
 const isStatusGroup = (value: string): value is ActivityStatusGroup =>
-  value === 'all' ||
   value === 'voting' ||
   value === 'requested' ||
   value === 'available' ||
-  value === 'attention';
+  value === 'downloading' ||
+  value === 'warning';
 
 const isSearchType = (value: string): value is SearchType =>
   value === 'movie' || value === 'tv' || value === 'both';
@@ -39,16 +39,17 @@ export const readActivitySearchParams = (
   defaults: ActivitySearchParamDefaults = {},
 ): ActivitySearchParamState => {
   const audience = searchParams.get('audience');
-  const statusGroup = searchParams.get('statusGroup');
+  const statusGroups = searchParams.getAll('statusGroup');
   const type = searchParams.get('type');
+  const parsedStatusGroups = statusGroups.filter((value): value is ActivityStatusGroup =>
+    isStatusGroup(value),
+  );
 
   return {
     audience:
       isDefined(audience) && isAudience(audience) ? audience : (defaults.audience ?? 'mine'),
-    statusGroup:
-      isDefined(statusGroup) && isStatusGroup(statusGroup)
-        ? statusGroup
-        : (defaults.statusGroup ?? 'all'),
+    statusGroups:
+      parsedStatusGroups.length > 0 ? parsedStatusGroups : (defaults.statusGroups ?? []),
     type: isDefined(type) && isSearchType(type) ? type : (defaults.type ?? 'both'),
   };
 };
@@ -57,7 +58,9 @@ export const buildActivitySearchParams = (next: ActivitySearchParamInput) => {
   const params = new URLSearchParams();
 
   params.set('audience', next.audience ?? 'mine');
-  params.set('statusGroup', next.statusGroup ?? 'all');
+  for (const statusGroup of next.statusGroups ?? []) {
+    params.append('statusGroup', statusGroup);
+  }
   params.set('type', next.type ?? 'both');
 
   return params;
