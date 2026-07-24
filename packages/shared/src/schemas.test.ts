@@ -1,5 +1,3 @@
-import { describe, it, expect } from 'vite-plus/test';
-
 import { LoginSchema, CreateUserSchema } from './auth.js';
 import { SearchQuerySchema, DetailsQuerySchema } from './catalog.js';
 import { ServerEnvSchema } from './env.js';

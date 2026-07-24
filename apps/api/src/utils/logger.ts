@@ -44,10 +44,10 @@ export function buildLogger(isProduction: boolean, bufferStream: Writable): Fast
 
 /**
  * Fastify's built-in request logging always logs at 'info', which is noisy for
- * production. Call this with `disableRequestLogging: true` set on the Fastify
- * instance to log completed requests ourselves at 'trace' (or 'warn' on
- * errors), so raw HTTP traffic stays separate from meaningful 'debug'-level
- * domain events (e.g. tmdb/radarr/sonarr timing).
+ * production. Register this alongside a `LogController` that disables the
+ * built-in request logs so we can emit completed requests ourselves at 'trace'
+ * (or 'warn' on errors), keeping raw HTTP traffic separate from meaningful
+ * 'debug'-level domain events (e.g. tmdb/radarr/sonarr timing).
  */
 export function registerRequestLogging(server: FastifyInstance): void {
   server.addHook('onResponse', async (request, reply) => {

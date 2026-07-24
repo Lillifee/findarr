@@ -1,5 +1,4 @@
 import type SqlDatabase from 'better-sqlite3';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 import {
   batchUpdateMediaStatuses,

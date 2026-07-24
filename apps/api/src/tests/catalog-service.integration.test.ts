@@ -1,6 +1,6 @@
 import type { Genre, MediaDetails, SearchResponse } from '@findarr/shared/media';
 import type SqlDatabase from 'better-sqlite3';
-import { describe, it, expect, vi, beforeEach, afterEach, type Mocked } from 'vite-plus/test';
+import type { Mocked } from 'vite-plus/test';
 
 import * as authUtils from '../auth/utils.js';
 import { upsertCatalogCache } from '../catalog/repository.js';

@@ -1,5 +1,4 @@
 import type SqlDatabase from 'better-sqlite3';
-import { describe, it, expect, beforeEach, afterEach } from 'vite-plus/test';
 
 import {
   upsertCatalogCache,

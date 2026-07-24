@@ -4,7 +4,6 @@ import path from 'node:path';
 
 import { isDefined } from '@findarr/shared/utils';
 import fastify, { type FastifyInstance } from 'fastify';
-import { afterEach, beforeEach, describe, expect, it } from 'vite-plus/test';
 
 import authPlugin from '../auth/plugin.js';
 import { authRoutes, protectedAuthRoutes } from '../auth/routes.js';

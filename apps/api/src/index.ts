@@ -4,7 +4,7 @@ import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import { ServerEnvSchema } from '@findarr/shared/env';
 import dotenv from 'dotenv';
-import fastify from 'fastify';
+import { LogController, fastify } from 'fastify';
 
 import { adminRoutes } from './admin/routes.js';
 import arrPlugin from './arr/plugin.js';
@@ -39,11 +39,12 @@ const env = ServerEnvSchema.parse(process.env);
 const dataPath = env.DATA_PATH;
 
 const logStore = createLogStore();
+const logController = new LogController({ disableRequestLogging: true });
 
 const server = fastify({
   // Fastify's built-in request logging always logs at 'info', which is noisy for
   // production. Log completed requests ourselves at 'debug' (or 'warn' on errors).
-  disableRequestLogging: true,
+  logController,
   loggerInstance: buildLogger(env.NODE_ENV === 'production', logStore.createStream()),
 });
 
