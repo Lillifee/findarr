@@ -84,6 +84,8 @@ export const filterByCriteria = (item: Media, filters: FilterCriteria): boolean 
 
 /**
  * Check if a media item matches interaction filter state.
+ * TODO right now, this is only used for filtering the unvoted items.
+ * Right now it's not used but it's handy to check the e.g. scoring by showing all items.
  */
 export const filterByInteraction = (
   item: Media,

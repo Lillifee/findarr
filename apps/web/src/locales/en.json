@@ -125,7 +125,6 @@
     "description": "Review your activity, switch between your items and the community feed, and narrow results by lifecycle.",
     "empty": "No activity yet",
     "emptyMessage": "No results match the current filters yet. Try switching the audience or status group.",
-    "adjustFilters": "Adjust your activity filters.",
     "queue": "Queue",
     "audienceLabel": "Audience",
     "statusLabel": "Status group",
@@ -185,21 +184,12 @@
     "searchPlaceholder": "Search movies or TV shows...",
     "clearSearch": "Clear search",
     "filters": "Filters",
-    "filtersDefaultDescription": "Adjust genres and voting status.",
     "typeAll": "All",
     "typeMovies": "Movies",
     "typeShows": "Shows",
     "genresLabel": "Genres",
     "genres": "Genres ({{count}})",
-    "clearAll": "Clear all",
-    "interactionFilter": {
-      "all": "All media",
-      "allDesc": "Mix together titles you have and have not voted on.",
-      "unvoted": "Unvoted only",
-      "unvotedDesc": "Keep the feed focused on titles you still need to rate.",
-      "voted": "Voted only",
-      "votedDesc": "Review titles you already liked or disliked."
-    }
+    "clearAll": "Clear all"
   },
   "media": {
     "noPoster": "No Poster",

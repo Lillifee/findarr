@@ -125,7 +125,6 @@
     "description": "Sieh deine Aktivität, wechsle zwischen deinen Titeln und dem Community-Feed und grenze nach Status ein.",
     "empty": "Noch keine Aktivität",
     "emptyMessage": "Für die aktuellen Filter gibt es noch keine Ergebnisse. Wechsle das Publikum oder die Statusgruppe.",
-    "adjustFilters": "Aktivitätsfilter anpassen.",
     "queue": "Warteschlange",
     "audienceLabel": "Publikum",
     "statusLabel": "Statusgruppe",
@@ -185,21 +184,12 @@
     "searchPlaceholder": "Filme oder Serien suchen...",
     "clearSearch": "Suche löschen",
     "filters": "Filter",
-    "filtersDefaultDescription": "Genre und Abstimmungsstatus anpassen.",
     "typeAll": "Alle",
     "typeMovies": "Filme",
     "typeShows": "Serien",
     "genresLabel": "Genres",
     "genres": "Genres ({{count}})",
-    "clearAll": "Alle entfernen",
-    "interactionFilter": {
-      "all": "Alle Medien",
-      "allDesc": "Bewertete und unbewertete Titel zusammen anzeigen.",
-      "unvoted": "Nur unbewertete",
-      "unvotedDesc": "Feed auf Titel fokussieren, die noch bewertet werden müssen.",
-      "voted": "Nur bewertete",
-      "votedDesc": "Bereits bewertete Titel überprüfen."
-    }
+    "clearAll": "Alle entfernen"
   },
   "media": {
     "noPoster": "Kein Poster",
