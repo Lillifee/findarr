@@ -1,4 +1,3 @@
-import type { GenreKey } from '@findarr/shared/constants';
 import type { MediaDetails, SearchType } from '@findarr/shared/media';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -12,10 +11,8 @@ export interface VoteFeed {
   isComplete: boolean;
   error: string | null;
   selectedType: SearchType;
-  selectedGenres: GenreKey[];
   fetchNextItem: () => Promise<void>;
   onTypeChange: (type: SearchType) => void;
-  onGenresChange: (genres: GenreKey[]) => void;
 }
 
 interface VoteFeedState {
@@ -42,7 +39,7 @@ const createFeedState = (next: Partial<VoteFeedState>): VoteFeedState => ({
 
 export function useVoteFeed(): VoteFeed {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { type: selectedType, genres: selectedGenres } = useMemo(
+  const { type: selectedType } = useMemo(
     () => readCatalogSearchParams(searchParams, { type: 'both' }),
     [searchParams],
   );
@@ -60,7 +57,6 @@ export function useVoteFeed(): VoteFeed {
     try {
       const response = await searchService.getNextUnvotedMedia({
         type: selectedType,
-        genres: selectedGenres,
         feedId: feedIdRef.current ?? undefined,
       });
 
@@ -75,10 +71,10 @@ export function useVoteFeed(): VoteFeed {
       console.error('Failed to fetch next item:', error_);
       setFeedState(createFeedState({ error: 'Failed to load next item. Please try again.' }));
     }
-  }, [selectedType, selectedGenres]);
+  }, [selectedType]);
 
   useEffect(() => {
-    const signature = `${selectedType}|${selectedGenres.join(',')}`;
+    const signature = selectedType;
     if (lastFetchSignatureRef.current === signature) {
       return;
     }
@@ -87,22 +83,16 @@ export function useVoteFeed(): VoteFeed {
     lastFetchSignatureRef.current = signature;
     feedIdRef.current = null;
     void fetchNextItem();
-  }, [selectedType, selectedGenres, fetchNextItem]);
+  }, [selectedType, fetchNextItem]);
 
   const onTypeChange = (type: SearchType) => {
-    setSearchParams(buildCatalogSearchParams({ type, genres: selectedGenres }));
-  };
-
-  const onGenresChange = (genres: GenreKey[]) => {
-    setSearchParams(buildCatalogSearchParams({ type: selectedType, genres }));
+    setSearchParams(buildCatalogSearchParams({ type }));
   };
 
   return {
     ...feedState,
     selectedType,
-    selectedGenres,
     fetchNextItem,
     onTypeChange,
-    onGenresChange,
   };
 }

@@ -17,17 +17,8 @@ import { asVoid } from '../utils/asyncHandlers';
 export function VotePage() {
   const { t } = useTranslation();
   const { goTo, goToSearch } = useMediaNavigation();
-  const {
-    currentMedia,
-    isLoading,
-    isComplete,
-    error,
-    selectedType,
-    selectedGenres,
-    fetchNextItem,
-    onTypeChange,
-    onGenresChange,
-  } = useVoteFeed();
+  const { currentMedia, isLoading, isComplete, error, selectedType, fetchNextItem, onTypeChange } =
+    useVoteFeed();
 
   return (
     <div className="pb-20 md:pb-8">
@@ -45,8 +36,7 @@ export function VotePage() {
             selectedType={selectedType}
             onTypeChange={onTypeChange}
             disabled={isLoading}
-            selectedGenres={selectedGenres}
-            onGenresChange={onGenresChange}
+            showGenreFilter={false}
           />
         }
       />
