@@ -5,7 +5,7 @@ import { isDefined } from '@findarr/shared/utils';
 import { eq, inArray, isNotNull, sql } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';
-import { readSettings, writeSettings } from '../settings/repository.js';
+import type { SettingsService } from '../settings/service.js';
 import { mergeAvailableSeasons } from '../utils/helper.js';
 import type { LibServiceConfig } from './config.js';
 import type { LibMedia, LibSettingsFull } from './types.js';
@@ -94,13 +94,13 @@ export async function clearRemovedLibItems(db: Database, libIds: string[]): Prom
 // ============================================================================
 
 export async function getLibSettings(
-  db: Database,
+  settings: SettingsService,
   config: LibServiceConfig,
 ): Promise<LibSettingsFull> {
   const urlKey = `${config.service}Url`;
   const credentialKey = `${config.service}ApiKey`;
   const enabledKey = `${config.service}Enabled`;
-  const v = await readSettings(db, [urlKey, credentialKey, enabledKey]);
+  const v = await settings.getAll();
   return {
     url: v[urlKey] ?? null,
     apiKey: v[credentialKey] ?? null,
@@ -110,16 +110,16 @@ export async function getLibSettings(
 }
 
 export async function setLibSettings(
-  db: Database,
+  settings: SettingsService,
   config: LibServiceConfig,
-  settings: LibSettingsQuery,
+  libSettings: LibSettingsQuery,
 ): Promise<void> {
   const urlKey = `${config.service}Url`;
   const credentialKey = `${config.service}ApiKey`;
   const enabledKey = `${config.service}Enabled`;
-  await writeSettings(db, {
-    [urlKey]: settings.url,
-    [credentialKey]: settings.apiKey,
-    [enabledKey]: settings.enabled?.toString(),
+  await settings.set({
+    [urlKey]: libSettings.url,
+    [credentialKey]: libSettings.apiKey,
+    [enabledKey]: libSettings.enabled?.toString(),
   });
 }

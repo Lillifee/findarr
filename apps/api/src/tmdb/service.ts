@@ -5,6 +5,7 @@ import { isDefined } from '@findarr/shared/utils';
 
 import type { Database } from '../db/service.js';
 import type { SchedulerService } from '../scheduler/service.js';
+import type { SettingsService } from '../settings/service.js';
 import { createLruTtlCache } from '../utils/cacheHelper.js';
 import { createClientLifecycle } from '../utils/clientLifecycleHelper.js';
 import type { AppLogger } from '../utils/logger.js';
@@ -24,6 +25,7 @@ export interface TmdbServiceContext {
   db: Database;
   appLog: AppLogger;
   scheduler: SchedulerService;
+  settings: SettingsService;
 }
 
 export interface TmdbBaseParams {
@@ -40,7 +42,10 @@ export async function createTMDBService(context: TmdbServiceContext) {
 
   const lifecycle = createClientLifecycle<TmdbSettingsFull, TMDBClient>({
     name: 'TMDB',
-    loadSettings: async () => getTmdbSettingsFull(context.db),
+    loadSettings: async () => {
+      context.appLog.warn(await context.settings.getAll());
+      return getTmdbSettingsFull(context.settings);
+    },
     createClient: (settings) =>
       isDefined(settings.tmdbAccessToken)
         ? createTMDBClient(settings.tmdbAccessToken, context.appLog)
@@ -85,7 +90,7 @@ export async function createTMDBService(context: TmdbServiceContext) {
   }
 
   async function setSettings(settings: TmdbSettingsQuery): Promise<TmdbSettings> {
-    await setTmdbSettings(context.db, settings);
+    await setTmdbSettings(context.settings, settings);
 
     await reloadService();
     return getSettings();

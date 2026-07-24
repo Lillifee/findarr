@@ -3,6 +3,7 @@ import { isDefined } from '@findarr/shared/utils';
 
 import type { Database } from '../db/service.js';
 import type { SchedulerService } from '../scheduler/service.js';
+import type { SettingsService } from '../settings/service.js';
 import { createClientLifecycle } from '../utils/clientLifecycleHelper.js';
 import { trimTrailingSlash } from '../utils/links.js';
 import type { AppLogger } from '../utils/logger.js';
@@ -17,6 +18,7 @@ export interface ArrServiceContext {
   db: Database;
   appLog: AppLogger;
   scheduler: SchedulerService;
+  settings: SettingsService;
 }
 
 export async function createArrService<T extends ArrServiceConfig>(
@@ -25,7 +27,7 @@ export async function createArrService<T extends ArrServiceConfig>(
 ) {
   const lifecycle = createClientLifecycle<ArrSettingsFull, ArrClient>({
     name: config.service,
-    loadSettings: async () => getArrSettings(context.db, config),
+    loadSettings: async () => getArrSettings(context.settings, config),
     createClient: (settings) =>
       settings.enabled && isDefined(settings.url) && isDefined(settings.apiKey)
         ? createArrClient(config, settings.url, settings.apiKey, context.appLog)
@@ -48,7 +50,7 @@ export async function createArrService<T extends ArrServiceConfig>(
   }
 
   async function setSettings(settingsQuery: ArrSettingsQuery): Promise<ArrSettings> {
-    await setArrSettings(context.db, config, settingsQuery);
+    await setArrSettings(context.settings, config, settingsQuery);
     await lifecycle.reload();
     await updateSchedulers();
     return getSettings();
