@@ -17,4 +17,7 @@ const libPlugin: FastifyPluginAsync = async (fastify) => {
   fastify.appLog.scope('lib').info('Lib plugin registered (Jellyfin + Plex)');
 };
 
-export default fp(libPlugin, { name: 'lib', dependencies: ['database', 'logger'] });
+export default fp(libPlugin, {
+  name: 'lib',
+  dependencies: ['database', 'logger', 'settings'],
+});

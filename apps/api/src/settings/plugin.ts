@@ -1,20 +1,20 @@
 import type { FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
 
-import { createAdministrationService, type AdministrationService } from './administration';
+import { createSettingsService, type SettingsService } from './service.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
-    administration: AdministrationService;
+    settings: SettingsService;
   }
 }
 
-const administrationPlugin: FastifyPluginAsync = async (fastify) => {
-  fastify.decorate('administration', createAdministrationService(fastify.db));
-  fastify.appLog.scope('administration').info('Administration settings plugin registered');
+const settingsPlugin: FastifyPluginAsync = async (fastify) => {
+  fastify.decorate('settings', createSettingsService(fastify.db));
+  fastify.appLog.scope('settings').info('App settings plugin registered');
 };
 
-export default fp(administrationPlugin, {
-  name: 'administration',
+export default fp(settingsPlugin, {
+  name: 'settings',
   dependencies: ['database', 'logger'],
 });

@@ -5,7 +5,7 @@ import { isDefined } from '@findarr/shared/utils';
 import { and, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';
-import { readSettings, writeSettings } from '../settings/repository.js';
+import type { SettingsService } from '../settings/service.js';
 import type { ArrServiceConfig, ArrServiceType } from './config.js';
 import type { ArrSettingsFull } from './types.js';
 
@@ -208,11 +208,11 @@ function createArrSettingsFieldMap(service: ArrServiceType) {
 }
 
 export async function getArrSettings(
-  db: Database,
+  settings: SettingsService,
   config: ArrServiceConfig,
 ): Promise<ArrSettingsFull> {
   const fields = createArrSettingsFieldMap(config.service);
-  const storedSettings = await readSettings(db, Object.values(fields));
+  const storedSettings = await settings.getAll();
   const qualityProfileIdValue = storedSettings[fields.qualityProfileId];
 
   return {
@@ -230,17 +230,17 @@ export async function getArrSettings(
 }
 
 export async function setArrSettings(
-  db: Database,
+  settings: SettingsService,
   config: ArrServiceConfig,
-  settings: ArrSettingsQuery,
+  arrSettings: ArrSettingsQuery,
 ): Promise<void> {
   const fields = createArrSettingsFieldMap(config.service);
 
-  await writeSettings(db, {
-    [fields.url]: settings.url,
-    [fields.apiKey]: settings.apiKey,
-    [fields.qualityProfileId]: settings.qualityProfileId?.toString(),
-    [fields.rootFolderPath]: settings.rootFolderPath,
-    [fields.enabled]: settings.enabled?.toString(),
+  await settings.set({
+    [fields.url]: arrSettings.url,
+    [fields.apiKey]: arrSettings.apiKey,
+    [fields.qualityProfileId]: arrSettings.qualityProfileId?.toString(),
+    [fields.rootFolderPath]: arrSettings.rootFolderPath,
+    [fields.enabled]: arrSettings.enabled?.toString(),
   });
 }

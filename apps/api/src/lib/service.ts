@@ -3,6 +3,7 @@ import { isDefined } from '@findarr/shared/utils';
 
 import type { Database } from '../db/service.js';
 import type { SchedulerService } from '../scheduler/service.js';
+import type { SettingsService } from '../settings/service.js';
 import { createClientLifecycle } from '../utils/clientLifecycleHelper.js';
 import { trimTrailingSlash } from '../utils/links.js';
 import type { AppLogger } from '../utils/logger.js';
@@ -24,13 +25,14 @@ export interface LibServiceContext {
   db: Database;
   appLog: AppLogger;
   scheduler: SchedulerService;
+  settings: SettingsService;
 }
 
 export async function createLibService(config: LibServiceConfig, context: LibServiceContext) {
   const log = context.appLog.scope(config.service);
   const lifecycle = createClientLifecycle<LibSettingsFull, LibClient>({
     name: config.service,
-    loadSettings: async () => getLibSettings(context.db, config),
+    loadSettings: async () => getLibSettings(context.settings, config),
     createClient: (settings): LibClient | undefined => {
       if (!settings.enabled) {
         return undefined;
@@ -58,7 +60,7 @@ export async function createLibService(config: LibServiceConfig, context: LibSer
   }
 
   async function setSettings(query: LibSettingsQuery): Promise<LibSettings> {
-    await setLibSettings(context.db, config, query);
+    await setLibSettings(context.settings, config, query);
     await lifecycle.reload();
     await updateSchedulers();
     return getSettings();

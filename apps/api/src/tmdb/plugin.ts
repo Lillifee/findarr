@@ -19,5 +19,5 @@ const tmdbPlugin: FastifyPluginAsync<TMDBPluginOptions> = async (fastify) => {
 
 export default fp(tmdbPlugin, {
   name: 'tmdb',
-  dependencies: ['database', 'logger'],
+  dependencies: ['database', 'logger', 'settings'],
 });

@@ -19,5 +19,5 @@ const arrPlugin: FastifyPluginAsync = async (fastify) => {
 
 export default fp(arrPlugin, {
   name: 'arr',
-  dependencies: ['database', 'logger'],
+  dependencies: ['database', 'logger', 'settings'],
 });

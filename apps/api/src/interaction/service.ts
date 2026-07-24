@@ -15,7 +15,7 @@ import {
 } from '../media/repository.js';
 import type { MediaService } from '../media/service.js';
 import { updatePreferencesForInteraction } from '../preferences/service.js';
-import type { AdministrationService } from '../settings/administration';
+import type { SettingsService } from '../settings/service.js';
 import type { TMDBService } from '../tmdb/service.js';
 import type { UserService } from '../user/service.js';
 import type { AppLogger } from '../utils/logger.js';
@@ -35,7 +35,7 @@ export interface InteractionContext {
   catalog: CatalogService;
   user: UserService;
   media: MediaService;
-  administration: AdministrationService;
+  settings: SettingsService;
   appLog: AppLogger;
 }
 
@@ -44,17 +44,7 @@ export interface InteractionContext {
  * activity lists. Mandatory services are injected once via the context.
  */
 export function createInteractionService(context: InteractionContext) {
-  const {
-    db,
-    tmdb,
-    radarr,
-    sonarr,
-    catalog,
-    user: userService,
-    media,
-    administration,
-    appLog,
-  } = context;
+  const { db, tmdb, radarr, sonarr, catalog, user: userService, media, settings, appLog } = context;
   const log = appLog.scope('interaction');
 
   /**
@@ -111,7 +101,7 @@ export function createInteractionService(context: InteractionContext) {
       return undefined;
     }
 
-    const { voteThreshold } = await administration.getSettings();
+    const { voteThreshold } = await settings.administration.get();
     const { language } = await userService.getSettings(user.id);
     const timer = log.timer('createInteraction', { action: data.action });
 

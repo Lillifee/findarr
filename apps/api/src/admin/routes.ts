@@ -22,9 +22,9 @@ const adminRoutes = (fastify: FastifyInstance) => {
     ),
   );
 
-  fastify.get('/administration/settings', async () => fastify.administration.getSettings());
+  fastify.get('/administration/settings', async () => fastify.settings.administration.get());
   fastify.put('/administration/settings', async (r) =>
-    fastify.administration.saveSettings(AdministrationSettingsQuerySchema.parse(r.body)),
+    fastify.settings.administration.set(AdministrationSettingsQuerySchema.parse(r.body)),
   );
 
   // Generic settings + test routes for all integrations
