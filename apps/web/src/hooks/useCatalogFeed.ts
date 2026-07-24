@@ -1,5 +1,4 @@
 import type { GenreKey } from '@findarr/shared/constants';
-import type { InteractionFilter } from '@findarr/shared/interaction';
 import type { Media, SearchType } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -18,7 +17,6 @@ interface CatalogFeedState {
 
 interface CatalogFilters {
   genres: GenreKey[];
-  interaction: InteractionFilter;
   query: string;
   type: SearchType;
 }
@@ -95,7 +93,7 @@ function useCatalogFilters() {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParamsKey = searchParams.toString();
   const urlFilters = useMemo(
-    () => readCatalogSearchParams(new URLSearchParams(searchParamsKey), { interaction: 'unvoted' }),
+    () => readCatalogSearchParams(new URLSearchParams(searchParamsKey)),
     [searchParamsKey],
   );
 
@@ -103,7 +101,6 @@ function useCatalogFilters() {
     () => ({
       type: urlFilters.type,
       genres: urlFilters.genres,
-      interaction: urlFilters.interaction ?? 'unvoted',
       query: urlFilters.q,
     }),
     [urlFilters],
@@ -117,7 +114,6 @@ function useCatalogFilters() {
         buildCatalogSearchParams({
           type: merged.type,
           genres: merged.genres,
-          interaction: merged.interaction,
           q: merged.query || undefined,
         }),
       );
@@ -131,18 +127,13 @@ function useCatalogFilters() {
 function matchesVisibleFilters(state: CatalogPageState, filters: CatalogFilters) {
   return (
     state.type === filters.type &&
-    state.interaction === filters.interaction &&
     state.query === filters.query &&
     areGenresEqual(state.genres, filters.genres)
   );
 }
 
 function matchesPopularFilters(state: CatalogPageState, filters: CatalogFilters) {
-  return (
-    state.type === filters.type &&
-    state.interaction === filters.interaction &&
-    areGenresEqual(state.genres, filters.genres)
-  );
+  return state.type === filters.type && areGenresEqual(state.genres, filters.genres);
 }
 
 export interface CatalogFeed {
@@ -155,10 +146,8 @@ export interface CatalogFeed {
   currentSearchType: SearchType;
   currentQuery: string;
   selectedGenres: GenreKey[];
-  interactionFilter: InteractionFilter;
   onTypeChange: (type: SearchType) => void;
   onGenresChange: (genres: GenreKey[]) => void;
-  onInteractionFilterChange: (value: InteractionFilter) => void;
   onSearch: (query: string) => void;
   onClearSearch: () => void;
   loadMore: () => void;
@@ -252,7 +241,6 @@ export function useCatalogFeed(): CatalogFeed {
         const response = await searchService.getPopularMedia({
           type: requestedFilters.type,
           genres: requestedFilters.genres,
-          interaction: requestedFilters.interaction,
           page,
           feedId: currentFeedId,
         });
@@ -326,10 +314,6 @@ export function useCatalogFeed(): CatalogFeed {
     updateFilters({ genres });
   };
 
-  const onInteractionFilterChange = (interaction: InteractionFilter) => {
-    updateFilters({ interaction });
-  };
-
   const onSearch = (query: string) => {
     updateFilters({ query });
   };
@@ -362,7 +346,7 @@ export function useCatalogFeed(): CatalogFeed {
 
   const updateItem = (updatedItem: Media) => {
     const currentFeed = feedRef.current;
-    const shouldRemoveFromFeed = !isSearchMode && filters.interaction !== 'all';
+    const shouldRemoveFromFeed = !isSearchMode;
     const nextFeed = {
       ...currentFeed,
       results: shouldRemoveFromFeed
@@ -392,10 +376,8 @@ export function useCatalogFeed(): CatalogFeed {
     currentSearchType: filters.type,
     currentQuery: filters.query,
     selectedGenres: filters.genres,
-    interactionFilter: filters.interaction,
     onTypeChange,
     onGenresChange,
-    onInteractionFilterChange,
     onSearch,
     onClearSearch,
     loadMore,

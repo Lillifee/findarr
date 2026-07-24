@@ -27,7 +27,6 @@ export function ActivityPage() {
           onTypeChange={(type) => {
             feed.reloadActivityWith({ type });
           }}
-          filterDescription={t('activity.adjustFilters')}
           extraFiltersContent={
             <ActivityStatusFilter
               audience={feed.audience}

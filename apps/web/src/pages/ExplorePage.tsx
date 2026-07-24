@@ -38,9 +38,6 @@ export function ExplorePage() {
             disabled={feed.loading}
             selectedGenres={feed.selectedGenres}
             onGenresChange={feed.onGenresChange}
-            showInteractionFilter={!feed.isSearchMode}
-            interactionFilter={feed.interactionFilter}
-            onInteractionFilterChange={feed.onInteractionFilterChange}
             showFiltersButton={!feed.isSearchMode}
           />
         }
