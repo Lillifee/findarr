@@ -6,6 +6,10 @@ export default defineConfig({
     sortImports: true,
     sortTailwindcss: true,
   },
+  test: {
+    globals: true,
+    include: ['**/src/**/*.test.ts'],
+  },
   lint: {
     jsPlugins: [{ name: 'vite-plus', specifier: 'vite-plus/oxlint-plugin' }],
     plugins: [

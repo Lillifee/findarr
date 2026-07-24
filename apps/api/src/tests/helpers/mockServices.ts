@@ -1,4 +1,6 @@
-import { vi, type Mocked } from 'vite-plus/test';
+/* oxlint-disable typescript/no-unsafe-type-assertion, vitest/no-importing-vitest-globals */
+import type { Mocked } from 'vite-plus/test';
+import { vi } from 'vitest';
 
 import { arrConfig, type ArrServiceConfig } from '../../arr/config.js';
 import type { ArrService } from '../../arr/service.js';
@@ -66,7 +68,6 @@ export function createMockArrService<T extends ArrServiceConfig>(
 
   // The generic `config: T` cannot be statically verified against the mapped
   // `Mocked<ArrService<T>>` type, so assert the fully-populated shape here.
-  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
   return service as Mocked<ArrService<T>>;
 }
 
@@ -103,17 +104,19 @@ export function createMockCatalogService(
       totalPages: 0,
       feedId: '00000000-0000-0000-0000-000000000000',
     }),
-    getMediaDetails: vi.fn<CatalogService['getMediaDetails']>().mockImplementation(async (params) =>
-      params.type === 'movie'
-        ? createTestMovieDetail({
-            tmdbId: params.id,
-            state: { record: createDefaultMediaRecord() },
-          })
-        : createTestTVDetail({
-            tmdbId: params.id,
-            state: { record: createDefaultMediaRecord() },
-          }),
-    ),
+    getMediaDetails: vi
+      .fn<CatalogService['getMediaDetails']>()
+      .mockImplementation(async (params) =>
+        params.type === 'movie'
+          ? createTestMovieDetail({
+              tmdbId: params.id,
+              state: { record: createDefaultMediaRecord() },
+            })
+          : createTestTVDetail({
+              tmdbId: params.id,
+              state: { record: createDefaultMediaRecord() },
+            }),
+      ),
     listGenres: vi.fn<CatalogService['listGenres']>().mockResolvedValue([]),
     getAvailableMedia: vi
       .fn<CatalogService['getAvailableMedia']>()
@@ -189,7 +192,6 @@ export function createMockAppLogger(overrides: Partial<Mocked<AppLogger>> = {}):
 
   // The logger shape mixes generics and a self-referential `scope`, which a mock
   // cannot express exactly, so assert the fully-populated shape here.
-  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
   const appLogger = logger as unknown as Mocked<AppLogger>;
 
   // A scoped logger returns another logger of the same shape.
