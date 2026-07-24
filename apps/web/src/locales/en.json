@@ -24,7 +24,8 @@
     "activity": "Activity",
     "settings": "Settings",
     "users": "Users",
-    "integrations": "Integrations",
+    "integrations": "Administration",
+    "admin": "Administration",
     "schedulers": "Schedulers",
     "logs": "Logs",
     "more": "More",
@@ -89,6 +90,15 @@
   "integrations": {
     "title": "Integrations",
     "description": "Configure TMDB, Jellyfin, Plex, Radarr, and Sonarr for discovery and automatic media management."
+  },
+  "admin": {
+    "title": "Administration",
+    "description": "Manage global app behavior and service integrations.",
+    "globalSettingsTitle": "Global settings",
+    "globalSettingsDescription": "Tune application-wide behavior that affects voting and future admin controls.",
+    "voteThreshold": "Community request threshold",
+    "votes": "vote(s)",
+    "voteThresholdDescription": "A movie or show is requested automatically once it reaches this many upvotes. Admin votes always request immediately and override this threshold."
   },
   "vote": {
     "tryAgain": "Try Again",

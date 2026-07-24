@@ -119,14 +119,14 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
 
                 {isAdmin && (
                   <>
+                    <NavLink to="/admin/administration" className={navLinkClass}>
+                      <Icon name="link" />
+                      <span className="text-sm font-medium">{t('nav.admin')}</span>
+                    </NavLink>
+
                     <NavLink to="/admin/users" className={navLinkClass}>
                       <Icon name="group" />
                       <span className="text-sm font-medium">{t('nav.users')}</span>
-                    </NavLink>
-
-                    <NavLink to="/admin/integrations" className={navLinkClass}>
-                      <Icon name="link" />
-                      <span className="text-sm font-medium">{t('nav.integrations')}</span>
                     </NavLink>
 
                     <NavLink to="/admin/schedulers" className={navLinkClass}>
@@ -241,6 +241,17 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
               {isAdmin && (
                 <>
                   <NavLink
+                    to="/admin/administration"
+                    onClick={() => {
+                      setMobileAdvancedOpen(false);
+                    }}
+                    className={navLinkClass}
+                  >
+                    <Icon name="link" />
+                    <span className="font-medium">{t('nav.admin')}</span>
+                  </NavLink>
+
+                  <NavLink
                     to="/admin/users"
                     onClick={() => {
                       setMobileAdvancedOpen(false);
@@ -249,17 +260,6 @@ export const Navigation: React.FC<NavigationProps> = ({ onLogout, user, isAdmin 
                   >
                     <Icon name="group" />
                     <span className="font-medium">{t('nav.users')}</span>
-                  </NavLink>
-
-                  <NavLink
-                    to="/admin/integrations"
-                    onClick={() => {
-                      setMobileAdvancedOpen(false);
-                    }}
-                    className={navLinkClass}
-                  >
-                    <Icon name="link" />
-                    <span className="font-medium">{t('nav.integrations')}</span>
                   </NavLink>
 
                   <NavLink

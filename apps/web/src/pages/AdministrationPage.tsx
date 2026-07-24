@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ArrSection } from '../components/integrations/ArrSection';
-import { LibSection } from '../components/integrations/LibSection';
-import { TmdbSection } from '../components/integrations/TmdbSection';
+import { ArrSection } from '../components/administration/ArrSection';
+import { CommunityVoteThresholdSection } from '../components/administration/CommunityVoteThresholdSection';
+import { LibSection } from '../components/administration/LibSection';
+import { TmdbSection } from '../components/administration/TmdbSection';
 import { PageContainer } from '../components/ui/PageContainer';
 import { PageHeader } from '../components/ui/PageHeader';
 import { createLibServiceApi } from '../services/api';
 
-export function IntegrationsPage() {
+export function AdministrationPage() {
   const { t } = useTranslation();
   const [activeLib, setActiveLib] = useState<'jellyfin' | 'plex' | null>(null);
 
@@ -21,8 +22,9 @@ export function IntegrationsPage() {
   return (
     <PageContainer>
       <div className="space-y-5">
-        <PageHeader title={t('integrations.title')} description={t('integrations.description')} />
+        <PageHeader title={t('admin.title')} description={t('admin.description')} />
         <div className="space-y-4">
+          <CommunityVoteThresholdSection />
           <TmdbSection />
           <LibSection
             service="jellyfin"

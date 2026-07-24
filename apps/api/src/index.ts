@@ -22,6 +22,7 @@ import { createLogStore } from './logging/service.js';
 import mediaPlugin from './media/plugin.js';
 import schedulerPlugin from './scheduler/plugin.js';
 import { adminSchedulerRoutes, schedulerRoutes } from './scheduler/routes.js';
+import administrationPlugin from './settings/plugin.js';
 import tmdbPlugin from './tmdb/plugin.js';
 import userPlugin from './user/plugin.js';
 import { settingsRoutes } from './user/routes.js';
@@ -71,6 +72,7 @@ async function start() {
     await server.register(tmdbPlugin);
     await server.register(userPlugin);
     await server.register(mediaPlugin);
+    await server.register(administrationPlugin);
     await server.register(libPlugin);
     await server.register(arrPlugin);
     await server.register(catalogPlugin);
