@@ -151,10 +151,12 @@
       "everyoneDesc": "Show community-wide activity from all users."
     },
     "status": {
+      "none": "None",
       "voting": "Voting",
       "requested": "Requested",
       "available": "Available",
       "downloading": "Downloading",
+      "downloaded": "Downloaded",
       "warning": "Warning"
     },
     "filter": {
