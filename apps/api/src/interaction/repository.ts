@@ -162,7 +162,11 @@ export async function getMediaByActivityStatusPaginated(
     .where(whereClause)
     .groupBy(media.id)
     .orderBy(
-      sql`COALESCE(MAX(${media.libAddedAt}),MAX(${userMediaInteractions.createdAt}), MAX(${media.updatedAt}), MAX(${media.createdAt})) DESC`,
+      sql`
+        COALESCE(
+          ${media.libAddedAt},
+          MAX(${userMediaInteractions.createdAt})
+        ) DESC`,
     )
     .$dynamic();
 

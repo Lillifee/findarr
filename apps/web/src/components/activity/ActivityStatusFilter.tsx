@@ -1,6 +1,10 @@
 import { useTranslation } from 'react-i18next';
 
-import type { ActivityAudience, ActivityStatusGroup } from '../../utils/activityFilters';
+import {
+  ALL_ACTIVITY_STATUSES,
+  type ActivityAudience,
+  type ActivityStatus,
+} from '../../utils/activityFilters';
 import { Badge } from '../ui/Badge';
 import { ClearAllButton } from '../ui/ClearAllButton';
 import { Icon } from '../ui/Icon';
@@ -9,16 +13,16 @@ import { PanelSection } from '../ui/PanelSection';
 
 interface ActivityStatusFilterProps {
   audience: ActivityAudience;
-  statusGroups: ActivityStatusGroup[];
+  statuses: ActivityStatus[];
   onAudienceChange: (audience: ActivityAudience) => void;
-  onStatusGroupsChange: (statusGroups: ActivityStatusGroup[]) => void;
+  onStatusChange: (statuses: ActivityStatus[]) => void;
 }
 
 export function ActivityStatusFilter({
   audience,
-  statusGroups,
+  statuses,
   onAudienceChange,
-  onStatusGroupsChange,
+  onStatusChange,
 }: ActivityStatusFilterProps) {
   const { t } = useTranslation();
 
@@ -35,23 +39,21 @@ export function ActivityStatusFilter({
     },
   ];
 
-  const statusOptions = (
-    ['voting', 'requested', 'available', 'downloading', 'warning'] as const
-  ).map((value) => ({
+  const statusOptions = ALL_ACTIVITY_STATUSES.map((value) => ({
     value,
     title: t(`activity.status.${value}`),
   }));
 
-  const toggleStatusGroup = (value: ActivityStatusGroup) => {
-    const nextStatusGroups = statusGroups.includes(value)
-      ? statusGroups.filter((group) => group !== value)
-      : [...statusGroups, value];
+  const toggleStatusGroup = (value: ActivityStatus) => {
+    const nextStatus = statuses.includes(value)
+      ? statuses.filter((group) => group !== value)
+      : [...statuses, value];
 
-    onStatusGroupsChange(nextStatusGroups);
+    onStatusChange(nextStatus);
   };
 
-  const clearAllStatusGroups = () => {
-    onStatusGroupsChange([]);
+  const clearStatus = () => {
+    onStatusChange([]);
   };
 
   return (
@@ -79,9 +81,9 @@ export function ActivityStatusFilter({
         <div className="flex items-center justify-between gap-3">
           <label className="text-sm font-medium text-gray-300">{t('activity.statusLabel')}</label>
           <ClearAllButton
-            onClick={clearAllStatusGroups}
-            disabled={statusGroups.length === 0}
-            hidden={statusGroups.length === 0}
+            onClick={clearStatus}
+            disabled={statuses.length === 0}
+            hidden={statuses.length === 0}
           >
             {t('catalog.clearAll')}
           </ClearAllButton>
@@ -91,7 +93,7 @@ export function ActivityStatusFilter({
             <Badge
               key={option.value}
               variant="secondary"
-              selected={statusGroups.includes(option.value)}
+              selected={statuses.includes(option.value)}
               interactive
               onClick={() => {
                 toggleStatusGroup(option.value);
@@ -101,7 +103,7 @@ export function ActivityStatusFilter({
               <span>{option.title}</span>
               <span className="flex h-3 w-3 items-center justify-center">
                 <Icon
-                  className={`transition-opacity ${statusGroups.includes(option.value) ? 'opacity-100' : 'opacity-0'}`}
+                  className={`transition-opacity ${statuses.includes(option.value) ? 'opacity-100' : 'opacity-0'}`}
                   name="check"
                   size="xs"
                 />

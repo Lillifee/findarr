@@ -151,10 +151,12 @@
       "everyoneDesc": "Community-weite Aktivität aller Benutzer anzeigen."
     },
     "status": {
+      "none": "Kein Status",
       "voting": "Abstimmung",
       "requested": "Angefragt",
       "available": "Verfügbar",
       "downloading": "Wird heruntergeladen",
+      "downloaded": "Heruntergeladen",
       "warning": "Warnung"
     },
     "filter": {

@@ -21,21 +21,9 @@ export function ActivityPage() {
       id: 'mine',
       label: t('activity.audience.mine'),
       icon: 'person',
-      selected: feed.audience === 'mine' && feed.statusGroups.length === 0,
+      selected: feed.audience === 'mine' && feed.statuses.length === 0,
       onClick: () => {
-        feed.reloadActivityWith({ audience: 'mine', statusGroups: [] });
-      },
-    },
-    {
-      id: 'voting',
-      label: t('activity.quickNav.voting'),
-      icon: 'how_to_vote',
-      selected:
-        feed.audience === 'everyone' &&
-        feed.statusGroups.length === 1 &&
-        feed.statusGroups[0] === 'voting',
-      onClick: () => {
-        feed.reloadActivityWith({ audience: 'everyone', statusGroups: ['voting'] });
+        feed.reloadActivityWith({ audience: 'mine', statuses: [] });
       },
     },
     {
@@ -43,11 +31,19 @@ export function ActivityPage() {
       label: t('activity.quickNav.newlyAvailable'),
       icon: 'download',
       selected:
-        feed.audience === 'mine' &&
-        feed.statusGroups.length === 1 &&
-        feed.statusGroups[0] === 'available',
+        feed.audience === 'mine' && feed.statuses.length === 1 && feed.statuses[0] === 'available',
       onClick: () => {
-        feed.reloadActivityWith({ audience: 'mine', statusGroups: ['available'] });
+        feed.reloadActivityWith({ audience: 'mine', statuses: ['available'] });
+      },
+    },
+    {
+      id: 'voting',
+      label: t('activity.quickNav.voting'),
+      icon: 'how_to_vote',
+      selected:
+        feed.audience === 'everyone' && feed.statuses.length === 1 && feed.statuses[0] === 'voting',
+      onClick: () => {
+        feed.reloadActivityWith({ audience: 'everyone', statuses: ['voting'] });
       },
     },
     {
@@ -56,11 +52,11 @@ export function ActivityPage() {
       icon: 'warning',
       selected:
         feed.audience === 'everyone' &&
-        feed.statusGroups.includes('downloading') &&
-        feed.statusGroups.includes('warning') &&
-        feed.statusGroups.length === 2,
+        feed.statuses.includes('downloading') &&
+        feed.statuses.includes('warning') &&
+        feed.statuses.length === 2,
       onClick: () => {
-        feed.reloadActivityWith({ audience: 'everyone', statusGroups: ['downloading', 'warning'] });
+        feed.reloadActivityWith({ audience: 'everyone', statuses: ['downloading', 'warning'] });
       },
     },
   ];
@@ -80,12 +76,12 @@ export function ActivityPage() {
           extraFiltersContent={
             <ActivityStatusFilter
               audience={feed.audience}
-              statusGroups={feed.statusGroups}
+              statuses={feed.statuses}
               onAudienceChange={(audience) => {
                 feed.reloadActivityWith({ audience });
               }}
-              onStatusGroupsChange={(statusGroups) => {
-                feed.reloadActivityWith({ statusGroups });
+              onStatusChange={(statusGroups) => {
+                feed.reloadActivityWith({ statuses: statusGroups });
               }}
             />
           }
