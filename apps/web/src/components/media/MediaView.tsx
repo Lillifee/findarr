@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { getAvatarColorClass, getInitials } from '../../utils/formatting';
 import { tmdbImage, tmdbImageOrUndefined } from '../../utils/tmdb';
 import { Icon } from '../ui/Icon';
-import { StatusBadge, type StatusType } from '../ui/StatusBadge';
+import { StatusBadge } from '../ui/StatusBadge';
 import { LikeDislikeButton } from './LikeDislikeButton';
 
 interface MediaDetailsProps {
@@ -67,7 +67,7 @@ export function MediaView({ media: initialMedia, onVoteComplete }: MediaDetailsP
     .filter((voter) => voter.action === 'liked')
     .slice(0, 6);
 
-  const availabilityStatus = media.state?.record?.status as StatusType | undefined;
+  const availabilityStatus = media.state?.record?.status;
   const infoTileClass =
     'rounded-xl border border-zinc-800/80 bg-zinc-950/72 px-3 py-2.5 backdrop-blur-sm';
   const infoLabelClass = 'text-[10px] uppercase tracking-[0.14em] text-zinc-400 font-semibold';

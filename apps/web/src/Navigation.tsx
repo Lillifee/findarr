@@ -40,7 +40,7 @@ export function Navigation({ onLogout, user, isAdmin }: NavigationProps) {
   const isAdminRoute = location.pathname.startsWith('/admin');
   const versionInfo = useVersionInfo(isAdmin);
   const activityLinkTarget = hasAttention
-    ? '/activity?audience=everyone&statusGroup=downloading&statusGroup=warning&type=both'
+    ? '/activity?audience=everyone&status=downloading&status=warning&type=both'
     : '/activity';
 
   useEffect(() => {
