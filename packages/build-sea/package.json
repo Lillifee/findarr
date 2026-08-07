@@ -12,8 +12,8 @@
     "postject": "1.0.0-alpha.6"
   },
   "devDependencies": {
-    "@types/node": "^26.1.1",
-    "tsx": "^4.23.1",
+    "@types/node": "^26.1.2",
+    "tsx": "^4.23.8",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:"
