@@ -23,7 +23,7 @@ export function ActivityPage() {
       icon: 'person',
       selected: feed.audience === 'mine' && feed.statuses.length === 0,
       onClick: () => {
-        feed.reloadActivityWith({ audience: 'mine', statuses: [] });
+        feed.reloadActivityWith({ audience: 'mine', statuses: [], action: 'all' });
       },
     },
     {
@@ -46,7 +46,11 @@ export function ActivityPage() {
         feed.statuses.includes('warning') &&
         feed.statuses.length === 2,
       onClick: () => {
-        feed.reloadActivityWith({ audience: 'everyone', statuses: ['downloading', 'warning'] });
+        feed.reloadActivityWith({
+          audience: 'everyone',
+          statuses: ['downloading', 'warning'],
+          action: 'all',
+        });
       },
     },
     {
@@ -56,7 +60,7 @@ export function ActivityPage() {
       selected:
         feed.audience === 'everyone' && feed.statuses.length === 1 && feed.statuses[0] === 'voting',
       onClick: () => {
-        feed.reloadActivityWith({ audience: 'everyone', statuses: ['voting'] });
+        feed.reloadActivityWith({ audience: 'everyone', statuses: ['voting'], action: 'all' });
       },
     },
   ];

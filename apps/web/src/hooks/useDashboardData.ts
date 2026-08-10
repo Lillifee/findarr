@@ -54,6 +54,7 @@ export function useDashboardData(): DashboardData {
           page: 1,
           statuses: ['available'],
           type: 'both',
+          action: 'all',
         });
         if (requestId !== requestIdRef.current) {
           return;
