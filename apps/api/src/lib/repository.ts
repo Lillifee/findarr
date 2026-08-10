@@ -89,6 +89,16 @@ export async function clearRemovedLibItems(db: Database, libIds: string[]): Prom
   return result.changes;
 }
 
+export async function hasDownloadedMedia(db: Database): Promise<boolean> {
+  const result = await db
+    .select({ id: media.id })
+    .from(media)
+    .where(eq(media.status, 'downloaded'))
+    .limit(1);
+
+  return result.length > 0;
+}
+
 // ============================================================================
 // Library Settings Operations
 // ============================================================================

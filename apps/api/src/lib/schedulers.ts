@@ -1,5 +1,5 @@
-import { getMediaByStatusPaginated } from '../media/repository.js';
 import { createScheduler, type Scheduler, type SchedulerContext } from '../scheduler/types.js';
+import { hasDownloadedMedia } from './repository.js';
 import type { LibService } from './service.js';
 import { syncLibrary } from './sync.js';
 
@@ -53,12 +53,7 @@ export function createLibraryQueueSyncScheduler(service: LibService): Scheduler 
 
       await syncLibrary(context, service);
 
-      const downloadedPage = await getMediaByStatusPaginated(context.db, ['downloaded'], {
-        offset: 0,
-        limit: 1,
-      });
-
-      if (downloadedPage.length === 0) {
+      if (!(await hasDownloadedMedia(context.db))) {
         context.appLog
           .scope(name)
           .info(

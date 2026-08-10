@@ -7,10 +7,9 @@ import type {
   User,
 } from '@findarr/shared/auth';
 import type { SearchQuery, PopularQuery, DetailsQuery, GenresQuery } from '@findarr/shared/catalog';
-import type { AvailableMediaQuery, InteractionsQuery } from '@findarr/shared/interaction';
+import type { InteractionsQuery } from '@findarr/shared/interaction';
 import type { LogLevel, LogLevelResponse, LogsResponse } from '@findarr/shared/logs';
 import type {
-  AvailableMediaResponse,
   SearchResponse,
   UserInteractionsResponse,
   PopularResponse,
@@ -66,11 +65,6 @@ export const searchService = {
 
   getNextUnvotedMedia: async (params: PopularQuery = {}): Promise<SwipeNextResponse> => {
     const response = await api.get<SwipeNextResponse>('/next', { params });
-    return response.data;
-  },
-
-  getAvailableMedia: async (params: AvailableMediaQuery = {}): Promise<AvailableMediaResponse> => {
-    const response = await api.get<AvailableMediaResponse>('/available', { params });
     return response.data;
   },
 };

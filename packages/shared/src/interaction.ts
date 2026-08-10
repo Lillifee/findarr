@@ -45,11 +45,5 @@ export const InteractionsQuerySchema = z.object({
   type: z.enum(['movie', 'tv', 'both']).default('both').optional(),
 });
 
-export const AvailableMediaQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).max(1000).default(1).optional(),
-  type: z.enum(['movie', 'tv', 'both']).default('both').optional(),
-});
-
 export type CreateMediaInteraction = z.infer<typeof CreateInteractionSchema>;
 export type InteractionsQuery = z.infer<typeof InteractionsQuerySchema>;
-export type AvailableMediaQuery = z.infer<typeof AvailableMediaQuerySchema>;
