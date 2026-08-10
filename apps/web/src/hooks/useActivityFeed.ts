@@ -8,7 +8,11 @@ import {
   type ActivityAudience,
   type ActivityStatus,
 } from '../utils/activityFilters';
-import { buildActivitySearchParams, readActivitySearchParams } from '../utils/activitySearchParams';
+import {
+  buildActivitySearchParams,
+  readActivitySearchParams,
+  type ActivityAction,
+} from '../utils/activitySearchParams';
 import { useHistoryRestoreState } from './useHistoryRestoreState';
 import { useSession } from './useSession';
 
@@ -21,6 +25,7 @@ interface ActivityPageState {
   activityResults: Media[];
   selectedType: SearchType;
   statuses: StatusFilter[];
+  action: ActivityAction;
   scrollY: number;
   hasMore: boolean;
 }
@@ -59,6 +64,7 @@ export interface ActivityFeed {
   audience: AudienceFilter;
   selectedType: SearchType;
   statuses: StatusFilter[];
+  action: ActivityAction;
   loadingActivity: boolean;
   loadingMore: boolean;
   currentPage: number;
@@ -67,6 +73,7 @@ export interface ActivityFeed {
     audience?: AudienceFilter;
     statuses?: StatusFilter[];
     type?: SearchType;
+    action?: ActivityAction;
   }) => void;
   loadMore: () => void;
   updateItem: (updatedItem: Media) => void;
@@ -79,6 +86,7 @@ export function useActivityFeed(): ActivityFeed {
   const {
     audience,
     statuses,
+    action,
     type: selectedType,
   } = useMemo(
     () =>
@@ -113,12 +121,14 @@ export function useActivityFeed(): ActivityFeed {
       type: SearchType;
       userId?: number;
       statuses: ActivityStatus[];
+      action: ActivityAction;
     }) => {
       const requestId = (activityRequestIdRef.current += 1);
       const requestParams = {
         page: options.page,
         type: options.type,
         statuses: options.statuses,
+        action: options.action,
         ...(options.userId === undefined ? {} : { userId: options.userId }),
       };
 
@@ -161,18 +171,29 @@ export function useActivityFeed(): ActivityFeed {
       activityResults,
       selectedType,
       statuses,
+      action,
       hasMore,
       scrollY: window.scrollY,
     });
-  }, [activityResults, audience, currentPage, hasMore, persistState, selectedType, statuses]);
+  }, [
+    action,
+    activityResults,
+    audience,
+    currentPage,
+    hasMore,
+    persistState,
+    selectedType,
+    statuses,
+  ]);
 
   const matchesCurrentFilters = useCallback(
-    (state: Pick<ActivityPageState, 'audience' | 'selectedType' | 'statuses'>) =>
+    (state: Pick<ActivityPageState, 'audience' | 'selectedType' | 'statuses' | 'action'>) =>
       state.audience === audience &&
       state.selectedType === selectedType &&
       state.statuses.length === statuses.length &&
-      state.statuses.every((group, index) => group === statuses[index]),
-    [audience, selectedType, statuses],
+      state.statuses.every((group, index) => group === statuses[index]) &&
+      state.action === action,
+    [action, audience, selectedType, statuses],
   );
 
   useEffect(() => {
@@ -196,6 +217,7 @@ export function useActivityFeed(): ActivityFeed {
       type: selectedType,
       ...(audience === 'mine' && user?.id !== undefined ? { userId: user.id } : {}),
       statuses: [...statusList],
+      action,
     });
   }, [
     audience,
@@ -205,23 +227,31 @@ export function useActivityFeed(): ActivityFeed {
     user?.id,
     selectedType,
     statuses,
+    action,
   ]);
 
   const reloadActivityWith = useCallback(
-    (next: { audience?: AudienceFilter; statuses?: StatusFilter[]; type?: SearchType }) => {
+    (next: {
+      audience?: AudienceFilter;
+      statuses?: StatusFilter[];
+      type?: SearchType;
+      action?: ActivityAction;
+    }) => {
       const nextAudience = next.audience ?? audience;
       const nextStatuses = next.statuses ?? statuses;
       const nextType = next.type ?? selectedType;
+      const nextAction = next.action ?? (nextAudience === 'everyone' ? 'all' : action);
 
       setSearchParams(
         buildActivitySearchParams({
           audience: nextAudience,
           statuses: nextStatuses,
           type: nextType,
+          action: nextAction,
         }),
       );
     },
-    [audience, selectedType, setSearchParams, statuses],
+    [action, audience, selectedType, setSearchParams, statuses],
   );
 
   const loadMore = () => {
@@ -233,6 +263,7 @@ export function useActivityFeed(): ActivityFeed {
       type: selectedType,
       ...(audience === 'mine' && user?.id !== undefined ? { userId: user.id } : {}),
       statuses: [...statusList],
+      action,
     });
   };
 
@@ -250,6 +281,7 @@ export function useActivityFeed(): ActivityFeed {
     audience,
     selectedType,
     statuses,
+    action,
     loadingActivity: loading.activity,
     loadingMore: loading.more,
     currentPage,

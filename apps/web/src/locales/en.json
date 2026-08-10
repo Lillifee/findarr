@@ -144,6 +144,12 @@
     },
     "audienceLabel": "Audience",
     "statusLabel": "Status group",
+    "actionLabel": "Your interaction",
+    "action": {
+      "all": "All",
+      "liked": "Liked",
+      "disliked": "Disliked"
+    },
     "audience": {
       "mine": "Mine",
       "mineDesc": "Only titles you interacted with.",
