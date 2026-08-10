@@ -5,6 +5,7 @@ import {
   type ActivityAudience,
   type ActivityStatus,
 } from '../../utils/activityFilters';
+import type { ActivityAction } from '../../utils/activitySearchParams';
 import { Badge } from '../ui/Badge';
 import { ClearAllButton } from '../ui/ClearAllButton';
 import { Icon } from '../ui/Icon';
@@ -14,15 +15,19 @@ import { PanelSection } from '../ui/PanelSection';
 interface ActivityStatusFilterProps {
   audience: ActivityAudience;
   statuses: ActivityStatus[];
+  action: ActivityAction;
   onAudienceChange: (audience: ActivityAudience) => void;
   onStatusChange: (statuses: ActivityStatus[]) => void;
+  onActionChange: (action: ActivityAction) => void;
 }
 
 export function ActivityStatusFilter({
   audience,
   statuses,
+  action,
   onAudienceChange,
   onStatusChange,
+  onActionChange,
 }: ActivityStatusFilterProps) {
   const { t } = useTranslation();
 
@@ -76,6 +81,26 @@ export function ActivityStatusFilter({
           ))}
         </div>
       </PanelSection>
+
+      {audience === 'mine' && (
+        <PanelSection>
+          <div className="mb-2.5">
+            <h4 className="text-sm font-semibold text-white">{t('activity.actionLabel')}</h4>
+          </div>
+          <div className="grid gap-2.5 md:grid-cols-3">
+            {(['all', 'liked', 'disliked'] as const).map((value) => (
+              <OptionButton
+                key={value}
+                selected={action === value}
+                onClick={() => {
+                  onActionChange(value);
+                }}
+                title={t(`activity.action.${value}`)}
+              />
+            ))}
+          </div>
+        </PanelSection>
+      )}
 
       <PanelSection>
         <div className="flex items-center justify-between gap-3">

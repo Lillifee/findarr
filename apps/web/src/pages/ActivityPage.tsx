@@ -33,17 +33,7 @@ export function ActivityPage() {
       selected:
         feed.audience === 'mine' && feed.statuses.length === 1 && feed.statuses[0] === 'available',
       onClick: () => {
-        feed.reloadActivityWith({ audience: 'mine', statuses: ['available'] });
-      },
-    },
-    {
-      id: 'voting',
-      label: t('activity.quickNav.voting'),
-      icon: 'how_to_vote',
-      selected:
-        feed.audience === 'everyone' && feed.statuses.length === 1 && feed.statuses[0] === 'voting',
-      onClick: () => {
-        feed.reloadActivityWith({ audience: 'everyone', statuses: ['voting'] });
+        feed.reloadActivityWith({ audience: 'mine', statuses: ['available'], action: 'liked' });
       },
     },
     {
@@ -57,6 +47,16 @@ export function ActivityPage() {
         feed.statuses.length === 2,
       onClick: () => {
         feed.reloadActivityWith({ audience: 'everyone', statuses: ['downloading', 'warning'] });
+      },
+    },
+    {
+      id: 'voting',
+      label: t('activity.quickNav.voting'),
+      icon: 'how_to_vote',
+      selected:
+        feed.audience === 'everyone' && feed.statuses.length === 1 && feed.statuses[0] === 'voting',
+      onClick: () => {
+        feed.reloadActivityWith({ audience: 'everyone', statuses: ['voting'] });
       },
     },
   ];
@@ -77,11 +77,15 @@ export function ActivityPage() {
             <ActivityStatusFilter
               audience={feed.audience}
               statuses={feed.statuses}
+              action={feed.action}
               onAudienceChange={(audience) => {
                 feed.reloadActivityWith({ audience });
               }}
               onStatusChange={(statusGroups) => {
                 feed.reloadActivityWith({ statuses: statusGroups });
+              }}
+              onActionChange={(action) => {
+                feed.reloadActivityWith({ action });
               }}
             />
           }
