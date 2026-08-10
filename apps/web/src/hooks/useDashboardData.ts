@@ -1,7 +1,7 @@
 import type { Media } from '@findarr/shared/media';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { searchService } from '../services/api';
+import { interactionService, searchService } from '../services/api';
 
 export interface DashboardData {
   nextMedia: Media | undefined;
@@ -50,7 +50,11 @@ export function useDashboardData(): DashboardData {
 
     const loadAvailable = async () => {
       try {
-        const result = await searchService.getAvailableMedia({ page: 1, type: 'both' });
+        const result = await interactionService.listActivity({
+          page: 1,
+          statuses: ['available'],
+          type: 'both',
+        });
         if (requestId !== requestIdRef.current) {
           return;
         }

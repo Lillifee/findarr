@@ -4,7 +4,6 @@ import {
   GenresQuerySchema,
   PopularQuerySchema,
 } from '@findarr/shared/catalog';
-import { AvailableMediaQuerySchema } from '@findarr/shared/interaction';
 import type { FastifyInstance } from 'fastify';
 
 import { protectedRoute } from '../utils/routes.js';
@@ -41,17 +40,6 @@ export const catalogRoutes = (fastify: FastifyInstance) => {
   // Genres endpoint: GET /genres?type=movie
   fastify.get('/genres', async (request) =>
     fastify.catalog.listGenres(GenresQuerySchema.parse(request.query)),
-  );
-
-  // Available overview endpoint: GET /available?type=both&limit=12
-  fastify.get(
-    '/available',
-    protectedRoute(async (request) =>
-      fastify.catalog.getAvailableMedia(
-        AvailableMediaQuerySchema.parse(request.query),
-        request.user.id,
-      ),
-    ),
   );
 
   // Next unvoted endpoint: GET /next

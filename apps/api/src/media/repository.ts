@@ -1,5 +1,5 @@
 import { media, mediaStats, type DbMedia } from '@findarr/shared/db';
-import type { Media, MediaStatus, MediaType, SearchType, MediaRecord } from '@findarr/shared/media';
+import type { Media, MediaStatus, MediaType, MediaRecord } from '@findarr/shared/media';
 import { and, eq, or, sql } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';
@@ -205,48 +205,6 @@ export async function getMediaRecordsBatch(
   }
 
   return mediaRecords;
-}
-
-export async function getMediaByStatusPaginated(
-  db: Database,
-  statuses: MediaStatus[],
-  options: {
-    limit: number;
-    offset: number;
-    type?: SearchType;
-  },
-): Promise<DbMedia[]> {
-  if (statuses.length === 0) {
-    return [];
-  }
-
-  const statusConditions = statuses.map((status) => eq(media.status, status));
-  const whereClause =
-    options.type && options.type !== 'both'
-      ? and(or(...statusConditions), eq(media.type, options.type))
-      : or(...statusConditions);
-
-  return db.query.media.findMany({
-    columns: {
-      id: true,
-      type: true,
-      tmdbId: true,
-      tvdbId: true,
-      arrId: true,
-      arrUrl: true,
-      status: true,
-      libId: true,
-      libUrl: true,
-      libAddedAt: true,
-      seasons: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-    where: whereClause,
-    orderBy: (x, { desc }) => [desc(x.libAddedAt)],
-    limit: options.limit,
-    offset: options.offset,
-  });
 }
 
 // ============================================================================

@@ -1,7 +1,5 @@
 import type { SearchQuery, PopularQuery, DetailsQuery, GenresQuery } from '@findarr/shared/catalog';
-import type { AvailableMediaQuery } from '@findarr/shared/interaction';
 import type {
-  AvailableMediaResponse,
   SearchResponse,
   PopularResponse,
   Genre,
@@ -12,7 +10,6 @@ import type {
 import type { Database } from '../db/service.js';
 import { getUserInteractionMediaKeys } from '../interaction/repository.js';
 import { filterByCriteria, filterByInteraction } from '../media/filter.js';
-import { getMediaByStatusPaginated } from '../media/repository.js';
 import type { MediaService } from '../media/service.js';
 import type { TMDBService } from '../tmdb/service.js';
 import type { UserService } from '../user/service.js';
@@ -131,29 +128,6 @@ export function createCatalogService(context: CatalogContext) {
   }
 
   /**
-   * Get a small global overview of recently available media.
-   */
-  async function getAvailableMedia(
-    params: AvailableMediaQuery,
-    userId: number,
-  ): Promise<AvailableMediaResponse> {
-    const { type = 'both', page = 1 } = params;
-    const limit = 10;
-    const offset = (page - 1) * limit;
-
-    const dbRecords = await getMediaByStatusPaginated(db, ['available'], {
-      type,
-      offset,
-      limit,
-    });
-
-    const availableMedia = await media.fetchTMDBDetails(dbRecords);
-    const results = await media.enrichWithInteractions(availableMedia, userId);
-
-    return { results, page };
-  }
-
-  /**
    * Get next unvoted media for swipe/vote feature.
    */
   async function getNextUnvotedMedia(
@@ -213,7 +187,6 @@ export function createCatalogService(context: CatalogContext) {
     listGenres,
     getPopularMedia,
     getMediaDetails,
-    getAvailableMedia,
     getNextUnvotedMedia,
   };
 }

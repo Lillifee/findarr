@@ -118,9 +118,6 @@ export function createMockCatalogService(
             }),
       ),
     listGenres: vi.fn<CatalogService['listGenres']>().mockResolvedValue([]),
-    getAvailableMedia: vi
-      .fn<CatalogService['getAvailableMedia']>()
-      .mockResolvedValue({ results: [], page: 1 }),
     getNextUnvotedMedia: vi.fn<CatalogService['getNextUnvotedMedia']>().mockResolvedValue({
       media: undefined,
       feedId: 'feed-1',

@@ -192,7 +192,6 @@ export interface PaginatedMediaResponse {
 
 export type SearchResponse = PaginatedMediaResponse;
 export type UserInteractionsResponse = PaginatedMediaResponse;
-export type AvailableMediaResponse = PaginatedMediaResponse;
 
 /**
  * Swipe/Vote response - returns next unvoted media item
