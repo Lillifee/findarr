@@ -1,3 +1,5 @@
+import type { MediaStatus } from '@findarr/shared/media';
+
 import { createScheduler, type Scheduler, type SchedulerContext } from '../scheduler/types.js';
 import type { AnyArrService } from './service.js';
 import { syncLibrary, syncQueue } from './sync.js';
@@ -89,7 +91,7 @@ export function createArrQueueMonitorScheduler(arrService: AnyArrService): Sched
  */
 export function createArrQueueFastSyncScheduler(arrService: AnyArrService): Scheduler {
   // Closure-scoped state for tracking downloads across runs
-  let previousQueueIds = new Set<number>();
+  let prevStatusMap = new Map<number, MediaStatus>();
 
   return createScheduler(
     {
@@ -105,10 +107,22 @@ export function createArrQueueFastSyncScheduler(arrService: AnyArrService): Sche
     async (context: SchedulerContext) =>
       whenReady(context, arrService, async () => {
         // Sync queue and get current state
-        const { currentQueueIds } = await syncQueue(context, arrService);
-        const completedIds = [...previousQueueIds].filter((id) => !currentQueueIds.has(id));
+        const statusMap = await syncQueue(context, arrService);
+
+        // Handle warnings
+        const warningIds = [...statusMap.entries()]
+          .filter(([id, status]) => !prevStatusMap.has(id) && status === 'warning')
+          .map(([id]) => id);
+
+        if (warningIds.length > 0) {
+          context.appLog
+            .scope(arrService.config.service)
+            .warn({ arrIds: warningIds }, 'Downloads require manual intervention');
+        }
 
         // Handle completions
+        const completedIds = [...prevStatusMap.keys()].filter((id) => !statusMap.has(id));
+
         if (completedIds.length > 0) {
           context.appLog
             .scope(arrService.config.service)
@@ -126,10 +140,10 @@ export function createArrQueueFastSyncScheduler(arrService: AnyArrService): Sche
         }
 
         // Update state for next run
-        previousQueueIds = currentQueueIds;
+        prevStatusMap = statusMap;
 
         // Self-terminate if no active downloads (service enforces minRuntime)
-        return currentQueueIds.size > 0;
+        return statusMap.size > 0;
       }),
   );
 }

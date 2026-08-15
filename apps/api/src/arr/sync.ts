@@ -1,4 +1,4 @@
-import type { MediaStatus, MediaType } from '@findarr/shared/media';
+import type { MediaStatus } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
 
 import type { SchedulerContext } from '../scheduler/types.js';
@@ -129,12 +129,8 @@ export async function syncLibrary(
 export async function syncQueue(
   context: SchedulerContext,
   arrService: AnyArrService,
-): Promise<{
-  currentQueueIds: Set<number>;
-}> {
-  const statusUpdates: { arrId: number; type: MediaType; status: MediaStatus }[] = [];
-  const { mediaType, service } = arrService.config;
-  const log = context.appLog.scope(service);
+): Promise<Map<number, MediaStatus>> {
+  const { mediaType } = arrService.config;
 
   // Get queue from service
   const queueItems = await arrService.getQueue(1000);
@@ -145,29 +141,16 @@ export async function syncQueue(
       continue;
     }
 
-    if (item.trackedDownloadStatus === 'warning') {
-      statusMap.set(item.arrId, 'warning');
-      log.warn(
-        { arrId: item.arrId, status: item.trackedDownloadStatus },
-        'Download requires manual intervention',
-      );
-    } else {
-      statusMap.set(item.arrId, 'downloading');
-    }
+    statusMap.set(item.arrId, item.trackedDownloadStatus === 'warning' ? 'warning' : 'downloading');
   }
-
-  statusUpdates.push(
-    ...Array.from(statusMap, ([arrId, status]) => ({ arrId, type: mediaType, status })),
-  );
 
   // Update statuses for items IN queue
-  if (statusUpdates.length > 0) {
-    await batchUpdateMediaStatuses(context.db, statusUpdates);
+  if (statusMap.size > 0) {
+    await batchUpdateMediaStatuses(
+      context.db,
+      Array.from(statusMap, ([arrId, status]) => ({ arrId, type: mediaType, status })),
+    );
   }
 
-  const currentQueueIds = new Set(statusMap.keys());
-
-  return {
-    currentQueueIds,
-  };
+  return statusMap;
 }
