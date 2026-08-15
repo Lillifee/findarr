@@ -129,14 +129,10 @@ export async function syncLibrary(
 export async function syncQueue(
   context: SchedulerContext,
   arrService: AnyArrService,
-  previousDownloadingIds: Set<number>,
 ): Promise<{
-  currentDownloadingIds: Set<number>;
-  completedIds: number[];
-  hasActiveDownloads: boolean;
+  currentQueueIds: Set<number>;
 }> {
   const statusUpdates: { arrId: number; type: MediaType; status: MediaStatus }[] = [];
-  const currentDownloadingIds = new Set<number>();
   const { mediaType, service } = arrService.config;
   const log = context.appLog.scope(service);
 
@@ -169,12 +165,9 @@ export async function syncQueue(
     await batchUpdateMediaStatuses(context.db, statusUpdates);
   }
 
-  // Detect completions by comparing previous vs current downloading IDs
-  const completedIds = [...previousDownloadingIds].filter((id) => !statusMap.has(id));
+  const currentQueueIds = new Set(statusMap.keys());
 
   return {
-    currentDownloadingIds,
-    completedIds,
-    hasActiveDownloads: currentDownloadingIds.size > 0,
+    currentQueueIds,
   };
 }
