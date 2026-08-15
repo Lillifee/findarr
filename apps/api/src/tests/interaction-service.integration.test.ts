@@ -44,10 +44,10 @@ const createInteraction = async (
   catalog: typeof catalogService,
   ...args: Parameters<InteractionService['createInteraction']>
 ) => {
-  const userService = createUserService({ db });
-  const mediaService = createMediaService({ db, tmdb, user: userService });
-  const settingsService = createSettingsService(db);
   const appLogService = createMockAppLogger();
+  const userService = createUserService({ db });
+  const mediaService = createMediaService({ db, tmdb, user: userService, appLog: appLogService });
+  const settingsService = createSettingsService(db);
 
   return createInteractionService({
     db,
@@ -63,10 +63,15 @@ const createInteraction = async (
 };
 
 const buildService = (tmdbService: TMDBService, db: Database): InteractionService => {
-  const userService = createUserService({ db });
-  const mediaService = createMediaService({ db, tmdb: tmdbService, user: userService });
-  const appSettingsService = createSettingsService(db);
   const appLogService = createMockAppLogger();
+  const userService = createUserService({ db });
+  const mediaService = createMediaService({
+    db,
+    tmdb: tmdbService,
+    user: userService,
+    appLog: appLogService,
+  });
+  const appSettingsService = createSettingsService(db);
 
   return createInteractionService({
     db,

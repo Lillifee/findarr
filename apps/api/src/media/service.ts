@@ -7,8 +7,28 @@ import { getInteractionsBatch } from '../interaction/repository.js';
 import { getUserGenrePreferences, getUserKeywordPreferences } from '../preferences/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
 import type { UserService } from '../user/service.js';
+import type { AppLogger } from '../utils/logger.js';
 import { getMediaRecordsBatch, getMediaStats } from './repository.js';
 import { scoreMediaItems, scoreMediaItemsForUser } from './scoring.js';
+
+function createFallbackMediaRecord(dbMedia: DbMedia): Media {
+  return {
+    tmdbId: dbMedia.tmdbId ?? -1,
+    type: dbMedia.type,
+    name: 'Unknown media',
+    date: undefined,
+    posterPath: undefined,
+    backdropPath: undefined,
+    overview: undefined,
+    voteAverage: 0,
+    voteCount: 0,
+    popularity: 0,
+    originalLanguage: '',
+    originCountry: undefined,
+    genres: [],
+    state: { record: dbMedia },
+  };
+}
 
 // ============================================================================
 // Media Enrichment Service - Add database state to TMDB media items
@@ -19,13 +39,15 @@ export interface MediaContext {
   db: Database;
   tmdb: TMDBService;
   user: UserService;
+  appLog: AppLogger;
 }
 
 /**
  * Media enrichment service
  */
 export function createMediaService(context: MediaContext) {
-  const { db, tmdb } = context;
+  const { db, tmdb, appLog } = context;
+  const log = appLog.scope('media');
 
   /**
    * Enrich TMDB media items with database records (status, jellyfinId, arrId, season tracking)
@@ -121,15 +143,22 @@ export function createMediaService(context: MediaContext) {
     const results = await Promise.all(
       mediaDbRows.map(async (record) => {
         if (!isDefined(record.tmdbId)) {
-          return null;
+          log.warn({ mediaId: record.id, type: record.type }, 'Media record is missing a TMDB ID');
+          return createFallbackMediaRecord(record);
         }
 
         const details = await tmdb
           .details({ id: record.tmdbId, type: record.type })
-          .catch(() => null);
+          .catch((error: unknown) => {
+            log.warn(
+              { err: error, tmdbId: record.tmdbId, type: record.type },
+              'Failed to fetch TMDB details',
+            );
+            return createFallbackMediaRecord(record);
+          });
 
         // Attach database record to TMDB data
-        return details && { ...details, state: { record } };
+        return { ...details, state: { record } };
       }),
     );
 
