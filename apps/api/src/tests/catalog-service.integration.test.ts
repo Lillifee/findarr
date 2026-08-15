@@ -47,8 +47,13 @@ describe('catalog service - integration tests', () => {
       ),
     });
 
-    const mediaService = createMediaService({ db, tmdb: tmdbService, user: userService });
     const appLogService = createMockAppLogger();
+    const mediaService = createMediaService({
+      db,
+      tmdb: tmdbService,
+      user: userService,
+      appLog: appLogService,
+    });
 
     catalogService = createCatalogService({
       db,

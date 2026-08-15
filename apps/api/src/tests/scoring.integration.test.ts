@@ -83,9 +83,14 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     await syncCatalogCache(mockFastify);
 
     // Create catalog service for testing
-    const userService = createUserService({ db });
-    const mediaService = createMediaService({ db, tmdb: tmdbServiceMock, user: userService });
     const appLogService = createMockAppLogger();
+    const userService = createUserService({ db });
+    const mediaService = createMediaService({
+      db,
+      tmdb: tmdbServiceMock,
+      user: userService,
+      appLog: appLogService,
+    });
 
     catalogService = createCatalogService({
       db,
