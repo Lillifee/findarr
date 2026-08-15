@@ -70,7 +70,7 @@ describe('arr sync collision handling - integration tests', () => {
       ]),
     });
 
-    await syncQueue(fastify, radarrService, new Set());
+    await syncQueue(fastify, radarrService);
 
     const updatedMovie = await getMediaByTmdbId(db, 123, 'movie');
     const updatedShow = await getMediaByTmdbId(db, 456, 'tv');

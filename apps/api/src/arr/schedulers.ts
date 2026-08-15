@@ -89,7 +89,7 @@ export function createArrQueueMonitorScheduler(arrService: AnyArrService): Sched
  */
 export function createArrQueueFastSyncScheduler(arrService: AnyArrService): Scheduler {
   // Closure-scoped state for tracking downloads across runs
-  let previousDownloadingIds = new Set<number>();
+  let previousQueueIds = new Set<number>();
 
   return createScheduler(
     {
@@ -105,11 +105,8 @@ export function createArrQueueFastSyncScheduler(arrService: AnyArrService): Sche
     async (context: SchedulerContext) =>
       whenReady(context, arrService, async () => {
         // Sync queue and get current state
-        const { currentDownloadingIds, completedIds, hasActiveDownloads } = await syncQueue(
-          context,
-          arrService,
-          previousDownloadingIds,
-        );
+        const { currentQueueIds } = await syncQueue(context, arrService);
+        const completedIds = [...previousQueueIds].filter((id) => !currentQueueIds.has(id));
 
         // Handle completions
         if (completedIds.length > 0) {
@@ -129,10 +126,10 @@ export function createArrQueueFastSyncScheduler(arrService: AnyArrService): Sche
         }
 
         // Update state for next run
-        previousDownloadingIds = currentDownloadingIds;
+        previousQueueIds = currentQueueIds;
 
         // Self-terminate if no active downloads (service enforces minRuntime)
-        return hasActiveDownloads;
+        return currentQueueIds.size > 0;
       }),
   );
 }
