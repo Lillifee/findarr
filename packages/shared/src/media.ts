@@ -102,6 +102,7 @@ export interface MediaScore {
   baseTrendingScore: number;
   genreScore: number;
   keywordScore: number;
+  castScore: number;
   userScore: number;
   finalScore: number;
   finalTrendingScore: number;
@@ -147,6 +148,8 @@ export interface Media {
   // Optional fields
   trendingRank?: number | undefined;
   keywords?: Keyword[];
+  cast?: CastMember[] | undefined;
+
   // Server-added state (computed scores, database records, user interactions)
   state?: MediaState;
 }
@@ -169,7 +172,6 @@ export interface MediaDetailsBase {
   status: string;
   homepage: string | undefined;
   imdbId: string | undefined;
-  cast: CastMember[] | undefined;
   videos: Video[] | undefined;
 }
 

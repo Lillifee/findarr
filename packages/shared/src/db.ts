@@ -135,7 +135,7 @@ export const userPreferences = sqliteTable(
     userId: integer('userId')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    kind: text('kind', { enum: ['genre', 'keyword'] }).notNull(),
+    kind: text('kind', { enum: ['genre', 'keyword', 'cast'] }).notNull(),
     subjectKey: text('subjectKey').notNull(),
     subjectName: text('subjectName').notNull(),
     score: integer('score').notNull().default(0),

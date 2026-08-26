@@ -113,6 +113,12 @@ describe('interaction service - integration tests', () => {
             { id: 28, name: 'Action' },
             { id: 12, name: 'Adventure' },
           ],
+          cast: [
+            { id: 4, name: 'Fourth Cast Member', character: '', profilePath: undefined, order: 3 },
+            { id: 2, name: 'Second Lead', character: '', profilePath: undefined, order: 1 },
+            { id: 1, name: 'First Lead', character: '', profilePath: undefined, order: 0 },
+            { id: 3, name: 'Third Lead', character: '', profilePath: undefined, order: 2 },
+          ],
         }),
       ),
     });
@@ -146,6 +152,11 @@ describe('interaction service - integration tests', () => {
 
       // Verify interaction was created
       expect(await getInteractionAction(db, user.id, media.id)).toBe('liked');
+
+      const preferences = await getUserPreferences(db, user.id);
+      expect(
+        [...preferences.keys()].filter((key) => key.startsWith('cast:')).toSorted(),
+      ).toStrictEqual(['cast:1', 'cast:2', 'cast:3']);
 
       // Verify result
       expect(result).toMatchObject({

@@ -146,6 +146,33 @@ describe('scoreMediaItemsForUser explanations', () => {
     expect(result?.state?.score?.userScore).toBeGreaterThanOrEqual(0.65);
   });
 
+  it('keeps established cast evidence competitive with much more common genre evidence', () => {
+    const preferences: UserPreference[] = [
+      { kind: 'genre', subjectKey: '28', subjectName: 'Action', score: 20, count: 100 },
+      { kind: 'cast', subjectKey: '1', subjectName: 'First Lead', score: 10, count: 10 },
+    ];
+    const preferenceMap = new Map(
+      preferences.map((preference) => [
+        toPreferenceKey(preference.kind, preference.subjectKey),
+        preference,
+      ]),
+    );
+
+    const [result] = scoreMediaItemsForUser(
+      [
+        createTestMedia({
+          genres: [{ id: 28, name: 'Action' }],
+          cast: [{ id: 1, name: 'First Lead', character: '', profilePath: undefined, order: 0 }],
+        }),
+      ],
+      preferenceMap,
+    );
+
+    expect(result?.state?.score?.genreScore).toBeCloseTo(0.59524, 5);
+    expect(result?.state?.score?.castScore).toBeCloseTo(0.83333, 5);
+    expect(result?.state?.score?.userScore).toBeGreaterThan(0.7);
+  });
+
   it('weights subjects by their evidence rather than metadata tag count', () => {
     const preferenceMap = new Map<string, UserPreference>([
       [
@@ -183,5 +210,48 @@ describe('scoreMediaItemsForUser explanations', () => {
     );
 
     expect(result?.state?.score?.keywordScore).toBeCloseTo(0.72368, 5);
+  });
+
+  it('scores only the top three billed cast members', () => {
+    const preferences = new Map<string, UserPreference>(
+      [
+        { id: 1, name: 'First Lead', score: 2 },
+        { id: 2, name: 'Second Lead', score: 2 },
+        { id: 3, name: 'Third Lead', score: 2 },
+        { id: 4, name: 'Fourth Cast Member', score: -2 },
+      ].map((member) => [
+        `cast:${member.id}`,
+        {
+          kind: 'cast',
+          subjectKey: String(member.id),
+          subjectName: member.name,
+          score: member.score,
+          count: 2,
+        },
+      ]),
+    );
+
+    const [result] = scoreMediaItemsForUser(
+      [
+        createTestMedia({
+          cast: [
+            { id: 4, name: 'Fourth Cast Member', character: '', profilePath: undefined, order: 3 },
+            { id: 2, name: 'Second Lead', character: '', profilePath: undefined, order: 1 },
+            { id: 1, name: 'First Lead', character: '', profilePath: undefined, order: 0 },
+            { id: 3, name: 'Third Lead', character: '', profilePath: undefined, order: 2 },
+          ],
+        }),
+      ],
+      preferences,
+    );
+    const score = result?.state?.score;
+
+    expect(score?.castScore).toBeCloseTo(0.77273, 5);
+    expect(score?.userScore).toBeCloseTo(0.77273, 5);
+    expect(score?.explanation.positiveSignals.map((signal) => signal.name)).toStrictEqual([
+      'First Lead',
+      'Second Lead',
+      'Third Lead',
+    ]);
   });
 });
