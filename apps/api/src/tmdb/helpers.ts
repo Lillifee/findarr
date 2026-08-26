@@ -133,7 +133,8 @@ export async function processWithWorkerPool<TItem, TResult>(options: {
     let localCount = 0;
 
     while (true) {
-      const index = (queueIndex += 1);
+      queueIndex += 1;
+      const index = queueIndex;
       if (index >= items.length) {
         break;
       }

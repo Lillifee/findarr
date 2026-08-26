@@ -20,7 +20,8 @@ export function useDashboardData(): DashboardData {
   const requestIdRef = useRef(0);
 
   const loadDashboard = useCallback(() => {
-    const requestId = (requestIdRef.current += 1);
+    requestIdRef.current += 1;
+    const requestId = requestIdRef.current;
 
     setLoadingHero(true);
     setLoadingAvailable(true);

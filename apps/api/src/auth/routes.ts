@@ -11,13 +11,10 @@ import { changePassword, isOwnerSetupRequired, login, setupOwner } from './servi
 
 export const authRoutes = (fastify: FastifyInstance) => {
   // Get bootstrap status for first-run and app gating
-  fastify.get(
-    '/bootstrap',
-    async (): Promise<AppBootstrapStatus> => ({
-      tmdbConfigured: fastify.tmdb.isConfigured(),
-      requiresOwnerSetup: await isOwnerSetupRequired(fastify.db),
-    }),
-  );
+  fastify.get('/bootstrap', async (): Promise<AppBootstrapStatus> => ({
+    tmdbConfigured: fastify.tmdb.isConfigured(),
+    requiresOwnerSetup: await isOwnerSetupRequired(fastify.db),
+  }));
 
   // First-run owner account setup
   fastify.post('/setup-owner', async (r) => {
