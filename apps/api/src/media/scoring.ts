@@ -1,4 +1,4 @@
-import type { Media, MediaScore, MediaType } from '@findarr/shared/media';
+import type { Media, MediaScore, MediaScoreSignal, MediaType } from '@findarr/shared/media';
 import {
   toPreferenceKey,
   type PreferenceSubject,
@@ -94,6 +94,11 @@ export function scoreMediaItems<T extends Media>(
       userScore: 0,
       finalScore: baseScore,
       finalTrendingScore: baseTrendingScore,
+      explanation: {
+        positiveSignals: [],
+        mixedSignals: [],
+        negativeSignals: [],
+      },
     };
 
     return { ...item, state: { ...item.state, score } };
@@ -106,34 +111,53 @@ export function scoreMediaItems<T extends Media>(
 // User Preference Scoring
 // ============================================================================
 
-// Helper: Calculate score contribution with diminishing returns
-const scoreContribution = (normalized: number) =>
-  Math.sqrt(Math.max(0, normalized)) - Math.sqrt(Math.max(0, -normalized));
+const PRIOR_WEIGHT = 5;
+const MIN_SIGNAL_EVIDENCE = 2;
 
-type ScoringSubject = Pick<PreferenceSubject, 'kind' | 'subjectKey'>;
+type ScoringSubject = PreferenceSubject;
 
 const scorePreferenceSubjects = (
   subjects: ScoringSubject[],
   preferences: Map<string, UserPreference>,
 ) => {
-  let rawScore = 0;
-  let matched = false;
+  let preferenceScore = 0;
+  let evidenceCount = 0;
+  const signals: MediaScoreSignal[] = [];
 
   for (const subject of subjects) {
     const preference = preferences.get(toPreferenceKey(subject.kind, subject.subjectKey));
-    if (!preference) {
+    if (!preference || preference.count < MIN_SIGNAL_EVIDENCE) {
       continue;
     }
 
-    matched = true;
-    rawScore += scoreContribution(preference.score / (preference.count + 10));
+    const affinity = 0.5 + preference.score / (2 * (preference.count + PRIOR_WEIGHT));
+    const positiveCount = (preference.count + preference.score) / 2;
+    const negativeCount = preference.count - positiveCount;
+    const positiveShare = positiveCount / preference.count;
+    const sentiment = positiveShare > 0.6 ? 'positive' : positiveShare < 0.4 ? 'negative' : 'mixed';
+
+    preferenceScore += preference.score;
+    evidenceCount += preference.count;
+    signals.push({
+      kind: subject.kind,
+      subjectKey: subject.subjectKey,
+      name: subject.subjectName,
+      sentiment,
+      strength: Math.abs(affinity - 0.5) * 2,
+      positiveCount,
+      negativeCount,
+    });
   }
 
   return {
-    matched,
-    score: matched ? (Math.tanh(rawScore) + 1) / 2 : 0.5,
+    signals,
+    score: signals.length > 0 ? 0.5 + preferenceScore / (2 * (evidenceCount + PRIOR_WEIGHT)) : 0.5,
+    weight: Math.sqrt(evidenceCount),
   };
 };
+
+const bySignalStrength = (first: MediaScoreSignal, second: MediaScoreSignal) =>
+  second.strength - first.strength;
 
 /**
  * Apply user preference scoring to media items
@@ -149,13 +173,18 @@ export function scoreMediaItemsForUser<T extends Media>(
 
   const scored = items.map<T>((item) => {
     const genreResult = scorePreferenceSubjects(
-      item.genres.map((genre) => ({ kind: 'genre', subjectKey: String(genre.id) })),
+      item.genres.map((genre) => ({
+        kind: 'genre',
+        subjectKey: String(genre.id),
+        subjectName: genre.name,
+      })),
       preferences,
     );
     const keywordResult = scorePreferenceSubjects(
       (item.keywords ?? []).map((keyword) => ({
         kind: 'keyword',
         subjectKey: String(keyword.id),
+        subjectName: keyword.name,
       })),
       preferences,
     );
@@ -167,18 +196,36 @@ export function scoreMediaItemsForUser<T extends Media>(
     const baseTrendingScore = item.state?.score?.baseTrendingScore ?? 0;
 
     // ---------- USER SCORE ----------
-    const matchedScores = [genreResult, keywordResult]
-      .filter((result) => result.matched)
-      .map((result) => result.score);
+    const matchedResults = [genreResult, keywordResult].filter((result) => result.weight > 0);
+    const totalWeight = matchedResults.reduce((total, result) => total + result.weight, 0);
 
     const userScore =
-      matchedScores.length > 0
-        ? matchedScores.reduce((total, score) => total + score, 0) / matchedScores.length
+      totalWeight > 0
+        ? matchedResults.reduce((total, result) => total + result.score * result.weight, 0) /
+          totalWeight
         : 0.5;
 
     // ---------- FINAL SCORES ----------
     const finalScore = 0.7 * baseScore + 0.3 * userScore;
     const finalTrendingScore = 0.7 * baseTrendingScore + 0.3 * userScore;
+
+    // ---------- EXPLANATION ----------
+    const signals = [...genreResult.signals, ...keywordResult.signals];
+
+    const positiveSignals = signals
+      .filter((signal) => signal.sentiment === 'positive')
+      .toSorted(bySignalStrength)
+      .slice(0, 3);
+
+    const mixedSignals = signals
+      .filter((signal) => signal.sentiment === 'mixed')
+      .toSorted(bySignalStrength)
+      .slice(0, 3);
+
+    const negativeSignals = signals
+      .filter((signal) => signal.sentiment === 'negative')
+      .toSorted(bySignalStrength)
+      .slice(0, 3);
 
     const score: MediaScore = {
       ...(item.state?.score ?? {
@@ -194,6 +241,11 @@ export function scoreMediaItemsForUser<T extends Media>(
       userScore,
       finalScore,
       finalTrendingScore,
+      explanation: {
+        positiveSignals,
+        mixedSignals,
+        negativeSignals,
+      },
     };
 
     return { ...item, state: { ...item.state, score } };

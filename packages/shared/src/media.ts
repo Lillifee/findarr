@@ -1,5 +1,6 @@
 import type { User } from './auth.js';
 import type { DbMedia, DbUserMediaInteraction } from './db.js';
+import type { PreferenceKind } from './preferences.js';
 
 // ============================================================================
 // Media Composite Types - Derived from DB rows
@@ -76,6 +77,22 @@ export interface Season {
   status?: 'none' | 'requested' | 'monitored' | 'downloaded' | 'available';
 }
 
+export interface MediaScoreSignal {
+  kind: PreferenceKind;
+  subjectKey: string;
+  name: string;
+  sentiment: 'positive' | 'mixed' | 'negative';
+  strength: number;
+  positiveCount: number;
+  negativeCount: number;
+}
+
+export interface MediaScoreExplanation {
+  positiveSignals: MediaScoreSignal[];
+  mixedSignals: MediaScoreSignal[];
+  negativeSignals: MediaScoreSignal[];
+}
+
 export interface MediaScore {
   recencyScore: number;
   trendingScore: number;
@@ -88,6 +105,7 @@ export interface MediaScore {
   userScore: number;
   finalScore: number;
   finalTrendingScore: number;
+  explanation: MediaScoreExplanation;
 }
 
 /**

@@ -348,13 +348,28 @@
     "keep": "Keep Selection"
   },
   "scoreBreakdown": {
-    "title": "Score Breakdown",
-    "overall": "Overall Score",
-    "baseScore": "Base Score",
-    "userMatch": "User Match",
-    "popularity": "Popularity",
-    "rating": "Rating",
-    "genreMatch": "Genre Match",
-    "keywordMatch": "Keyword Match"
+    "title": "Your taste match",
+    "noEvidenceTitle": "Not enough evidence for this title",
+    "noEvidenceBody": "Rate more movies and shows to get a personal recommendation here.",
+    "verdict": {
+      "good": "Good match",
+      "mixed": "Mixed match",
+      "unlikely": "May not match your taste"
+    },
+    "summary": {
+      "positive": "Your taste profile aligns with {{name}}.",
+      "negative": "Your past ratings suggest {{name}} may not be for you.",
+      "mixed": "{{positive}} fits your taste, while {{negative}} may be a caution.",
+      "balanced": "Your ratings for {{name}} are mixed so far.",
+      "generic": "This recommendation is based on themes in your previous ratings."
+    },
+    "showReasons": "Why this recommendation?",
+    "hideReasons": "Hide recommendation details",
+    "positiveReasons": "What fits your taste",
+    "mixedReasons": "Mixed signals",
+    "negativeReasons": "Possible cautions",
+    "positiveEvidence": "liked {{positive}} of {{total}}",
+    "mixedEvidence": "{{positive}} liked · {{negative}} disliked",
+    "negativeEvidence": "disliked {{negative}} of {{total}}"
   }
 }
