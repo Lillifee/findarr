@@ -1,10 +1,13 @@
 import type { Media, MediaScore, MediaScoreSignal, MediaType } from '@findarr/shared/media';
 import {
   toPreferenceKey,
+  type PreferenceKind,
   type PreferenceSubject,
   type UserPreference,
 } from '@findarr/shared/preferences';
 import { isDefined, isNotEmpty } from '@findarr/shared/utils';
+
+import { getTopCast } from '../preferences/subjects.js';
 
 /**
  * Maximum trending rank (5 pages × 20 items per page from TMDB)
@@ -91,6 +94,7 @@ export function scoreMediaItems<T extends Media>(
       baseTrendingScore,
       genreScore: 0,
       keywordScore: 0,
+      castScore: 0,
       userScore: 0,
       finalScore: baseScore,
       finalTrendingScore: baseTrendingScore,
@@ -113,11 +117,15 @@ export function scoreMediaItems<T extends Media>(
 
 const PRIOR_WEIGHT = 5;
 const MIN_SIGNAL_EVIDENCE = 2;
-
-type ScoringSubject = PreferenceSubject;
+const PREFERENCE_KIND_WEIGHT: Record<PreferenceKind, number> = {
+  genre: 1,
+  keyword: 0.8,
+  cast: 1.2,
+};
 
 const scorePreferenceSubjects = (
-  subjects: ScoringSubject[],
+  kind: PreferenceKind,
+  subjects: PreferenceSubject[],
   preferences: Map<string, UserPreference>,
 ) => {
   let preferenceScore = 0;
@@ -152,7 +160,10 @@ const scorePreferenceSubjects = (
   return {
     signals,
     score: signals.length > 0 ? 0.5 + preferenceScore / (2 * (evidenceCount + PRIOR_WEIGHT)) : 0.5,
-    weight: Math.sqrt(evidenceCount),
+    weight:
+      evidenceCount > 0
+        ? (evidenceCount / (evidenceCount + PRIOR_WEIGHT)) * PREFERENCE_KIND_WEIGHT[kind]
+        : 0,
   };
 };
 
@@ -173,6 +184,7 @@ export function scoreMediaItemsForUser<T extends Media>(
 
   const scored = items.map<T>((item) => {
     const genreResult = scorePreferenceSubjects(
+      'genre',
       item.genres.map((genre) => ({
         kind: 'genre',
         subjectKey: String(genre.id),
@@ -181,6 +193,7 @@ export function scoreMediaItemsForUser<T extends Media>(
       preferences,
     );
     const keywordResult = scorePreferenceSubjects(
+      'keyword',
       (item.keywords ?? []).map((keyword) => ({
         kind: 'keyword',
         subjectKey: String(keyword.id),
@@ -188,15 +201,27 @@ export function scoreMediaItemsForUser<T extends Media>(
       })),
       preferences,
     );
+    const castResult = scorePreferenceSubjects(
+      'cast',
+      getTopCast(item.cast).map((member) => ({
+        kind: 'cast',
+        subjectKey: String(member.id),
+        subjectName: member.name,
+      })),
+      preferences,
+    );
     const genreScore = genreResult.score;
     const keywordScore = keywordResult.score;
+    const castScore = castResult.score;
 
     // ---------- BASE SCORE ----------
     const baseScore = item.state?.score?.baseScore ?? 0;
     const baseTrendingScore = item.state?.score?.baseTrendingScore ?? 0;
 
     // ---------- USER SCORE ----------
-    const matchedResults = [genreResult, keywordResult].filter((result) => result.weight > 0);
+    const matchedResults = [genreResult, keywordResult, castResult].filter(
+      (result) => result.weight > 0,
+    );
     const totalWeight = matchedResults.reduce((total, result) => total + result.weight, 0);
 
     const userScore =
@@ -210,7 +235,7 @@ export function scoreMediaItemsForUser<T extends Media>(
     const finalTrendingScore = 0.7 * baseTrendingScore + 0.3 * userScore;
 
     // ---------- EXPLANATION ----------
-    const signals = [...genreResult.signals, ...keywordResult.signals];
+    const signals = [...genreResult.signals, ...keywordResult.signals, ...castResult.signals];
 
     const positiveSignals = signals
       .filter((signal) => signal.sentiment === 'positive')
@@ -238,6 +263,7 @@ export function scoreMediaItemsForUser<T extends Media>(
       }),
       genreScore,
       keywordScore,
+      castScore,
       userScore,
       finalScore,
       finalTrendingScore,

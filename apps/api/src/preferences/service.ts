@@ -1,10 +1,11 @@
 import type { InteractionType } from '@findarr/shared/interaction';
-import type { Genre, Keyword } from '@findarr/shared/media';
+import type { CastMember, Genre, Keyword } from '@findarr/shared/media';
 import type { PreferenceSubject } from '@findarr/shared/preferences';
 import { isDefined } from '@findarr/shared/utils';
 
 import type { Database } from '../db/service.js';
 import { applyPreferenceDeltas } from './repository.js';
+import { getTopCast } from './subjects.js';
 
 // ============================================================================
 // User Preferences Service - Business Logic
@@ -15,7 +16,7 @@ const LIKE_SCORE = 1;
 const DISLIKE_SCORE = -1;
 
 /**
- * Update user genre + keyword preferences based on an interaction. All upserts
+ * Update user genre, keyword, and top-cast preferences based on an interaction. All upserts
  * run in a single transaction (one commit) to avoid a per-row fsync on slow
  * storage.
  */
@@ -24,6 +25,7 @@ export async function updatePreferencesForInteraction(
   userId: number,
   genres: Genre[],
   keywords: Keyword[] | undefined,
+  cast: CastMember[] | undefined,
   previousAction: InteractionType | undefined,
   nextAction: InteractionType | undefined,
 ) {
@@ -47,6 +49,11 @@ export async function updatePreferencesForInteraction(
       kind: 'keyword' as const,
       subjectKey: String(keyword.id),
       subjectName: keyword.name,
+    })),
+    ...getTopCast(cast).map((member) => ({
+      kind: 'cast' as const,
+      subjectKey: String(member.id),
+      subjectName: member.name,
     })),
   ];
 

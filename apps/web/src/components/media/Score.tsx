@@ -2,11 +2,17 @@ import type { MediaScore, MediaScoreSignal } from '@findarr/shared/media';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Icon } from '../ui/Icon';
+import { Icon, type IconName } from '../ui/Icon';
 
 interface ScoreProps {
   score: MediaScore;
 }
+
+const signalIcons: Record<MediaScoreSignal['kind'], IconName> = {
+  genre: 'theater_comedy',
+  keyword: 'sell',
+  cast: 'person',
+};
 
 const getVerdict = (score: number) => {
   if (score >= 0.6) {
@@ -71,7 +77,7 @@ export function Score({ score }: ScoreProps) {
             key={`${signal.kind}-${signal.subjectKey}`}
             className={`inline-flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-full border px-2.5 py-1.5 text-xs ${tone}`}
           >
-            <Icon name={signal.kind === 'genre' ? 'theater_comedy' : 'sell'} size="xs" />
+            <Icon name={signalIcons[signal.kind]} size="xs" />
             <span className="font-medium">{signal.name}</span>
             <span className="text-current/70">
               {t(`scoreBreakdown.${evidenceKey}`, {

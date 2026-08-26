@@ -167,6 +167,7 @@ export function createInteractionService(context: InteractionContext) {
       user.id,
       details.genres,
       details.keywords,
+      details.cast,
       previousAction,
       nextAction,
     );
