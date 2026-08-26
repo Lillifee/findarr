@@ -3,10 +3,11 @@ import type SqlDatabase from 'better-sqlite3';
 import type { Mocked } from 'vite-plus/test';
 
 import { createDatabase, type Database } from '../db/service.js';
-import { hasInteraction, getVoteCounts } from '../interaction/repository.js';
+import { getInteractionAction, getVoteCounts } from '../interaction/repository.js';
 import { createInteractionService, type InteractionService } from '../interaction/service.js';
 import { createMedia, getMediaByTmdbId, updateMediaStatus } from '../media/repository.js';
 import { createMediaService } from '../media/service.js';
+import { getUserPreferences } from '../preferences/repository.js';
 import { createSettingsService } from '../settings/service.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { createUserService } from '../user/service.js';
@@ -144,7 +145,7 @@ describe('interaction service - integration tests', () => {
       expect(media.status).toBe('requested');
 
       // Verify interaction was created
-      expect(await hasInteraction(db, user.id, media.id, 'liked')).toBe(true);
+      expect(await getInteractionAction(db, user.id, media.id)).toBe('liked');
 
       // Verify result
       expect(result).toMatchObject({
@@ -188,7 +189,12 @@ describe('interaction service - integration tests', () => {
       expectDefined(media);
 
       // Verify interaction exists
-      expect(await hasInteraction(db, user.id, media.id, 'liked')).toBe(true);
+      expect(await getInteractionAction(db, user.id, media.id)).toBe('liked');
+      const preferencesAfterLike = await getUserPreferences(db, user.id);
+      expect(preferencesAfterLike.get('genre:28')).toMatchObject({
+        score: 1,
+        count: 1,
+      });
 
       // Toggle off - click the same action again
       await createInteraction(
@@ -202,7 +208,8 @@ describe('interaction service - integration tests', () => {
       );
 
       // Verify interaction was removed
-      expect(await hasInteraction(db, user.id, media.id, 'liked')).toBe(false);
+      expect(await getInteractionAction(db, user.id, media.id)).toBeUndefined();
+      expect(await getUserPreferences(db, user.id)).toHaveProperty('size', 0);
     });
 
     it('should switch from dislike to like', async () => {
@@ -224,8 +231,7 @@ describe('interaction service - integration tests', () => {
       expectDefined(media);
 
       // Verify dislike exists
-      expect(await hasInteraction(db, user.id, media.id, 'disliked')).toBe(true);
-      expect(await hasInteraction(db, user.id, media.id, 'liked')).toBe(false);
+      expect(await getInteractionAction(db, user.id, media.id)).toBe('disliked');
 
       // Switch to like
       await createInteraction(
@@ -239,8 +245,70 @@ describe('interaction service - integration tests', () => {
       );
 
       // Verify only like exists now
-      expect(await hasInteraction(db, user.id, media.id, 'liked')).toBe(true);
-      expect(await hasInteraction(db, user.id, media.id, 'disliked')).toBe(false);
+      expect(await getInteractionAction(db, user.id, media.id)).toBe('liked');
+      const preferencesAfterLike = await getUserPreferences(db, user.id);
+      expect(preferencesAfterLike.get('genre:28')).toMatchObject({
+        score: 1,
+        count: 1,
+      });
+
+      await createInteraction(
+        db,
+        tmdb,
+        radarrService,
+        sonarrService,
+        catalogService,
+        { ...interaction, action: 'disliked' },
+        user,
+      );
+
+      const preferencesAfterSecondDislike = await getUserPreferences(db, user.id);
+      expect(preferencesAfterSecondDislike.get('genre:28')).toMatchObject({
+        score: -1,
+        count: 1,
+      });
+    });
+
+    it('should not add preference evidence when TV seasons are updated', async () => {
+      const user = await createTestUserInDb(db, { email: 'tv-preferences@test.com' });
+      expectDefined(user);
+      vi.mocked(tmdb.details).mockResolvedValue(
+        createTestTVDetail({
+          tmdbId: 456,
+          genres: [{ id: 18, name: 'Drama' }],
+        }),
+      );
+      const tvInteraction: CreateMediaInteraction = {
+        mediaType: 'tv',
+        tmdbId: 456,
+        action: 'liked',
+        seasons: [1],
+      };
+
+      await createInteraction(
+        db,
+        tmdb,
+        radarrService,
+        sonarrService,
+        catalogService,
+        tvInteraction,
+        user,
+      );
+      await createInteraction(
+        db,
+        tmdb,
+        radarrService,
+        sonarrService,
+        catalogService,
+        { ...tvInteraction, seasons: [1, 2] },
+        user,
+      );
+
+      const preferencesAfterSeasonUpdate = await getUserPreferences(db, user.id);
+      expect(preferencesAfterSeasonUpdate.get('genre:18')).toMatchObject({
+        score: 1,
+        count: 1,
+      });
     });
 
     it('should auto-request immediately when admin likes', async () => {

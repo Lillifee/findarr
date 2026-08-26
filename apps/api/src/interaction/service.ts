@@ -21,7 +21,7 @@ import type { UserService } from '../user/service.js';
 import type { AppLogger } from '../utils/logger.js';
 import {
   addInteraction,
-  hasInteraction,
+  getInteractionAction,
   removeAllInteractions,
   getVoteCounts,
   getMediaByActivityStatusPaginated,
@@ -114,22 +114,17 @@ export function createInteractionService(context: InteractionContext) {
       await updateMediaSeasons(db, mediaRow.id, data.seasons);
     }
 
-    // Determine if this is a toggle vs an update:
-    // - Toggle: clicking same action without seasons (movies or direct button click)
-    // - Update: providing seasons array (TV shows via modal confirmation)
+    const previousAction = await getInteractionAction(db, user.id, mediaRow.id);
     const isSeasonUpdate = data.seasons !== undefined;
-    const isToggle =
-      !isSeasonUpdate && (await hasInteraction(db, user.id, mediaRow.id, data.action));
-
-    // Handle empty season selection as "unlike" (user deselected all seasons)
-    const isUnlike = isSeasonUpdate && data.seasons?.length === 0;
+    const removesInteraction =
+      data.seasons?.length === 0 || (!isSeasonUpdate && previousAction === data.action);
+    const nextAction = removesInteraction ? undefined : data.action;
 
     // Remove all existing interactions for this user on this media
     await removeAllInteractions(db, user.id, mediaRow.id);
 
-    // Add new interaction unless toggling off or unliking with empty seasons
-    if (!isToggle && !isUnlike) {
-      await addInteraction(db, user.id, mediaRow.id, data.action);
+    if (isDefined(nextAction)) {
+      await addInteraction(db, user.id, mediaRow.id, nextAction);
     }
 
     // Calculate votes and check if auto-request threshold is met
@@ -144,7 +139,7 @@ export function createInteractionService(context: InteractionContext) {
     timer.lap('details');
 
     // Advance media status to 'voting' if the user liked it (even if below threshold)
-    if (data.action === 'liked') {
+    if (nextAction === 'liked') {
       await advanceMediaStatus(db, mediaRow, 'voting');
     }
 
@@ -152,7 +147,7 @@ export function createInteractionService(context: InteractionContext) {
     // Jellyfin/Plex after being removed from Radarr/Sonarr) so we don't needlessly
     // re-request it — but a TV season update still needs to reach Sonarr.
     const shouldRequest =
-      data.action === 'liked' &&
+      nextAction === 'liked' &&
       (likes >= voteThreshold || (isAdmin && likes >= 1)) &&
       (mediaRow.status !== 'available' || isSeasonUpdate);
 
@@ -172,8 +167,8 @@ export function createInteractionService(context: InteractionContext) {
       user.id,
       details.genres,
       details.keywords,
-      data.action,
-      isToggle,
+      previousAction,
+      nextAction,
     );
     timer.lap('preferences');
 

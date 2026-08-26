@@ -1,6 +1,7 @@
 import type { InteractionType } from '@findarr/shared/interaction';
 import type { Genre, Keyword } from '@findarr/shared/media';
 import type { PreferenceSubject } from '@findarr/shared/preferences';
+import { isDefined } from '@findarr/shared/utils';
 
 import type { Database } from '../db/service.js';
 import { applyPreferenceDeltas } from './repository.js';
@@ -23,12 +24,18 @@ export async function updatePreferencesForInteraction(
   userId: number,
   genres: Genre[],
   keywords: Keyword[] | undefined,
-  action: InteractionType,
-  isToggle: boolean,
+  previousAction: InteractionType | undefined,
+  nextAction: InteractionType | undefined,
 ) {
-  // Calculate score delta based on action and toggle state.
-  const baseScore = action === 'liked' ? LIKE_SCORE : DISLIKE_SCORE;
-  const scoreDelta = isToggle ? -baseScore : baseScore;
+  const toScore = (action: InteractionType | undefined) =>
+    action === 'liked' ? LIKE_SCORE : action === 'disliked' ? DISLIKE_SCORE : 0;
+
+  const scoreDelta = toScore(nextAction) - toScore(previousAction);
+  const countDelta = Number(isDefined(nextAction)) - Number(isDefined(previousAction));
+
+  if (scoreDelta === 0 && countDelta === 0) {
+    return;
+  }
 
   const subjects: PreferenceSubject[] = [
     ...genres.map((genre) => ({
@@ -43,5 +50,5 @@ export async function updatePreferencesForInteraction(
     })),
   ];
 
-  await applyPreferenceDeltas(db, userId, subjects, scoreDelta);
+  await applyPreferenceDeltas(db, userId, subjects, scoreDelta, countDelta);
 }

@@ -1,5 +1,9 @@
 import type { Media, MediaScore, MediaType } from '@findarr/shared/media';
-import { toPreferenceKey, type UserPreference } from '@findarr/shared/preferences';
+import {
+  toPreferenceKey,
+  type PreferenceSubject,
+  type UserPreference,
+} from '@findarr/shared/preferences';
 import { isDefined, isNotEmpty } from '@findarr/shared/utils';
 
 /**
@@ -106,10 +110,34 @@ export function scoreMediaItems<T extends Media>(
 const scoreContribution = (normalized: number) =>
   Math.sqrt(Math.max(0, normalized)) - Math.sqrt(Math.max(0, -normalized));
 
+type ScoringSubject = Pick<PreferenceSubject, 'kind' | 'subjectKey'>;
+
+const scorePreferenceSubjects = (
+  subjects: ScoringSubject[],
+  preferences: Map<string, UserPreference>,
+) => {
+  let rawScore = 0;
+  let matched = false;
+
+  for (const subject of subjects) {
+    const preference = preferences.get(toPreferenceKey(subject.kind, subject.subjectKey));
+    if (!preference) {
+      continue;
+    }
+
+    matched = true;
+    rawScore += scoreContribution(preference.score / (preference.count + 10));
+  }
+
+  return {
+    matched,
+    score: matched ? (Math.tanh(rawScore) + 1) / 2 : 0.5,
+  };
+};
+
 /**
  * Apply user preference scoring to media items
- * Calculates genre and keyword match scores, combines with base scores
- * Note: When keywords are absent, keywordScore copies genreScore (effectively 30% genre weight)
+ * Calculates preference-dimension match scores and combines them with base scores.
  */
 export function scoreMediaItemsForUser<T extends Media>(
   items: T[],
@@ -119,68 +147,36 @@ export function scoreMediaItemsForUser<T extends Media>(
     return items;
   }
 
-  // Bayesian smoothing to prevent small-sample bias (10 pseudo-ratings at 0 score)
-  const PRIOR_WEIGHT = 10;
-  const PRIOR_SCORE = 0;
-
   const scored = items.map<T>((item) => {
-    // Neutral defaults (0.5) so unmatched preferences do not implicitly demote items.
-    let genreScore = 0.5;
-    let keywordScore = 0.5;
-
-    // ---------- GENRE SCORING ----------
-    if (item.genres.length > 0) {
-      let rawScore = 0;
-      let matched = false;
-
-      for (const genre of item.genres) {
-        const pref = preferences.get(toPreferenceKey('genre', String(genre.id)));
-        if (pref) {
-          matched = true;
-          const normalized =
-            (pref.score + PRIOR_WEIGHT * PRIOR_SCORE) / (pref.count + PRIOR_WEIGHT);
-          rawScore += scoreContribution(normalized);
-        }
-      }
-
-      if (matched) {
-        const signed = Math.tanh(rawScore);
-        genreScore = (signed + 1) / 2;
-      }
-    }
-
-    // ---------- KEYWORD SCORING ----------
-    if (isDefined(item.keywords)) {
-      let rawScore = 0;
-      let matched = false;
-
-      for (const kw of item.keywords) {
-        const pref = preferences.get(toPreferenceKey('keyword', String(kw.id)));
-        if (!pref) {
-          continue;
-        }
-
-        matched = true;
-        const normalized = (pref.score + PRIOR_WEIGHT * PRIOR_SCORE) / (pref.count + PRIOR_WEIGHT);
-        rawScore += scoreContribution(normalized);
-      }
-
-      if (matched) {
-        const signed = Math.tanh(rawScore);
-        keywordScore = (signed + 1) / 2;
-      }
-    } else if (!isDefined(item.keywords)) {
-      // If no keywords exist, copy genre score to avoid penalizing items without keywords
-      keywordScore = genreScore;
-    }
+    const genreResult = scorePreferenceSubjects(
+      item.genres.map((genre) => ({ kind: 'genre', subjectKey: String(genre.id) })),
+      preferences,
+    );
+    const keywordResult = scorePreferenceSubjects(
+      (item.keywords ?? []).map((keyword) => ({
+        kind: 'keyword',
+        subjectKey: String(keyword.id),
+      })),
+      preferences,
+    );
+    const genreScore = genreResult.score;
+    const keywordScore = keywordResult.score;
 
     // ---------- BASE SCORE ----------
     const baseScore = item.state?.score?.baseScore ?? 0;
     const baseTrendingScore = item.state?.score?.baseTrendingScore ?? 0;
 
-    // ---------- FINAL SCORES ----------
-    const userScore = 0.5 * genreScore + 0.5 * keywordScore;
+    // ---------- USER SCORE ----------
+    const matchedScores = [genreResult, keywordResult]
+      .filter((result) => result.matched)
+      .map((result) => result.score);
 
+    const userScore =
+      matchedScores.length > 0
+        ? matchedScores.reduce((total, score) => total + score, 0) / matchedScores.length
+        : 0.5;
+
+    // ---------- FINAL SCORES ----------
     const finalScore = 0.7 * baseScore + 0.3 * userScore;
     const finalTrendingScore = 0.7 * baseTrendingScore + 0.3 * userScore;
 
