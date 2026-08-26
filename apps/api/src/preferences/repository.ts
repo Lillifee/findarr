@@ -1,106 +1,60 @@
-import { userGenrePreferences, userKeywordPreferences } from '@findarr/shared/db';
-import type { Genre, Keyword } from '@findarr/shared/media';
-import type { UserGenrePreference, UserKeywordPreference } from '@findarr/shared/preferences';
+import { userPreferences } from '@findarr/shared/db';
+import {
+  toPreferenceKey,
+  type PreferenceSubject,
+  type UserPreference,
+} from '@findarr/shared/preferences';
 import { eq, sql } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';
 
-// ============================================================================
-// User Genre Preferences - Repository
-// ============================================================================
-
 /**
- * Get all genre preferences for a user
- * Returns a map of genreId -> preference data
+ * Get all preferences for a user, keyed by kind and subject key.
  */
-export async function getUserGenrePreferences(db: Database, userId: number) {
+export async function getUserPreferences(db: Database, userId: number) {
   const results = await db
     .select({
-      genreId: userGenrePreferences.genreId,
-      genreName: userGenrePreferences.genreName,
-      score: userGenrePreferences.score,
-      count: userGenrePreferences.count,
+      kind: userPreferences.kind,
+      subjectKey: userPreferences.subjectKey,
+      subjectName: userPreferences.subjectName,
+      score: userPreferences.score,
+      count: userPreferences.count,
     })
-    .from(userGenrePreferences)
-    .where(eq(userGenrePreferences.userId, userId));
+    .from(userPreferences)
+    .where(eq(userPreferences.userId, userId));
 
-  const preferenceMap = new Map<number, UserGenrePreference>();
+  const preferenceMap = new Map<string, UserPreference>();
 
-  for (const pref of results) {
-    preferenceMap.set(pref.genreId, pref);
-  }
-
-  return preferenceMap;
-}
-
-// ============================================================================
-// User Keyword Preferences - Repository
-// ============================================================================
-
-/**
- * Get all keyword preferences for a user
- * Returns a map of keywordId -> preference data
- */
-export async function getUserKeywordPreferences(db: Database, userId: number) {
-  const results = await db
-    .select({
-      keywordId: userKeywordPreferences.keywordId,
-      keywordName: userKeywordPreferences.keywordName,
-      score: userKeywordPreferences.score,
-      count: userKeywordPreferences.count,
-    })
-    .from(userKeywordPreferences)
-    .where(eq(userKeywordPreferences.userId, userId));
-
-  const preferenceMap = new Map<number, UserKeywordPreference>();
-
-  for (const pref of results) {
-    preferenceMap.set(pref.keywordId, pref);
+  for (const preference of results) {
+    preferenceMap.set(toPreferenceKey(preference.kind, preference.subjectKey), preference);
   }
 
   return preferenceMap;
 }
 
 /**
- * Apply score deltas for all of a media item's genres and keywords in a single
- * transaction. Batching the upserts into one commit avoids a separate fsync per
- * row, which is a large win on slow storage (e.g. a NAS Docker volume).
+ * Apply score deltas for preference subjects in a single transaction.
  */
 export async function applyPreferenceDeltas(
   db: Database,
   userId: number,
-  genres: Genre[],
-  keywords: Keyword[],
+  subjects: PreferenceSubject[],
   scoreDelta: number,
 ): Promise<void> {
   db.transaction((tx) => {
-    for (const genre of genres) {
-      tx.insert(userGenrePreferences)
-        .values({ userId, genreId: genre.id, genreName: genre.name, score: scoreDelta, count: 1 })
-        .onConflictDoUpdate({
-          target: [userGenrePreferences.userId, userGenrePreferences.genreId],
-          set: {
-            score: sql`${userGenrePreferences.score} + ${scoreDelta}`,
-            count: sql`${userGenrePreferences.count} + 1`,
-          },
-        })
-        .run();
-    }
-
-    for (const keyword of keywords) {
-      tx.insert(userKeywordPreferences)
+    for (const subject of subjects) {
+      tx.insert(userPreferences)
         .values({
           userId,
-          keywordId: keyword.id,
-          keywordName: keyword.name,
+          ...subject,
           score: scoreDelta,
           count: 1,
         })
         .onConflictDoUpdate({
-          target: [userKeywordPreferences.userId, userKeywordPreferences.keywordId],
+          target: [userPreferences.userId, userPreferences.kind, userPreferences.subjectKey],
           set: {
-            score: sql`${userKeywordPreferences.score} + ${scoreDelta}`,
-            count: sql`${userKeywordPreferences.count} + 1`,
+            score: sql`${userPreferences.score} + ${scoreDelta}`,
+            count: sql`${userPreferences.count} + 1`,
           },
         })
         .run();

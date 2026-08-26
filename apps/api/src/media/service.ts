@@ -4,7 +4,7 @@ import { isDefined } from '@findarr/shared/utils';
 
 import type { Database } from '../db/service.js';
 import { getInteractionsBatch } from '../interaction/repository.js';
-import { getUserGenrePreferences, getUserKeywordPreferences } from '../preferences/repository.js';
+import { getUserPreferences } from '../preferences/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
 import type { UserService } from '../user/service.js';
 import type { AppLogger } from '../utils/logger.js';
@@ -123,13 +123,10 @@ export function createMediaService(context: MediaContext) {
 
     // Apply user preference scoring if authenticated
     if (isDefined(userId)) {
-      const [genrePreferences, keywordPreferences] = await Promise.all([
-        getUserGenrePreferences(db, userId),
-        getUserKeywordPreferences(db, userId),
-      ]);
+      const preferences = await getUserPreferences(db, userId);
 
-      if (genrePreferences.size > 0 || keywordPreferences.size > 0) {
-        scoredItems = scoreMediaItemsForUser(scoredItems, genrePreferences, keywordPreferences);
+      if (preferences.size > 0) {
+        scoredItems = scoreMediaItemsForUser(scoredItems, preferences);
       }
     }
 

@@ -1,5 +1,6 @@
 import { unifiedGenres } from '@findarr/shared/constants';
 import type { Genre } from '@findarr/shared/media';
+import type { PreferenceKind, PreferenceSubject } from '@findarr/shared/preferences';
 import { isDefined } from '@findarr/shared/utils';
 import type SqlDatabase from 'better-sqlite3';
 
@@ -25,6 +26,12 @@ import { createTestUserInDb } from './helpers/testHelper.js';
 // Helper to round score values for snapshots
 const toFixed2 = (value: number | undefined) =>
   isDefined(value) ? Number(value.toFixed(2)) : undefined;
+
+const prefSubject = (kind: PreferenceKind, id: number, subjectName: string): PreferenceSubject => ({
+  kind,
+  subjectKey: String(id),
+  subjectName,
+});
 
 const FIXED_NOW = new Date('2025-01-01T00:00:00.000Z');
 
@@ -150,16 +157,16 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
 
     // Add strong genre preferences
     // Action (28), Thriller (53), Drama (18) = high scores
-    await applyPreferenceDeltas(db, user.id, [{ id: 28, name: 'Action' }], [], 5);
-    await applyPreferenceDeltas(db, user.id, [{ id: 53, name: 'Thriller' }], [], 4);
-    await applyPreferenceDeltas(db, user.id, [{ id: 18, name: 'Drama' }], [], 3);
+    await applyPreferenceDeltas(db, user.id, [prefSubject('genre', 28, 'Action')], 5);
+    await applyPreferenceDeltas(db, user.id, [prefSubject('genre', 53, 'Thriller')], 4);
+    await applyPreferenceDeltas(db, user.id, [prefSubject('genre', 18, 'Drama')], 3);
 
     // Comedy (35) = negative score
-    await applyPreferenceDeltas(db, user.id, [{ id: 35, name: 'Comedy' }], [], -3);
+    await applyPreferenceDeltas(db, user.id, [prefSubject('genre', 35, 'Comedy')], -3);
 
-    // Add keyword preference (dystopia, based on novel)
-    await applyPreferenceDeltas(db, user.id, [], [{ id: 4565, name: 'dystopia' }], 5);
-    await applyPreferenceDeltas(db, user.id, [], [{ id: 818, name: 'based on novel or book' }], 3);
+    // Add keyword preference (dystopia, based on book)
+    await applyPreferenceDeltas(db, user.id, [prefSubject('keyword', 4565, 'dystopia')], 5);
+    await applyPreferenceDeltas(db, user.id, [prefSubject('keyword', 818, 'based on book')], 3);
 
     // Get popular with user preferences
     const page1 = await catalogService.getPopularMedia({ type: 'both' }, user.id);

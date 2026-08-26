@@ -1,5 +1,5 @@
 import type { Media, MediaScore, MediaType } from '@findarr/shared/media';
-import type { UserGenrePreference, UserKeywordPreference } from '@findarr/shared/preferences';
+import { toPreferenceKey, type UserPreference } from '@findarr/shared/preferences';
 import { isDefined, isNotEmpty } from '@findarr/shared/utils';
 
 /**
@@ -113,10 +113,9 @@ const scoreContribution = (normalized: number) =>
  */
 export function scoreMediaItemsForUser<T extends Media>(
   items: T[],
-  genrePreferences: Map<number, UserGenrePreference>,
-  keywordPreferences = new Map<number, UserKeywordPreference>(),
+  preferences: Map<string, UserPreference>,
 ): T[] {
-  if (genrePreferences.size === 0 && keywordPreferences.size === 0) {
+  if (preferences.size === 0) {
     return items;
   }
 
@@ -130,12 +129,12 @@ export function scoreMediaItemsForUser<T extends Media>(
     let keywordScore = 0.5;
 
     // ---------- GENRE SCORING ----------
-    if (genrePreferences.size > 0 && item.genres?.length) {
+    if (item.genres.length > 0) {
       let rawScore = 0;
       let matched = false;
 
       for (const genre of item.genres) {
-        const pref = genrePreferences.get(genre.id);
+        const pref = preferences.get(toPreferenceKey('genre', String(genre.id)));
         if (pref) {
           matched = true;
           const normalized =
@@ -151,12 +150,12 @@ export function scoreMediaItemsForUser<T extends Media>(
     }
 
     // ---------- KEYWORD SCORING ----------
-    if (keywordPreferences.size > 0 && isDefined(item.keywords)) {
+    if (isDefined(item.keywords)) {
       let rawScore = 0;
       let matched = false;
 
       for (const kw of item.keywords) {
-        const pref = keywordPreferences.get(kw.id);
+        const pref = preferences.get(toPreferenceKey('keyword', String(kw.id)));
         if (!pref) {
           continue;
         }
