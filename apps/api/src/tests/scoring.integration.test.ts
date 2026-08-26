@@ -157,19 +157,31 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
 
     // Add strong genre preferences
     // Action (28), Thriller (53), Drama (18) = high scores
-    await applyPreferenceDeltas(db, user.id, [prefSubject('genre', 28, 'Action')], 5);
-    await applyPreferenceDeltas(db, user.id, [prefSubject('genre', 53, 'Thriller')], 4);
-    await applyPreferenceDeltas(db, user.id, [prefSubject('genre', 18, 'Drama')], 3);
+    await applyPreferenceDeltas(db, user.id, [prefSubject('genre', 28, 'Action')], 5, 5);
+    await applyPreferenceDeltas(db, user.id, [prefSubject('genre', 53, 'Thriller')], 4, 4);
+    await applyPreferenceDeltas(db, user.id, [prefSubject('genre', 18, 'Drama')], 3, 3);
 
     // Comedy (35) = negative score
-    await applyPreferenceDeltas(db, user.id, [prefSubject('genre', 35, 'Comedy')], -3);
+    await applyPreferenceDeltas(db, user.id, [prefSubject('genre', 35, 'Comedy')], -3, 3);
 
     // Add keyword preference (dystopia, based on book)
-    await applyPreferenceDeltas(db, user.id, [prefSubject('keyword', 4565, 'dystopia')], 5);
-    await applyPreferenceDeltas(db, user.id, [prefSubject('keyword', 818, 'based on book')], 3);
+    await applyPreferenceDeltas(db, user.id, [prefSubject('keyword', 4565, 'dystopia')], 5, 5);
+    await applyPreferenceDeltas(db, user.id, [prefSubject('keyword', 818, 'based on book')], 3, 3);
 
     // Get popular with user preferences
     const page1 = await catalogService.getPopularMedia({ type: 'both' }, user.id);
+
+    expect(
+      page1.results.some((item) => {
+        const explanation = item.state?.score?.explanation;
+        return Boolean(
+          explanation &&
+          (explanation.positiveSignals.length > 0 ||
+            explanation.mixedSignals.length > 0 ||
+            explanation.negativeSignals.length > 0),
+        );
+      }),
+    ).toBe(true);
 
     // Extract relevant scoring data for snapshot (round to avoid floating-point precision issues)
     const scoringSnapshot = page1.results.map((item) => ({

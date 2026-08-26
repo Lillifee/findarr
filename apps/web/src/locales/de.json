@@ -348,13 +348,28 @@
     "keep": "Auswahl behalten"
   },
   "scoreBreakdown": {
-    "title": "Punkteaufschlüsselung",
-    "overall": "Gesamtpunktzahl",
-    "baseScore": "Basispunktzahl",
-    "userMatch": "Benutzerübereinstimmung",
-    "popularity": "Beliebtheit",
-    "rating": "Bewertung",
-    "genreMatch": "Genre-Übereinstimmung",
-    "keywordMatch": "Stichwort-Übereinstimmung"
+    "title": "Passt zu deinem Geschmack",
+    "noEvidenceTitle": "Noch nicht genügend Anhaltspunkte",
+    "noEvidenceBody": "Bewerte weitere Filme und Serien, um hier eine persönliche Empfehlung zu erhalten.",
+    "verdict": {
+      "good": "Passt gut",
+      "mixed": "Passt teilweise",
+      "unlikely": "Passt vielleicht nicht zu dir"
+    },
+    "summary": {
+      "positive": "Dein Geschmacksprofil passt zu {{name}}.",
+      "negative": "Deine bisherigen Bewertungen deuten darauf hin, dass {{name}} weniger zu dir passt.",
+      "mixed": "{{positive}} passt zu dir, während {{negative}} ein möglicher Vorbehalt ist.",
+      "balanced": "Deine Bewertungen für {{name}} sind bisher gemischt.",
+      "generic": "Diese Empfehlung basiert auf Themen aus deinen bisherigen Bewertungen."
+    },
+    "showReasons": "Warum diese Empfehlung?",
+    "hideReasons": "Empfehlungsdetails ausblenden",
+    "positiveReasons": "Was zu deinem Geschmack passt",
+    "mixedReasons": "Gemischte Signale",
+    "negativeReasons": "Mögliche Vorbehalte",
+    "positiveEvidence": "{{positive}} von {{total}} positiv bewertet",
+    "mixedEvidence": "{{positive}} positiv · {{negative}} negativ",
+    "negativeEvidence": "{{negative}} von {{total}} negativ bewertet"
   }
 }

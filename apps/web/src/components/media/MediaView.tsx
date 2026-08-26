@@ -8,6 +8,7 @@ import { tmdbImage, tmdbImageOrUndefined } from '../../utils/tmdb';
 import { Icon } from '../ui/Icon';
 import { StatusBadge } from '../ui/StatusBadge';
 import { LikeDislikeButton } from './LikeDislikeButton';
+import { Score } from './Score';
 
 interface MediaDetailsProps {
   media: MovieDetails | TVDetails;
@@ -270,6 +271,8 @@ export function MediaView({ media: initialMedia, onVoteComplete }: MediaDetailsP
                 </div>
               )}
             </div>
+
+            {media.state?.score && <Score score={media.state.score} />}
 
             {/* Overview */}
             {isNotEmpty(media.overview) && (
