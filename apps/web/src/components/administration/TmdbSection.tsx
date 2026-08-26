@@ -32,7 +32,6 @@ export function TmdbSection() {
     const settings = await adminTmdbService.getSettings();
     setSavedTokenSet(settings.tmdbAccessTokenSet);
     setTokenInput('');
-    setTestResult(null);
   });
 
   const isDirty = tokenInput !== '';

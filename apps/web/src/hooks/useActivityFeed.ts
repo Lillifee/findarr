@@ -123,7 +123,8 @@ export function useActivityFeed(): ActivityFeed {
       statuses: ActivityStatus[];
       action: ActivityAction;
     }) => {
-      const requestId = (activityRequestIdRef.current += 1);
+      activityRequestIdRef.current += 1;
+      const requestId = activityRequestIdRef.current;
       const requestParams = {
         page: options.page,
         type: options.type,

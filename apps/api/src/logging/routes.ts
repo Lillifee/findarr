@@ -11,10 +11,9 @@ export const adminLogsRoutes = (fastify: FastifyInstance) => {
 
   fastify.get('/logs', (): LogsResponse => ({ entries: fastify.logStore.getLogs() }));
 
-  fastify.get(
-    '/logs/level',
-    (): LogLevelResponse => ({ level: LogLevelSchema.catch('info').parse(fastify.log.level) }),
-  );
+  fastify.get('/logs/level', (): LogLevelResponse => ({
+    level: LogLevelSchema.catch('info').parse(fastify.log.level),
+  }));
 
   fastify.put('/logs/level', (request): LogLevelResponse => {
     const { level } = LogLevelBodySchema.parse(request.body);

@@ -4,8 +4,7 @@ import type { FastifyInstance } from 'fastify';
 export const versionRoutes = (fastify: FastifyInstance) => {
   fastify.addHook('preHandler', fastify.requireAdmin);
 
-  fastify.get(
-    '/version',
-    async (): Promise<VersionInfo> => fastify.versionService.getVersionInfo(),
+  fastify.get('/version', async (): Promise<VersionInfo> =>
+    fastify.versionService.getVersionInfo(),
   );
 };

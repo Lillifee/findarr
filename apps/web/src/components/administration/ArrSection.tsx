@@ -78,7 +78,6 @@ export function ArrSection({ service }: ArrSectionProps) {
     setUrlInput(currentSettings.url ?? '');
     setSelectedProfileId(currentSettings.qualityProfileId?.toString() ?? '');
     setSelectedRootFolder(currentSettings.rootFolderPath ?? '');
-    setTestResult(null);
     setProfiles([]);
     setRootFolders([]);
   });

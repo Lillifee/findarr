@@ -21,6 +21,7 @@ export function useConnectionState(load: () => Promise<void>) {
 
   const init = useCallback(async () => {
     setIsLoading(true);
+    setTestResult(null);
     try {
       await loadRef.current();
     } catch {

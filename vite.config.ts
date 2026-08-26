@@ -43,11 +43,15 @@ export default defineConfig({
     },
     rules: {
       // Correctness
+      'react/immutability': 'off',
+      'react/refs': 'off',
+      'react/set-state-in-effect': 'off',
       'vitest/no-conditional-expect': 'off',
       'vitest/no-conditional-in-test': 'off',
 
       // Perf
       'oxc/no-map-spread': 'off',
+      'react/no-deriving-state-in-effects': 'off',
       'react-perf/jsx-no-jsx-as-prop': 'off',
       'react-perf/jsx-no-new-array-as-prop': 'off',
       'react-perf/jsx-no-new-function-as-prop': 'off',
@@ -78,6 +82,7 @@ export default defineConfig({
 
       // Suspicious
       'oxc/no-async-endpoint-handlers': 'off',
+      'react/exhaustive-effect-dependencies': 'off',
       'react/react-in-jsx-scope': 'off',
 
       // Pedantic
@@ -109,12 +114,14 @@ export default defineConfig({
       'import/no-nodejs-modules': 'off',
       'import/prefer-default-export': 'off',
       'no-nested-ternary': 'off',
+      'one-var': 'off',
       'promise/avoid-new': 'off',
       'promise/prefer-await-to-callbacks': 'off',
       'promise/prefer-await-to-then': 'off',
       'react/jsx-handler-names': 'off',
       'react/jsx-max-depth': 'off',
       'react/jsx-props-no-spreading': 'off',
+      'react/todo': 'off',
       'sort-keys': 'off',
       'typescript/consistent-type-definitions': 'off',
       'typescript/parameter-properties': 'off',

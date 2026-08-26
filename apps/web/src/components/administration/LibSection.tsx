@@ -58,7 +58,6 @@ export function LibSection({ service, forceDisabled, onEnable }: LibSectionProps
     setSavedApiKeySet(settings.apiKeySet);
     setEnabled(settings.enabled);
     setUrlInput(settings.url ?? '');
-    setTestResult(null);
   });
 
   const handleToggleEnabled = () => {
