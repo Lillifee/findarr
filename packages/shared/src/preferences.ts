@@ -1,4 +1,8 @@
-import type { DbUserGenrePreference, DbUserKeywordPreference } from './db.js';
+import type { DbUserPreference } from './db.js';
 
-export type UserGenrePreference = Omit<DbUserGenrePreference, 'userId'>;
-export type UserKeywordPreference = Omit<DbUserKeywordPreference, 'userId'>;
+export type UserPreference = Omit<DbUserPreference, 'userId'>;
+export type PreferenceKind = UserPreference['kind'];
+export type PreferenceSubject = Pick<UserPreference, 'kind' | 'subjectKey' | 'subjectName'>;
+
+export const toPreferenceKey = (kind: PreferenceKind, subjectKey: string) =>
+  `${kind}:${subjectKey}`;

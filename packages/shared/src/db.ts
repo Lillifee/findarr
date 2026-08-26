@@ -126,23 +126,24 @@ export const userMediaInteractions = sqliteTable(
 );
 
 // ============================================================================
-// User Genre Preferences Table
+// User Preferences Table
 // ============================================================================
 
-export const userGenrePreferences = sqliteTable(
-  'user_genre_preferences',
+export const userPreferences = sqliteTable(
+  'user_preferences',
   {
     userId: integer('userId')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    genreId: integer('genreId').notNull(),
-    genreName: text('genreName').notNull(),
+    kind: text('kind', { enum: ['genre', 'keyword'] }).notNull(),
+    subjectKey: text('subjectKey').notNull(),
+    subjectName: text('subjectName').notNull(),
     score: integer('score').notNull().default(0),
     count: integer('count').notNull().default(1),
   },
   (table) => [
-    primaryKey({ columns: [table.userId, table.genreId] }),
-    index('idx_user_genre_preferences_user').on(table.userId),
+    primaryKey({ columns: [table.userId, table.kind, table.subjectKey] }),
+    index('idx_user_preferences_user_kind').on(table.userId, table.kind),
   ],
 );
 
@@ -188,27 +189,6 @@ export const mediaStats = sqliteTable('media_stats', {
 });
 
 // ============================================================================
-// User Keyword Preferences Table
-// ============================================================================
-
-export const userKeywordPreferences = sqliteTable(
-  'user_keyword_preferences',
-  {
-    userId: integer('userId')
-      .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
-    keywordId: integer('keywordId').notNull(),
-    keywordName: text('keywordName').notNull(),
-    score: integer('score').notNull().default(0),
-    count: integer('count').notNull().default(1),
-  },
-  (table) => [
-    primaryKey({ columns: [table.userId, table.keywordId] }),
-    index('idx_user_keyword_preferences_user').on(table.userId),
-  ],
-);
-
-// ============================================================================
 // User Settings Table
 // ============================================================================
 
@@ -246,8 +226,7 @@ export const userSettings = sqliteTable(
 
 export const usersRelations = relations(users, ({ many, one }) => ({
   interactions: many(userMediaInteractions),
-  genrePreferences: many(userGenrePreferences),
-  keywordPreferences: many(userKeywordPreferences),
+  preferences: many(userPreferences),
   userSettings: one(userSettings),
 }));
 
@@ -266,16 +245,9 @@ export const userMediaInteractionsRelations = relations(userMediaInteractions, (
   }),
 }));
 
-export const userGenrePreferencesRelations = relations(userGenrePreferences, ({ one }) => ({
+export const userPreferencesRelations = relations(userPreferences, ({ one }) => ({
   user: one(users, {
-    fields: [userGenrePreferences.userId],
-    references: [users.id],
-  }),
-}));
-
-export const userKeywordPreferencesRelations = relations(userKeywordPreferences, ({ one }) => ({
-  user: one(users, {
-    fields: [userKeywordPreferences.userId],
+    fields: [userPreferences.userId],
     references: [users.id],
   }),
 }));
@@ -296,10 +268,9 @@ export const schema = {
   users,
   media,
   userMediaInteractions,
-  userGenrePreferences,
+  userPreferences,
   catalogCache,
   mediaStats,
-  userKeywordPreferences,
   userSettings,
 };
 
@@ -307,8 +278,7 @@ export const relationsSchema = {
   usersRelations,
   mediaRelations,
   userMediaInteractionsRelations,
-  userGenrePreferencesRelations,
-  userKeywordPreferencesRelations,
+  userPreferencesRelations,
   userSettingsRelations,
 };
 
@@ -319,6 +289,5 @@ export const relationsSchema = {
 export type DbUser = InferSelectModel<typeof users>;
 export type DbMedia = InferSelectModel<typeof media>;
 export type DbUserMediaInteraction = InferSelectModel<typeof userMediaInteractions>;
-export type DbUserGenrePreference = InferSelectModel<typeof userGenrePreferences>;
-export type DbUserKeywordPreference = InferSelectModel<typeof userKeywordPreferences>;
+export type DbUserPreference = InferSelectModel<typeof userPreferences>;
 export type DbCatalogCache = InferSelectModel<typeof catalogCache>;

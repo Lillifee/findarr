@@ -1,5 +1,6 @@
 import type { InteractionType } from '@findarr/shared/interaction';
 import type { Genre, Keyword } from '@findarr/shared/media';
+import type { PreferenceSubject } from '@findarr/shared/preferences';
 
 import type { Database } from '../db/service.js';
 import { applyPreferenceDeltas } from './repository.js';
@@ -29,5 +30,18 @@ export async function updatePreferencesForInteraction(
   const baseScore = action === 'liked' ? LIKE_SCORE : DISLIKE_SCORE;
   const scoreDelta = isToggle ? -baseScore : baseScore;
 
-  await applyPreferenceDeltas(db, userId, genres, keywords ?? [], scoreDelta);
+  const subjects: PreferenceSubject[] = [
+    ...genres.map((genre) => ({
+      kind: 'genre' as const,
+      subjectKey: String(genre.id),
+      subjectName: genre.name,
+    })),
+    ...(keywords ?? []).map((keyword) => ({
+      kind: 'keyword' as const,
+      subjectKey: String(keyword.id),
+      subjectName: keyword.name,
+    })),
+  ];
+
+  await applyPreferenceDeltas(db, userId, subjects, scoreDelta);
 }

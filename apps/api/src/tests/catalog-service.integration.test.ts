@@ -1,4 +1,5 @@
 import type { Genre, MediaDetails, SearchResponse } from '@findarr/shared/media';
+import type { PreferenceKind, PreferenceSubject } from '@findarr/shared/preferences';
 import type SqlDatabase from 'better-sqlite3';
 import type { Mocked } from 'vite-plus/test';
 
@@ -18,6 +19,12 @@ import {
   createTestMovieDetail,
   createTestUserInDb,
 } from './helpers/testHelper.js';
+
+const preferenceSubject = (
+  kind: PreferenceKind,
+  id: number,
+  subjectName: string,
+): PreferenceSubject => ({ kind, subjectKey: String(id), subjectName });
 
 describe('catalog service - integration tests', () => {
   let db: Database;
@@ -155,7 +162,7 @@ describe('catalog service - integration tests', () => {
     const user = await createTestUserInDb(db);
 
     // Add genre preferences for the user (Action = high score)
-    await applyPreferenceDeltas(db, user.id, [{ id: 28, name: 'Action' }], [], 5);
+    await applyPreferenceDeltas(db, user.id, [preferenceSubject('genre', 28, 'Action')], 5);
 
     // Populate catalog cache with items - some with Action genre, some without
     const items = [
@@ -190,7 +197,7 @@ describe('catalog service - integration tests', () => {
     const user = await createTestUserInDb(db);
 
     // Add keyword preferences for the user
-    await applyPreferenceDeltas(db, user.id, [], [{ id: 123, name: 'superhero' }], 3);
+    await applyPreferenceDeltas(db, user.id, [preferenceSubject('keyword', 123, 'superhero')], 3);
 
     // Populate catalog cache with items that have keywords
     const items = [
