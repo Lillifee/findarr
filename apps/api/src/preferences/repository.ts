@@ -4,7 +4,7 @@ import {
   type PreferenceSubject,
   type UserPreference,
 } from '@findarr/shared/preferences';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, lte, sql } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';
 
@@ -40,6 +40,7 @@ export async function applyPreferenceDeltas(
   userId: number,
   subjects: PreferenceSubject[],
   scoreDelta: number,
+  countDelta = 1,
 ): Promise<void> {
   db.transaction((tx) => {
     for (const subject of subjects) {
@@ -48,16 +49,20 @@ export async function applyPreferenceDeltas(
           userId,
           ...subject,
           score: scoreDelta,
-          count: 1,
+          count: countDelta,
         })
         .onConflictDoUpdate({
           target: [userPreferences.userId, userPreferences.kind, userPreferences.subjectKey],
           set: {
             score: sql`${userPreferences.score} + ${scoreDelta}`,
-            count: sql`${userPreferences.count} + 1`,
+            count: sql`${userPreferences.count} + ${countDelta}`,
           },
         })
         .run();
     }
+
+    tx.delete(userPreferences)
+      .where(and(eq(userPreferences.userId, userId), lte(userPreferences.count, 0)))
+      .run();
   });
 }

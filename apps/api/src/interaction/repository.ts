@@ -31,24 +31,22 @@ export async function addInteraction(
 }
 
 /**
- * Check if a user has a specific interaction with media
+ * Get the user interaction for a specific media
  */
-export async function hasInteraction(
+export async function getInteractionAction(
   db: Database,
   userId: number,
   mediaId: number,
-  action: InteractionType,
-): Promise<boolean> {
+): Promise<InteractionType | undefined> {
   const result = await db.query.userMediaInteractions.findFirst({
     where: and(
       eq(userMediaInteractions.userId, userId),
       eq(userMediaInteractions.mediaId, mediaId),
-      eq(userMediaInteractions.action, action),
     ),
-    columns: { id: true },
+    columns: { action: true },
   });
 
-  return isDefined(result);
+  return result?.action;
 }
 
 /**
