@@ -1,5 +1,5 @@
 import type { Media } from '@findarr/shared/media';
-import { isDefined } from '@findarr/shared/utils';
+import { DEBUG, isDefined } from '@findarr/shared/utils';
 import { useTranslation } from 'react-i18next';
 
 import { tmdbImage, releaseYear } from '../../utils/tmdb';
@@ -62,7 +62,7 @@ function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
 
         {/* Bottom Dock with Actions */}
         <div className="flex min-h-12 items-center justify-between gap-2 border-t border-zinc-800 bg-zinc-950/95 px-2.5 py-1.5 md:px-3">
-          <div className="flex min-w-0 items-center gap-1.5 text-[11px] leading-none font-semibold text-zinc-100">
+          <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-[11px] leading-none font-semibold text-zinc-100">
             <span className="tracking-[0.14em] text-zinc-300 uppercase @max-[180px]:hidden">
               {year}
             </span>
@@ -71,6 +71,17 @@ function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
               <Icon filled className="text-amber-300" name="star" size="xs" weight={600} />
               {item.voteAverage.toFixed(1)}
             </span>
+            {DEBUG.scoring && item.state?.score && (
+              <>
+                <span className="h-3 w-px bg-zinc-700" />
+                <span className="text-sky-300" title="User score">
+                  User {Math.round(item.state?.score.userScore * 100)}%
+                </span>
+                <span className="text-rose-300" title="Final score">
+                  Overall {Math.round(item.state?.score.finalTrendingScore * 100)}%
+                </span>
+              </>
+            )}
           </div>
 
           {/* Like/Dislike Buttons */}

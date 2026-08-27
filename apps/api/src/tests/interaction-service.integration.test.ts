@@ -156,7 +156,7 @@ describe('interaction service - integration tests', () => {
       const preferences = await getUserPreferences(db, user.id);
       expect(
         [...preferences.keys()].filter((key) => key.startsWith('cast:')).toSorted(),
-      ).toStrictEqual(['cast:1', 'cast:2', 'cast:3']);
+      ).toStrictEqual(['cast:1', 'cast:2', 'cast:3', 'cast:4']);
 
       // Verify result
       expect(result).toMatchObject({

@@ -2,7 +2,7 @@ import type { User } from '@findarr/shared/auth';
 import type { DbMedia } from '@findarr/shared/db';
 import type { CreateMediaInteraction, InteractionsQuery } from '@findarr/shared/interaction';
 import type { MediaDetails, UserInteractionsResponse } from '@findarr/shared/media';
-import { isDefined } from '@findarr/shared/utils';
+import { DEBUG, isDefined } from '@findarr/shared/utils';
 
 import type { AnyArrService } from '../arr/service.js';
 import type { CatalogService } from '../catalog/service.js';
@@ -82,7 +82,11 @@ export function createInteractionService(context: InteractionContext) {
     const enrichedMedia = await media.fetchTMDBDetails(items);
 
     // Add user interactions and vote counts in optimized batch query
-    const results = await media.enrichWithInteractions(enrichedMedia, userId);
+    const results = await media.enrichMediaResults(enrichedMedia, userId, {
+      scoring: DEBUG.scoring,
+      interactions: true,
+      records: false,
+    });
 
     return { results, page };
   }

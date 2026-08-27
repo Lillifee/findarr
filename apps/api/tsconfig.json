@@ -25,5 +25,5 @@
 
     "types": ["node", "vitest/globals"]
   },
-  "include": ["src", "**/*.test.ts"]
+  "include": ["src", "**/*.test.ts", "src/preferences/helpers.ts"]
 }

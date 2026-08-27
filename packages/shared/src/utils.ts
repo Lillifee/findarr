@@ -20,3 +20,7 @@ export const objectKeys = <T extends object, K extends keyof T>(object: T) =>
 
 export const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
+
+export const DEBUG = {
+  scoring: false,
+};

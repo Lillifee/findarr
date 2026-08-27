@@ -4,8 +4,8 @@ import type { PreferenceSubject } from '@findarr/shared/preferences';
 import { isDefined } from '@findarr/shared/utils';
 
 import type { Database } from '../db/service.js';
+import { getTopCast } from './helpers.js';
 import { applyPreferenceDeltas } from './repository.js';
-import { getTopCast } from './subjects.js';
 
 // ============================================================================
 // User Preferences Service - Business Logic

@@ -67,43 +67,13 @@ export function createCatalogService(context: CatalogContext) {
   }
 
   /**
-   * Helper: Enrich TMDB items with complete state
-   * Adds scoring, media records, and optionally user interactions
-   */
-  async function enrichMediaResults<T extends Media>(
-    items: T[],
-    userId: number,
-    options: { scoring?: boolean; records?: boolean; interactions?: boolean } = {},
-  ): Promise<T[]> {
-    let enriched = items;
-    const { scoring = true, records = true, interactions = true } = options;
-
-    // Add scores
-    if (scoring) {
-      enriched = await media.enrichWithScoring(enriched, userId);
-    }
-
-    // Add database records (status, arrId, jellyfinId)
-    if (records) {
-      enriched = await media.enrichWithRecords(enriched);
-    }
-
-    // Add user interactions and vote counts
-    if (interactions) {
-      enriched = await media.enrichWithInteractions(enriched, userId);
-    }
-
-    return enriched;
-  }
-
-  /**
    * Search for media across all sources
    * Currently delegates to TMDB
    */
   async function searchMedia(params: SearchQuery, userId: number): Promise<SearchResponse> {
     const { language } = await user.getSettings(userId);
     const response = await tmdb.search({ ...params, language });
-    const results = await enrichMediaResults(response.results, userId);
+    const results = await media.enrichMediaResults(response.results, userId);
     return { ...response, results };
   }
 
@@ -115,7 +85,7 @@ export function createCatalogService(context: CatalogContext) {
   async function getMediaDetails(params: DetailsQuery, userId: number) {
     const { language } = await user.getSettings(userId);
     const mediaItem = await tmdb.details({ ...params, language });
-    const [enriched] = await enrichMediaResults([mediaItem], userId);
+    const [enriched] = await media.enrichMediaResults([mediaItem], userId);
     return enriched;
   }
 
@@ -172,7 +142,7 @@ export function createCatalogService(context: CatalogContext) {
     const pageWindow = popularFeedSnapshot.getSnapshotPage(page);
 
     // Enrich the items in the current window with full state (scores, records, interactions)
-    const results = await enrichMediaResults(pageWindow.items, userId, { scoring: false });
+    const results = await media.enrichMediaResults(pageWindow.items, userId, { scoring: false });
 
     return {
       results,

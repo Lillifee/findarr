@@ -77,11 +77,13 @@ export interface Season {
   status?: 'none' | 'requested' | 'monitored' | 'downloaded' | 'available';
 }
 
+export type MediaScoreSignalPreferenceType = 'positive' | 'mixed' | 'negative';
+
 export interface MediaScoreSignal {
   kind: PreferenceKind;
   subjectKey: string;
   name: string;
-  sentiment: 'positive' | 'mixed' | 'negative';
+  preferenceType: MediaScoreSignalPreferenceType;
   strength: number;
   positiveCount: number;
   negativeCount: number;
@@ -100,9 +102,6 @@ export interface MediaScore {
   weightedRating: number;
   baseScore: number;
   baseTrendingScore: number;
-  genreScore: number;
-  keywordScore: number;
-  castScore: number;
   userScore: number;
   finalScore: number;
   finalTrendingScore: number;

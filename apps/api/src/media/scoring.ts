@@ -1,13 +1,20 @@
-import type { Media, MediaScore, MediaScoreSignal, MediaType } from '@findarr/shared/media';
+import type {
+  Media,
+  MediaScore,
+  MediaScoreSignal,
+  MediaScoreSignalPreferenceType,
+  MediaType,
+} from '@findarr/shared/media';
 import {
   toPreferenceKey,
   type PreferenceKind,
   type PreferenceSubject,
   type UserPreference,
+  type UserRatingCounts,
 } from '@findarr/shared/preferences';
 import { isDefined, isNotEmpty } from '@findarr/shared/utils';
 
-import { getTopCast } from '../preferences/subjects.js';
+import { getTopCast } from '../preferences/helpers.js';
 
 /**
  * Maximum trending rank (5 pages × 20 items per page from TMDB)
@@ -16,7 +23,9 @@ import { getTopCast } from '../preferences/subjects.js';
 export const MAX_TRENDING_RANK = 100;
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
-const clamp = (v: number) => Math.max(0, Math.min(1, v));
+const BAYESIAN_PRIOR_VOTES = 50;
+
+const clamp = (value: number) => Math.max(0, Math.min(1, value));
 
 // ============================================================================
 // Types
@@ -26,7 +35,7 @@ const clamp = (v: number) => Math.max(0, Math.min(1, v));
  * Media statistics for normalizing scores
  * Describes the distribution of media characteristics (popularity, votes, ratings)
  * Precomputed from catalog cache and stored in database
- * Max values only increase, min values only decrease over time (growth strategy)
+ * Maximum values only increase over time (growth strategy)
  */
 export type MediaStats = {
   mediaType: MediaType;
@@ -54,20 +63,18 @@ export function scoreMediaItems<T extends Media>(
     return items;
   }
 
-  const MIN_VOTES = 50;
-
-  const scored = items.map<T>((item) => {
+  return items.map<T>((item) => {
     const stats = item.type === 'movie' ? movieStats : tvStats;
-    const globalAverage = stats.avgRating;
+    const priorMeanRating = stats.avgRating;
 
     // Normalize popularity (log scale)
     const popularityScore = Math.log10(item.popularity + 1) / Math.log10(stats.maxPopularity + 1);
 
     // Bayesian weighted rating
-    const bayes =
-      (item.voteCount / (item.voteCount + MIN_VOTES)) * (item.voteAverage || 0) +
-      (MIN_VOTES / (item.voteCount + MIN_VOTES)) * globalAverage;
-    const weightedRating = bayes / 10;
+    const bayesianRating =
+      (item.voteCount / (item.voteCount + BAYESIAN_PRIOR_VOTES)) * (item.voteAverage || 0) +
+      (BAYESIAN_PRIOR_VOTES / (item.voteCount + BAYESIAN_PRIOR_VOTES)) * priorMeanRating;
+    const weightedRating = bayesianRating / 10;
 
     // Trending score (0 if not trending)
     const trendingScore = isDefined(item.trendingRank)
@@ -92,9 +99,6 @@ export function scoreMediaItems<T extends Media>(
       weightedRating,
       baseScore,
       baseTrendingScore,
-      genreScore: 0,
-      keywordScore: 0,
-      castScore: 0,
       userScore: 0,
       finalScore: baseScore,
       finalTrendingScore: baseTrendingScore,
@@ -107,150 +111,168 @@ export function scoreMediaItems<T extends Media>(
 
     return { ...item, state: { ...item.state, score } };
   });
-
-  return scored;
 }
 
 // ============================================================================
 // User Preference Scoring
 // ============================================================================
 
-const PRIOR_WEIGHT = 5;
-const MIN_SIGNAL_EVIDENCE = 2;
-const PREFERENCE_KIND_WEIGHT: Record<PreferenceKind, number> = {
+// A few ratings should not create a strong recommendation. These extra
+// imaginary ratings keep scores closer to neutral until more ratings exist.
+const SUBJECT_LIFT_PRIOR_RATINGS = 5;
+const USER_BASELINE_PRIOR_RATINGS = 10;
+const MIN_SUBJECT_RATINGS = 2;
+
+// Keywords count a little less because they can be noisy.
+// Top cast counts a little more because it is usually a more specific match.
+const PREFERENCE_KIND_MULTIPLIERS: Record<PreferenceKind, number> = {
   genre: 1,
   keyword: 0.8,
   cast: 1.2,
 };
 
-const scorePreferenceSubjects = (
+const NO_USER_RATINGS: UserRatingCounts = { likes: 0, dislikes: 0 };
+
+// This is how often the user normally likes something. A user who likes only
+// 30% of titles may still favor a subject they like 40% of the time.
+// New users start near 50% until they have enough ratings.
+const getUserLikeBaseline = ({ likes, dislikes }: UserRatingCounts) =>
+  (likes + USER_BASELINE_PRIOR_RATINGS * 0.5) / (likes + dislikes + USER_BASELINE_PRIOR_RATINGS);
+
+// Compare the actual likes for a subject with the number expected from the
+// user's usual like rate. More ratings make the result stronger.
+const getSmoothedLift = (positiveCount: number, evidenceCount: number, userLikeBaseline: number) =>
+  (positiveCount - userLikeBaseline * evidenceCount) / (evidenceCount + SUBJECT_LIFT_PRIOR_RATINGS);
+
+const toPreferenceSubjects = (
+  kind: PreferenceKind,
+  items: readonly { id: number; name: string }[],
+): PreferenceSubject[] =>
+  items.map((item) => ({ kind, subjectKey: String(item.id), subjectName: item.name }));
+
+const scorePreferenceKind = (
   kind: PreferenceKind,
   subjects: PreferenceSubject[],
   preferences: Map<string, UserPreference>,
+  userLikeBaseline: number,
 ) => {
-  let preferenceScore = 0;
+  let totalPositiveCount = 0;
   let evidenceCount = 0;
-  const signals: MediaScoreSignal[] = [];
+  const evidenceSignals: MediaScoreSignal[] = [];
 
   for (const subject of subjects) {
     const preference = preferences.get(toPreferenceKey(subject.kind, subject.subjectKey));
-    if (!preference || preference.count < MIN_SIGNAL_EVIDENCE) {
+    if (!preference || preference.count < MIN_SUBJECT_RATINGS) {
       continue;
     }
 
-    const affinity = 0.5 + preference.score / (2 * (preference.count + PRIOR_WEIGHT));
+    // Stored preferences keep the difference and total, so rebuild the counts.
     const positiveCount = (preference.count + preference.score) / 2;
     const negativeCount = preference.count - positiveCount;
-    const positiveShare = positiveCount / preference.count;
-    const sentiment = positiveShare > 0.6 ? 'positive' : positiveShare < 0.4 ? 'negative' : 'mixed';
+    const subjectPref = 0.5 + getSmoothedLift(positiveCount, preference.count, userLikeBaseline);
+    const prefType = subjectPref > 0.6 ? 'positive' : subjectPref < 0.4 ? 'negative' : 'mixed';
+    const strength = Math.abs(subjectPref - 0.5) * 2;
 
-    preferenceScore += preference.score;
+    totalPositiveCount += positiveCount;
     evidenceCount += preference.count;
-    signals.push({
+    evidenceSignals.push({
       kind: subject.kind,
       subjectKey: subject.subjectKey,
       name: subject.subjectName,
-      sentiment,
-      strength: Math.abs(affinity - 0.5) * 2,
+      preferenceType: prefType,
+      strength,
       positiveCount,
       negativeCount,
     });
   }
 
   return {
-    signals,
-    score: signals.length > 0 ? 0.5 + preferenceScore / (2 * (evidenceCount + PRIOR_WEIGHT)) : 0.5,
-    weight:
-      evidenceCount > 0
-        ? (evidenceCount / (evidenceCount + PRIOR_WEIGHT)) * PREFERENCE_KIND_WEIGHT[kind]
-        : 0,
+    evidenceSignals,
+    // Combine all subjects of the same kind first.
+    // A movie should not score higher just because it has more genre or keyword tags.
+    preferenceScore:
+      evidenceSignals.length > 0
+        ? 0.5 + getSmoothedLift(totalPositiveCount, evidenceCount, userLikeBaseline)
+        : 0.5,
+    kindMultiplier: evidenceCount > 0 ? PREFERENCE_KIND_MULTIPLIERS[kind] : 0,
   };
 };
 
-const bySignalStrength = (first: MediaScoreSignal, second: MediaScoreSignal) =>
-  second.strength - first.strength;
+const getStrongestSignals = (
+  signals: MediaScoreSignal[],
+  preferenceType: MediaScoreSignalPreferenceType,
+) =>
+  signals
+    .filter((signal) => signal.preferenceType === preferenceType)
+    .toSorted((first, second) => second.strength - first.strength)
+    .slice(0, 3);
 
 /**
  * Apply user preference scoring to media items
- * Calculates preference-dimension match scores and combines them with base scores.
+ * Calculates the personal match score and combines it with the catalog score.
  */
 export function scoreMediaItemsForUser<T extends Media>(
   items: T[],
   preferences: Map<string, UserPreference>,
+  ratingCounts: UserRatingCounts = NO_USER_RATINGS,
 ): T[] {
   if (preferences.size === 0) {
     return items;
   }
 
-  const scored = items.map<T>((item) => {
-    const genreResult = scorePreferenceSubjects(
-      'genre',
-      item.genres.map((genre) => ({
-        kind: 'genre',
-        subjectKey: String(genre.id),
-        subjectName: genre.name,
-      })),
-      preferences,
-    );
-    const keywordResult = scorePreferenceSubjects(
-      'keyword',
-      (item.keywords ?? []).map((keyword) => ({
-        kind: 'keyword',
-        subjectKey: String(keyword.id),
-        subjectName: keyword.name,
-      })),
-      preferences,
-    );
-    const castResult = scorePreferenceSubjects(
-      'cast',
-      getTopCast(item.cast).map((member) => ({
-        kind: 'cast',
-        subjectKey: String(member.id),
-        subjectName: member.name,
-      })),
-      preferences,
-    );
-    const genreScore = genreResult.score;
-    const keywordScore = keywordResult.score;
-    const castScore = castResult.score;
+  const userLikeBaseline = getUserLikeBaseline(ratingCounts);
 
+  return items.map<T>((item) => {
+    const genreResult = scorePreferenceKind(
+      'genre',
+      toPreferenceSubjects('genre', item.genres),
+      preferences,
+      userLikeBaseline,
+    );
+    const keywordResult = scorePreferenceKind(
+      'keyword',
+      toPreferenceSubjects('keyword', item.keywords ?? []),
+      preferences,
+      userLikeBaseline,
+    );
+    const castResult = scorePreferenceKind(
+      'cast',
+      toPreferenceSubjects('cast', getTopCast(item.cast)),
+      preferences,
+      userLikeBaseline,
+    );
     // ---------- BASE SCORE ----------
     const baseScore = item.state?.score?.baseScore ?? 0;
     const baseTrendingScore = item.state?.score?.baseTrendingScore ?? 0;
 
     // ---------- USER SCORE ----------
-    const matchedResults = [genreResult, keywordResult, castResult].filter(
-      (result) => result.weight > 0,
+    const activeKindScores = [genreResult, keywordResult, castResult].filter(
+      (result) => result.kindMultiplier > 0,
     );
-    const totalWeight = matchedResults.reduce((total, result) => total + result.weight, 0);
-
-    const userScore =
-      totalWeight > 0
-        ? matchedResults.reduce((total, result) => total + result.score * result.weight, 0) /
-          totalWeight
-        : 0.5;
+    // Start at neutral. Kinds the user favors raise the score, kinds they avoid lower it.
+    // Matching kinds add together and conflicting kinds cancel out.
+    const userScore = clamp(
+      0.5 +
+        activeKindScores.reduce(
+          (total, result) => total + (result.preferenceScore - 0.5) * result.kindMultiplier,
+          0,
+        ),
+    );
 
     // ---------- FINAL SCORES ----------
     const finalScore = 0.7 * baseScore + 0.3 * userScore;
     const finalTrendingScore = 0.7 * baseTrendingScore + 0.3 * userScore;
 
     // ---------- EXPLANATION ----------
-    const signals = [...genreResult.signals, ...keywordResult.signals, ...castResult.signals];
+    const evidenceSignals = [
+      ...genreResult.evidenceSignals,
+      ...keywordResult.evidenceSignals,
+      ...castResult.evidenceSignals,
+    ];
 
-    const positiveSignals = signals
-      .filter((signal) => signal.sentiment === 'positive')
-      .toSorted(bySignalStrength)
-      .slice(0, 3);
-
-    const mixedSignals = signals
-      .filter((signal) => signal.sentiment === 'mixed')
-      .toSorted(bySignalStrength)
-      .slice(0, 3);
-
-    const negativeSignals = signals
-      .filter((signal) => signal.sentiment === 'negative')
-      .toSorted(bySignalStrength)
-      .slice(0, 3);
+    const positiveSignals = getStrongestSignals(evidenceSignals, 'positive');
+    const mixedSignals = getStrongestSignals(evidenceSignals, 'mixed');
+    const negativeSignals = getStrongestSignals(evidenceSignals, 'negative');
 
     const score: MediaScore = {
       ...(item.state?.score ?? {
@@ -261,9 +283,6 @@ export function scoreMediaItemsForUser<T extends Media>(
         baseScore: 0,
         baseTrendingScore: 0,
       }),
-      genreScore,
-      keywordScore,
-      castScore,
       userScore,
       finalScore,
       finalTrendingScore,
@@ -276,6 +295,4 @@ export function scoreMediaItemsForUser<T extends Media>(
 
     return { ...item, state: { ...item.state, score } };
   });
-
-  return scored;
 }
