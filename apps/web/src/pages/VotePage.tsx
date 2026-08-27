@@ -43,7 +43,7 @@ export function VotePage() {
 
       {isLoading && (
         <PageContainer>
-          <LoadingState />
+          <LoadingState className="flex min-h-[50vh] items-center justify-center" />
         </PageContainer>
       )}
 

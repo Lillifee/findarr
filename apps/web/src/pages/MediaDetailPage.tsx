@@ -25,7 +25,7 @@ export function MediaDetailPage() {
     <div className="relative pb-20 md:pb-8">
       <DetailCloseButton onClick={handleClose} />
 
-      {loading && <LoadingState />}
+      {loading && <LoadingState className="flex min-h-[50vh] items-center justify-center" />}
 
       {isDefined(error) && !loading && <ErrorState message={error} />}
 
