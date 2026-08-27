@@ -28,7 +28,9 @@ export function ActivitySection({
   const { t } = useTranslation();
   return (
     <section id="results-section">
-      {loading && results.length === 0 && <LoadingState />}
+      {loading && results.length === 0 && (
+        <LoadingState className="flex min-h-[50vh] items-center justify-center" />
+      )}
 
       {!loading && results.length === 0 && (
         <StateDisplay

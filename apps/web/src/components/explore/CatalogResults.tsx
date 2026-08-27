@@ -27,7 +27,11 @@ export function CatalogResults({
   const { t } = useTranslation();
 
   if (results.length === 0) {
-    return loading ? <LoadingState /> : <StateDisplay title={t('common.noResults')} />;
+    return loading ? (
+      <LoadingState className="flex min-h-[50vh] items-center justify-center" />
+    ) : (
+      <StateDisplay title={t('common.noResults')} />
+    );
   }
 
   return (
