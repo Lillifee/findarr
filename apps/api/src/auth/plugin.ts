@@ -37,8 +37,8 @@ interface AuthPluginOptions extends FastifyPluginOptions {
   secretPath: string;
 }
 
-// 7 days in seconds
-const SESSION_COOKIE_MAX_AGE = 7 * 24 * 60 * 60;
+// 30 days in seconds
+const SESSION_MAX_AGE = 30 * 24 * 60 * 60;
 
 // Exactly 16 characters
 const SESSION_SALT = 'findarr-salt-016';
@@ -61,12 +61,13 @@ const authPlugin: FastifyPluginAsync<AuthPluginOptions> = async (fastify, option
   await fastify.register(secureSession, {
     secret: loadOrCreateSecret(options.secretPath),
     salt: SESSION_SALT,
+    expiry: SESSION_MAX_AGE,
     cookie: {
       path: '/',
       httpOnly: true,
       secure: 'auto',
       sameSite: 'lax',
-      maxAge: SESSION_COOKIE_MAX_AGE,
+      maxAge: SESSION_MAX_AGE,
     },
   });
 
