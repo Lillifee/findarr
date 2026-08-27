@@ -196,9 +196,6 @@
     "trending": "Trends & Beliebt",
     "description": "Entdecke Trends, suche deinen nächsten Film und stimme ab, was angefordert werden soll."
   },
-  "mediaDetail": {
-    "goBack": "Zurück"
-  },
   "catalog": {
     "searchPlaceholder": "Filme oder Serien suchen...",
     "clearSearch": "Suche löschen",
@@ -212,7 +209,6 @@
   },
   "media": {
     "noPoster": "Kein Poster",
-    "back": "Zurück",
     "like": "Gefällt mir",
     "dislike": "Gefällt mir nicht",
     "newlyAvailable": "Neu verfügbar",

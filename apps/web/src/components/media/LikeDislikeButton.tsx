@@ -10,8 +10,8 @@ import SeasonSelectorModal from './SeasonSelectorModal';
 interface LikeDislikeButtonProps {
   tmdbId: number;
   mediaType: MediaType;
-  initialAction?: 'liked' | 'disliked' | null;
-  onUpdate?: (updatedMedia: MediaDetails) => void;
+  action: 'liked' | 'disliked' | null;
+  onUpdate: (updatedMedia: MediaDetails) => void;
   compact?: boolean;
   existingMedia?: Media;
 }
@@ -19,13 +19,12 @@ interface LikeDislikeButtonProps {
 export function LikeDislikeButton({
   tmdbId,
   mediaType,
-  initialAction = null,
+  action: currentAction,
   onUpdate,
   compact = false,
   existingMedia,
 }: LikeDislikeButtonProps) {
   const { t } = useTranslation();
-  const [currentAction, setCurrentAction] = useState<'liked' | 'disliked' | null>(initialAction);
   const [isLoading, setIsLoading] = useState(false);
   const [isSeasonModalOpen, setIsSeasonModalOpen] = useState(false);
   const [tvDetails, setTvDetails] = useState<TVDetails | null>(null);
@@ -41,23 +40,8 @@ export function LikeDislikeButton({
         selectedSeasons,
       );
 
-      // Determine new action based on context:
-      // - Empty season array: unliking (remove interaction)
-      // - Season update with selections: always set to the action (not a toggle)
-      // - Simple click: toggle if clicking same action again
-      const isSeasonUpdate = selectedSeasons !== undefined;
-      const isEmptySeasonArray = isSeasonUpdate && selectedSeasons.length === 0;
-      const newAction = isEmptySeasonArray
-        ? null
-        : isSeasonUpdate
-          ? action
-          : currentAction === action
-            ? null
-            : action;
-      setCurrentAction(newAction);
-
       // Update parent with enriched media (has state.record.status, state.votes, etc.)
-      onUpdate?.(updatedMedia);
+      onUpdate(updatedMedia);
     } catch (error) {
       console.error('Failed to update interaction:', error);
     } finally {

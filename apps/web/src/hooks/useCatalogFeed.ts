@@ -6,7 +6,6 @@ import { useSearchParams } from 'react-router-dom';
 
 import { searchService } from '../services/api';
 import { buildCatalogSearchParams, readCatalogSearchParams } from '../utils/catalogSearchParams';
-import { useHistoryRestoreState } from './useHistoryRestoreState';
 
 interface CatalogFeedState {
   currentPage: number;
@@ -21,8 +20,9 @@ interface CatalogFilters {
   type: SearchType;
 }
 
-interface CatalogPageState extends CatalogFeedState, CatalogFilters {
-  scrollY: number;
+interface PopularFeedSnapshot extends CatalogFeedState {
+  genres: GenreKey[];
+  type: SearchType;
 }
 
 interface LoadFeedOptions {
@@ -67,26 +67,19 @@ function mergeUniqueResults(existing: Media[], incoming: Media[]) {
   return merged;
 }
 
-function createPopularSnapshot(filters: CatalogFilters, feed: CatalogFeedState): CatalogPageState {
+function createPopularSnapshot(
+  filters: CatalogFilters,
+  feed: CatalogFeedState,
+): PopularFeedSnapshot {
   return {
-    ...filters,
     ...feed,
-    query: '',
-    scrollY: 0,
+    genres: filters.genres,
+    type: filters.type,
   };
 }
 
 function isSameMedia(left: Media, right: Media) {
   return left.tmdbId === right.tmdbId && left.type === right.type;
-}
-
-function isSameFeed(left: CatalogFeedState, right: CatalogFeedState) {
-  return (
-    left.currentPage === right.currentPage &&
-    left.feedId === right.feedId &&
-    left.results === right.results &&
-    left.hasMore === right.hasMore
-  );
 }
 
 function useCatalogFilters() {
@@ -124,15 +117,7 @@ function useCatalogFilters() {
   return { filters, updateFilters };
 }
 
-function matchesVisibleFilters(state: CatalogPageState, filters: CatalogFilters) {
-  return (
-    state.type === filters.type &&
-    state.query === filters.query &&
-    areGenresEqual(state.genres, filters.genres)
-  );
-}
-
-function matchesPopularFilters(state: CatalogPageState, filters: CatalogFilters) {
+function matchesPopularFilters(state: PopularFeedSnapshot, filters: CatalogFilters) {
   return state.type === filters.type && areGenresEqual(state.genres, filters.genres);
 }
 
@@ -140,7 +125,6 @@ export interface CatalogFeed {
   results: Media[];
   loading: boolean;
   loadingMore: boolean;
-  currentPage: number;
   hasMore: boolean;
   isSearchMode: boolean;
   currentSearchType: SearchType;
@@ -152,17 +136,14 @@ export interface CatalogFeed {
   onClearSearch: () => void;
   loadMore: () => void;
   updateItem: (updatedItem: Media) => void;
-  persistHistoryState: () => void;
 }
 
 export function useCatalogFeed(): CatalogFeed {
-  const { restoredState, persistState } = useHistoryRestoreState<CatalogPageState>();
   const { filters, updateFilters } = useCatalogFilters();
   const [feed, setFeed] = useState<CatalogFeedState>(emptyFeed);
   const [loadingState, setLoadingState] = useState<LoadingState>(idleLoadingState);
   const feedRef = useRef<CatalogFeedState>(emptyFeed);
-  const popularSnapshotRef = useRef<CatalogPageState | null>(null);
-  const hasConsumedRestoreRef = useRef(false);
+  const popularSnapshotRef = useRef<PopularFeedSnapshot | null>(null);
   const latestRequestIdRef = useRef(0);
 
   const isSearchMode = filters.query.trim().length > 0;
@@ -171,25 +152,6 @@ export function useCatalogFeed(): CatalogFeed {
     feedRef.current = nextFeed;
     setFeed(nextFeed);
   }, []);
-
-  const createPageState = useCallback(
-    (nextFeed: CatalogFeedState = feedRef.current, scrollY = window.scrollY): CatalogPageState => ({
-      ...filters,
-      ...nextFeed,
-      scrollY,
-    }),
-    [filters],
-  );
-
-  const persistHistoryState = useCallback(() => {
-    const currentFeed = feedRef.current;
-
-    if (currentFeed.results.length === 0) {
-      return;
-    }
-
-    persistState(createPageState(currentFeed));
-  }, [createPageState, persistState]);
 
   const restoreFeed = useCallback(
     (nextFeed: CatalogFeedState) => {
@@ -275,27 +237,6 @@ export function useCatalogFeed(): CatalogFeed {
   );
 
   useEffect(() => {
-    if (restoredState && matchesVisibleFilters(restoredState, filters)) {
-      if (!hasConsumedRestoreRef.current) {
-        hasConsumedRestoreRef.current = true;
-        restoreFeed(restoredState);
-
-        if (restoredState.query.trim().length === 0) {
-          popularSnapshotRef.current = createPopularSnapshot(filters, restoredState);
-        }
-
-        requestAnimationFrame(() => {
-          window.scrollTo({ top: restoredState.scrollY, behavior: 'auto' });
-        });
-      }
-
-      if (isSameFeed(feedRef.current, restoredState)) {
-        return;
-      }
-    }
-
-    hasConsumedRestoreRef.current = true;
-
     const popularSnapshot = popularSnapshotRef.current;
     if (!isSearchMode && popularSnapshot && matchesPopularFilters(popularSnapshot, filters)) {
       restoreFeed(popularSnapshot);
@@ -304,7 +245,7 @@ export function useCatalogFeed(): CatalogFeed {
 
     restoreFeed(emptyFeed);
     void loadFeed({ append: false });
-  }, [filters, isSearchMode, loadFeed, restoreFeed, restoredState]);
+  }, [filters, isSearchMode, loadFeed, restoreFeed]);
 
   const onTypeChange = (type: SearchType) => {
     updateFilters({ type });
@@ -344,34 +285,33 @@ export function useCatalogFeed(): CatalogFeed {
     });
   };
 
-  const updateItem = (updatedItem: Media) => {
-    const currentFeed = feedRef.current;
-    const shouldRemoveFromFeed = !isSearchMode;
-    const nextFeed = {
-      ...currentFeed,
-      results: shouldRemoveFromFeed
-        ? currentFeed.results.filter((item) => !isSameMedia(item, updatedItem))
-        : currentFeed.results.map((item) => (isSameMedia(item, updatedItem) ? updatedItem : item)),
-    };
-
-    updateFeed(nextFeed);
-
-    if (!isSearchMode && popularSnapshotRef.current) {
-      popularSnapshotRef.current = {
-        ...popularSnapshotRef.current,
-        results: nextFeed.results,
+  const updateItem = useCallback(
+    (updatedItem: Media) => {
+      const currentFeed = feedRef.current;
+      const nextFeed = {
+        ...currentFeed,
+        results: currentFeed.results.map((item) =>
+          isSameMedia(item, updatedItem) ? updatedItem : item,
+        ),
       };
-    }
 
-    persistState(createPageState(nextFeed));
-  };
+      updateFeed(nextFeed);
+
+      if (!isSearchMode && popularSnapshotRef.current) {
+        popularSnapshotRef.current = {
+          ...popularSnapshotRef.current,
+          results: nextFeed.results,
+        };
+      }
+    },
+    [isSearchMode, updateFeed],
+  );
 
   return {
     isSearchMode,
     loading: loadingState.loading,
     loadingMore: loadingState.loadingMore,
     results: feed.results,
-    currentPage: feed.currentPage,
     hasMore: feed.hasMore,
     currentSearchType: filters.type,
     currentQuery: filters.query,
@@ -382,6 +322,5 @@ export function useCatalogFeed(): CatalogFeed {
     onClearSearch,
     loadMore,
     updateItem,
-    persistHistoryState,
   };
 }

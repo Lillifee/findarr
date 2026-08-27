@@ -1,4 +1,5 @@
 import type { Media } from '@findarr/shared/media';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ActivitySection } from '../components/activity/ActivitySection';
@@ -8,13 +9,17 @@ import { QuickActionBar, type QuickActionItem } from '../components/ui';
 import { PageContainer } from '../components/ui/PageContainer';
 import { PageHeader } from '../components/ui/PageHeader';
 import { StickyHeader } from '../components/ui/StickyHeader';
+import { useMediaUpdates } from '../contexts/MediaUpdateContext';
 import { useActivityFeed } from '../hooks/useActivityFeed';
 import { useMediaNavigation } from '../hooks/useMediaNavigation';
 
 export function ActivityPage() {
   const { t } = useTranslation();
   const { goToMedia } = useMediaNavigation();
+  const mediaUpdates = useMediaUpdates();
   const feed = useActivityFeed();
+
+  useEffect(() => mediaUpdates?.subscribe(feed.updateItem), [feed.updateItem, mediaUpdates]);
 
   const quickActions: QuickActionItem[] = [
     {
@@ -66,7 +71,7 @@ export function ActivityPage() {
   ];
 
   const handleSelectItem = (item: Media) => {
-    goToMedia(item, feed.persistHistoryState);
+    goToMedia(item);
   };
 
   return (
