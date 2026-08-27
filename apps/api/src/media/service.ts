@@ -3,7 +3,7 @@ import type { Media } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
 
 import type { Database } from '../db/service.js';
-import { getInteractionsBatch } from '../interaction/repository.js';
+import { getInteractionsBatch, getUserRatingCounts } from '../interaction/repository.js';
 import { getUserPreferences } from '../preferences/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
 import type { UserService } from '../user/service.js';
@@ -123,10 +123,13 @@ export function createMediaService(context: MediaContext) {
 
     // Apply user preference scoring if authenticated
     if (isDefined(userId)) {
-      const preferences = await getUserPreferences(db, userId);
+      const [preferences, ratingCounts] = await Promise.all([
+        getUserPreferences(db, userId),
+        getUserRatingCounts(db, userId),
+      ]);
 
       if (preferences.size > 0) {
-        scoredItems = scoreMediaItemsForUser(scoredItems, preferences);
+        scoredItems = scoreMediaItemsForUser(scoredItems, preferences, ratingCounts);
       }
     }
 
@@ -162,7 +165,43 @@ export function createMediaService(context: MediaContext) {
     return results.filter((x) => isDefined(x));
   }
 
-  return { enrichWithRecords, enrichWithInteractions, enrichWithScoring, fetchTMDBDetails };
+  /**
+   * Helper: Enrich TMDB items with complete state
+   * Adds scoring, media records, and optionally user interactions
+   */
+  async function enrichMediaResults<T extends Media>(
+    items: T[],
+    userId: number,
+    options: { scoring?: boolean; records?: boolean; interactions?: boolean } = {},
+  ): Promise<T[]> {
+    let enriched = items;
+    const { scoring = true, records = true, interactions = true } = options;
+
+    // Add scores
+    if (scoring) {
+      enriched = await enrichWithScoring(enriched, userId);
+    }
+
+    // Add database records (status, arrId, jellyfinId)
+    if (records) {
+      enriched = await enrichWithRecords(enriched);
+    }
+
+    // Add user interactions and vote counts
+    if (interactions) {
+      enriched = await enrichWithInteractions(enriched, userId);
+    }
+
+    return enriched;
+  }
+
+  return {
+    enrichMediaResults,
+    enrichWithRecords,
+    enrichWithInteractions,
+    enrichWithScoring,
+    fetchTMDBDetails,
+  };
 }
 
 export type MediaService = ReturnType<typeof createMediaService>;

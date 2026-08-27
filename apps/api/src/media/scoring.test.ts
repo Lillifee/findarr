@@ -89,7 +89,6 @@ describe('scoreMediaItemsForUser explanations', () => {
     );
     const score = result?.state?.score;
 
-    expect(score?.genreScore).toBeCloseTo(0.52857, 5);
     expect(score?.userScore).toBeCloseTo(0.52857, 5);
     expect(score?.explanation).toMatchObject({
       positiveSignals: [],
@@ -141,9 +140,7 @@ describe('scoreMediaItemsForUser explanations', () => {
       preferenceMap,
     );
 
-    expect(result?.state?.score?.genreScore).toBeCloseTo(0.72297, 5);
-    expect(result?.state?.score?.keywordScore).toBeCloseTo(0.65, 5);
-    expect(result?.state?.score?.userScore).toBeGreaterThanOrEqual(0.65);
+    expect(result?.state?.score?.userScore).toBeCloseTo(0.84297, 5);
   });
 
   it('keeps established cast evidence competitive with much more common genre evidence', () => {
@@ -168,9 +165,7 @@ describe('scoreMediaItemsForUser explanations', () => {
       preferenceMap,
     );
 
-    expect(result?.state?.score?.genreScore).toBeCloseTo(0.59524, 5);
-    expect(result?.state?.score?.castScore).toBeCloseTo(0.83333, 5);
-    expect(result?.state?.score?.userScore).toBeGreaterThan(0.7);
+    expect(result?.state?.score?.userScore).toBeCloseTo(0.99524, 5);
   });
 
   it('weights subjects by their evidence rather than metadata tag count', () => {
@@ -209,10 +204,133 @@ describe('scoreMediaItemsForUser explanations', () => {
       preferenceMap,
     );
 
-    expect(result?.state?.score?.keywordScore).toBeCloseTo(0.72368, 5);
+    expect(result?.state?.score?.userScore).toBeCloseTo(0.67895, 5);
   });
 
-  it('scores only the top three billed cast members', () => {
+  it.each([
+    {
+      name: 'mixed action thriller profile',
+      genres: [
+        { id: 28, name: 'Action', score: 11, count: 147 },
+        { id: 53, name: 'Thriller', score: 11, count: 177 },
+      ],
+      keywords: [
+        { id: 1930, name: 'kidnapping', score: 3, count: 9 },
+        { id: 11_107, name: 'rescue mission', score: -1, count: 3 },
+        { id: 298_636, name: 'underworld', score: 0, count: 2 },
+        { id: 322_496, name: 'action', score: -2, count: 6 },
+      ],
+      expectedUserScore: 0.53343,
+    },
+    {
+      name: 'negative drama profile with mixed keywords',
+      genres: [
+        { id: 53, name: 'Thriller', score: 11, count: 177 },
+        { id: 18, name: 'Drama', score: -138, count: 222 },
+        { id: 9648, name: 'Mystery', score: -10, count: 72 },
+      ],
+      keywords: [
+        { id: 1930, name: 'kidnapping', score: 3, count: 9 },
+        { id: 201_456, name: 'paranoid', score: 2, count: 2 },
+        { id: 241_804, name: 'toxic relationship', score: 0, count: 2 },
+        { id: 311_315, name: 'dramatic', score: -6, count: 12 },
+        { id: 325_787, name: 'complicated', score: -1, count: 3 },
+        { id: 325_823, name: 'harsh', score: 3, count: 3 },
+        { id: 325_853, name: 'sympathetic', score: 0, count: 4 },
+      ],
+      expectedUserScore: 0.36609,
+    },
+    {
+      name: 'aligned science fiction and dystopia profile',
+      genres: [
+        { id: 28, name: 'Action', score: 11, count: 147 },
+        { id: 878, name: 'Science Fiction', score: 18, count: 82 },
+        { id: 53, name: 'Thriller', score: 11, count: 177 },
+      ],
+      keywords: [
+        { id: 4565, name: 'dystopia', score: 2, count: 8 },
+        { id: 4458, name: 'post-apocalyptic future', score: 7, count: 17 },
+        { id: 18_249, name: 'game', score: 1, count: 3 },
+        { id: 212_516, name: 'dark future', score: 2, count: 2 },
+      ],
+      expectedUserScore: 0.6858,
+    },
+  ])('$name produces a differentiated score', ({ genres, keywords, expectedUserScore }) => {
+    const preferenceMap = new Map<string, UserPreference>(
+      [
+        ...genres.map((genre) => ({ ...genre, kind: 'genre' as const })),
+        ...keywords.map((keyword) => ({ ...keyword, kind: 'keyword' as const })),
+      ].map((preference) => [
+        toPreferenceKey(preference.kind, String(preference.id)),
+        {
+          kind: preference.kind,
+          subjectKey: String(preference.id),
+          subjectName: preference.name,
+          score: preference.score,
+          count: preference.count,
+        },
+      ]),
+    );
+
+    const [result] = scoreMediaItemsForUser(
+      [
+        createTestMedia({
+          genres: genres.map(({ id, name }) => ({ id, name })),
+          keywords: keywords.map(({ id, name }) => ({ id, name })),
+        }),
+      ],
+      preferenceMap,
+    );
+
+    expect(result?.state?.score?.userScore).toBeCloseTo(expectedUserScore, 5);
+  });
+
+  it("measures preference relative to a selective user's overall like rate", () => {
+    const genres = [
+      { id: 28, name: 'Action', score: 11, count: 147 },
+      { id: 80, name: 'Crime', score: -32, count: 114 },
+      { id: 53, name: 'Thriller', score: 11, count: 177 },
+    ];
+    const keywords = [
+      { id: 14_903, name: 'home invasion', score: 0, count: 2 },
+      { id: 239_886, name: 'child protection', score: 2, count: 2 },
+      { id: 325_773, name: 'audacious', score: -3, count: 5 },
+    ];
+    const preferenceMap = new Map<string, UserPreference>(
+      [
+        ...genres.map((genre) => ({ ...genre, kind: 'genre' as const })),
+        ...keywords.map((keyword) => ({ ...keyword, kind: 'keyword' as const })),
+      ].map((preference) => [
+        toPreferenceKey(preference.kind, String(preference.id)),
+        {
+          kind: preference.kind,
+          subjectKey: String(preference.id),
+          subjectName: preference.name,
+          score: preference.score,
+          count: preference.count,
+        },
+      ]),
+    );
+
+    const [result] = scoreMediaItemsForUser(
+      [
+        createTestMedia({
+          genres: genres.map(({ id, name }) => ({ id, name })),
+          keywords: keywords.map(({ id, name }) => ({ id, name })),
+        }),
+      ],
+      preferenceMap,
+      { likes: 212, dislikes: 479 },
+    );
+    const score = result?.state?.score;
+
+    expect(score?.userScore).toBeCloseTo(0.74638, 5);
+    expect(
+      score?.explanation.mixedSignals.find((signal) => signal.subjectKey === '80'),
+    ).toMatchObject({ name: 'Crime', preferenceType: 'mixed' });
+  });
+
+  it('scores the configured top-billed cast members', () => {
     const preferences = new Map<string, UserPreference>(
       [
         { id: 1, name: 'First Lead', score: 2 },
@@ -246,8 +364,7 @@ describe('scoreMediaItemsForUser explanations', () => {
     );
     const score = result?.state?.score;
 
-    expect(score?.castScore).toBeCloseTo(0.77273, 5);
-    expect(score?.userScore).toBeCloseTo(0.77273, 5);
+    expect(score?.userScore).toBeCloseTo(0.68462, 5);
     expect(score?.explanation.positiveSignals.map((signal) => signal.name)).toStrictEqual([
       'First Lead',
       'Second Lead',

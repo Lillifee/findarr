@@ -54,21 +54,21 @@ export function Score({ score }: ScoreProps) {
 
   const renderSignals = (
     signals: MediaScoreSignal[],
-    sentiment: 'positive' | 'mixed' | 'negative',
+    preferenceType: MediaScoreSignal['preferenceType'],
   ) => (
     <div className="flex flex-wrap gap-2">
       {signals.map((signal) => {
         const tone =
-          sentiment === 'positive'
+          preferenceType === 'positive'
             ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-100'
-            : sentiment === 'negative'
+            : preferenceType === 'negative'
               ? 'border-rose-400/25 bg-rose-400/10 text-rose-100'
               : 'border-amber-400/25 bg-amber-400/10 text-amber-100';
 
         const evidenceKey =
-          sentiment === 'positive'
+          preferenceType === 'positive'
             ? 'positiveEvidence'
-            : sentiment === 'negative'
+            : preferenceType === 'negative'
               ? 'negativeEvidence'
               : 'mixedEvidence';
 
