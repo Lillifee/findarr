@@ -59,6 +59,22 @@ describe('auth routes - integration tests', () => {
     rmSync(tempDir, { recursive: true, force: true });
   });
 
+  it('issues a persistent session cookie for 30 days', async () => {
+    await createTestUserInDb(db, { email: 'session-duration@test.com' });
+
+    const loginReply = await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: {
+        email: 'session-duration@test.com',
+        password: 'password',
+      },
+    });
+
+    expect(loginReply.statusCode).toBe(200);
+    expect(loginReply.headers['set-cookie']).toContain('Max-Age=2592000');
+  });
+
   it('changes password for an authenticated user', async () => {
     await createTestUserInDb(db, { email: 'change-password@test.com' });
 
