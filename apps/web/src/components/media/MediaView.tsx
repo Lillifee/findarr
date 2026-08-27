@@ -13,6 +13,7 @@ import { Score } from './Score';
 interface MediaDetailsProps {
   media: MovieDetails | TVDetails;
   onVoteComplete?: () => void;
+  onMediaUpdate?: (updatedMedia: MovieDetails | TVDetails) => void;
 }
 
 const createFormattedMeta = (text: string) => `(${text})`;
@@ -36,7 +37,11 @@ const formatRuntime = (value: number | number[] | undefined, unknown: string) =>
   return hours > 0 ? `${hours}h ${remainingMinutes}m` : `${value}m`;
 };
 
-export function MediaView({ media: initialMedia, onVoteComplete }: MediaDetailsProps) {
+export function MediaView({
+  media: initialMedia,
+  onVoteComplete,
+  onMediaUpdate,
+}: MediaDetailsProps) {
   const { t } = useTranslation();
   // Render everything from local state so a vote's fresh data (e.g. updated
   // status/interactions) is reflected across the whole view. Re-sync whenever
@@ -369,10 +374,11 @@ export function MediaView({ media: initialMedia, onVoteComplete }: MediaDetailsP
           <LikeDislikeButton
             tmdbId={media.tmdbId}
             mediaType={media.type}
-            initialAction={media.state?.interaction?.action ?? null}
+            action={media.state?.interaction?.action ?? null}
             existingMedia={media}
             onUpdate={(updatedMedia) => {
               setMedia(updatedMedia);
+              onMediaUpdate?.(updatedMedia);
               onVoteComplete?.();
             }}
           />

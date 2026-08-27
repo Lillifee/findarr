@@ -196,9 +196,6 @@
     "trending": "Trending & Popular",
     "description": "Browse what is trending, search your next watch, and vote on what should be requested."
   },
-  "mediaDetail": {
-    "goBack": "Go Back"
-  },
   "catalog": {
     "searchPlaceholder": "Search movies or TV shows...",
     "clearSearch": "Clear search",
@@ -212,7 +209,6 @@
   },
   "media": {
     "noPoster": "No Poster",
-    "back": "Back",
     "like": "Like",
     "dislike": "Dislike",
     "newlyAvailable": "Newly available",

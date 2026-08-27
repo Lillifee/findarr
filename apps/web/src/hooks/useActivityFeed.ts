@@ -13,22 +13,10 @@ import {
   readActivitySearchParams,
   type ActivityAction,
 } from '../utils/activitySearchParams';
-import { useHistoryRestoreState } from './useHistoryRestoreState';
 import { useSession } from './useSession';
 
 type StatusFilter = ActivityStatus;
 type AudienceFilter = ActivityAudience;
-
-interface ActivityPageState {
-  audience: AudienceFilter;
-  activityPage: number;
-  activityResults: Media[];
-  selectedType: SearchType;
-  statuses: StatusFilter[];
-  action: ActivityAction;
-  scrollY: number;
-  hasMore: boolean;
-}
 
 interface ActivityState {
   results: Media[];
@@ -67,7 +55,6 @@ export interface ActivityFeed {
   action: ActivityAction;
   loadingActivity: boolean;
   loadingMore: boolean;
-  currentPage: number;
   hasMore: boolean;
   reloadActivityWith: (next: {
     audience?: AudienceFilter;
@@ -77,7 +64,6 @@ export interface ActivityFeed {
   }) => void;
   loadMore: () => void;
   updateItem: (updatedItem: Media) => void;
-  persistHistoryState: () => void;
 }
 
 export function useActivityFeed(): ActivityFeed {
@@ -97,7 +83,6 @@ export function useActivityFeed(): ActivityFeed {
       }),
     [searchParams],
   );
-  const { restoredState, persistState } = useHistoryRestoreState<ActivityPageState>();
 
   const [activityState, setActivityState] = useState<ActivityState>({
     results: [],
@@ -161,55 +146,7 @@ export function useActivityFeed(): ActivityFeed {
     [],
   );
 
-  const persistHistoryState = useCallback(() => {
-    if (activityResults.length === 0) {
-      return;
-    }
-
-    persistState({
-      audience,
-      activityPage: currentPage,
-      activityResults,
-      selectedType,
-      statuses,
-      action,
-      hasMore,
-      scrollY: window.scrollY,
-    });
-  }, [
-    action,
-    activityResults,
-    audience,
-    currentPage,
-    hasMore,
-    persistState,
-    selectedType,
-    statuses,
-  ]);
-
-  const matchesCurrentFilters = useCallback(
-    (state: Pick<ActivityPageState, 'audience' | 'selectedType' | 'statuses' | 'action'>) =>
-      state.audience === audience &&
-      state.selectedType === selectedType &&
-      state.statuses.length === statuses.length &&
-      state.statuses.every((group, index) => group === statuses[index]) &&
-      state.action === action,
-    [action, audience, selectedType, statuses],
-  );
-
   useEffect(() => {
-    if (restoredState && matchesCurrentFilters(restoredState)) {
-      setActivityState({
-        results: restoredState.activityResults,
-        page: restoredState.activityPage,
-        hasMore: restoredState.hasMore,
-      });
-      requestAnimationFrame(() => {
-        window.scrollTo({ top: restoredState.scrollY, behavior: 'auto' });
-      });
-      return;
-    }
-
     const statusList = statuses.length > 0 ? statuses : ALL_ACTIVITY_STATUSES;
 
     void loadActivity({
@@ -220,16 +157,7 @@ export function useActivityFeed(): ActivityFeed {
       statuses: [...statusList],
       action,
     });
-  }, [
-    audience,
-    loadActivity,
-    matchesCurrentFilters,
-    restoredState,
-    user?.id,
-    selectedType,
-    statuses,
-    action,
-  ]);
+  }, [audience, loadActivity, user?.id, selectedType, statuses, action]);
 
   const reloadActivityWith = useCallback(
     (next: {
@@ -268,14 +196,14 @@ export function useActivityFeed(): ActivityFeed {
     });
   };
 
-  const updateItem = (updatedItem: Media) => {
+  const updateItem = useCallback((updatedItem: Media) => {
     setActivityState((prev) => ({
       ...prev,
       results: prev.results.map((item) =>
         keyOf(item) === keyOf(updatedItem) ? updatedItem : item,
       ),
     }));
-  };
+  }, []);
 
   return {
     activityResults,
@@ -285,11 +213,9 @@ export function useActivityFeed(): ActivityFeed {
     action,
     loadingActivity: loading.activity,
     loadingMore: loading.more,
-    currentPage,
     hasMore,
     reloadActivityWith,
     loadMore,
     updateItem,
-    persistHistoryState,
   };
 }

@@ -1,10 +1,11 @@
 import type { Media } from '@findarr/shared/media';
 import { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { buildCatalogSearchParams } from '../utils/catalogSearchParams';
 
 export function useMediaNavigation() {
+  const location = useLocation();
   const navigate = useNavigate();
 
   const goTo = useCallback(
@@ -15,11 +16,12 @@ export function useMediaNavigation() {
   );
 
   const goToMedia = useCallback(
-    (item: Media, beforeNavigate?: () => void) => {
-      beforeNavigate?.();
-      void navigate(`/${item.type}/${item.tmdbId}`);
+    (item: Media) => {
+      void navigate(`/${item.type}/${item.tmdbId}`, {
+        state: { backgroundLocation: location },
+      });
     },
-    [navigate],
+    [location, navigate],
   );
 
   const goToSearch = useCallback(

@@ -11,7 +11,7 @@ import { LikeDislikeButton } from './LikeDislikeButton';
 interface MediaCardProps {
   item: Media;
   onSelect: () => void;
-  onUpdate?: (updatedItem: Media) => void;
+  onUpdate: (updatedItem: Media) => void;
 }
 
 function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
@@ -94,9 +94,9 @@ function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
             <LikeDislikeButton
               tmdbId={item.tmdbId}
               mediaType={item.type}
-              initialAction={isLiked ? 'liked' : isDisliked ? 'disliked' : null}
+              action={isLiked ? 'liked' : isDisliked ? 'disliked' : null}
               existingMedia={item}
-              {...(onUpdate && { onUpdate })}
+              onUpdate={onUpdate}
               compact
             />
           </div>
@@ -109,7 +109,7 @@ function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
 interface ResultsGridProps {
   results: Media[];
   onSelectItem: (item: Media) => void;
-  onUpdateItem?: (updatedItem: Media) => void;
+  onUpdateItem: (updatedItem: Media) => void;
 }
 
 export function ResultsGrid({ results, onSelectItem, onUpdateItem }: ResultsGridProps) {
@@ -122,7 +122,7 @@ export function ResultsGrid({ results, onSelectItem, onUpdateItem }: ResultsGrid
           onSelect={() => {
             onSelectItem(item);
           }}
-          {...(onUpdateItem ? { onUpdate: onUpdateItem } : {})}
+          onUpdate={onUpdateItem}
         />
       ))}
     </div>

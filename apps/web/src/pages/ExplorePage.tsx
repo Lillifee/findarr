@@ -1,4 +1,5 @@
 import type { Media } from '@findarr/shared/media';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { FiltersToolbar } from '../components/catalog/FiltersToolbar';
@@ -7,16 +8,20 @@ import { CatalogResults } from '../components/explore/CatalogResults';
 import { PageContainer } from '../components/ui/PageContainer';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SearchFilterBar } from '../components/ui/SearchFilterBar';
+import { useMediaUpdates } from '../contexts/MediaUpdateContext';
 import { useCatalogFeed } from '../hooks/useCatalogFeed';
 import { useMediaNavigation } from '../hooks/useMediaNavigation';
 
 export function ExplorePage() {
   const { t } = useTranslation();
   const { goToMedia } = useMediaNavigation();
+  const mediaUpdates = useMediaUpdates();
   const feed = useCatalogFeed();
 
+  useEffect(() => mediaUpdates?.subscribe(feed.updateItem), [feed.updateItem, mediaUpdates]);
+
   const handleSelectItem = (item: Media) => {
-    goToMedia(item, feed.persistHistoryState);
+    goToMedia(item);
   };
 
   return (
