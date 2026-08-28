@@ -3,7 +3,7 @@ import type { InteractionsQuery, InteractionType } from '@findarr/shared/interac
 import type { Media, MediaStatus, MediaInteractionWithUser } from '@findarr/shared/media';
 import type { UserRatingCounts } from '@findarr/shared/preferences';
 import { isDefined } from '@findarr/shared/utils';
-import { and, eq, getTableColumns, inArray, isNotNull, sql } from 'drizzle-orm';
+import { and, desc, eq, getTableColumns, inArray, isNotNull, sql } from 'drizzle-orm';
 
 import type { Database } from '../db/service.js';
 import { toMediaKey } from '../utils/helper.js';
@@ -123,6 +123,8 @@ export async function getInteractionsBatch(
 // Query Operations - Fetch media by interaction criteria
 // ============================================================================
 
+const LIBRARY_STATUSES = new Set<MediaStatus>(['downloaded', 'available']);
+
 export async function getMediaByActivityStatusPaginated(
   db: Database,
   options: {
@@ -135,6 +137,7 @@ export async function getMediaByActivityStatusPaginated(
   },
 ): Promise<DbMedia[]> {
   const conditions = [];
+  const statuses = options.statuses ?? [];
 
   if (options.userId !== undefined) {
     conditions.push(eq(userMediaInteractions.userId, options.userId));
@@ -148,11 +151,17 @@ export async function getMediaByActivityStatusPaginated(
     conditions.push(eq(media.type, options.type));
   }
 
-  if (options.statuses && options.statuses.length > 0) {
-    conditions.push(inArray(media.status, options.statuses));
+  if (statuses.length > 0) {
+    conditions.push(inArray(media.status, statuses));
   }
 
   const whereClause = and(...conditions);
+
+  // For downloaded or available media, sort by library added date first
+  const sortByLibraryAddedAt =
+    statuses.length > 0 && statuses.every((status) => LIBRARY_STATUSES.has(status));
+
+  const latestInteractionAt = sql<number>`MAX(${userMediaInteractions.createdAt})`;
 
   let query = db
     .select(getTableColumns(media))
@@ -161,11 +170,11 @@ export async function getMediaByActivityStatusPaginated(
     .where(whereClause)
     .groupBy(media.id)
     .orderBy(
-      sql`
-        COALESCE(
-          ${media.libAddedAt},
-          MAX(${userMediaInteractions.createdAt})
-        ) DESC`,
+      desc(
+        sortByLibraryAddedAt
+          ? sql<number>`COALESCE(${media.libAddedAt}, ${latestInteractionAt})`
+          : latestInteractionAt,
+      ),
     )
     .$dynamic();
 
