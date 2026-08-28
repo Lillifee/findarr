@@ -48,7 +48,7 @@ export function MediaTypeChips({ selectedType, onChange, disabled = false }: Med
             title={label}
           >
             <Icon name={icons[value]} size="sm" />
-            <span className="max-[460px]:hidden">{label}</span>
+            <span className="max-[600px]:hidden">{label}</span>
           </button>
         );
       })}
