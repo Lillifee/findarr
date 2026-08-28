@@ -133,8 +133,6 @@
   "activity": {
     "title": "Meine Aktivität",
     "description": "Sieh deine Aktivität, wechsle zwischen deinen Titeln und dem Community-Feed und grenze nach Status ein.",
-    "empty": "Noch keine Aktivität",
-    "emptyMessage": "Für die aktuellen Filter gibt es noch keine Ergebnisse. Wechsle das Publikum oder die Statusgruppe.",
     "queue": "Warteschlange",
     "quickNavLabel": "Schnellfilter",
     "quickNav": {

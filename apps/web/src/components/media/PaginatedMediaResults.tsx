@@ -1,12 +1,11 @@
 import type { Media } from '@findarr/shared/media';
 import { useTranslation } from 'react-i18next';
 
-import { ResultsGrid } from '../media/ResultsGrid';
 import { Button } from '../ui/Button';
-import { Icon } from '../ui/Icon';
 import { LoadingState, StateDisplay } from '../ui/StateDisplay';
+import { ResultsGrid } from './ResultsGrid';
 
-interface ActivitySectionProps {
+interface PaginatedMediaResultsProps {
   results: Media[];
   loading: boolean;
   loadingMore: boolean;
@@ -16,7 +15,7 @@ interface ActivitySectionProps {
   onLoadMore: () => void;
 }
 
-export function ActivitySection({
+export function PaginatedMediaResults({
   results,
   loading,
   loadingMore,
@@ -24,34 +23,26 @@ export function ActivitySection({
   onSelectItem,
   onUpdateItem,
   onLoadMore,
-}: ActivitySectionProps) {
+}: PaginatedMediaResultsProps) {
   const { t } = useTranslation();
+
   return (
     <section id="results-section">
       {loading && results.length === 0 && (
         <LoadingState className="flex min-h-[50vh] items-center justify-center" />
       )}
 
-      {!loading && results.length === 0 && (
-        <StateDisplay
-          className="py-20"
-          icon={<Icon className="text-zinc-600" name="fact_check" size="display" />}
-          title={t('activity.empty')}
-          message={t('activity.emptyMessage')}
-        />
-      )}
+      {!loading && results.length === 0 && <StateDisplay title={t('common.noResults')} />}
 
       {!loading && results.length > 0 && (
         <ResultsGrid results={results} onSelectItem={onSelectItem} onUpdateItem={onUpdateItem} />
       )}
 
       {hasMore && (
-        <div className="pt-6 md:pt-8 md:pb-0">
-          <div className="border-t border-zinc-800 pt-4 text-center md:pt-6 md:pb-0">
-            <Button variant="secondary" onClick={onLoadMore} disabled={loadingMore}>
-              {loadingMore ? t('common.loading') : t('common.loadMore')}
-            </Button>
-          </div>
+        <div className="mt-6 border-t border-zinc-800 pt-4 text-center md:mt-8 md:pt-6 md:pb-0">
+          <Button variant="secondary" onClick={onLoadMore} disabled={loadingMore || loading}>
+            {loadingMore ? t('common.loading') : t('common.loadMore')}
+          </Button>
         </div>
       )}
     </section>

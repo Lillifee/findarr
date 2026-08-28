@@ -133,8 +133,6 @@
   "activity": {
     "title": "Your Activity",
     "description": "Review your activity, switch between your items and the community feed, and narrow results by lifecycle.",
-    "empty": "No activity yet",
-    "emptyMessage": "No results match the current filters yet. Try switching the audience or status group.",
     "queue": "Queue",
     "quickNavLabel": "Quick filters",
     "quickNav": {

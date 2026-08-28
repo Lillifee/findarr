@@ -6,6 +6,7 @@ import { useSearchParams } from 'react-router-dom';
 
 import { searchService } from '../services/api';
 import { buildCatalogSearchParams, readCatalogSearchParams } from '../utils/catalogSearchParams';
+import { isSameMedia, mergeUniqueMedia } from '../utils/media';
 
 interface CatalogFeedState {
   currentPage: number;
@@ -47,24 +48,8 @@ const idleLoadingState: LoadingState = {
   loadingMore: false,
 };
 
-const mediaKey = (item: Media) => `${item.type}_${item.tmdbId}`;
-
 function areGenresEqual(left: GenreKey[], right: GenreKey[]) {
   return left.length === right.length && left.every((genre, index) => genre === right[index]);
-}
-
-function mergeUniqueResults(existing: Media[], incoming: Media[]) {
-  const seen = new Set(existing.map((item) => mediaKey(item)));
-  const merged = [...existing];
-
-  for (const item of incoming) {
-    if (!seen.has(mediaKey(item))) {
-      merged.push(item);
-      seen.add(mediaKey(item));
-    }
-  }
-
-  return merged;
 }
 
 function createPopularSnapshot(
@@ -76,10 +61,6 @@ function createPopularSnapshot(
     genres: filters.genres,
     type: filters.type,
   };
-}
-
-function isSameMedia(left: Media, right: Media) {
-  return left.tmdbId === right.tmdbId && left.type === right.type;
 }
 
 function useCatalogFilters() {
@@ -191,7 +172,7 @@ export function useCatalogFeed(): CatalogFeed {
           const nextFeed = {
             currentPage: response.page,
             results: append
-              ? mergeUniqueResults(feedRef.current.results, response.results)
+              ? mergeUniqueMedia(feedRef.current.results, response.results)
               : response.results,
             hasMore: response.results.length > 0,
           };
@@ -215,7 +196,7 @@ export function useCatalogFeed(): CatalogFeed {
           currentPage: response.page,
           feedId: response.feedId,
           results: append
-            ? mergeUniqueResults(feedRef.current.results, response.results)
+            ? mergeUniqueMedia(feedRef.current.results, response.results)
             : response.results,
           hasMore: response.results.length > 0,
         };
