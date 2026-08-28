@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { LogList } from '../components/logs/LogList';
 import { Button } from '../components/ui/Button';
+import { Icon } from '../components/ui/Icon';
 import { SelectInput } from '../components/ui/SelectInput';
 import { LoadingState } from '../components/ui/StateDisplay';
 import { StickyHeader } from '../components/ui/StickyHeader';
@@ -26,19 +27,19 @@ export function LogsPage() {
   return (
     <div className="flex h-[calc(100dvh-4rem)] flex-col md:h-screen">
       <StickyHeader>
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-sm font-semibold whitespace-nowrap text-gray-200">
             {versionInfo
               ? t('logs.appVersion', { version: versionInfo.current })
               : t('logs.appName')}
           </span>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
+          <div className="flex w-full min-w-0 items-center gap-3 sm:w-auto">
+            <div className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
               <span className="text-sm font-medium whitespace-nowrap text-gray-300">
                 {t('logs.level')}
               </span>
-              <div className="w-36">
+              <div className="min-w-0 flex-1 sm:w-36 sm:flex-none">
                 <SelectInput
                   fontSize="md"
                   value={level ?? ''}
@@ -59,9 +60,11 @@ export function LogsPage() {
               variant="secondary"
               loading={isLoading}
               onClick={handleRefresh}
-              className="w-28 justify-center"
+              aria-label={t('logs.refresh')}
+              className="w-10 shrink-0 justify-center sm:w-28"
             >
-              {t('logs.refresh')}
+              {!isLoading && <Icon name="refresh" size="sm" />}
+              <span className="hidden sm:inline">{t('logs.refresh')}</span>
             </Button>
           </div>
         </div>

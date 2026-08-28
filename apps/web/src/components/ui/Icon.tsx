@@ -29,6 +29,7 @@ export type IconName =
   | 'person'
   | 'play_arrow'
   | 'public'
+  | 'refresh'
   | 'schedule'
   | 'search'
   | 'sell'

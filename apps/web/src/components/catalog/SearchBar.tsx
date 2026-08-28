@@ -102,7 +102,7 @@ export function SearchBar({
         placeholder={t('catalog.searchPlaceholder')}
         variant="search"
         suffixIcon={clearButton}
-        className="text-sm"
+        className="text-sm text-ellipsis"
       />
     </form>
   );

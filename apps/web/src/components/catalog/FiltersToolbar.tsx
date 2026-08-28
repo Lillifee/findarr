@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
+import { Icon } from '../ui/Icon';
 import { PanelSection } from '../ui/PanelSection';
 import { controlSurface } from '../ui/theme';
 import { GenreChips } from './GenreChips';
@@ -110,11 +111,13 @@ export function FiltersToolbar({
         setFiltersExpanded((current) => !current);
       }}
       aria-expanded={filtersExpanded}
-      className={`ml-auto inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium whitespace-nowrap ${controlSurface}`}
+      aria-label={t('catalog.filters')}
+      className={`ml-auto inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium whitespace-nowrap sm:px-3.5 ${controlSurface}`}
     >
-      {t('catalog.filters')}
+      <Icon name="tune" size="sm" />
+      <span className="max-[460px]:hidden">{t('catalog.filters')}</span>
       <span
-        className={`text-sm transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`}
+        className={`text-sm transition-transform duration-200 max-[460px]:hidden ${filtersExpanded ? 'rotate-180' : ''}`}
       >
         {/* oxlint-disable-next-line react/jsx-no-literals */}▼
       </span>
@@ -122,7 +125,7 @@ export function FiltersToolbar({
   ) : null;
 
   return (
-    <div className="flex w-full shrink-0 items-center gap-3 md:w-auto">
+    <div className="flex shrink-0 items-center gap-2 sm:gap-3">
       <MediaTypeChips selectedType={selectedType} onChange={onTypeChange} disabled={disabled} />
       {filterButton}
 

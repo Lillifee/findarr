@@ -10,8 +10,8 @@ interface SearchFilterBarProps {
 export function SearchFilterBar({ search, filters }: SearchFilterBarProps) {
   return (
     <StickyHeader>
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="w-full md:w-auto md:flex-1">{search}</div>
+      <div className="flex items-center gap-2 sm:gap-3">
+        <div className="min-w-0 flex-1">{search}</div>
         {filters}
       </div>
     </StickyHeader>
