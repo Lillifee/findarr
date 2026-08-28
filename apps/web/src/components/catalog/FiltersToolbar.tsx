@@ -115,9 +115,9 @@ export function FiltersToolbar({
       className={`ml-auto inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium whitespace-nowrap sm:px-3.5 ${controlSurface}`}
     >
       <Icon name="tune" size="sm" />
-      <span className="max-[460px]:hidden">{t('catalog.filters')}</span>
+      <span className="max-[600px]:hidden">{t('catalog.filters')}</span>
       <span
-        className={`text-sm transition-transform duration-200 max-[460px]:hidden ${filtersExpanded ? 'rotate-180' : ''}`}
+        className={`text-sm transition-transform duration-200 max-[600px]:hidden ${filtersExpanded ? 'rotate-180' : ''}`}
       >
         {/* oxlint-disable-next-line react/jsx-no-literals */}▼
       </span>
