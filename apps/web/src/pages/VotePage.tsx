@@ -28,7 +28,6 @@ export function VotePage() {
             onSearch={(query) => {
               goToSearch(query);
             }}
-            loading={false}
           />
         }
         filters={

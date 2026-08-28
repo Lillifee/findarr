@@ -31,7 +31,6 @@ export function ExplorePage() {
           <SearchBar
             onSearch={feed.onSearch}
             onClear={feed.onClearSearch}
-            loading={feed.loading}
             hasSearched={feed.isSearchMode}
             initialQuery={feed.currentQuery}
           />
