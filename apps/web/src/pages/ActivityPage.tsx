@@ -1,25 +1,23 @@
 import type { Media } from '@findarr/shared/media';
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ActivitySection } from '../components/activity/ActivitySection';
 import { ActivityStatusFilter } from '../components/activity/ActivityStatusFilter';
 import { FiltersToolbar } from '../components/catalog/FiltersToolbar';
+import { PaginatedMediaResults } from '../components/media/PaginatedMediaResults';
 import { QuickActionBar, type QuickActionItem } from '../components/ui';
 import { PageContainer } from '../components/ui/PageContainer';
 import { PageHeader } from '../components/ui/PageHeader';
 import { StickyHeader } from '../components/ui/StickyHeader';
-import { useMediaUpdates } from '../contexts/MediaUpdateContext';
 import { useActivityFeed } from '../hooks/useActivityFeed';
 import { useMediaNavigation } from '../hooks/useMediaNavigation';
+import { useMediaUpdateSubscription } from '../hooks/useMediaUpdateSubscription';
 
 export function ActivityPage() {
   const { t } = useTranslation();
   const { goToMedia } = useMediaNavigation();
-  const mediaUpdates = useMediaUpdates();
   const feed = useActivityFeed();
 
-  useEffect(() => mediaUpdates?.subscribe(feed.updateItem), [feed.updateItem, mediaUpdates]);
+  useMediaUpdateSubscription(feed.updateItem);
 
   const quickActions: QuickActionItem[] = [
     {
@@ -107,7 +105,7 @@ export function ActivityPage() {
 
           <QuickActionBar items={quickActions} />
 
-          <ActivitySection
+          <PaginatedMediaResults
             results={feed.activityResults}
             loading={feed.loadingActivity}
             loadingMore={feed.loadingMore}

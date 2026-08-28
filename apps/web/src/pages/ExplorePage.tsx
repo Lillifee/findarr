@@ -1,24 +1,22 @@
 import type { Media } from '@findarr/shared/media';
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { FiltersToolbar } from '../components/catalog/FiltersToolbar';
 import { SearchBar } from '../components/catalog/SearchBar';
-import { CatalogResults } from '../components/explore/CatalogResults';
+import { PaginatedMediaResults } from '../components/media/PaginatedMediaResults';
 import { PageContainer } from '../components/ui/PageContainer';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SearchFilterBar } from '../components/ui/SearchFilterBar';
-import { useMediaUpdates } from '../contexts/MediaUpdateContext';
 import { useCatalogFeed } from '../hooks/useCatalogFeed';
 import { useMediaNavigation } from '../hooks/useMediaNavigation';
+import { useMediaUpdateSubscription } from '../hooks/useMediaUpdateSubscription';
 
 export function ExplorePage() {
   const { t } = useTranslation();
   const { goToMedia } = useMediaNavigation();
-  const mediaUpdates = useMediaUpdates();
   const feed = useCatalogFeed();
 
-  useEffect(() => mediaUpdates?.subscribe(feed.updateItem), [feed.updateItem, mediaUpdates]);
+  useMediaUpdateSubscription(feed.updateItem);
 
   const handleSelectItem = (item: Media) => {
     goToMedia(item);
@@ -54,7 +52,7 @@ export function ExplorePage() {
             description={t('explore.description')}
           />
 
-          <CatalogResults
+          <PaginatedMediaResults
             results={feed.results}
             loading={feed.loading}
             loadingMore={feed.loadingMore}

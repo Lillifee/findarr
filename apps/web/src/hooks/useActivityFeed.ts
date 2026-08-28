@@ -13,6 +13,7 @@ import {
   readActivitySearchParams,
   type ActivityAction,
 } from '../utils/activitySearchParams';
+import { isSameMedia, mergeUniqueMedia } from '../utils/media';
 import { useSession } from './useSession';
 
 type StatusFilter = ActivityStatus;
@@ -29,23 +30,7 @@ interface LoadingState {
   more: boolean;
 }
 
-const keyOf = (item: Media) => `${item.type}_${item.tmdbId}`;
-
 const ACTIVITY_PAGE_SIZE = 20;
-
-function mergeUniqueResults(existing: Media[], incoming: Media[]) {
-  const seen = new Set(existing.map((item) => keyOf(item)));
-  const merged = [...existing];
-
-  for (const item of incoming) {
-    if (!seen.has(keyOf(item))) {
-      merged.push(item);
-      seen.add(keyOf(item));
-    }
-  }
-
-  return merged;
-}
 
 export interface ActivityFeed {
   activityResults: Media[];
@@ -130,7 +115,7 @@ export function useActivityFeed(): ActivityFeed {
 
         setActivityState((prev) => ({
           results: options.append
-            ? mergeUniqueResults(prev.results, response.results)
+            ? mergeUniqueMedia(prev.results, response.results)
             : response.results,
           page: responsePage,
           hasMore: response.results.length === ACTIVITY_PAGE_SIZE,
@@ -199,9 +184,7 @@ export function useActivityFeed(): ActivityFeed {
   const updateItem = useCallback((updatedItem: Media) => {
     setActivityState((prev) => ({
       ...prev,
-      results: prev.results.map((item) =>
-        keyOf(item) === keyOf(updatedItem) ? updatedItem : item,
-      ),
+      results: prev.results.map((item) => (isSameMedia(item, updatedItem) ? updatedItem : item)),
     }));
   }, []);
 
