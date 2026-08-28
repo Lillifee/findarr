@@ -40,7 +40,7 @@ export function MediaTypeChips({ selectedType, onChange, disabled = false }: Med
                 onChange(value);
               }
             }}
-            className={`inline-flex min-h-10 items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors ${
+            className={`inline-flex min-h-10 items-center gap-1.5 px-2.5 py-1.5 text-sm font-medium transition-colors sm:px-3 ${
               selectedType === value
                 ? 'bg-amber-400/12 text-amber-100 ring-1 ring-amber-400/45 ring-inset hover:bg-amber-400/16 hover:text-amber-50'
                 : 'bg-transparent text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100'
