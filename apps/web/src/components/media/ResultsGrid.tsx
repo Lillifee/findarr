@@ -63,10 +63,10 @@ function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
         {/* Bottom Dock with Actions */}
         <div className="flex min-h-12 items-center justify-between gap-2 border-t border-zinc-800 bg-zinc-950/95 px-2.5 py-1.5 md:px-3">
           <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-[11px] leading-none font-semibold text-zinc-100">
-            <span className="tracking-[0.14em] text-zinc-300 uppercase @max-[180px]:hidden">
+            <span className="tracking-[0.14em] text-zinc-300 uppercase @max-[190px]:hidden">
               {year}
             </span>
-            <span className="h-3 w-px bg-zinc-700 @max-[180px]:hidden" />
+            <span className="h-3 w-px bg-zinc-700 @max-[190px]:hidden" />
             <span className="flex shrink-0 items-center gap-1">
               <Icon filled className="text-amber-300" name="star" size="xs" weight={600} />
               {item.voteAverage.toFixed(1)}
