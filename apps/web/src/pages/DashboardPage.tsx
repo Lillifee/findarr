@@ -24,7 +24,7 @@ export function DashboardPage() {
   return (
     <>
       <StickyHeader>
-        <SearchBar onSearch={goToSearch} loading={false} />
+        <SearchBar onSearch={goToSearch} />
       </StickyHeader>
 
       <PageContainer>

@@ -1,53 +1,75 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState, type SyntheticEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '../ui/Button';
 import { Icon } from '../ui/Icon';
 import { Input } from '../ui/Input';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
   onClear?: () => void;
-  loading: boolean;
   hasSearched?: boolean;
   initialQuery?: string;
 }
 
+const searchDebounceMs = 350;
+
 export function SearchBar({
   onSearch,
   onClear,
-  loading,
   hasSearched = false,
   initialQuery = '',
 }: SearchBarProps) {
   const { t } = useTranslation();
   const [query, setQuery] = useState(initialQuery);
+  const pendingSearchRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const canClear = Boolean(query || hasSearched);
 
-  // Update local query when initialQuery changes
   useEffect(() => {
+    clearTimeout(pendingSearchRef.current ?? undefined);
     setQuery(initialQuery);
   }, [initialQuery]);
 
+  useEffect(
+    () => () => {
+      clearTimeout(pendingSearchRef.current ?? undefined);
+    },
+    [],
+  );
+
   const handleClear = () => {
+    clearTimeout(pendingSearchRef.current ?? undefined);
     setQuery('');
-    if (onClear) {
-      onClear();
-    }
+    onClear?.();
   };
 
-  const handleSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleChange = (value: string) => {
+    setQuery(value);
+    clearTimeout(pendingSearchRef.current ?? undefined);
 
-    // If query is empty and we're in search mode, clear the search
-    if (!query.trim()) {
-      if (hasSearched && onClear) {
+    pendingSearchRef.current = setTimeout(() => {
+      const trimmedQuery = value.trim();
+
+      if (trimmedQuery) {
+        onSearch(trimmedQuery);
+      } else if (hasSearched) {
+        onClear?.();
+      }
+    }, searchDebounceMs);
+  };
+
+  const handleSubmit = (event: SyntheticEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    clearTimeout(pendingSearchRef.current ?? undefined);
+
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) {
+      if (hasSearched) {
         handleClear();
       }
       return;
     }
 
-    onSearch(query.trim());
+    onSearch(trimmedQuery);
   };
 
   const clearButton = (
@@ -71,32 +93,17 @@ export function SearchBar({
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Input
-            type="text"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-            }}
-            placeholder={t('catalog.searchPlaceholder')}
-            disabled={loading}
-            variant="search"
-            suffixIcon={clearButton}
-            className="text-sm"
-          />
-        </div>
-
-        <Button
-          type="submit"
-          disabled={loading || (!query.trim() && !hasSearched)}
-          variant="secondary"
-          aria-label={t('catalog.filters')}
-          className="min-h-10 shrink-0 rounded-lg px-3.5"
-        >
-          <Icon name="search" />
-        </Button>
-      </div>
+      <Input
+        type="text"
+        value={query}
+        onChange={(event) => {
+          handleChange(event.target.value);
+        }}
+        placeholder={t('catalog.searchPlaceholder')}
+        variant="search"
+        suffixIcon={clearButton}
+        className="text-sm"
+      />
     </form>
   );
 }
