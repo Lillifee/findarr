@@ -58,6 +58,7 @@ export const createTestTVDetail = (props?: Partial<TVDetails>): TVDetails => ({
     },
   ],
   status: 'Returning Series',
+  tagline: 'Test tagline',
   homepage: undefined,
   tvdbId: undefined,
   imdbId: undefined,
