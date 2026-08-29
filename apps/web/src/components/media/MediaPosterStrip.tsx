@@ -9,7 +9,7 @@ function keyOf(item: Media) {
   return `${item.type}_${item.tmdbId}`;
 }
 
-export function AvailableMediaStrip({
+export function MediaPosterStrip({
   loading,
   results,
   onSelectItem,

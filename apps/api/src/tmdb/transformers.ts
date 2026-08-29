@@ -23,6 +23,9 @@ import type {
   TMDBVideos,
 } from './schemas.js';
 
+// Detail transformations reuse transformMedia, which is declared below.
+// oxlint-disable eslint/no-use-before-define
+
 /**
  * Helper: Extract and transform cast members
  */
@@ -72,7 +75,10 @@ function extractVideos(videos: TMDBVideos | undefined): Video[] | undefined {
 /**
  * Transform TMDB Movie Details to application MovieDetails type
  */
-function transformMovieDetails(tmdbMovie: TMDBMovieDetails): MovieDetails {
+function transformMovieDetails(
+  tmdbMovie: TMDBMovieDetails,
+  genreMap: Map<number, Genre>,
+): MovieDetails {
   // Extract keywords from movie response (direct array)
   const keywords: Keyword[] = tmdbMovie.keywords?.keywords ?? [];
 
@@ -104,13 +110,20 @@ function transformMovieDetails(tmdbMovie: TMDBMovieDetails): MovieDetails {
     imdbId: tmdbMovie.imdb_id ?? undefined,
     cast,
     videos,
+    ...(tmdbMovie.recommendations
+      ? {
+          recommendations: tmdbMovie.recommendations.results.map((item) =>
+            transformMedia(item, genreMap),
+          ),
+        }
+      : {}),
   };
 }
 
 /**
  * Transform TMDB TV Show Details to application TVDetails type
  */
-function transformTVDetails(tmdbTV: TMDBTVDetails): TVDetails {
+function transformTVDetails(tmdbTV: TMDBTVDetails, genreMap: Map<number, Genre>): TVDetails {
   // Extract keywords from TV response (nested in results)
   const keywords: Keyword[] = tmdbTV.keywords?.results ?? [];
 
@@ -154,6 +167,13 @@ function transformTVDetails(tmdbTV: TMDBTVDetails): TVDetails {
     imdbId: tmdbTV.external_ids?.imdb_id ?? undefined,
     cast,
     videos,
+    ...(tmdbTV.recommendations
+      ? {
+          recommendations: tmdbTV.recommendations.results.map((item) =>
+            transformMedia(item, genreMap),
+          ),
+        }
+      : {}),
   };
 }
 
@@ -242,6 +262,11 @@ export function transformMedia(
 /**
  * Transform TMDB Movie Details or TV Show Details to application type
  */
-export function transformDetails(item: TMDBMovieDetails | TMDBTVDetails) {
-  return item.type === 'movie' ? transformMovieDetails(item) : transformTVDetails(item);
+export function transformDetails(
+  item: TMDBMovieDetails | TMDBTVDetails,
+  genreMap = new Map<number, Genre>(),
+) {
+  return item.type === 'movie'
+    ? transformMovieDetails(item, genreMap)
+    : transformTVDetails(item, genreMap);
 }

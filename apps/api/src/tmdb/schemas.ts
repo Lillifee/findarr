@@ -157,6 +157,7 @@ export const TMDBMovieDetailsSchema = TMDBBaseFieldsSchema.omit({ genre_ids: tru
     imdb_id: z.string().nullish(),
     adult: z.boolean().optional(),
     keywords: TMDBMovieKeywordsSchema.optional(),
+    recommendations: z.object({ results: z.array(TMDBMovieSchema) }).optional(),
     // Append-to-response fields
     ...TMDBAppendFieldsSchema,
   })
@@ -181,6 +182,7 @@ export const TMDBTVDetailsSchema = TMDBBaseFieldsSchema.omit({ genre_ids: true }
     type: z.string(),
     homepage: z.string().nullish(),
     keywords: TMDBTVKeywordsSchema.optional(),
+    recommendations: z.object({ results: z.array(TMDBTVSchema) }).optional(),
     // Append-to-response fields
     ...TMDBAppendFieldsSchema,
   })

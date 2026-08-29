@@ -172,6 +172,7 @@ export interface MediaDetailsBase {
   homepage: string | undefined;
   imdbId: string | undefined;
   videos: Video[] | undefined;
+  recommendations?: Media[];
 }
 
 /**

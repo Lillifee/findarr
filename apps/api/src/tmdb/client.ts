@@ -82,12 +82,12 @@ export function createTMDBClient(accessToken: string, appLog: AppLogger) {
   /**
    * Get movie or tv details.
    * Use append_to_response to fetch related data in a single call (e.g., 'credits,videos,images').
-   * By default, fetches credits, keywords, external_ids, videos for rich media details.
+   * By default, fetches credits, keywords, external_ids, videos, and recommendations.
    */
   async function details(type: MediaType, params: TMDBDetailsParams) {
     const {
       id,
-      append_to_response = 'credits,keywords,external_ids,videos',
+      append_to_response = 'credits,keywords,external_ids,videos,recommendations',
       ...queryParams
     } = params;
     const timer = log.timer('details', { type, id, params });
