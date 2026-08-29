@@ -121,7 +121,7 @@ async function captureFixtures(): Promise<void> {
 
     for (const id of movieIds) {
       const details = await client.get(`/movie/${id}`, {
-        params: { append_to_response: 'credits,keywords,external_ids' },
+        params: { append_to_response: 'credits,keywords,external_ids,videos,recommendations' },
       });
       saveFixture(`movie-${id}.json`, details.data);
       // Rate limit: wait 250ms between requests
@@ -151,7 +151,7 @@ async function captureFixtures(): Promise<void> {
 
     for (const id of tvIds) {
       const details = await client.get(`/tv/${id}`, {
-        params: { append_to_response: 'credits,keywords,external_ids' },
+        params: { append_to_response: 'credits,keywords,external_ids,videos,recommendations' },
       });
       saveFixture(`tv-${id}.json`, details.data);
       await sleep(250);

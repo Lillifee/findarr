@@ -208,7 +208,7 @@ export async function createTMDBService(context: TmdbServiceContext) {
 
     return detailsCache.getOrLoad(`${id}:${type}:${language}`, async () => {
       const tmdbMovie = await lifecycle.client().details(type, { id, language });
-      return transformDetails(tmdbMovie);
+      return transformDetails(tmdbMovie, genreMap);
     });
   }
 

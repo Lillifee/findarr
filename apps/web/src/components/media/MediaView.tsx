@@ -3,11 +3,13 @@ import { isDefined, isNotEmpty } from '@findarr/shared/utils';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useMediaNavigation } from '../../hooks/useMediaNavigation';
 import { getAvatarColorClass, getInitials } from '../../utils/formatting';
 import { tmdbImage, tmdbImageOrUndefined } from '../../utils/tmdb';
 import { Icon } from '../ui/Icon';
 import { StatusBadge } from '../ui/StatusBadge';
 import { LikeDislikeButton } from './LikeDislikeButton';
+import { MediaPosterStrip } from './MediaPosterStrip';
 import { Score } from './Score';
 
 interface MediaDetailsProps {
@@ -43,6 +45,7 @@ export function MediaView({
   onMediaUpdate,
 }: MediaDetailsProps) {
   const { t } = useTranslation();
+  const { goToMedia } = useMediaNavigation();
   // Render everything from local state so a vote's fresh data (e.g. updated
   // status/interactions) is reflected across the whole view. Re-sync whenever
   // the parent supplies a new item (e.g. the vote feed advances).
@@ -72,6 +75,7 @@ export function MediaView({
   const voters = (media.state?.voters ?? [])
     .filter((voter) => voter.action === 'liked')
     .slice(0, 6);
+  const recommendations = media.recommendations ?? [];
 
   const availabilityStatus = media.state?.record?.status;
   const infoTileClass =
@@ -338,6 +342,19 @@ export function MediaView({
                   ))}
                 </div>
               </div>
+            )}
+
+            {recommendations.length > 0 && (
+              <section className="mb-8">
+                <h2 className="mb-4 text-2xl font-semibold text-white drop-shadow-md">
+                  {t('mediaView.recommendations')}
+                </h2>
+                <MediaPosterStrip
+                  loading={false}
+                  onSelectItem={goToMedia}
+                  results={recommendations}
+                />
+              </section>
             )}
 
             {voters.length > 0 && (

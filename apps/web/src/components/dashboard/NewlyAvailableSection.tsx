@@ -1,7 +1,7 @@
 import type { Media } from '@findarr/shared/media';
 import { useTranslation } from 'react-i18next';
 
-import { AvailableMediaStrip } from '../media/AvailableMediaStrip';
+import { MediaPosterStrip } from '../media/MediaPosterStrip';
 
 interface NewlyAvailableSectionProps {
   results: Media[];
@@ -23,7 +23,7 @@ export function NewlyAvailableSection({
         </h2>
       </div>
 
-      <AvailableMediaStrip loading={loading} onSelectItem={onSelectItem} results={results} />
+      <MediaPosterStrip loading={loading} onSelectItem={onSelectItem} results={results} />
     </section>
   );
 }
