@@ -153,7 +153,7 @@ export function MediaView({
               <h1 className="mb-3 text-4xl font-bold text-white drop-shadow-lg md:text-5xl lg:text-6xl">
                 {title}
               </h1>
-              {media.type === 'movie' && isNotEmpty(media.tagline) && (
+              {isNotEmpty(media.tagline) && (
                 <p className="text-xl text-gray-300 italic drop-shadow-md md:text-2xl">
                   &quot;{media.tagline}&quot;
                 </p>

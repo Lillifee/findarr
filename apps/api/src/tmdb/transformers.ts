@@ -162,6 +162,7 @@ function transformTVDetails(tmdbTV: TMDBTVDetails, genreMap: Map<number, Genre>)
     numberOfEpisodes: tmdbTV.number_of_episodes,
     seasons,
     status: tmdbTV.status,
+    tagline: tmdbTV.tagline ?? undefined,
     homepage: tmdbTV.homepage ?? undefined,
     tvdbId: tmdbTV.external_ids?.tvdb_id ?? undefined,
     imdbId: tmdbTV.external_ids?.imdb_id ?? undefined,

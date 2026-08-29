@@ -180,6 +180,7 @@ export const TMDBTVDetailsSchema = TMDBBaseFieldsSchema.omit({ genre_ids: true }
     seasons: z.array(TMDBSeasonSchema),
     status: z.string(),
     type: z.string(),
+    tagline: z.string().nullish(),
     homepage: z.string().nullish(),
     keywords: TMDBTVKeywordsSchema.optional(),
     recommendations: z.object({ results: z.array(TMDBTVSchema) }).optional(),

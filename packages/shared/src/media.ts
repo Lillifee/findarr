@@ -172,6 +172,7 @@ export interface MediaDetailsBase {
   homepage: string | undefined;
   imdbId: string | undefined;
   videos: Video[] | undefined;
+  tagline: string | undefined;
   recommendations?: Media[];
 }
 
@@ -179,7 +180,6 @@ export interface MediaDetailsBase {
  * Movie Details - extends Movie with additional fields
  */
 export interface MovieDetails extends Movie, MediaDetailsBase {
-  tagline: string | undefined;
   runtime: number | undefined;
   budget: number;
   revenue: number;
