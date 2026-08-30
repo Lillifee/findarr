@@ -66,11 +66,13 @@ export function Score({ score }: ScoreProps) {
     }
 
     if (signal.kind === 'keyword') {
-      goToDiscovery('keyword', subjectId, signal.name, 'both');
+      goToDiscovery('keyword', subjectId, signal.name);
       return;
     }
 
-    goToDiscovery('genre', subjectId, signal.name, 'both');
+    if (signal.kind === 'genre') {
+      goToDiscovery('genre', subjectId, signal.name);
+    }
   };
 
   const renderSignals = (
