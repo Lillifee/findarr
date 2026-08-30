@@ -1,4 +1,3 @@
-import { genreKeys, type GenreKey } from '@findarr/shared/constants';
 import type { InteractionFilter } from '@findarr/shared/interaction';
 import type { SearchType } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
@@ -11,7 +10,6 @@ interface CatalogSearchParamDefaults {
 
 interface CatalogSearchParamState {
   discoveryName?: string;
-  genres: GenreKey[];
   interaction?: InteractionFilter;
   page: number;
   q: string;
@@ -23,7 +21,6 @@ interface CatalogSearchParamState {
 
 interface CatalogSearchParamInput {
   discoveryName?: string | undefined;
-  genres?: GenreKey[] | undefined;
   interaction?: InteractionFilter | undefined;
   page?: number | undefined;
   q?: string | undefined;
@@ -38,9 +35,6 @@ const isInteractionFilter = (value: string): value is InteractionFilter =>
 
 const isSearchType = (value: string): value is SearchType =>
   value === 'movie' || value === 'tv' || value === 'both';
-
-const genreKeySet = new Set<string>(genreKeys);
-const isGenreKey = (value: string): value is GenreKey => genreKeySet.has(value);
 
 const readPositiveInteger = (value: string | null): number | undefined => {
   const parsed = Number(value);
@@ -68,7 +62,6 @@ export const readCatalogSearchParams = (
     type: isDefined(rawType) && isSearchType(rawType) ? rawType : (defaults.type ?? 'both'),
     page: Math.trunc(Number(searchParams.get('page') ?? String(defaults.page ?? 1))),
     q: searchParams.get('q') ?? '',
-    genres: searchParams.getAll('genres').filter((genre) => isGenreKey(genre)),
     ...(isDefined(interaction) ? { interaction } : {}),
     ...(isDefined(personId) ? { personId } : {}),
     ...(isDefined(keywordId) ? { keywordId } : {}),
@@ -103,10 +96,6 @@ export const buildCatalogSearchParams = (next: CatalogSearchParamInput) => {
   }
   if (isDefined(next.discoveryName)) {
     params.set('name', next.discoveryName);
-  }
-
-  for (const genre of next.genres ?? []) {
-    params.append('genres', genre);
   }
 
   return params;

@@ -3,6 +3,7 @@ import { isDefined } from '@findarr/shared/utils';
 import { useTranslation } from 'react-i18next';
 
 import { FiltersToolbar } from '../components/catalog/FiltersToolbar';
+import { GenreSearchResults } from '../components/catalog/GenreSearchResults';
 import { KeywordSearchResults } from '../components/catalog/KeywordSearchResults';
 import { PersonSearchResults } from '../components/catalog/PersonSearchResults';
 import { SearchBar } from '../components/catalog/SearchBar';
@@ -42,8 +43,6 @@ export function ExplorePage() {
             onTypeChange={feed.onTypeChange}
             disabled={feed.loading}
             showMediaType={!feed.isDiscovery}
-            selectedGenres={feed.selectedGenres}
-            onGenresChange={feed.onGenresChange}
             showFiltersButton={!feed.isSearchMode}
           />
         }
@@ -59,6 +58,10 @@ export function ExplorePage() {
                 : t('explore.description')
             }
           />
+
+          {feed.isSearchMode && !feed.isDiscovery && (
+            <GenreSearchResults genres={feed.genres} onSelectGenre={feed.onGenreSelect} />
+          )}
 
           {feed.isSearchMode && !feed.isDiscovery && (
             <KeywordSearchResults keywords={feed.keywords} onSelectKeyword={feed.onKeywordSelect} />

@@ -38,7 +38,7 @@ export function createMockTMDBService(
     }),
     discover: vi.fn<TMDBService['discover']>(),
     trending: vi.fn<TMDBService['trending']>(),
-    genres: vi.fn<TMDBService['genres']>(),
+    searchGenres: vi.fn<TMDBService['searchGenres']>().mockResolvedValue([]),
     details: vi.fn<TMDBService['details']>(),
     findByExternalId: vi.fn<TMDBService['findByExternalId']>(),
     ...overrides,
@@ -105,10 +105,10 @@ export function createMockCatalogService(
   return {
     search: vi
       .fn<CatalogService['search']>()
-      .mockResolvedValue({ results: [], people: [], keywords: [], page: 1 }),
+      .mockResolvedValue({ results: [], genres: [], people: [], keywords: [], page: 1 }),
     listDiscoveredMedia: vi
       .fn<CatalogService['listDiscoveredMedia']>()
-      .mockResolvedValue({ results: [], people: [], keywords: [], page: 1 }),
+      .mockResolvedValue({ results: [], genres: [], people: [], keywords: [], page: 1 }),
     listPopularMedia: vi.fn<CatalogService['listPopularMedia']>().mockResolvedValue({
       results: [],
       page: 1,

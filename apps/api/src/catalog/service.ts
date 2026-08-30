@@ -40,7 +40,7 @@ export function createCatalogService(context: CatalogContext) {
   const popularFeedSnapshotStore = createFeedSnapshotStore<Media>();
 
   async function getPopularFeedSnapshot(params: PopularQuery, userId: number) {
-    const { type = 'both', interaction, genres = [] } = params;
+    const { type = 'both', interaction } = params;
 
     return popularFeedSnapshotStore.getOrCreateSnapshot(params.feedId, async () => {
       const timer = log.timer('getPopularFeedSnapshot');
@@ -55,7 +55,7 @@ export function createCatalogService(context: CatalogContext) {
 
       let filteredMedia = cachedCatalogMedia.filter(
         (item) =>
-          filterByCriteria(item, { type, regions, genres }) &&
+          filterByCriteria(item, { type, regions }) &&
           filterByInteraction(item, interactionKeys, interaction),
       );
 
@@ -79,17 +79,18 @@ export function createCatalogService(context: CatalogContext) {
   async function search(params: SearchQuery, userId: number): Promise<SearchResponse> {
     const { language } = await user.getSettings(userId);
 
-    const [mediaResponse, peopleResponse, keywordResponse] = await Promise.all([
+    const [mediaResponse, peopleResponse, keywordResponse, genres] = await Promise.all([
       tmdb.searchMedia({ ...params, language }),
       tmdb.searchPeople({ ...params, language }),
       tmdb.searchKeywords({ ...params, language }),
+      tmdb.searchGenres({ ...params, language }),
     ]);
 
     const results = await media.enrichMediaResults(mediaResponse.results, userId);
     const people = peopleResponse.slice(0, 6);
     const keywords = keywordResponse.slice(0, 20);
 
-    return { ...mediaResponse, results, people, keywords };
+    return { ...mediaResponse, results, people, keywords, genres };
   }
 
   /**
@@ -109,7 +110,7 @@ export function createCatalogService(context: CatalogContext) {
    * Currently delegates to TMDB
    */
   async function listGenres(params: GenresQuery): Promise<Genre[]> {
-    return tmdb.genres(params);
+    return tmdb.searchGenres(params);
   }
 
   /**
@@ -145,11 +146,11 @@ export function createCatalogService(context: CatalogContext) {
    * Popular media - snapshot-backed page load-more API.
    */
   async function listPopularMedia(params: PopularQuery, userId: number): Promise<PopularResponse> {
-    const { page = 1, type = 'both', interaction, genres = [] } = params;
+    const { page = 1, type = 'both', interaction } = params;
 
     // Get or create feed snapshot (cached for short time to allow consistent pagination)
     const popularFeedSnapshot = await getPopularFeedSnapshot(
-      { ...params, type, interaction, genres },
+      { ...params, type, interaction },
       userId,
     );
 
@@ -176,7 +177,7 @@ export function createCatalogService(context: CatalogContext) {
     const response = await tmdb.discoverMedia({ ...params, language, type });
     const results = await media.enrichMediaResults(response.results, userId);
 
-    return { ...response, results, people: [], keywords: [] };
+    return { ...response, results, people: [], keywords: [], genres: [] };
   }
 
   return {

@@ -80,7 +80,7 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     const tmdbServiceMock = createMockTMDBService({
       discover: vi.fn<TMDBService['discover']>().mockResolvedValue([...movieItems, ...tvItems]),
       trending: vi.fn<TMDBService['trending']>().mockResolvedValue(trendingItems),
-      genres: vi.fn<TMDBService['genres']>().mockResolvedValue([...genreMap.values()]),
+      searchGenres: vi.fn<TMDBService['searchGenres']>().mockResolvedValue([...genreMap.values()]),
     });
 
     // Create mock Fastify instance for sync function
@@ -201,33 +201,6 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
 
     // Snapshot the ordering and scores with user preferences
     expect(scoringSnapshot).toMatchSnapshot('popular-scoring-with-user-preferences');
-  });
-
-  it('should apply genre filtering to popular results', async () => {
-    vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
-
-    const user = await createTestUserInDb(db, { email: 'genre-filter@test.com' });
-
-    // Get popular filtered by Action genre from query filter
-    const page1 = await catalogService.listPopularMedia(
-      { type: 'both', genres: ['Action'] },
-      user.id,
-    );
-
-    // All results should have Action genre (ID 28 for movies, 10759 for TV)
-    for (const item of page1.results) {
-      const hasAction = item.genres.some((g) => g.id === 28 || g.id === 10_759);
-      expect(hasAction).toBe(true);
-    }
-
-    // Extract for snapshot
-    const filterSnapshot = page1.results.map((item) => ({
-      name: item.name,
-      type: item.type,
-      genres: item.genres.map((g) => g.name),
-    }));
-
-    expect(filterSnapshot).toMatchSnapshot('popular-action-genre-filter');
   });
 
   it('should mix movies and TV shows in popular results', async () => {

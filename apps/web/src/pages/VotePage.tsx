@@ -35,7 +35,6 @@ export function VotePage() {
             selectedType={selectedType}
             onTypeChange={onTypeChange}
             disabled={isLoading}
-            showGenreFilter={false}
           />
         }
       />
