@@ -296,26 +296,6 @@ export function MediaView({
               </div>
             )}
 
-            {/* Cast section - Responsive grid */}
-            {topCast.length > 0 && (
-              <div className="mb-8">
-                <h2 className="mb-4 text-2xl font-semibold text-white drop-shadow-md">
-                  {t('mediaView.cast')}
-                </h2>
-                <PeopleGrid
-                  people={topCast.map((actor) => ({
-                    id: actor.id,
-                    name: actor.name,
-                    profilePath: actor.profilePath,
-                    subtitle: actor.character,
-                  }))}
-                  onSelect={(actor) => {
-                    goToPerson(actor.id, actor.name);
-                  }}
-                />
-              </div>
-            )}
-
             {/* Keywords */}
             {media.keywords && media.keywords.length > 0 && (
               <div className="mb-8">
@@ -336,6 +316,26 @@ export function MediaView({
                     </button>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Cast section - Responsive grid */}
+            {topCast.length > 0 && (
+              <div className="mb-8">
+                <h2 className="mb-4 text-2xl font-semibold text-white drop-shadow-md">
+                  {t('mediaView.cast')}
+                </h2>
+                <PeopleGrid
+                  people={topCast.map((actor) => ({
+                    id: actor.id,
+                    name: actor.name,
+                    profilePath: actor.profilePath,
+                    subtitle: actor.character,
+                  }))}
+                  onSelect={(actor) => {
+                    goToPerson(actor.id, actor.name);
+                  }}
+                />
               </div>
             )}
 
