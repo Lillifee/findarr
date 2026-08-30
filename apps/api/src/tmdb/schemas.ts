@@ -41,6 +41,13 @@ export const TMDBTVSchema = TMDBBaseFieldsSchema.extend({
   ...data,
 }));
 
+export const TMDBPersonSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  profile_path: z.string().nullish(),
+  known_for_department: z.string().nullish(),
+});
+
 // TMDB Genre schema
 export const TMDBGenreSchema = z.object({
   id: z.number(),
@@ -197,6 +204,13 @@ export const TMDBTVDetailsSchema = TMDBBaseFieldsSchema.omit({ genre_ids: true }
 export const TMDBSearchResponseSchema = z.object({
   page: z.number(),
   results: z.array(z.union([TMDBMovieSchema, TMDBTVSchema])),
+  total_pages: z.number(),
+  total_results: z.number(),
+});
+
+export const TMDBPersonSearchResponseSchema = z.object({
+  page: z.number(),
+  results: z.array(TMDBPersonSchema),
   total_pages: z.number(),
   total_results: z.number(),
 });
@@ -424,10 +438,12 @@ export interface TMDBGenresParams {
 // Type exports
 export type TMDBMovie = z.infer<typeof TMDBMovieSchema>;
 export type TMDBTVShow = z.infer<typeof TMDBTVSchema>;
+export type TMDBPerson = z.infer<typeof TMDBPersonSchema>;
 export type TMDBMovieDetails = z.infer<typeof TMDBMovieDetailsSchema>;
 export type TMDBTVDetails = z.infer<typeof TMDBTVDetailsSchema>;
 export type TMDBGenre = z.infer<typeof TMDBGenreSchema>;
 export type TMDBSearchResponse = z.infer<typeof TMDBSearchResponseSchema>;
+export type TMDBPersonSearchResponse = z.infer<typeof TMDBPersonSearchResponseSchema>;
 export type TMDBGenresResponse = z.infer<typeof TMDBGenresResponseSchema>;
 export type TMDBCastMember = z.infer<typeof TMDBCastMemberSchema>;
 export type TMDBCredits = z.infer<typeof TMDBCreditsSchema>;

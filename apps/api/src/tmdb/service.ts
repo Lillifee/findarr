@@ -1,5 +1,12 @@
 import type { SearchQuery, DetailsQuery, GenresQuery } from '@findarr/shared/catalog';
-import type { SearchResponse, Genre, MediaDetails, MediaType, Media } from '@findarr/shared/media';
+import type {
+  Genre,
+  MediaDetails,
+  MediaType,
+  Media,
+  PaginatedMediaResponse,
+  Person,
+} from '@findarr/shared/media';
 import type { TmdbSettings, TmdbSettingsQuery } from '@findarr/shared/settings';
 import { isDefined } from '@findarr/shared/utils';
 
@@ -13,7 +20,7 @@ import { createTMDBClient, type TMDBClient } from './client.js';
 import { buildDateParams } from './helpers.js';
 import { getTmdbSettingsFull, setTmdbSettings, type TmdbSettingsFull } from './repository.js';
 import type { TMDBDiscoverParams, TMDBTrendingParams } from './schemas.js';
-import { transformMedia, transformDetails } from './transformers.js';
+import { transformMedia, transformDetails, transformPerson } from './transformers.js';
 
 const MEDIA_TYPES = ['movie', 'tv'] as const;
 
@@ -173,31 +180,37 @@ export async function createTMDBService(context: TmdbServiceContext) {
     return results;
   }
 
-  /**
-   * Search for movies and TV shows
-   */
-  async function search(params: SearchQuery & TmdbBaseParams): Promise<SearchResponse> {
+  async function searchMedia(
+    params: SearchQuery & TmdbBaseParams,
+  ): Promise<PaginatedMediaResponse> {
     const { query, type, page, language = 'en-US' } = params;
     const region = language.split('-')[1] ?? 'US';
     const client = lifecycle.client();
 
     const searchTypes = type === 'both' ? MEDIA_TYPES : [type];
-    const promises = searchTypes.map(async (searchType) =>
-      client.search(searchType, { query, page, language, region }),
+    const mediaResponses = await Promise.all(
+      searchTypes.map(async (searchType) =>
+        client.searchMedia(searchType, { query, page, language, region }),
+      ),
     );
 
-    const searchResponses = await Promise.all(promises);
-
-    const allResults = searchResponses.flatMap((response) =>
+    const allResults = mediaResponses.flatMap((response) =>
       response.results.map((item) => transformMedia(item, genreMap)),
     );
-
-    const sortedResults = allResults.toSorted((a, b) => b.popularity - a.popularity);
+    const results = allResults.toSorted((a, b) => b.popularity - a.popularity);
 
     return {
       page,
-      results: sortedResults,
+      results,
     };
+  }
+
+  async function searchPeople(params: SearchQuery & TmdbBaseParams): Promise<Person[]> {
+    const { query, page, language = 'en-US' } = params;
+    const region = language.split('-')[1] ?? 'US';
+    const response = await lifecycle.client().searchPeople({ query, page, language, region });
+
+    return response.results.map(transformPerson);
   }
 
   /**
@@ -237,7 +250,8 @@ export async function createTMDBService(context: TmdbServiceContext) {
     isConfigured,
     testConnection,
     testAndSync,
-    search,
+    searchMedia,
+    searchPeople,
     discover,
     trending,
     details,

@@ -5,11 +5,12 @@ import { useTranslation } from 'react-i18next';
 
 import { useMediaNavigation } from '../../hooks/useMediaNavigation';
 import { getAvatarColorClass, getInitials } from '../../utils/formatting';
-import { tmdbImage, tmdbImageOrUndefined } from '../../utils/tmdb';
+import { tmdbImageOrUndefined } from '../../utils/tmdb';
 import { Icon } from '../ui/Icon';
 import { StatusBadge } from '../ui/StatusBadge';
 import { LikeDislikeButton } from './LikeDislikeButton';
 import { MediaPosterStrip } from './MediaPosterStrip';
+import { PeopleGrid } from './PeopleGrid';
 import { Score } from './Score';
 
 interface MediaDetailsProps {
@@ -301,27 +302,14 @@ export function MediaView({
                 <h2 className="mb-4 text-2xl font-semibold text-white drop-shadow-md">
                   {t('mediaView.cast')}
                 </h2>
-                <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
-                  {topCast.map((actor) => (
-                    <div key={actor.id} className="flex flex-col items-center">
-                      {isDefined(actor.profilePath) ? (
-                        <img
-                          src={tmdbImage(actor.profilePath, 'w185')}
-                          alt={actor.name}
-                          className="mb-2 h-20 w-20 rounded-full border border-zinc-800/80 object-cover shadow-lg"
-                        />
-                      ) : (
-                        <div className="mb-2 flex h-20 w-20 items-center justify-center rounded-full border border-zinc-800/80 bg-zinc-900/80 shadow-lg">
-                          <Icon filled className="text-zinc-500" name="person" size="xl" />
-                        </div>
-                      )}
-                      <div className="w-full text-center">
-                        <p className="truncate text-xs font-medium text-white">{actor.name}</p>
-                        <p className="text-2xs truncate text-gray-400">{actor.character}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <PeopleGrid
+                  people={topCast.map((actor) => ({
+                    id: actor.id,
+                    name: actor.name,
+                    profilePath: actor.profilePath,
+                    subtitle: actor.character,
+                  }))}
+                />
               </div>
             )}
 

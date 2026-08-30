@@ -2,6 +2,7 @@ import type { Media } from '@findarr/shared/media';
 import { useTranslation } from 'react-i18next';
 
 import { FiltersToolbar } from '../components/catalog/FiltersToolbar';
+import { PersonSearchResults } from '../components/catalog/PersonSearchResults';
 import { SearchBar } from '../components/catalog/SearchBar';
 import { PaginatedMediaResults } from '../components/media/PaginatedMediaResults';
 import { PageContainer } from '../components/ui/PageContainer';
@@ -51,6 +52,8 @@ export function ExplorePage() {
             title={feed.isSearchMode ? t('explore.searchResults') : t('explore.trending')}
             description={t('explore.description')}
           />
+
+          {feed.isSearchMode && <PersonSearchResults people={feed.people} />}
 
           <PaginatedMediaResults
             results={feed.results}

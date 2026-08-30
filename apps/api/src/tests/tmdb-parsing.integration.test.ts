@@ -2,12 +2,13 @@ import type { Genre } from '@findarr/shared/media';
 
 import {
   TMDBSearchResponseSchema,
+  TMDBPersonSchema,
   TMDBMovieDetailsSchema,
   TMDBTVDetailsSchema,
   type TMDBMovieDetails,
   type TMDBTVDetails,
 } from '../tmdb/schemas.js';
-import { transformMedia, transformDetails } from '../tmdb/transformers.js';
+import { transformMedia, transformDetails, transformPerson } from '../tmdb/transformers.js';
 import { loadFixture } from './helpers/fixtureHelper.js';
 
 describe('TMDB Parsing Integration Tests - Real API Data', () => {
@@ -125,6 +126,22 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
 
       expect(parsed.results).toBeDefined();
       expect(parsed.results.length).toBeGreaterThan(0);
+    });
+
+    it('should transform a person search result', () => {
+      const person = TMDBPersonSchema.parse({
+        id: 31,
+        name: 'Tom Hanks',
+        profile_path: '/xndWFsBlClOJFRdhSt4NBwiPq2o.jpg',
+        known_for_department: 'Acting',
+      });
+
+      expect(transformPerson(person)).toStrictEqual({
+        tmdbId: 31,
+        name: 'Tom Hanks',
+        profilePath: '/xndWFsBlClOJFRdhSt4NBwiPq2o.jpg',
+        knownForDepartment: 'Acting',
+      });
     });
   });
 

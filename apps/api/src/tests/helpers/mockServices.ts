@@ -29,7 +29,8 @@ export function createMockTMDBService(
     setSettings: vi
       .fn<TMDBService['setSettings']>()
       .mockResolvedValue({ tmdbAccessTokenSet: true }),
-    search: vi.fn<TMDBService['search']>(),
+    searchMedia: vi.fn<TMDBService['searchMedia']>().mockResolvedValue({ results: [], page: 1 }),
+    searchPeople: vi.fn<TMDBService['searchPeople']>().mockResolvedValue([]),
     discover: vi.fn<TMDBService['discover']>(),
     trending: vi.fn<TMDBService['trending']>(),
     genres: vi.fn<TMDBService['genres']>(),
@@ -97,7 +98,9 @@ export function createMockCatalogService(
   overrides: Partial<Mocked<CatalogService>> = {},
 ): Mocked<CatalogService> {
   return {
-    searchMedia: vi.fn<CatalogService['searchMedia']>().mockResolvedValue({ results: [], page: 1 }),
+    searchMedia: vi
+      .fn<CatalogService['searchMedia']>()
+      .mockResolvedValue({ results: [], people: [], page: 1 }),
     getPopularMedia: vi.fn<CatalogService['getPopularMedia']>().mockResolvedValue({
       results: [],
       page: 1,

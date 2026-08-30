@@ -48,6 +48,13 @@ export interface CastMember {
   order: number;
 }
 
+export interface Person {
+  tmdbId: number;
+  name: string;
+  profilePath: string | undefined;
+  knownForDepartment: string | undefined;
+}
+
 export interface Video {
   id: string;
   key: string;
@@ -210,7 +217,9 @@ export interface PaginatedMediaResponse {
   page: number;
 }
 
-export type SearchResponse = PaginatedMediaResponse;
+export interface SearchResponse extends PaginatedMediaResponse {
+  people: Person[];
+}
 export type UserInteractionsResponse = PaginatedMediaResponse;
 
 /**
