@@ -46,7 +46,7 @@ export function MediaView({
   onMediaUpdate,
 }: MediaDetailsProps) {
   const { t } = useTranslation();
-  const { goToMedia, goToPerson } = useMediaNavigation();
+  const { goToMedia, goToPerson, goToKeyword } = useMediaNavigation();
   // Render everything from local state so a vote's fresh data (e.g. updated
   // status/interactions) is reflected across the whole view. Re-sync whenever
   // the parent supplies a new item (e.g. the vote feed advances).
@@ -310,7 +310,7 @@ export function MediaView({
                     subtitle: actor.character,
                   }))}
                   onSelect={(actor) => {
-                    goToPerson(actor.id);
+                    goToPerson(actor.id, actor.name);
                   }}
                 />
               </div>
@@ -324,12 +324,16 @@ export function MediaView({
                 </h2>
                 <div className="flex flex-wrap gap-2">
                   {media.keywords.map((keyword) => (
-                    <span
+                    <button
                       key={keyword.id}
-                      className="rounded-full border border-zinc-800/80 bg-zinc-950/72 px-3 py-1 text-sm text-zinc-200 backdrop-blur-sm"
+                      type="button"
+                      onClick={() => {
+                        goToKeyword(keyword.id, keyword.name, media.type);
+                      }}
+                      className="rounded-full border border-zinc-800/80 bg-zinc-950/72 px-3 py-1 text-sm text-zinc-200 backdrop-blur-sm transition-colors hover:border-amber-500/60 hover:text-amber-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400"
                     >
                       {keyword.name}
-                    </span>
+                    </button>
                   ))}
                 </div>
               </div>

@@ -7,6 +7,7 @@ import {
   type TMDBTVSearchParams,
   TMDBSearchResponseSchema,
   TMDBPersonSearchResponseSchema,
+  TMDBKeywordSearchResponseSchema,
   type TMDBDiscoverParams,
   type TMDBTrendingParams,
   type TMDBDetailsParams,
@@ -57,6 +58,16 @@ export function createTMDBClient(accessToken: string, appLog: AppLogger) {
 
     const response = await client.get('/search/person', { params });
     const result = TMDBPersonSearchResponseSchema.parse(response.data);
+
+    timer.end();
+    return result;
+  }
+
+  async function searchKeywords(params: TMDBSearchParams) {
+    const timer = log.timer('searchKeywords', { params });
+
+    const response = await client.get('/search/keyword', { params });
+    const result = TMDBKeywordSearchResponseSchema.parse(response.data);
 
     timer.end();
     return result;
@@ -150,6 +161,7 @@ export function createTMDBClient(accessToken: string, appLog: AppLogger) {
     testConnection,
     searchMedia,
     searchPeople,
+    searchKeywords,
     discover,
     trending,
     details,

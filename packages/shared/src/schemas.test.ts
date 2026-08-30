@@ -1,5 +1,5 @@
 import { LoginSchema, CreateUserSchema } from './auth.js';
-import { PersonQuerySchema, SearchQuerySchema, DetailsQuerySchema } from './catalog.js';
+import { DiscoverQuerySchema, SearchQuerySchema, DetailsQuerySchema } from './catalog.js';
 import { ServerEnvSchema } from './env.js';
 import { CreateInteractionSchema, InteractionIdSchema } from './interaction.js';
 
@@ -96,13 +96,21 @@ describe('schemas', () => {
     });
   });
 
-  describe('PersonQuerySchema', () => {
-    it('should require a positive person ID and default the page', () => {
-      expect(PersonQuerySchema.safeParse({}).success).toBe(false);
-      expect(PersonQuerySchema.safeParse({ personId: 0 }).success).toBe(false);
-      expect(PersonQuerySchema.parse({ personId: '31' })).toStrictEqual({
+  describe('DiscoverQuerySchema', () => {
+    it('should require exactly one positive person or keyword ID', () => {
+      expect(DiscoverQuerySchema.safeParse({}).success).toBe(false);
+      expect(DiscoverQuerySchema.safeParse({ personId: 0 }).success).toBe(false);
+      expect(DiscoverQuerySchema.safeParse({ keywordId: 0 }).success).toBe(false);
+      expect(DiscoverQuerySchema.safeParse({ personId: 31, keywordId: 1 }).success).toBe(false);
+      expect(DiscoverQuerySchema.parse({ personId: '31' })).toStrictEqual({
         personId: 31,
         page: 1,
+        type: 'both',
+      });
+      expect(DiscoverQuerySchema.parse({ keywordId: '1' })).toStrictEqual({
+        keywordId: 1,
+        page: 1,
+        type: 'both',
       });
     });
   });

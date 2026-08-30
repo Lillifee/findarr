@@ -8,7 +8,7 @@ import type {
 } from '@findarr/shared/auth';
 import type {
   SearchQuery,
-  PersonQuery,
+  DiscoverQuery,
   PopularQuery,
   DetailsQuery,
   GenresQuery,
@@ -54,8 +54,8 @@ export const searchService = {
     return response.data;
   },
 
-  listMoviesByPerson: async (params: PersonQuery): Promise<SearchResponse> => {
-    const response = await api.get<SearchResponse>('/discover/person', { params });
+  discover: async (params: DiscoverQuery): Promise<SearchResponse> => {
+    const response = await api.get<SearchResponse>('/discover', { params });
     return response.data;
   },
 

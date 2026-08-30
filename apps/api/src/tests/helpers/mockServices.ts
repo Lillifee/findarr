@@ -31,7 +31,8 @@ export function createMockTMDBService(
       .mockResolvedValue({ tmdbAccessTokenSet: true }),
     searchMedia: vi.fn<TMDBService['searchMedia']>().mockResolvedValue({ results: [], page: 1 }),
     searchPeople: vi.fn<TMDBService['searchPeople']>().mockResolvedValue([]),
-    discoverMoviesByPerson: vi.fn<TMDBService['discoverMoviesByPerson']>().mockResolvedValue({
+    searchKeywords: vi.fn<TMDBService['searchKeywords']>().mockResolvedValue([]),
+    discoverMedia: vi.fn<TMDBService['discoverMedia']>().mockResolvedValue({
       results: [],
       page: 1,
     }),
@@ -104,10 +105,10 @@ export function createMockCatalogService(
   return {
     search: vi
       .fn<CatalogService['search']>()
-      .mockResolvedValue({ results: [], people: [], page: 1 }),
-    listMoviesByPerson: vi
-      .fn<CatalogService['listMoviesByPerson']>()
-      .mockResolvedValue({ results: [], people: [], page: 1 }),
+      .mockResolvedValue({ results: [], people: [], keywords: [], page: 1 }),
+    listDiscoveredMedia: vi
+      .fn<CatalogService['listDiscoveredMedia']>()
+      .mockResolvedValue({ results: [], people: [], keywords: [], page: 1 }),
     listPopularMedia: vi.fn<CatalogService['listPopularMedia']>().mockResolvedValue({
       results: [],
       page: 1,

@@ -1,4 +1,9 @@
-import type { SearchQuery, PersonQuery, DetailsQuery, GenresQuery } from '@findarr/shared/catalog';
+import type {
+  SearchQuery,
+  DiscoverQuery,
+  DetailsQuery,
+  GenresQuery,
+} from '@findarr/shared/catalog';
 import type {
   Genre,
   MediaDetails,
@@ -6,6 +11,7 @@ import type {
   Media,
   PaginatedMediaResponse,
   Person,
+  Keyword,
 } from '@findarr/shared/media';
 import type { TmdbSettings, TmdbSettingsQuery } from '@findarr/shared/settings';
 import { isDefined } from '@findarr/shared/utils';
@@ -213,19 +219,35 @@ export async function createTMDBService(context: TmdbServiceContext) {
     return response.results.map(transformPerson);
   }
 
-  async function discoverMoviesByPerson(
-    params: PersonQuery & TmdbBaseParams,
+  async function searchKeywords(params: SearchQuery & TmdbBaseParams): Promise<Keyword[]> {
+    const { query, page, language = 'en-US' } = params;
+    const response = await lifecycle.client().searchKeywords({ query, page, language });
+
+    return response.results;
+  }
+
+  async function discoverMedia(
+    params: DiscoverQuery & TmdbBaseParams,
   ): Promise<PaginatedMediaResponse> {
-    const { personId, page, language = 'en-US' } = params;
-    const response = await lifecycle.client().discover('movie', {
-      page,
-      language,
-      with_people: String(personId),
-    });
+    const { page, type, language = 'en-US' } = params;
+    const mediaTypes = type === 'both' ? MEDIA_TYPES : [type];
+
+    const tmdbParams =
+      'personId' in params
+        ? { with_people: String(params.personId) }
+        : { with_keywords: String(params.keywordId) };
+
+    const responses = await Promise.all(
+      mediaTypes.map(async (mediaType) =>
+        lifecycle.client().discover(mediaType, { page, language, ...tmdbParams }),
+      ),
+    );
 
     return {
-      page: response.page,
-      results: response.results.map((item) => transformMedia(item, genreMap)),
+      page,
+      results: responses
+        .flatMap((response) => response.results.map((item) => transformMedia(item, genreMap)))
+        .toSorted((left, right) => right.popularity - left.popularity),
     };
   }
 
@@ -268,7 +290,8 @@ export async function createTMDBService(context: TmdbServiceContext) {
     testAndSync,
     searchMedia,
     searchPeople,
-    discoverMoviesByPerson,
+    searchKeywords,
+    discoverMedia,
     discover,
     trending,
     details,

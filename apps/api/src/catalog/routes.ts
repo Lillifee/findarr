@@ -1,6 +1,6 @@
 import {
   SearchQuerySchema,
-  PersonQuerySchema,
+  DiscoverQuerySchema,
   DetailsQuerySchema,
   GenresQuerySchema,
   PopularQuerySchema,
@@ -22,9 +22,12 @@ export const catalogRoutes = (fastify: FastifyInstance) => {
   );
 
   fastify.get(
-    '/discover/person',
+    '/discover',
     protectedRoute(async (request) =>
-      fastify.catalog.listMoviesByPerson(PersonQuerySchema.parse(request.query), request.user.id),
+      fastify.catalog.listDiscoveredMedia(
+        DiscoverQuerySchema.parse(request.query),
+        request.user.id,
+      ),
     ),
   );
 

@@ -10,8 +10,10 @@ interface CatalogSearchParamDefaults {
 }
 
 interface CatalogSearchParamState {
+  discoveryName?: string;
   genres: GenreKey[];
   interaction?: InteractionFilter;
+  keywordId?: number;
   page: number;
   q: string;
   type: SearchType;
@@ -19,8 +21,10 @@ interface CatalogSearchParamState {
 }
 
 interface CatalogSearchParamInput {
+  discoveryName?: string | undefined;
   genres?: GenreKey[] | undefined;
   interaction?: InteractionFilter | undefined;
+  keywordId?: number | undefined;
   page?: number | undefined;
   q?: string | undefined;
   type?: SearchType | undefined;
@@ -54,6 +58,8 @@ export const readCatalogSearchParams = (
       : defaults.interaction;
 
   const personId = readPositiveInteger(searchParams.get('person'));
+  const keywordId = readPositiveInteger(searchParams.get('keyword'));
+  const discoveryName = searchParams.get('name') ?? undefined;
 
   return {
     type: isDefined(rawType) && isSearchType(rawType) ? rawType : (defaults.type ?? 'both'),
@@ -62,6 +68,8 @@ export const readCatalogSearchParams = (
     genres: searchParams.getAll('genres').filter((genre) => isGenreKey(genre)),
     ...(isDefined(interaction) ? { interaction } : {}),
     ...(isDefined(personId) ? { personId } : {}),
+    ...(isDefined(keywordId) ? { keywordId } : {}),
+    ...(isDefined(discoveryName) ? { discoveryName } : {}),
   };
 };
 
@@ -82,6 +90,12 @@ export const buildCatalogSearchParams = (next: CatalogSearchParamInput) => {
   }
   if (isDefined(next.personId)) {
     params.set('person', String(next.personId));
+  }
+  if (isDefined(next.keywordId)) {
+    params.set('keyword', String(next.keywordId));
+  }
+  if (isDefined(next.discoveryName)) {
+    params.set('name', next.discoveryName);
   }
 
   for (const genre of next.genres ?? []) {
