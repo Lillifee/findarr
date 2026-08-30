@@ -3,10 +3,8 @@ import { isDefined } from '@findarr/shared/utils';
 import { useTranslation } from 'react-i18next';
 
 import { FiltersToolbar } from '../components/catalog/FiltersToolbar';
-import { GenreSearchResults } from '../components/catalog/GenreSearchResults';
-import { KeywordSearchResults } from '../components/catalog/KeywordSearchResults';
-import { PersonSearchResults } from '../components/catalog/PersonSearchResults';
 import { SearchBar } from '../components/catalog/SearchBar';
+import { SearchMatches } from '../components/catalog/SearchMatches';
 import { PaginatedMediaResults } from '../components/media/PaginatedMediaResults';
 import { PageContainer } from '../components/ui/PageContainer';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -60,15 +58,14 @@ export function ExplorePage() {
           />
 
           {feed.isSearchMode && !feed.isDiscovery && (
-            <GenreSearchResults genres={feed.genres} onSelectGenre={feed.onGenreSelect} />
-          )}
-
-          {feed.isSearchMode && !feed.isDiscovery && (
-            <KeywordSearchResults keywords={feed.keywords} onSelectKeyword={feed.onKeywordSelect} />
-          )}
-
-          {feed.isSearchMode && !feed.isDiscovery && (
-            <PersonSearchResults people={feed.people} onSelectPerson={feed.onPersonSelect} />
+            <SearchMatches
+              genres={feed.genres}
+              keywords={feed.keywords}
+              people={feed.people}
+              onSelectGenre={feed.onGenreSelect}
+              onSelectKeyword={feed.onKeywordSelect}
+              onSelectPerson={feed.onPersonSelect}
+            />
           )}
 
           <PaginatedMediaResults
