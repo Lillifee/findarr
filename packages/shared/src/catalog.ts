@@ -23,20 +23,13 @@ export const SearchQuerySchema = z.object({
   type: z.enum(['movie', 'tv', 'both']).default('both'),
 });
 
-export const DiscoverQuerySchema = z.union([
-  z.object({
-    personId: z.coerce.number().int().positive(),
-    keywordId: z.never().optional(),
-    page: z.coerce.number().int().min(1).max(1000).default(1),
-    type: z.enum(['movie', 'tv', 'both']).default('both'),
-  }),
-  z.object({
-    keywordId: z.coerce.number().int().positive(),
-    personId: z.never().optional(),
-    page: z.coerce.number().int().min(1).max(1000).default(1),
-    type: z.enum(['movie', 'tv', 'both']).default('both'),
-  }),
-]);
+export const DiscoverQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).max(1000).default(1),
+  type: z.enum(['movie', 'tv', 'both']).default('both'),
+  personId: z.coerce.number().int().positive().optional(),
+  keywordId: z.coerce.number().int().positive().optional(),
+  genreId: z.coerce.number().int().positive().optional(),
+});
 
 // Snapshot-backed popular query for infinite scrolling/load-more
 export const PopularQuerySchema = z.object({

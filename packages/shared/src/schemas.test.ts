@@ -97,11 +97,10 @@ describe('schemas', () => {
   });
 
   describe('DiscoverQuerySchema', () => {
-    it('should require exactly one positive person or keyword ID', () => {
-      expect(DiscoverQuerySchema.safeParse({}).success).toBe(false);
+    it('should validate positive discovery IDs', () => {
       expect(DiscoverQuerySchema.safeParse({ personId: 0 }).success).toBe(false);
       expect(DiscoverQuerySchema.safeParse({ keywordId: 0 }).success).toBe(false);
-      expect(DiscoverQuerySchema.safeParse({ personId: 31, keywordId: 1 }).success).toBe(false);
+      expect(DiscoverQuerySchema.safeParse({ genreId: 0 }).success).toBe(false);
       expect(DiscoverQuerySchema.parse({ personId: '31' })).toStrictEqual({
         personId: 31,
         page: 1,
@@ -109,6 +108,11 @@ describe('schemas', () => {
       });
       expect(DiscoverQuerySchema.parse({ keywordId: '1' })).toStrictEqual({
         keywordId: 1,
+        page: 1,
+        type: 'both',
+      });
+      expect(DiscoverQuerySchema.parse({ genreId: '28' })).toStrictEqual({
+        genreId: 28,
         page: 1,
         type: 'both',
       });

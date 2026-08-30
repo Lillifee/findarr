@@ -98,7 +98,7 @@ describe('catalog service - integration tests', () => {
     expect(genres).toBe(genresResult);
   });
 
-  it('should return people and keywords and discover movies by their IDs', async () => {
+  it('should return people and keywords and discover media by person, keyword, or genre', async () => {
     const user = await createTestUserInDb(db, { email: 'cast-discover@test.com' });
     const movie = createTestMedia({ tmdbId: 1, type: 'movie' });
     tmdbService.searchPeople.mockResolvedValue([
@@ -117,6 +117,10 @@ describe('catalog service - integration tests', () => {
       { keywordId: 1, page: 1, type: 'tv' },
       user.id,
     );
+    const genreDiscovery = await catalogService.listDiscoveredMedia(
+      { genreId: 28, page: 1, type: 'both' },
+      user.id,
+    );
 
     expect(search.people).toStrictEqual([
       { tmdbId: 1, name: 'Actor', profilePath: undefined, knownForDepartment: 'Acting' },
@@ -129,8 +133,12 @@ describe('catalog service - integration tests', () => {
     expect(tmdbService.discoverMedia).toHaveBeenCalledWith(
       expect.objectContaining({ keywordId: 1, page: 1, type: 'tv' }),
     );
+    expect(tmdbService.discoverMedia).toHaveBeenCalledWith(
+      expect.objectContaining({ genreId: 28, page: 1, type: 'both' }),
+    );
     expect(personDiscovery).toMatchObject({ results: [movie], people: [], keywords: [] });
     expect(keywordDiscovery).toMatchObject({ results: [movie], people: [], keywords: [] });
+    expect(genreDiscovery).toMatchObject({ results: [movie], people: [], keywords: [] });
   });
 
   it('should return cached popular results and filter/paginate', async () => {

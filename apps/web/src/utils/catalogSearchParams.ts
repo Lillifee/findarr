@@ -13,22 +13,24 @@ interface CatalogSearchParamState {
   discoveryName?: string;
   genres: GenreKey[];
   interaction?: InteractionFilter;
-  keywordId?: number;
   page: number;
   q: string;
   type: SearchType;
   personId?: number;
+  keywordId?: number;
+  genreId?: number;
 }
 
 interface CatalogSearchParamInput {
   discoveryName?: string | undefined;
   genres?: GenreKey[] | undefined;
   interaction?: InteractionFilter | undefined;
-  keywordId?: number | undefined;
   page?: number | undefined;
   q?: string | undefined;
   type?: SearchType | undefined;
+  keywordId?: number | undefined;
   personId?: number | undefined;
+  genreId?: number | undefined;
 }
 
 const isInteractionFilter = (value: string): value is InteractionFilter =>
@@ -59,6 +61,7 @@ export const readCatalogSearchParams = (
 
   const personId = readPositiveInteger(searchParams.get('person'));
   const keywordId = readPositiveInteger(searchParams.get('keyword'));
+  const genreId = readPositiveInteger(searchParams.get('genre'));
   const discoveryName = searchParams.get('name') ?? undefined;
 
   return {
@@ -69,6 +72,7 @@ export const readCatalogSearchParams = (
     ...(isDefined(interaction) ? { interaction } : {}),
     ...(isDefined(personId) ? { personId } : {}),
     ...(isDefined(keywordId) ? { keywordId } : {}),
+    ...(isDefined(genreId) ? { genreId } : {}),
     ...(isDefined(discoveryName) ? { discoveryName } : {}),
   };
 };
@@ -93,6 +97,9 @@ export const buildCatalogSearchParams = (next: CatalogSearchParamInput) => {
   }
   if (isDefined(next.keywordId)) {
     params.set('keyword', String(next.keywordId));
+  }
+  if (isDefined(next.genreId)) {
+    params.set('genre', String(next.genreId));
   }
   if (isDefined(next.discoveryName)) {
     params.set('name', next.discoveryName);

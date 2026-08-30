@@ -46,7 +46,7 @@ export function MediaView({
   onMediaUpdate,
 }: MediaDetailsProps) {
   const { t } = useTranslation();
-  const { goToMedia, goToPerson, goToKeyword } = useMediaNavigation();
+  const { goToMedia, goToPerson, goToKeyword, goToGenre } = useMediaNavigation();
   // Render everything from local state so a vote's fresh data (e.g. updated
   // status/interactions) is reflected across the whole view. Re-sync whenever
   // the parent supplies a new item (e.g. the vote feed advances).
@@ -270,12 +270,16 @@ export function MediaView({
                 <div className="mt-2 pt-2">
                   <div className="flex flex-wrap gap-2">
                     {media.genres.map((genre) => (
-                      <span
+                      <button
                         key={genre.id}
-                        className="inline-flex items-center rounded-full border border-zinc-800/80 bg-zinc-950/72 px-3 py-1 text-xs text-zinc-200 backdrop-blur-sm"
+                        type="button"
+                        onClick={() => {
+                          goToGenre(genre, media.type);
+                        }}
+                        className="inline-flex items-center rounded-full border border-zinc-800/80 bg-zinc-950/72 px-3 py-1 text-xs text-zinc-200 backdrop-blur-sm transition-colors hover:border-amber-500/60 hover:text-amber-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400"
                       >
                         {genre.name}
-                      </span>
+                      </button>
                     ))}
                   </div>
                 </div>

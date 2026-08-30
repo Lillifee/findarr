@@ -232,10 +232,11 @@ export async function createTMDBService(context: TmdbServiceContext) {
     const { page, type, language = 'en-US' } = params;
     const mediaTypes = type === 'both' ? MEDIA_TYPES : [type];
 
-    const tmdbParams =
-      'personId' in params
-        ? { with_people: String(params.personId) }
-        : { with_keywords: String(params.keywordId) };
+    const tmdbParams = {
+      ...('personId' in params ? { with_people: String(params.personId) } : {}),
+      ...('keywordId' in params ? { with_keywords: String(params.keywordId) } : {}),
+      ...('genreId' in params ? { with_genres: String(params.genreId) } : {}),
+    };
 
     const responses = await Promise.all(
       mediaTypes.map(async (mediaType) =>
