@@ -5,9 +5,10 @@ import { PeopleGrid } from '../media/PeopleGrid';
 
 interface PersonSearchResultsProps {
   people: Person[];
+  onSelectPerson: (person: Person) => void;
 }
 
-export function PersonSearchResults({ people }: PersonSearchResultsProps) {
+export function PersonSearchResults({ people, onSelectPerson }: PersonSearchResultsProps) {
   const { t } = useTranslation();
 
   if (people.length === 0) {
@@ -21,11 +22,11 @@ export function PersonSearchResults({ people }: PersonSearchResultsProps) {
       </h2>
       <PeopleGrid
         people={people.map((person) => ({
+          ...person,
           id: person.tmdbId,
-          name: person.name,
-          profilePath: person.profilePath,
           subtitle: person.knownForDepartment,
         }))}
+        onSelect={onSelectPerson}
       />
     </section>
   );

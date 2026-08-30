@@ -1,4 +1,4 @@
-import type { SearchQuery, DetailsQuery, GenresQuery } from '@findarr/shared/catalog';
+import type { SearchQuery, PersonQuery, DetailsQuery, GenresQuery } from '@findarr/shared/catalog';
 import type {
   Genre,
   MediaDetails,
@@ -213,6 +213,22 @@ export async function createTMDBService(context: TmdbServiceContext) {
     return response.results.map(transformPerson);
   }
 
+  async function discoverMoviesByPerson(
+    params: PersonQuery & TmdbBaseParams,
+  ): Promise<PaginatedMediaResponse> {
+    const { personId, page, language = 'en-US' } = params;
+    const response = await lifecycle.client().discover('movie', {
+      page,
+      language,
+      with_people: String(personId),
+    });
+
+    return {
+      page: response.page,
+      results: response.results.map((item) => transformMedia(item, genreMap)),
+    };
+  }
+
   /**
    * Get movie or TV show details
    */
@@ -252,6 +268,7 @@ export async function createTMDBService(context: TmdbServiceContext) {
     testAndSync,
     searchMedia,
     searchPeople,
+    discoverMoviesByPerson,
     discover,
     trending,
     details,

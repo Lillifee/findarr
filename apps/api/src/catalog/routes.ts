@@ -1,5 +1,6 @@
 import {
   SearchQuerySchema,
+  PersonQuerySchema,
   DetailsQuerySchema,
   GenresQuerySchema,
   PopularQuerySchema,
@@ -16,7 +17,14 @@ export const catalogRoutes = (fastify: FastifyInstance) => {
   fastify.get(
     '/search',
     protectedRoute(async (request) =>
-      fastify.catalog.searchMedia(SearchQuerySchema.parse(request.query), request.user.id),
+      fastify.catalog.search(SearchQuerySchema.parse(request.query), request.user.id),
+    ),
+  );
+
+  fastify.get(
+    '/discover/person',
+    protectedRoute(async (request) =>
+      fastify.catalog.listMoviesByPerson(PersonQuerySchema.parse(request.query), request.user.id),
     ),
   );
 
@@ -24,7 +32,7 @@ export const catalogRoutes = (fastify: FastifyInstance) => {
   fastify.get(
     '/popular',
     protectedRoute(async (request) =>
-      fastify.catalog.getPopularMedia(PopularQuerySchema.parse(request.query), request.user.id),
+      fastify.catalog.listPopularMedia(PopularQuerySchema.parse(request.query), request.user.id),
     ),
   );
 

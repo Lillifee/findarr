@@ -1,5 +1,5 @@
 import { LoginSchema, CreateUserSchema } from './auth.js';
-import { SearchQuerySchema, DetailsQuerySchema } from './catalog.js';
+import { PersonQuerySchema, SearchQuerySchema, DetailsQuerySchema } from './catalog.js';
 import { ServerEnvSchema } from './env.js';
 import { CreateInteractionSchema, InteractionIdSchema } from './interaction.js';
 
@@ -93,6 +93,17 @@ describe('schemas', () => {
       expect(SearchQuerySchema.safeParse({ query: 'test', type: 'tv' }).success).toBe(true);
       expect(SearchQuerySchema.safeParse({ query: 'test', type: 'both' }).success).toBe(true);
       expect(SearchQuerySchema.safeParse({ query: 'test', type: 'person' }).success).toBe(false);
+    });
+  });
+
+  describe('PersonQuerySchema', () => {
+    it('should require a positive person ID and default the page', () => {
+      expect(PersonQuerySchema.safeParse({}).success).toBe(false);
+      expect(PersonQuerySchema.safeParse({ personId: 0 }).success).toBe(false);
+      expect(PersonQuerySchema.parse({ personId: '31' })).toStrictEqual({
+        personId: 31,
+        page: 1,
+      });
     });
   });
 

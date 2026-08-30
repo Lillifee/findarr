@@ -88,10 +88,7 @@ describe('catalog service - integration tests', () => {
     tmdbService.details.mockResolvedValue(detailsResult);
     tmdbService.genres.mockResolvedValue(genresResult);
 
-    const search = await catalogService.searchMedia(
-      { query: 'test', type: 'movie', page: 0 },
-      user.id,
-    );
+    const search = await catalogService.search({ query: 'test', type: 'movie', page: 0 }, user.id);
     expect(search.results).toStrictEqual(searchResult.results);
 
     const details = await catalogService.getMediaDetails({ id: 1, type: 'movie' }, user.id);
@@ -99,6 +96,28 @@ describe('catalog service - integration tests', () => {
 
     const genres = await catalogService.listGenres({});
     expect(genres).toBe(genresResult);
+  });
+
+  it('should return people and discover movies by their ID', async () => {
+    const user = await createTestUserInDb(db, { email: 'cast-discover@test.com' });
+    const movie = createTestMedia({ tmdbId: 1, type: 'movie' });
+    tmdbService.searchPeople.mockResolvedValue([
+      { tmdbId: 1, name: 'Actor', profilePath: undefined, knownForDepartment: 'Acting' },
+      { tmdbId: 2, name: 'Director', profilePath: undefined, knownForDepartment: 'Directing' },
+    ]);
+    tmdbService.discoverMoviesByPerson.mockResolvedValue({ page: 1, results: [movie] });
+
+    const search = await catalogService.search({ query: 'test', type: 'both', page: 1 }, user.id);
+    const discovery = await catalogService.listMoviesByPerson({ personId: 1, page: 1 }, user.id);
+
+    expect(search.people).toStrictEqual([
+      { tmdbId: 1, name: 'Actor', profilePath: undefined, knownForDepartment: 'Acting' },
+      { tmdbId: 2, name: 'Director', profilePath: undefined, knownForDepartment: 'Directing' },
+    ]);
+    expect(tmdbService.discoverMoviesByPerson).toHaveBeenCalledWith(
+      expect.objectContaining({ personId: 1, page: 1 }),
+    );
+    expect(discovery).toMatchObject({ results: [movie], people: [] });
   });
 
   it('should return cached popular results and filter/paginate', async () => {
@@ -110,14 +129,14 @@ describe('catalog service - integration tests', () => {
     await upsertCatalogCache(db, cachedItems);
 
     // First page
-    const firstPage = await catalogService.getPopularMedia({}, user.id);
+    const firstPage = await catalogService.listPopularMedia({}, user.id);
     expect(firstPage.results).toHaveLength(20);
     expect(firstPage.totalPages).toBe(3);
     expect(firstPage.feedId).toBeTruthy();
     expect(firstPage.page).toBe(1);
 
     // Second page
-    const secondPage = await catalogService.getPopularMedia(
+    const secondPage = await catalogService.listPopularMedia(
       { page: 2, feedId: firstPage.feedId },
       user.id,
     );
@@ -135,7 +154,7 @@ describe('catalog service - integration tests', () => {
     ];
     await upsertCatalogCache(db, items);
 
-    const result = await catalogService.getPopularMedia({ type: 'tv' }, user.id);
+    const result = await catalogService.listPopularMedia({ type: 'tv' }, user.id);
     expect(result.results).toHaveLength(1);
     expect(result.results[0]?.type).toBe('tv');
   });
@@ -148,10 +167,7 @@ describe('catalog service - integration tests', () => {
       page: 1,
     });
 
-    const result = await catalogService.searchMedia(
-      { query: 'test', type: 'movie', page: 1 },
-      user.id,
-    );
+    const result = await catalogService.search({ query: 'test', type: 'movie', page: 1 }, user.id);
     expect(result.results).toStrictEqual(items);
   });
 
@@ -181,7 +197,7 @@ describe('catalog service - integration tests', () => {
     await upsertCatalogCache(db, items);
 
     // Call popular with userId - should apply preference scoring
-    const result = await catalogService.getPopularMedia({}, user.id);
+    const result = await catalogService.listPopularMedia({}, user.id);
 
     // The Action movie should be boosted due to user preferences
     expect(result.results).toHaveLength(2);
@@ -213,7 +229,7 @@ describe('catalog service - integration tests', () => {
     ];
     await upsertCatalogCache(db, items);
 
-    const result = await catalogService.getPopularMedia({}, user.id);
+    const result = await catalogService.listPopularMedia({}, user.id);
 
     // Should execute the keyword preference scoring code path
     expect(result.results).toBeDefined();
@@ -235,7 +251,7 @@ describe('catalog service - integration tests', () => {
     await upsertCatalogCache(db, [mediaItem]);
 
     // Call popular with userId to trigger enrichment with interactions
-    const result = await catalogService.getPopularMedia({}, user.id);
+    const result = await catalogService.listPopularMedia({}, user.id);
 
     // Should execute enrichment with userId code path (line 130)
     expect(result.results).toBeDefined();

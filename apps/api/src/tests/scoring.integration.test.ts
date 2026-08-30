@@ -121,7 +121,7 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
   it('should score and sort popular media consistently - no user', async () => {
     // Get popular without user preferences
     const user = await createCatalogUser('popular-no-user@test.com');
-    const page1 = await catalogService.getPopularMedia({ type: 'both' }, user.id);
+    const page1 = await catalogService.listPopularMedia({ type: 'both' }, user.id);
 
     // Extract relevant scoring data for snapshot (round to avoid floating-point precision issues)
     const scoringSnapshot = page1.results.map((item) => ({
@@ -167,7 +167,7 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     await applyPreferenceDeltas(db, user.id, [prefSubject('keyword', 818, 'based on book')], 3, 3);
 
     // Get popular with user preferences
-    const page1 = await catalogService.getPopularMedia({ type: 'both' }, user.id);
+    const page1 = await catalogService.listPopularMedia({ type: 'both' }, user.id);
 
     expect(
       page1.results.some((item) => {
@@ -209,7 +209,7 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
     const user = await createTestUserInDb(db, { email: 'genre-filter@test.com' });
 
     // Get popular filtered by Action genre from query filter
-    const page1 = await catalogService.getPopularMedia(
+    const page1 = await catalogService.listPopularMedia(
       { type: 'both', genres: ['Action'] },
       user.id,
     );
@@ -232,7 +232,7 @@ describe('Popular Scoring Integration Tests - Real TMDB Data', () => {
 
   it('should mix movies and TV shows in popular results', async () => {
     const user = await createCatalogUser('popular-types@test.com');
-    const page1 = await catalogService.getPopularMedia({ type: 'both' }, user.id);
+    const page1 = await catalogService.listPopularMedia({ type: 'both' }, user.id);
 
     // Extract types
     const types = page1.results.map((item) => ({

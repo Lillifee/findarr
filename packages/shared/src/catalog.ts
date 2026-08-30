@@ -23,6 +23,11 @@ export const SearchQuerySchema = z.object({
   type: z.enum(['movie', 'tv', 'both']).default('both'),
 });
 
+export const PersonQuerySchema = z.object({
+  personId: z.coerce.number().int().positive(),
+  page: z.coerce.number().int().min(1).max(1000).default(1),
+});
+
 // Snapshot-backed popular query for infinite scrolling/load-more
 export const PopularQuerySchema = z.object({
   feedId: z.uuid().optional(),
@@ -43,6 +48,7 @@ export const DetailsQuerySchema = z.object({
 export const GenresQuerySchema = z.object({});
 
 export type SearchQuery = z.infer<typeof SearchQuerySchema>;
+export type PersonQuery = z.infer<typeof PersonQuerySchema>;
 export type PopularQuery = z.infer<typeof PopularQuerySchema>;
 export type DetailsQuery = z.infer<typeof DetailsQuerySchema>;
 export type GenresQuery = z.infer<typeof GenresQuerySchema>;

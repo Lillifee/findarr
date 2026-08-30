@@ -53,7 +53,9 @@ export function ExplorePage() {
             description={t('explore.description')}
           />
 
-          {feed.isSearchMode && <PersonSearchResults people={feed.people} />}
+          {feed.isSearchMode && !feed.isPerson && (
+            <PersonSearchResults people={feed.people} onSelectPerson={feed.onPersonSelect} />
+          )}
 
           <PaginatedMediaResults
             results={feed.results}

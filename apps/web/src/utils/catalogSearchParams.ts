@@ -15,6 +15,7 @@ interface CatalogSearchParamState {
   page: number;
   q: string;
   type: SearchType;
+  personId?: number;
 }
 
 interface CatalogSearchParamInput {
@@ -23,6 +24,7 @@ interface CatalogSearchParamInput {
   page?: number | undefined;
   q?: string | undefined;
   type?: SearchType | undefined;
+  personId?: number | undefined;
 }
 
 const isInteractionFilter = (value: string): value is InteractionFilter =>
@@ -33,6 +35,11 @@ const isSearchType = (value: string): value is SearchType =>
 
 const genreKeySet = new Set<string>(genreKeys);
 const isGenreKey = (value: string): value is GenreKey => genreKeySet.has(value);
+
+const readPositiveInteger = (value: string | null): number | undefined => {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
+};
 
 export const readCatalogSearchParams = (
   searchParams: URLSearchParams,
@@ -46,29 +53,35 @@ export const readCatalogSearchParams = (
       ? rawInteraction
       : defaults.interaction;
 
+  const personId = readPositiveInteger(searchParams.get('person'));
+
   return {
     type: isDefined(rawType) && isSearchType(rawType) ? rawType : (defaults.type ?? 'both'),
     page: Math.trunc(Number(searchParams.get('page') ?? String(defaults.page ?? 1))),
-    ...(interaction === undefined ? {} : { interaction }),
     q: searchParams.get('q') ?? '',
     genres: searchParams.getAll('genres').filter((genre) => isGenreKey(genre)),
+    ...(isDefined(interaction) ? { interaction } : {}),
+    ...(isDefined(personId) ? { personId } : {}),
   };
 };
 
 export const buildCatalogSearchParams = (next: CatalogSearchParamInput) => {
   const params = new URLSearchParams();
 
-  if (next.type) {
+  if (isDefined(next.type)) {
     params.set('type', next.type);
   }
-  if (typeof next.page === 'number') {
+  if (isDefined(next.page)) {
     params.set('page', String(next.page));
   }
-  if (next.interaction) {
+  if (isDefined(next.interaction)) {
     params.set('interaction', next.interaction);
   }
   if (isDefined(next.q)) {
     params.set('q', next.q);
+  }
+  if (isDefined(next.personId)) {
+    params.set('person', String(next.personId));
   }
 
   for (const genre of next.genres ?? []) {

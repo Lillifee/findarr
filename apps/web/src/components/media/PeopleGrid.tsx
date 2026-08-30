@@ -10,15 +10,26 @@ export interface PersonGridItem {
   subtitle: string | undefined;
 }
 
-interface PeopleGridProps {
-  people: PersonGridItem[];
+interface PeopleGridProps<T extends PersonGridItem> {
+  people: T[];
+  onSelect?: (person: T) => void;
 }
 
-export function PeopleGrid({ people }: PeopleGridProps) {
+export function PeopleGrid<T extends PersonGridItem>({ people, onSelect }: PeopleGridProps<T>) {
   return (
     <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
       {people.map((person) => (
-        <div key={person.id} className="flex flex-col items-center">
+        <button
+          key={person.id}
+          type="button"
+          onClick={() => onSelect?.(person)}
+          disabled={!onSelect}
+          className={`flex flex-col items-center ${
+            onSelect
+              ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500'
+              : ''
+          }`}
+        >
           {isDefined(person.profilePath) ? (
             <img
               src={tmdbImage(person.profilePath, 'w185')}
@@ -36,7 +47,7 @@ export function PeopleGrid({ people }: PeopleGridProps) {
               <p className="text-2xs truncate text-gray-400">{person.subtitle}</p>
             )}
           </div>
-        </div>
+        </button>
       ))}
     </div>
   );
