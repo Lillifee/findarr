@@ -1,21 +1,8 @@
 import { z } from 'zod';
 
-import { genreKeys } from './constants.js';
-
 // ============================================================================
 // Catalog Request Schemas
 // ============================================================================
-
-const arrayParam = <T extends z.ZodType>(schema: T) =>
-  z.preprocess((val) => {
-    if (typeof val === 'string') {
-      return val ? [val] : [];
-    }
-    if (Array.isArray(val)) {
-      return val as unknown[];
-    }
-    return [];
-  }, schema);
 
 export const SearchQuerySchema = z.object({
   query: z.string().min(1),
@@ -36,9 +23,6 @@ export const PopularQuerySchema = z.object({
   feedId: z.uuid().optional(),
   page: z.coerce.number().int().min(1).max(1000).optional(),
   type: z.enum(['movie', 'tv', 'both']).optional(),
-  genres: arrayParam(z.array(z.enum(genreKeys)))
-    .default([])
-    .optional(),
 
   interaction: z.enum(['all', 'unvoted', 'voted']).optional(),
 });

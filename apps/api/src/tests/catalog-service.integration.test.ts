@@ -79,14 +79,20 @@ describe('catalog service - integration tests', () => {
     vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
     const user = await createTestUserInDb(db, { email: 'delegate@test.com' });
 
-    const searchResult: SearchResponse = { results: [], people: [], keywords: [], page: 0 };
+    const searchResult: SearchResponse = {
+      results: [],
+      genres: [],
+      people: [],
+      keywords: [],
+      page: 0,
+    };
     const detailsResult: MediaDetails = createTestMovieDetail({ tmdbId: 1 });
     const genresResult: Genre[] = [];
 
     tmdbService.searchMedia.mockResolvedValue(searchResult);
     tmdbService.searchPeople.mockResolvedValue(searchResult.people);
     tmdbService.details.mockResolvedValue(detailsResult);
-    tmdbService.genres.mockResolvedValue(genresResult);
+    tmdbService.searchGenres.mockResolvedValue(genresResult);
 
     const search = await catalogService.search({ query: 'test', type: 'movie', page: 0 }, user.id);
     expect(search.results).toStrictEqual(searchResult.results);
@@ -106,6 +112,7 @@ describe('catalog service - integration tests', () => {
       { tmdbId: 2, name: 'Director', profilePath: undefined, knownForDepartment: 'Directing' },
     ]);
     tmdbService.searchKeywords.mockResolvedValue([{ id: 1, name: 'superhero' }]);
+    tmdbService.searchGenres.mockResolvedValue([{ id: 1, name: 'Test genre' }]);
     tmdbService.discoverMedia.mockResolvedValue({ page: 1, results: [movie] });
 
     const search = await catalogService.search({ query: 'test', type: 'both', page: 1 }, user.id);
@@ -127,6 +134,7 @@ describe('catalog service - integration tests', () => {
       { tmdbId: 2, name: 'Director', profilePath: undefined, knownForDepartment: 'Directing' },
     ]);
     expect(search.keywords).toStrictEqual([{ id: 1, name: 'superhero' }]);
+    expect(search.genres).toStrictEqual([{ id: 1, name: 'Test genre' }]);
     expect(tmdbService.discoverMedia).toHaveBeenCalledWith(
       expect.objectContaining({ personId: 1, page: 1, type: 'movie' }),
     );
@@ -136,9 +144,24 @@ describe('catalog service - integration tests', () => {
     expect(tmdbService.discoverMedia).toHaveBeenCalledWith(
       expect.objectContaining({ genreId: 28, page: 1, type: 'both' }),
     );
-    expect(personDiscovery).toMatchObject({ results: [movie], people: [], keywords: [] });
-    expect(keywordDiscovery).toMatchObject({ results: [movie], people: [], keywords: [] });
-    expect(genreDiscovery).toMatchObject({ results: [movie], people: [], keywords: [] });
+    expect(personDiscovery).toMatchObject({
+      results: [movie],
+      genres: [],
+      people: [],
+      keywords: [],
+    });
+    expect(keywordDiscovery).toMatchObject({
+      results: [movie],
+      genres: [],
+      people: [],
+      keywords: [],
+    });
+    expect(genreDiscovery).toMatchObject({
+      results: [movie],
+      genres: [],
+      people: [],
+      keywords: [],
+    });
   });
 
   it('should return cached popular results and filter/paginate', async () => {

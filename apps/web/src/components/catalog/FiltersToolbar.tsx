@@ -1,13 +1,10 @@
-import type { GenreKey } from '@findarr/shared/constants';
 import type { SearchType } from '@findarr/shared/media';
 import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
 import { Icon } from '../ui/Icon';
-import { PanelSection } from '../ui/PanelSection';
 import { controlSurface } from '../ui/theme';
-import { GenreChips } from './GenreChips';
 import { MediaTypeChips } from './MediaTypeChips';
 
 interface FiltersToolbarProps {
@@ -16,11 +13,7 @@ interface FiltersToolbarProps {
   disabled?: boolean;
   showMediaType?: boolean;
 
-  selectedGenres?: GenreKey[];
-  onGenresChange?: (genres: GenreKey[]) => void;
-
   showFiltersButton?: boolean;
-  showGenreFilter?: boolean;
   extraFiltersContent?: ReactNode;
 }
 
@@ -65,34 +58,18 @@ function FilterPanel({ children, onClose }: FilterPanelProps) {
   );
 }
 
-const emptyGenres: GenreKey[] = [];
-
 export function FiltersToolbar({
   selectedType,
   onTypeChange,
   disabled = false,
   showMediaType = true,
-  selectedGenres = emptyGenres,
-  onGenresChange,
   showFiltersButton = true,
-  showGenreFilter = true,
   extraFiltersContent,
 }: FiltersToolbarProps) {
   const { t } = useTranslation();
   const [filtersExpanded, setFiltersExpanded] = useState(false);
 
-  const genreFilterSection =
-    showGenreFilter && onGenresChange ? (
-      <PanelSection>
-        <GenreChips
-          selectedGenres={selectedGenres}
-          onGenreChange={onGenresChange}
-          disabled={disabled}
-        />
-      </PanelSection>
-    ) : null;
-
-  const hasFilterContent = Boolean(extraFiltersContent) || Boolean(genreFilterSection);
+  const hasFilterContent = Boolean(extraFiltersContent);
 
   const showFilterTrigger = showFiltersButton && hasFilterContent;
 
@@ -135,10 +112,7 @@ export function FiltersToolbar({
 
       {filtersExpanded &&
         createPortal(
-          <FilterPanel onClose={closeFilters}>
-            {extraFiltersContent}
-            {genreFilterSection}
-          </FilterPanel>,
+          <FilterPanel onClose={closeFilters}>{extraFiltersContent}</FilterPanel>,
           document.body,
         )}
     </div>

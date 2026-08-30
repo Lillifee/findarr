@@ -1,10 +1,4 @@
-import {
-  regionGroups,
-  unifiedGenres,
-  regionGroupKeys,
-  type RegionGroupId,
-  type GenreKey,
-} from '@findarr/shared/constants';
+import { regionGroups, regionGroupKeys, type RegionGroupId } from '@findarr/shared/constants';
 import type { MediaType } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
 
@@ -29,12 +23,6 @@ export const buildRegionFilters = (regions: RegionGroupId[]) => {
     countryFilter: includedCountries.join('|'),
   };
 };
-
-/**
- * Build genre filter string for TMDB API from selected genre keys
- */
-export const buildGenreFilter = (genres: GenreKey[] | undefined) =>
-  isDefined(genres) ? genres.flatMap((g) => unifiedGenres[g]?.ids ?? []).join('|') : '';
 
 /**
  * Calculate date range from days back

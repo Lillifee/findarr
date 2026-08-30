@@ -198,14 +198,13 @@
   "catalog": {
     "searchPlaceholder": "Filme, Serien oder Personen suchen...",
     "peopleResults": "Personen",
+    "genreResults": "Genres",
     "keywordResults": "Stichwörter",
     "clearSearch": "Suche löschen",
     "filters": "Filter",
     "typeAll": "Alle",
     "typeMovies": "Filme",
     "typeShows": "Serien",
-    "genresLabel": "Genres",
-    "genres": "Genres ({{count}})",
     "clearAll": "Alle entfernen"
   },
   "media": {

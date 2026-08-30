@@ -1,12 +1,6 @@
-import {
-  regionGroups,
-  unifiedGenres,
-  type GenreKey,
-  type RegionGroupId,
-} from '@findarr/shared/constants';
+import { regionGroups, type RegionGroupId } from '@findarr/shared/constants';
 import type { InteractionFilter } from '@findarr/shared/interaction';
 import type { Media, MediaType } from '@findarr/shared/media';
-import { isDefined } from '@findarr/shared/utils';
 
 import { toMediaKey } from '../utils/helper.js';
 
@@ -16,7 +10,6 @@ import { toMediaKey } from '../utils/helper.js';
 export interface FilterCriteria {
   type: MediaType | 'both';
   regions: RegionGroupId[];
-  genres: GenreKey[];
 }
 
 /**
@@ -54,33 +47,13 @@ const regionMatches = (item: Media, regions: RegionGroupId[]): boolean => {
 };
 
 /**
- * Check if the media item matches selected genres.
- *
- * Converts unified genre keys into TMDB genre IDs
- * and ensures the item contains at least one allowed ID.
- *
- * If no genres are selected, always returns true.
- */
-const genreMatches = (item: Media, genres: GenreKey[]): boolean => {
-  const allowedGenreIds = new Set(genres.flatMap<number>((g) => unifiedGenres[g].ids));
-
-  return (
-    allowedGenreIds.size === 0 ||
-    !isDefined(item.genres) ||
-    item.genres.some((g) => allowedGenreIds.has(g.id))
-  );
-};
-
-/**
  * Main filter function.
  *
- * Combines type, region, and genre filters.
+ * Combines type and region filters.
  * Returns true only if the item satisfies all criteria.
  */
 export const filterByCriteria = (item: Media, filters: FilterCriteria): boolean =>
-  typeMatches(item, filters.type) &&
-  regionMatches(item, filters.regions) &&
-  genreMatches(item, filters.genres);
+  typeMatches(item, filters.type) && regionMatches(item, filters.regions);
 
 /**
  * Check if a media item matches interaction filter state.

@@ -1,4 +1,3 @@
-import type { GenreKey } from '@findarr/shared/constants';
 import type { Genre, Keyword, Media, Person, SearchType } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -11,6 +10,7 @@ import { isSameMedia, mergeUniqueMedia } from '../utils/media';
 interface CatalogFeedState {
   currentPage: number;
   feedId?: string;
+  genres: Genre[];
   keywords: Keyword[];
   people: Person[];
   results: Media[];
@@ -18,18 +18,12 @@ interface CatalogFeedState {
 }
 
 interface CatalogFilters {
-  genres: GenreKey[];
   query: string;
   type: SearchType;
   keywordId?: number | undefined;
   personId?: number | undefined;
   genreId?: number | undefined;
   discoveryName?: string | undefined;
-}
-
-interface PopularFeedSnapshot extends CatalogFeedState {
-  genres: GenreKey[];
-  type: SearchType;
 }
 
 interface LoadFeedOptions {
@@ -45,6 +39,7 @@ interface LoadingState {
 
 const emptyFeed: CatalogFeedState = {
   currentPage: 0,
+  genres: [],
   keywords: [],
   people: [],
   results: [],
@@ -66,18 +61,9 @@ function createFilters(filters: Partial<CatalogFilters>) {
   };
 }
 
-function areGenresEqual(left: GenreKey[], right: GenreKey[]) {
-  return left.length === right.length && left.every((genre, index) => genre === right[index]);
-}
-
-function createPopularSnapshot(
-  filters: CatalogFilters,
-  feed: CatalogFeedState,
-): PopularFeedSnapshot {
+function createPopularSnapshot(feed: CatalogFeedState): CatalogFeedState {
   return {
     ...feed,
-    genres: filters.genres,
-    type: filters.type,
   };
 }
 
@@ -92,7 +78,6 @@ function useCatalogFilters() {
   const filters = useMemo<CatalogFilters>(
     () => ({
       type: urlFilters.type,
-      genres: urlFilters.genres,
       query: urlFilters.q,
       personId: urlFilters.personId,
       keywordId: urlFilters.keywordId,
@@ -109,7 +94,6 @@ function useCatalogFilters() {
       setSearchParams(
         buildCatalogSearchParams({
           type: merged.type,
-          genres: merged.genres,
           q: merged.query || undefined,
           personId: merged.personId,
           keywordId: merged.keywordId,
@@ -124,12 +108,9 @@ function useCatalogFilters() {
   return { filters, updateFilters };
 }
 
-function matchesPopularFilters(state: PopularFeedSnapshot, filters: CatalogFilters) {
-  return state.type === filters.type && areGenresEqual(state.genres, filters.genres);
-}
-
 export interface CatalogFeed {
   results: Media[];
+  genres: Genre[];
   people: Person[];
   keywords: Keyword[];
   loading: boolean;
@@ -140,9 +121,7 @@ export interface CatalogFeed {
   currentSearchType: SearchType;
   currentQuery: string;
   discoveryName?: string | undefined;
-  selectedGenres: GenreKey[];
   onTypeChange: (type: SearchType) => void;
-  onGenresChange: (genres: GenreKey[]) => void;
   onSearch: (query: string) => void;
   onPersonSelect: (person: Person) => void;
   onKeywordSelect: (keyword: Keyword) => void;
@@ -157,7 +136,7 @@ export function useCatalogFeed(): CatalogFeed {
   const [feed, setFeed] = useState<CatalogFeedState>(emptyFeed);
   const [loadingState, setLoadingState] = useState<LoadingState>(idleLoadingState);
   const feedRef = useRef<CatalogFeedState>(emptyFeed);
-  const popularSnapshotRef = useRef<PopularFeedSnapshot | null>(null);
+  const popularSnapshotRef = useRef<CatalogFeedState | null>(null);
   const latestRequestIdRef = useRef(0);
 
   const isDiscovery =
@@ -174,6 +153,7 @@ export function useCatalogFeed(): CatalogFeed {
       updateFeed({
         currentPage: nextFeed.currentPage,
         ...(isDefined(nextFeed.feedId) ? { feedId: nextFeed.feedId } : {}),
+        genres: nextFeed.genres,
         people: nextFeed.people,
         keywords: nextFeed.keywords,
         results: nextFeed.results,
@@ -212,6 +192,7 @@ export function useCatalogFeed(): CatalogFeed {
 
           updateFeed({
             currentPage: response.page,
+            genres: [],
             people: [],
             keywords: [],
             results: append
@@ -235,6 +216,7 @@ export function useCatalogFeed(): CatalogFeed {
 
           const nextFeed = {
             currentPage: response.page,
+            genres: append ? feedRef.current.genres : response.genres,
             people: append ? feedRef.current.people : response.people,
             keywords: append ? feedRef.current.keywords : response.keywords,
             results: append
@@ -249,7 +231,6 @@ export function useCatalogFeed(): CatalogFeed {
 
         const response = await searchService.listPopularMedia({
           type: reqFilters.type,
-          genres: reqFilters.genres,
           page,
           feedId: currentFeedId,
         });
@@ -261,6 +242,7 @@ export function useCatalogFeed(): CatalogFeed {
         const nextFeed = {
           currentPage: response.page,
           feedId: response.feedId,
+          genres: [],
           people: [],
           keywords: [],
           results: append
@@ -270,7 +252,7 @@ export function useCatalogFeed(): CatalogFeed {
         };
 
         updateFeed(nextFeed);
-        popularSnapshotRef.current = createPopularSnapshot(reqFilters, nextFeed);
+        popularSnapshotRef.current = createPopularSnapshot(nextFeed);
       } catch (error) {
         console.error(`Failed to load ${reqSearchMode ? 'search' : 'popular'} results:`, error);
       } finally {
@@ -284,7 +266,7 @@ export function useCatalogFeed(): CatalogFeed {
 
   useEffect(() => {
     const popularSnapshot = popularSnapshotRef.current;
-    if (!isSearchMode && popularSnapshot && matchesPopularFilters(popularSnapshot, filters)) {
+    if (!isSearchMode && popularSnapshot) {
       restoreFeed(popularSnapshot);
       return;
     }
@@ -295,10 +277,6 @@ export function useCatalogFeed(): CatalogFeed {
 
   const onTypeChange = (type: SearchType) => {
     updateFilters({ type });
-  };
-
-  const onGenresChange = (genres: GenreKey[]) => {
-    updateFilters({ genres });
   };
 
   const onSearch = (query: string) => {
@@ -337,7 +315,7 @@ export function useCatalogFeed(): CatalogFeed {
     setLoadingState(idleLoadingState);
 
     const popularSnapshot = popularSnapshotRef.current;
-    if (popularSnapshot && matchesPopularFilters(popularSnapshot, filters)) {
+    if (popularSnapshot) {
       restoreFeed(popularSnapshot);
     }
 
@@ -386,15 +364,14 @@ export function useCatalogFeed(): CatalogFeed {
     loading: loadingState.loading,
     loadingMore: loadingState.loadingMore,
     results: feed.results,
+    genres: feed.genres,
     people: feed.people,
     keywords: feed.keywords,
     hasMore: feed.hasMore,
     currentSearchType: filters.type,
     currentQuery: filters.query,
     discoveryName: filters.discoveryName,
-    selectedGenres: filters.genres,
     onTypeChange,
-    onGenresChange,
     onSearch,
     onPersonSelect,
     onKeywordSelect,
