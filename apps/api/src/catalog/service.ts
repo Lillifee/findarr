@@ -79,7 +79,7 @@ export function createCatalogService(context: CatalogContext) {
   async function search(params: SearchQuery, userId: number): Promise<SearchResponse> {
     const { language } = await user.getSettings(userId);
 
-    const [mediaResponse, peopleResponse, keywordResponse, genres] = await Promise.all([
+    const [mediaResponse, people, keywords, genres] = await Promise.all([
       tmdb.searchMedia({ ...params, language }),
       tmdb.searchPeople({ ...params, language }),
       tmdb.searchKeywords({ ...params, language }),
@@ -87,8 +87,6 @@ export function createCatalogService(context: CatalogContext) {
     ]);
 
     const results = await media.enrichMediaResults(mediaResponse.results, userId);
-    const people = peopleResponse.slice(0, 6);
-    const keywords = keywordResponse.slice(0, 20);
 
     return { ...mediaResponse, results, people, keywords, genres };
   }
