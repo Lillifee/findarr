@@ -14,6 +14,7 @@ interface FiltersToolbarProps {
   selectedType: SearchType;
   onTypeChange: (type: SearchType) => void;
   disabled?: boolean;
+  showMediaType?: boolean;
 
   selectedGenres?: GenreKey[];
   onGenresChange?: (genres: GenreKey[]) => void;
@@ -70,6 +71,7 @@ export function FiltersToolbar({
   selectedType,
   onTypeChange,
   disabled = false,
+  showMediaType = true,
   selectedGenres = emptyGenres,
   onGenresChange,
   showFiltersButton = true,
@@ -126,7 +128,9 @@ export function FiltersToolbar({
 
   return (
     <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-      <MediaTypeChips selectedType={selectedType} onChange={onTypeChange} disabled={disabled} />
+      {showMediaType && (
+        <MediaTypeChips selectedType={selectedType} onChange={onTypeChange} disabled={disabled} />
+      )}
       {filterButton}
 
       {filtersExpanded &&
