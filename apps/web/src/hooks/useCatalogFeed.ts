@@ -294,7 +294,7 @@ export function useCatalogFeed(): CatalogFeed {
   }, [filters, isSearchMode, loadFeed, restoreFeed]);
 
   const onTypeChange = (type: SearchType) => {
-    updateFilters(createFilters({ type }));
+    updateFilters({ type });
   };
 
   const onGenresChange = (genres: GenreKey[]) => {

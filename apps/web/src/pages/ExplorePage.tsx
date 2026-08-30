@@ -41,6 +41,7 @@ export function ExplorePage() {
             selectedType={feed.currentSearchType}
             onTypeChange={feed.onTypeChange}
             disabled={feed.loading}
+            showMediaType={!feed.isDiscovery}
             selectedGenres={feed.selectedGenres}
             onGenresChange={feed.onGenresChange}
             showFiltersButton={!feed.isSearchMode}
