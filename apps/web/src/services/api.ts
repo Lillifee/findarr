@@ -6,7 +6,13 @@ import type {
   SetupOwner,
   User,
 } from '@findarr/shared/auth';
-import type { SearchQuery, PopularQuery, DetailsQuery, GenresQuery } from '@findarr/shared/catalog';
+import type {
+  SearchQuery,
+  PersonQuery,
+  PopularQuery,
+  DetailsQuery,
+  GenresQuery,
+} from '@findarr/shared/catalog';
 import type { InteractionsQuery } from '@findarr/shared/interaction';
 import type { LogLevel, LogLevelResponse, LogsResponse } from '@findarr/shared/logs';
 import type {
@@ -43,12 +49,17 @@ export const api = create({
 });
 
 export const searchService = {
-  searchMedia: async (params: SearchQuery): Promise<SearchResponse> => {
+  search: async (params: SearchQuery): Promise<SearchResponse> => {
     const response = await api.get<SearchResponse>('/search', { params });
     return response.data;
   },
 
-  getPopularMedia: async (params: PopularQuery): Promise<PopularResponse> => {
+  listMoviesByPerson: async (params: PersonQuery): Promise<SearchResponse> => {
+    const response = await api.get<SearchResponse>('/discover/person', { params });
+    return response.data;
+  },
+
+  listPopularMedia: async (params: PopularQuery): Promise<PopularResponse> => {
     const response = await api.get<PopularResponse>('/popular', { params });
     return response.data;
   },

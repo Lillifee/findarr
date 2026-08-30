@@ -20,6 +20,7 @@ interface CatalogFilters {
   genres: GenreKey[];
   query: string;
   type: SearchType;
+  personId?: number | undefined;
 }
 
 interface PopularFeedSnapshot extends CatalogFeedState {
@@ -78,6 +79,7 @@ function useCatalogFilters() {
       type: urlFilters.type,
       genres: urlFilters.genres,
       query: urlFilters.q,
+      personId: urlFilters.personId,
     }),
     [urlFilters],
   );
@@ -91,6 +93,7 @@ function useCatalogFilters() {
           type: merged.type,
           genres: merged.genres,
           q: merged.query || undefined,
+          personId: merged.personId,
         }),
       );
     },
@@ -111,12 +114,14 @@ export interface CatalogFeed {
   loadingMore: boolean;
   hasMore: boolean;
   isSearchMode: boolean;
+  isPerson: boolean;
   currentSearchType: SearchType;
   currentQuery: string;
   selectedGenres: GenreKey[];
   onTypeChange: (type: SearchType) => void;
   onGenresChange: (genres: GenreKey[]) => void;
   onSearch: (query: string) => void;
+  onPersonSelect: (person: Person) => void;
   onClearSearch: () => void;
   loadMore: () => void;
   updateItem: (updatedItem: Media) => void;
@@ -130,7 +135,8 @@ export function useCatalogFeed(): CatalogFeed {
   const popularSnapshotRef = useRef<PopularFeedSnapshot | null>(null);
   const latestRequestIdRef = useRef(0);
 
-  const isSearchMode = filters.query.trim().length > 0;
+  const isPerson = isDefined(filters.personId);
+  const isSearchMode = filters.query.trim().length > 0 || isPerson;
 
   const updateFeed = useCallback((nextFeed: CatalogFeedState) => {
     feedRef.current = nextFeed;
@@ -162,8 +168,29 @@ export function useCatalogFeed(): CatalogFeed {
       );
 
       try {
+        if (isDefined(requestedFilters.personId)) {
+          const response = await searchService.listMoviesByPerson({
+            personId: requestedFilters.personId,
+            page: page ?? 1,
+          });
+
+          if (latestRequestIdRef.current !== requestId) {
+            return;
+          }
+
+          updateFeed({
+            currentPage: response.page,
+            people: [],
+            results: append
+              ? mergeUniqueMedia(feedRef.current.results, response.results)
+              : response.results,
+            hasMore: response.results.length > 0,
+          });
+          return;
+        }
+
         if (requestedSearchMode) {
-          const response = await searchService.searchMedia({
+          const response = await searchService.search({
             query: requestedFilters.query,
             page: page ?? 1,
             type: requestedFilters.type,
@@ -186,7 +213,7 @@ export function useCatalogFeed(): CatalogFeed {
           return;
         }
 
-        const response = await searchService.getPopularMedia({
+        const response = await searchService.listPopularMedia({
           type: requestedFilters.type,
           genres: requestedFilters.genres,
           page,
@@ -235,7 +262,7 @@ export function useCatalogFeed(): CatalogFeed {
   }, [filters, isSearchMode, loadFeed, restoreFeed]);
 
   const onTypeChange = (type: SearchType) => {
-    updateFilters({ type });
+    updateFilters({ type, personId: undefined });
   };
 
   const onGenresChange = (genres: GenreKey[]) => {
@@ -243,7 +270,11 @@ export function useCatalogFeed(): CatalogFeed {
   };
 
   const onSearch = (query: string) => {
-    updateFilters({ query });
+    updateFilters({ query, personId: undefined });
+  };
+
+  const onPersonSelect = (person: Person) => {
+    updateFilters({ personId: person.tmdbId, type: 'movie' });
   };
 
   const onClearSearch = () => {
@@ -255,7 +286,7 @@ export function useCatalogFeed(): CatalogFeed {
       restoreFeed(popularSnapshot);
     }
 
-    updateFilters({ query: '' });
+    updateFilters({ query: '', personId: undefined });
   };
 
   const loadMore = () => {
@@ -296,6 +327,7 @@ export function useCatalogFeed(): CatalogFeed {
 
   return {
     isSearchMode,
+    isPerson,
     loading: loadingState.loading,
     loadingMore: loadingState.loadingMore,
     results: feed.results,
@@ -307,6 +339,7 @@ export function useCatalogFeed(): CatalogFeed {
     onTypeChange,
     onGenresChange,
     onSearch,
+    onPersonSelect,
     onClearSearch,
     loadMore,
     updateItem,

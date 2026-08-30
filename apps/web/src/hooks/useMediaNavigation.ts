@@ -31,5 +31,12 @@ export function useMediaNavigation() {
     [navigate],
   );
 
-  return { goTo, goToMedia, goToSearch };
+  const goToPerson = useCallback(
+    (personId: number) => {
+      void navigate(`/explore?${buildCatalogSearchParams({ personId, type: 'movie' }).toString()}`);
+    },
+    [navigate],
+  );
+
+  return { goTo, goToMedia, goToSearch, goToPerson };
 }

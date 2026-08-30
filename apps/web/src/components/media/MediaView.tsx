@@ -46,7 +46,7 @@ export function MediaView({
   onMediaUpdate,
 }: MediaDetailsProps) {
   const { t } = useTranslation();
-  const { goToMedia } = useMediaNavigation();
+  const { goToMedia, goToPerson } = useMediaNavigation();
   // Render everything from local state so a vote's fresh data (e.g. updated
   // status/interactions) is reflected across the whole view. Re-sync whenever
   // the parent supplies a new item (e.g. the vote feed advances).
@@ -309,6 +309,9 @@ export function MediaView({
                     profilePath: actor.profilePath,
                     subtitle: actor.character,
                   }))}
+                  onSelect={(actor) => {
+                    goToPerson(actor.id);
+                  }}
                 />
               </div>
             )}

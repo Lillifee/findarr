@@ -1,4 +1,10 @@
-import type { SearchQuery, PopularQuery, DetailsQuery, GenresQuery } from '@findarr/shared/catalog';
+import type {
+  SearchQuery,
+  PersonQuery,
+  PopularQuery,
+  DetailsQuery,
+  GenresQuery,
+} from '@findarr/shared/catalog';
 import type {
   SearchResponse,
   PopularResponse,
@@ -70,7 +76,7 @@ export function createCatalogService(context: CatalogContext) {
    * Search for media across all sources
    * Currently delegates to TMDB
    */
-  async function searchMedia(params: SearchQuery, userId: number): Promise<SearchResponse> {
+  async function search(params: SearchQuery, userId: number): Promise<SearchResponse> {
     const { language } = await user.getSettings(userId);
 
     const [mediaResponse, peopleResponse] = await Promise.all([
@@ -82,6 +88,14 @@ export function createCatalogService(context: CatalogContext) {
     const people = peopleResponse.slice(0, 6);
 
     return { ...mediaResponse, results, people };
+  }
+
+  async function listMoviesByPerson(params: PersonQuery, userId: number): Promise<SearchResponse> {
+    const { language } = await user.getSettings(userId);
+    const response = await tmdb.discoverMoviesByPerson({ ...params, language });
+    const results = await media.enrichMediaResults(response.results, userId);
+
+    return { ...response, results, people: [] };
   }
 
   /**
@@ -136,7 +150,7 @@ export function createCatalogService(context: CatalogContext) {
   /**
    * Popular media - snapshot-backed page load-more API.
    */
-  async function getPopularMedia(params: PopularQuery, userId: number): Promise<PopularResponse> {
+  async function listPopularMedia(params: PopularQuery, userId: number): Promise<PopularResponse> {
     const { page = 1, type = 'both', interaction, genres = [] } = params;
 
     // Get or create feed snapshot (cached for short time to allow consistent pagination)
@@ -160,9 +174,10 @@ export function createCatalogService(context: CatalogContext) {
   }
 
   return {
-    searchMedia,
+    search,
+    listMoviesByPerson,
     listGenres,
-    getPopularMedia,
+    listPopularMedia,
     getMediaDetails,
     getNextUnvotedMedia,
   };
