@@ -274,7 +274,7 @@ export function MediaView({
                         key={genre.id}
                         type="button"
                         onClick={() => {
-                          goToDiscovery('genre', genre.id, genre.name, media.type);
+                          goToDiscovery('genre', genre.id, genre.name);
                         }}
                         className="inline-flex items-center rounded-full border border-zinc-800/80 bg-zinc-950/72 px-3 py-1 text-xs text-zinc-200 backdrop-blur-sm transition-colors hover:border-amber-500/60 hover:text-amber-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400"
                       >
@@ -312,7 +312,7 @@ export function MediaView({
                       key={keyword.id}
                       type="button"
                       onClick={() => {
-                        goToDiscovery('keyword', keyword.id, keyword.name, media.type);
+                        goToDiscovery('keyword', keyword.id, keyword.name);
                       }}
                       className="rounded-full border border-zinc-800/80 bg-zinc-950/72 px-3 py-1 text-sm text-zinc-200 backdrop-blur-sm transition-colors hover:border-amber-500/60 hover:text-amber-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400"
                     >
