@@ -218,6 +218,7 @@ export interface PaginatedMediaResponse {
 }
 
 export interface SearchResponse extends PaginatedMediaResponse {
+  keywords: Keyword[];
   people: Person[];
 }
 export type UserInteractionsResponse = PaginatedMediaResponse;

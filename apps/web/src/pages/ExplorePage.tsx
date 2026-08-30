@@ -1,7 +1,9 @@
 import type { Media } from '@findarr/shared/media';
+import { isDefined } from '@findarr/shared/utils';
 import { useTranslation } from 'react-i18next';
 
 import { FiltersToolbar } from '../components/catalog/FiltersToolbar';
+import { KeywordSearchResults } from '../components/catalog/KeywordSearchResults';
 import { PersonSearchResults } from '../components/catalog/PersonSearchResults';
 import { SearchBar } from '../components/catalog/SearchBar';
 import { PaginatedMediaResults } from '../components/media/PaginatedMediaResults';
@@ -50,10 +52,18 @@ export function ExplorePage() {
         <div className="space-y-8 md:space-y-10">
           <PageHeader
             title={feed.isSearchMode ? t('explore.searchResults') : t('explore.trending')}
-            description={t('explore.description')}
+            description={
+              feed.isDiscovery && isDefined(feed.discoveryName)
+                ? t('explore.discovering', { name: feed.discoveryName })
+                : t('explore.description')
+            }
           />
 
-          {feed.isSearchMode && !feed.isPerson && (
+          {feed.isSearchMode && !feed.isDiscovery && (
+            <KeywordSearchResults keywords={feed.keywords} onSelectKeyword={feed.onKeywordSelect} />
+          )}
+
+          {feed.isSearchMode && !feed.isDiscovery && (
             <PersonSearchResults people={feed.people} onSelectPerson={feed.onPersonSelect} />
           )}
 

@@ -23,10 +23,20 @@ export const SearchQuerySchema = z.object({
   type: z.enum(['movie', 'tv', 'both']).default('both'),
 });
 
-export const PersonQuerySchema = z.object({
-  personId: z.coerce.number().int().positive(),
-  page: z.coerce.number().int().min(1).max(1000).default(1),
-});
+export const DiscoverQuerySchema = z.union([
+  z.object({
+    personId: z.coerce.number().int().positive(),
+    keywordId: z.never().optional(),
+    page: z.coerce.number().int().min(1).max(1000).default(1),
+    type: z.enum(['movie', 'tv', 'both']).default('both'),
+  }),
+  z.object({
+    keywordId: z.coerce.number().int().positive(),
+    personId: z.never().optional(),
+    page: z.coerce.number().int().min(1).max(1000).default(1),
+    type: z.enum(['movie', 'tv', 'both']).default('both'),
+  }),
+]);
 
 // Snapshot-backed popular query for infinite scrolling/load-more
 export const PopularQuerySchema = z.object({
@@ -48,7 +58,7 @@ export const DetailsQuerySchema = z.object({
 export const GenresQuerySchema = z.object({});
 
 export type SearchQuery = z.infer<typeof SearchQuerySchema>;
-export type PersonQuery = z.infer<typeof PersonQuerySchema>;
+export type DiscoverQuery = z.infer<typeof DiscoverQuerySchema>;
 export type PopularQuery = z.infer<typeof PopularQuerySchema>;
 export type DetailsQuery = z.infer<typeof DetailsQuerySchema>;
 export type GenresQuery = z.infer<typeof GenresQuerySchema>;

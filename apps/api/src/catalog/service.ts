@@ -1,6 +1,6 @@
 import type {
   SearchQuery,
-  PersonQuery,
+  DiscoverQuery,
   PopularQuery,
   DetailsQuery,
   GenresQuery,
@@ -79,23 +79,17 @@ export function createCatalogService(context: CatalogContext) {
   async function search(params: SearchQuery, userId: number): Promise<SearchResponse> {
     const { language } = await user.getSettings(userId);
 
-    const [mediaResponse, peopleResponse] = await Promise.all([
+    const [mediaResponse, peopleResponse, keywordResponse] = await Promise.all([
       tmdb.searchMedia({ ...params, language }),
       tmdb.searchPeople({ ...params, language }),
+      tmdb.searchKeywords({ ...params, language }),
     ]);
 
     const results = await media.enrichMediaResults(mediaResponse.results, userId);
     const people = peopleResponse.slice(0, 6);
+    const keywords = keywordResponse.slice(0, 20);
 
-    return { ...mediaResponse, results, people };
-  }
-
-  async function listMoviesByPerson(params: PersonQuery, userId: number): Promise<SearchResponse> {
-    const { language } = await user.getSettings(userId);
-    const response = await tmdb.discoverMoviesByPerson({ ...params, language });
-    const results = await media.enrichMediaResults(response.results, userId);
-
-    return { ...response, results, people: [] };
+    return { ...mediaResponse, results, people, keywords };
   }
 
   /**
@@ -173,13 +167,25 @@ export function createCatalogService(context: CatalogContext) {
     };
   }
 
+  async function listDiscoveredMedia(
+    params: DiscoverQuery,
+    userId: number,
+  ): Promise<SearchResponse> {
+    const { language } = await user.getSettings(userId);
+    const type = 'personId' in params ? 'movie' : params.type;
+    const response = await tmdb.discoverMedia({ ...params, language, type });
+    const results = await media.enrichMediaResults(response.results, userId);
+
+    return { ...response, results, people: [], keywords: [] };
+  }
+
   return {
     search,
-    listMoviesByPerson,
     listGenres,
     listPopularMedia,
     getMediaDetails,
     getNextUnvotedMedia,
+    listDiscoveredMedia,
   };
 }
 

@@ -191,12 +191,14 @@
   },
   "explore": {
     "searchResults": "Search results",
+    "discovering": "Results for {{name}}",
     "trending": "Trending & Popular",
     "description": "Browse what is trending, search your next watch, and vote on what should be requested."
   },
   "catalog": {
     "searchPlaceholder": "Search movies, TV shows, or people...",
     "peopleResults": "People",
+    "keywordResults": "Keywords",
     "clearSearch": "Clear search",
     "filters": "Filters",
     "typeAll": "All",

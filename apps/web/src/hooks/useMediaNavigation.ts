@@ -1,4 +1,4 @@
-import type { Media } from '@findarr/shared/media';
+import type { Media, SearchType } from '@findarr/shared/media';
 import { useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -32,11 +32,20 @@ export function useMediaNavigation() {
   );
 
   const goToPerson = useCallback(
-    (personId: number) => {
-      void navigate(`/explore?${buildCatalogSearchParams({ personId, type: 'movie' }).toString()}`);
+    (personId: number, discoveryName: string) => {
+      void navigate(`/explore?${buildCatalogSearchParams({ personId, discoveryName }).toString()}`);
     },
     [navigate],
   );
 
-  return { goTo, goToMedia, goToSearch, goToPerson };
+  const goToKeyword = useCallback(
+    (keywordId: number, discoveryName: string, type: SearchType) => {
+      void navigate(
+        `/explore?${buildCatalogSearchParams({ keywordId, discoveryName, type }).toString()}`,
+      );
+    },
+    [navigate],
+  );
+
+  return { goTo, goToMedia, goToSearch, goToPerson, goToKeyword };
 }

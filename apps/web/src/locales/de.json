@@ -191,12 +191,14 @@
   },
   "explore": {
     "searchResults": "Suchergebnisse",
+    "discovering": "Ergebnisse für {{name}}",
     "trending": "Trends & Beliebt",
     "description": "Entdecke Trends, suche deinen nächsten Film und stimme ab, was angefordert werden soll."
   },
   "catalog": {
     "searchPlaceholder": "Filme, Serien oder Personen suchen...",
     "peopleResults": "Personen",
+    "keywordResults": "Stichwörter",
     "clearSearch": "Suche löschen",
     "filters": "Filter",
     "typeAll": "Alle",

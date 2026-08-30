@@ -79,7 +79,7 @@ describe('catalog service - integration tests', () => {
     vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
     const user = await createTestUserInDb(db, { email: 'delegate@test.com' });
 
-    const searchResult: SearchResponse = { results: [], people: [], page: 0 };
+    const searchResult: SearchResponse = { results: [], people: [], keywords: [], page: 0 };
     const detailsResult: MediaDetails = createTestMovieDetail({ tmdbId: 1 });
     const genresResult: Genre[] = [];
 
@@ -98,26 +98,39 @@ describe('catalog service - integration tests', () => {
     expect(genres).toBe(genresResult);
   });
 
-  it('should return people and discover movies by their ID', async () => {
+  it('should return people and keywords and discover movies by their IDs', async () => {
     const user = await createTestUserInDb(db, { email: 'cast-discover@test.com' });
     const movie = createTestMedia({ tmdbId: 1, type: 'movie' });
     tmdbService.searchPeople.mockResolvedValue([
       { tmdbId: 1, name: 'Actor', profilePath: undefined, knownForDepartment: 'Acting' },
       { tmdbId: 2, name: 'Director', profilePath: undefined, knownForDepartment: 'Directing' },
     ]);
-    tmdbService.discoverMoviesByPerson.mockResolvedValue({ page: 1, results: [movie] });
+    tmdbService.searchKeywords.mockResolvedValue([{ id: 1, name: 'superhero' }]);
+    tmdbService.discoverMedia.mockResolvedValue({ page: 1, results: [movie] });
 
     const search = await catalogService.search({ query: 'test', type: 'both', page: 1 }, user.id);
-    const discovery = await catalogService.listMoviesByPerson({ personId: 1, page: 1 }, user.id);
+    const personDiscovery = await catalogService.listDiscoveredMedia(
+      { personId: 1, page: 1, type: 'movie' },
+      user.id,
+    );
+    const keywordDiscovery = await catalogService.listDiscoveredMedia(
+      { keywordId: 1, page: 1, type: 'tv' },
+      user.id,
+    );
 
     expect(search.people).toStrictEqual([
       { tmdbId: 1, name: 'Actor', profilePath: undefined, knownForDepartment: 'Acting' },
       { tmdbId: 2, name: 'Director', profilePath: undefined, knownForDepartment: 'Directing' },
     ]);
-    expect(tmdbService.discoverMoviesByPerson).toHaveBeenCalledWith(
-      expect.objectContaining({ personId: 1, page: 1 }),
+    expect(search.keywords).toStrictEqual([{ id: 1, name: 'superhero' }]);
+    expect(tmdbService.discoverMedia).toHaveBeenCalledWith(
+      expect.objectContaining({ personId: 1, page: 1, type: 'movie' }),
     );
-    expect(discovery).toMatchObject({ results: [movie], people: [] });
+    expect(tmdbService.discoverMedia).toHaveBeenCalledWith(
+      expect.objectContaining({ keywordId: 1, page: 1, type: 'tv' }),
+    );
+    expect(personDiscovery).toMatchObject({ results: [movie], people: [], keywords: [] });
+    expect(keywordDiscovery).toMatchObject({ results: [movie], people: [], keywords: [] });
   });
 
   it('should return cached popular results and filter/paginate', async () => {

@@ -110,7 +110,7 @@ const TMDBImagesSchema = z.object({
   logos: z.array(TMDBImageSchema).optional(),
 });
 
-const TMDBKeywordSchema = z.object({
+export const TMDBKeywordSchema = z.object({
   id: z.number(),
   name: z.string(),
 });
@@ -211,6 +211,13 @@ export const TMDBSearchResponseSchema = z.object({
 export const TMDBPersonSearchResponseSchema = z.object({
   page: z.number(),
   results: z.array(TMDBPersonSchema),
+  total_pages: z.number(),
+  total_results: z.number(),
+});
+
+export const TMDBKeywordSearchResponseSchema = z.object({
+  page: z.number(),
+  results: z.array(TMDBKeywordSchema),
   total_pages: z.number(),
   total_results: z.number(),
 });
