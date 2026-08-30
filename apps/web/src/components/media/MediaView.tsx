@@ -46,7 +46,7 @@ export function MediaView({
   onMediaUpdate,
 }: MediaDetailsProps) {
   const { t } = useTranslation();
-  const { goToMedia, goToPerson, goToKeyword, goToGenre } = useMediaNavigation();
+  const { goToMedia, goToDiscovery } = useMediaNavigation();
   // Render everything from local state so a vote's fresh data (e.g. updated
   // status/interactions) is reflected across the whole view. Re-sync whenever
   // the parent supplies a new item (e.g. the vote feed advances).
@@ -274,7 +274,7 @@ export function MediaView({
                         key={genre.id}
                         type="button"
                         onClick={() => {
-                          goToGenre(genre, media.type);
+                          goToDiscovery('genre', genre.id, genre.name, media.type);
                         }}
                         className="inline-flex items-center rounded-full border border-zinc-800/80 bg-zinc-950/72 px-3 py-1 text-xs text-zinc-200 backdrop-blur-sm transition-colors hover:border-amber-500/60 hover:text-amber-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400"
                       >
@@ -312,7 +312,7 @@ export function MediaView({
                       key={keyword.id}
                       type="button"
                       onClick={() => {
-                        goToKeyword(keyword.id, keyword.name, media.type);
+                        goToDiscovery('keyword', keyword.id, keyword.name, media.type);
                       }}
                       className="rounded-full border border-zinc-800/80 bg-zinc-950/72 px-3 py-1 text-sm text-zinc-200 backdrop-blur-sm transition-colors hover:border-amber-500/60 hover:text-amber-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400"
                     >
@@ -337,7 +337,7 @@ export function MediaView({
                     subtitle: actor.character,
                   }))}
                   onSelect={(actor) => {
-                    goToPerson(actor.id, actor.name);
+                    goToDiscovery('person', actor.id, actor.name);
                   }}
                 />
               </div>

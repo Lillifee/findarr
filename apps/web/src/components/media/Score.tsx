@@ -2,6 +2,7 @@ import type { MediaScore, MediaScoreSignal } from '@findarr/shared/media';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useMediaNavigation } from '../../hooks/useMediaNavigation';
 import { Icon, type IconName } from '../ui/Icon';
 
 interface ScoreProps {
@@ -26,6 +27,7 @@ const getVerdict = (score: number) => {
 
 export function Score({ score }: ScoreProps) {
   const { t } = useTranslation();
+  const { goToDiscovery } = useMediaNavigation();
   const [expanded, setExpanded] = useState(false);
 
   const { explanation } = score;
@@ -52,6 +54,25 @@ export function Score({ score }: ScoreProps) {
             ? t('scoreBreakdown.summary.balanced', { name: strongestMixed.name })
             : t('scoreBreakdown.summary.generic');
 
+  const goToSignal = (signal: MediaScoreSignal) => {
+    const subjectId = Number(signal.subjectKey);
+    if (!Number.isSafeInteger(subjectId) || subjectId <= 0) {
+      return;
+    }
+
+    if (signal.kind === 'cast') {
+      goToDiscovery('person', subjectId, signal.name);
+      return;
+    }
+
+    if (signal.kind === 'keyword') {
+      goToDiscovery('keyword', subjectId, signal.name, 'both');
+      return;
+    }
+
+    goToDiscovery('genre', subjectId, signal.name, 'both');
+  };
+
   const renderSignals = (
     signals: MediaScoreSignal[],
     preferenceType: MediaScoreSignal['preferenceType'],
@@ -73,9 +94,13 @@ export function Score({ score }: ScoreProps) {
               : 'mixedEvidence';
 
         return (
-          <span
+          <button
             key={`${signal.kind}-${signal.subjectKey}`}
-            className={`inline-flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-full border px-2.5 py-1.5 text-xs ${tone}`}
+            type="button"
+            onClick={() => {
+              goToSignal(signal);
+            }}
+            className={`inline-flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-full border px-2.5 py-1.5 text-xs transition-colors hover:border-amber-400/60 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400 ${tone}`}
           >
             <Icon name={signalIcons[signal.kind]} size="xs" />
             <span className="font-medium">{signal.name}</span>
@@ -86,7 +111,7 @@ export function Score({ score }: ScoreProps) {
                 total: signal.positiveCount + signal.negativeCount,
               })}
             </span>
-          </span>
+          </button>
         );
       })}
     </div>

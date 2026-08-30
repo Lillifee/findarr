@@ -1,8 +1,10 @@
-import type { Genre, Media, SearchType } from '@findarr/shared/media';
+import type { Media, SearchType } from '@findarr/shared/media';
 import { useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { buildCatalogSearchParams } from '../utils/catalogSearchParams';
+
+type DiscoveryKind = 'person' | 'keyword' | 'genre';
 
 export function useMediaNavigation() {
   const location = useLocation();
@@ -31,30 +33,20 @@ export function useMediaNavigation() {
     [navigate],
   );
 
-  const goToPerson = useCallback(
-    (personId: number, discoveryName: string) => {
-      void navigate(`/explore?${buildCatalogSearchParams({ personId, discoveryName }).toString()}`);
-    },
-    [navigate],
-  );
-
-  const goToKeyword = useCallback(
-    (keywordId: number, discoveryName: string, type: SearchType) => {
+  const goToDiscovery = useCallback(
+    (kind: DiscoveryKind, id: number, discoveryName: string, type: SearchType = 'both') => {
       void navigate(
-        `/explore?${buildCatalogSearchParams({ keywordId, discoveryName, type }).toString()}`,
+        `/explore?${buildCatalogSearchParams({
+          discoveryName,
+          type,
+          ...(kind === 'person' ? { personId: id } : {}),
+          ...(kind === 'keyword' ? { keywordId: id } : {}),
+          ...(kind === 'genre' ? { genreId: id } : {}),
+        }).toString()}`,
       );
     },
     [navigate],
   );
 
-  const goToGenre = useCallback(
-    (genre: Genre, type: SearchType) => {
-      void navigate(
-        `/explore?${buildCatalogSearchParams({ genreId: genre.id, discoveryName: genre.name, type }).toString()}`,
-      );
-    },
-    [navigate],
-  );
-
-  return { goTo, goToMedia, goToSearch, goToPerson, goToKeyword, goToGenre };
+  return { goTo, goToMedia, goToSearch, goToDiscovery };
 }
