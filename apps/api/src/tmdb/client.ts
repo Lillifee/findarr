@@ -6,6 +6,7 @@ import {
   type TMDBSearchParams,
   type TMDBTVSearchParams,
   TMDBSearchResponseSchema,
+  TMDBPersonSearchResponseSchema,
   type TMDBDiscoverParams,
   type TMDBTrendingParams,
   type TMDBDetailsParams,
@@ -30,7 +31,7 @@ export function createTMDBClient(accessToken: string, appLog: AppLogger) {
   const client = createHttpClient(accessToken);
   const log = appLog.scope('tmdb');
 
-  async function test(): Promise<boolean> {
+  async function testConnection(): Promise<boolean> {
     try {
       const auth = await client.get<{ success?: boolean }>('/authentication');
       return auth.data?.success ?? false;
@@ -41,11 +42,21 @@ export function createTMDBClient(accessToken: string, appLog: AppLogger) {
   }
 
   /** Search for movies or tv shows */
-  async function search(type: MediaType, params: TMDBSearchParams | TMDBTVSearchParams) {
-    const timer = log.timer('search', { type, params });
+  async function searchMedia(type: MediaType, params: TMDBSearchParams | TMDBTVSearchParams) {
+    const timer = log.timer('searchMedia', { type, params });
 
     const response = await client.get(`/search/${type}`, { params });
     const result = TMDBSearchResponseSchema.parse(response.data);
+
+    timer.end();
+    return result;
+  }
+
+  async function searchPeople(params: TMDBSearchParams) {
+    const timer = log.timer('searchPeople', { params });
+
+    const response = await client.get('/search/person', { params });
+    const result = TMDBPersonSearchResponseSchema.parse(response.data);
 
     timer.end();
     return result;
@@ -136,8 +147,9 @@ export function createTMDBClient(accessToken: string, appLog: AppLogger) {
   }
 
   return {
-    testConnection: test,
-    search,
+    testConnection,
+    searchMedia,
+    searchPeople,
     discover,
     trending,
     details,

@@ -1,5 +1,5 @@
 import type { GenreKey } from '@findarr/shared/constants';
-import type { Media, SearchType } from '@findarr/shared/media';
+import type { Media, Person, SearchType } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -11,6 +11,7 @@ import { isSameMedia, mergeUniqueMedia } from '../utils/media';
 interface CatalogFeedState {
   currentPage: number;
   feedId?: string;
+  people: Person[];
   results: Media[];
   hasMore: boolean;
 }
@@ -39,6 +40,7 @@ interface LoadingState {
 
 const emptyFeed: CatalogFeedState = {
   currentPage: 0,
+  people: [],
   results: [],
   hasMore: false,
 };
@@ -104,6 +106,7 @@ function matchesPopularFilters(state: PopularFeedSnapshot, filters: CatalogFilte
 
 export interface CatalogFeed {
   results: Media[];
+  people: Person[];
   loading: boolean;
   loadingMore: boolean;
   hasMore: boolean;
@@ -139,6 +142,7 @@ export function useCatalogFeed(): CatalogFeed {
       updateFeed({
         currentPage: nextFeed.currentPage,
         ...(isDefined(nextFeed.feedId) ? { feedId: nextFeed.feedId } : {}),
+        people: nextFeed.people,
         results: nextFeed.results,
         hasMore: nextFeed.hasMore,
       });
@@ -171,6 +175,7 @@ export function useCatalogFeed(): CatalogFeed {
 
           const nextFeed = {
             currentPage: response.page,
+            people: append ? feedRef.current.people : response.people,
             results: append
               ? mergeUniqueMedia(feedRef.current.results, response.results)
               : response.results,
@@ -195,6 +200,7 @@ export function useCatalogFeed(): CatalogFeed {
         const nextFeed = {
           currentPage: response.page,
           feedId: response.feedId,
+          people: [],
           results: append
             ? mergeUniqueMedia(feedRef.current.results, response.results)
             : response.results,
@@ -293,6 +299,7 @@ export function useCatalogFeed(): CatalogFeed {
     loading: loadingState.loading,
     loadingMore: loadingState.loadingMore,
     results: feed.results,
+    people: feed.people,
     hasMore: feed.hasMore,
     currentSearchType: filters.type,
     currentQuery: filters.query,

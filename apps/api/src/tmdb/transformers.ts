@@ -11,12 +11,14 @@ import type {
   Keyword,
   Media,
   CastMember,
+  Person,
   Video,
 } from '@findarr/shared/media';
 
 import type {
   TMDBMovie,
   TMDBTVShow,
+  TMDBPerson,
   TMDBMovieDetails,
   TMDBTVDetails,
   TMDBCredits,
@@ -258,6 +260,15 @@ export function transformMedia(
   return item.type === 'movie'
     ? transformMovie(item, genreMap, customState)
     : transformTVShow(item, genreMap, customState);
+}
+
+export function transformPerson(person: TMDBPerson): Person {
+  return {
+    tmdbId: person.id,
+    name: person.name,
+    profilePath: person.profile_path ?? undefined,
+    knownForDepartment: person.known_for_department ?? undefined,
+  };
 }
 
 /**

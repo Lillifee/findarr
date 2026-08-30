@@ -79,11 +79,12 @@ describe('catalog service - integration tests', () => {
     vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
     const user = await createTestUserInDb(db, { email: 'delegate@test.com' });
 
-    const searchResult: SearchResponse = { results: [], page: 0 };
+    const searchResult: SearchResponse = { results: [], people: [], page: 0 };
     const detailsResult: MediaDetails = createTestMovieDetail({ tmdbId: 1 });
     const genresResult: Genre[] = [];
 
-    tmdbService.search.mockResolvedValue(searchResult);
+    tmdbService.searchMedia.mockResolvedValue(searchResult);
+    tmdbService.searchPeople.mockResolvedValue(searchResult.people);
     tmdbService.details.mockResolvedValue(detailsResult);
     tmdbService.genres.mockResolvedValue(genresResult);
 
@@ -142,7 +143,7 @@ describe('catalog service - integration tests', () => {
   it('should enrich search results with database state', async () => {
     const user = await createTestUserInDb(db, { email: 'discover-enrich@test.com' });
     const items = [createTestMedia({ tmdbId: 1 })];
-    tmdbService.search.mockResolvedValue({
+    tmdbService.searchMedia.mockResolvedValue({
       results: items,
       page: 1,
     });
