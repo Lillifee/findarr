@@ -1,5 +1,5 @@
 import type { GenreKey } from '@findarr/shared/constants';
-import type { Keyword, Media, Person, SearchType } from '@findarr/shared/media';
+import type { Genre, Keyword, Media, Person, SearchType } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -23,6 +23,7 @@ interface CatalogFilters {
   type: SearchType;
   keywordId?: number | undefined;
   personId?: number | undefined;
+  genreId?: number | undefined;
   discoveryName?: string | undefined;
 }
 
@@ -55,6 +56,16 @@ const idleLoadingState: LoadingState = {
   loadingMore: false,
 };
 
+function createFilters(filters: Partial<CatalogFilters>) {
+  return {
+    personId: undefined,
+    keywordId: undefined,
+    genreId: undefined,
+    discoveryName: undefined,
+    ...filters,
+  };
+}
+
 function areGenresEqual(left: GenreKey[], right: GenreKey[]) {
   return left.length === right.length && left.every((genre, index) => genre === right[index]);
 }
@@ -85,6 +96,7 @@ function useCatalogFilters() {
       query: urlFilters.q,
       personId: urlFilters.personId,
       keywordId: urlFilters.keywordId,
+      genreId: urlFilters.genreId,
       discoveryName: urlFilters.discoveryName,
     }),
     [urlFilters],
@@ -102,6 +114,7 @@ function useCatalogFilters() {
           personId: merged.personId,
           keywordId: merged.keywordId,
           discoveryName: merged.discoveryName,
+          genreId: merged.genreId,
         }),
       );
     },
@@ -133,6 +146,7 @@ export interface CatalogFeed {
   onSearch: (query: string) => void;
   onPersonSelect: (person: Person) => void;
   onKeywordSelect: (keyword: Keyword) => void;
+  onGenreSelect: (genre: Genre) => void;
   onClearSearch: () => void;
   loadMore: () => void;
   updateItem: (updatedItem: Media) => void;
@@ -146,7 +160,8 @@ export function useCatalogFeed(): CatalogFeed {
   const popularSnapshotRef = useRef<PopularFeedSnapshot | null>(null);
   const latestRequestIdRef = useRef(0);
 
-  const isDiscovery = isDefined(filters.personId) || isDefined(filters.keywordId);
+  const isDiscovery =
+    isDefined(filters.personId) || isDefined(filters.keywordId) || isDefined(filters.genreId);
   const isSearchMode = filters.query.trim().length > 0 || isDiscovery;
 
   const updateFeed = useCallback((nextFeed: CatalogFeedState) => {
@@ -172,29 +187,23 @@ export function useCatalogFeed(): CatalogFeed {
     async ({ append, currentFeedId, page }: LoadFeedOptions) => {
       const requestId = latestRequestIdRef.current + 1;
       latestRequestIdRef.current = requestId;
-      const requestedFilters = filters;
-      const requestedSearchMode = isSearchMode;
+      const reqFilters = filters;
+      const reqSearchMode = isSearchMode;
 
       setLoadingState(
         append ? { loading: false, loadingMore: true } : { loading: true, loadingMore: false },
       );
 
       try {
-        const discoverParams = isDefined(requestedFilters.personId)
-          ? {
-              personId: requestedFilters.personId,
-              page: page ?? 1,
-              type: requestedFilters.type,
-            }
-          : isDefined(requestedFilters.keywordId)
-            ? {
-                keywordId: requestedFilters.keywordId,
-                page: page ?? 1,
-                type: requestedFilters.type,
-              }
-            : undefined;
+        const discoverParams = {
+          page: page ?? 1,
+          type: reqFilters.type,
+          ...(isDefined(reqFilters.personId) ? { personId: reqFilters.personId } : {}),
+          ...(isDefined(reqFilters.keywordId) ? { keywordId: reqFilters.keywordId } : {}),
+          ...(isDefined(reqFilters.genreId) ? { genreId: reqFilters.genreId } : {}),
+        };
 
-        if (isDefined(discoverParams)) {
+        if (reqSearchMode && isDiscovery) {
           const response = await searchService.discover(discoverParams);
 
           if (latestRequestIdRef.current !== requestId) {
@@ -213,11 +222,11 @@ export function useCatalogFeed(): CatalogFeed {
           return;
         }
 
-        if (requestedSearchMode) {
+        if (reqSearchMode) {
           const response = await searchService.search({
-            query: requestedFilters.query,
+            query: reqFilters.query,
             page: page ?? 1,
-            type: requestedFilters.type,
+            type: reqFilters.type,
           });
 
           if (latestRequestIdRef.current !== requestId) {
@@ -239,8 +248,8 @@ export function useCatalogFeed(): CatalogFeed {
         }
 
         const response = await searchService.listPopularMedia({
-          type: requestedFilters.type,
-          genres: requestedFilters.genres,
+          type: reqFilters.type,
+          genres: reqFilters.genres,
           page,
           feedId: currentFeedId,
         });
@@ -261,19 +270,16 @@ export function useCatalogFeed(): CatalogFeed {
         };
 
         updateFeed(nextFeed);
-        popularSnapshotRef.current = createPopularSnapshot(requestedFilters, nextFeed);
+        popularSnapshotRef.current = createPopularSnapshot(reqFilters, nextFeed);
       } catch (error) {
-        console.error(
-          `Failed to load ${requestedSearchMode ? 'search' : 'popular'} results:`,
-          error,
-        );
+        console.error(`Failed to load ${reqSearchMode ? 'search' : 'popular'} results:`, error);
       } finally {
         if (latestRequestIdRef.current === requestId) {
           setLoadingState(idleLoadingState);
         }
       }
     },
-    [filters, isSearchMode, updateFeed],
+    [filters, isDiscovery, isSearchMode, updateFeed],
   );
 
   useEffect(() => {
@@ -288,7 +294,7 @@ export function useCatalogFeed(): CatalogFeed {
   }, [filters, isSearchMode, loadFeed, restoreFeed]);
 
   const onTypeChange = (type: SearchType) => {
-    updateFilters({ type, personId: undefined, keywordId: undefined, discoveryName: undefined });
+    updateFilters(createFilters({ type }));
   };
 
   const onGenresChange = (genres: GenreKey[]) => {
@@ -296,15 +302,34 @@ export function useCatalogFeed(): CatalogFeed {
   };
 
   const onSearch = (query: string) => {
-    updateFilters({ query, personId: undefined, keywordId: undefined, discoveryName: undefined });
+    updateFilters(createFilters({ query }));
   };
 
   const onPersonSelect = (person: Person) => {
-    updateFilters({ personId: person.tmdbId, keywordId: undefined, discoveryName: person.name });
+    updateFilters(
+      createFilters({
+        personId: person.tmdbId,
+        discoveryName: person.name,
+      }),
+    );
   };
 
   const onKeywordSelect = (keyword: Keyword) => {
-    updateFilters({ keywordId: keyword.id, personId: undefined, discoveryName: keyword.name });
+    updateFilters(
+      createFilters({
+        keywordId: keyword.id,
+        discoveryName: keyword.name,
+      }),
+    );
+  };
+
+  const onGenreSelect = (genre: Genre) => {
+    updateFilters(
+      createFilters({
+        genreId: genre.id,
+        discoveryName: genre.name,
+      }),
+    );
   };
 
   const onClearSearch = () => {
@@ -316,12 +341,7 @@ export function useCatalogFeed(): CatalogFeed {
       restoreFeed(popularSnapshot);
     }
 
-    updateFilters({
-      query: '',
-      personId: undefined,
-      keywordId: undefined,
-      discoveryName: undefined,
-    });
+    updateFilters(createFilters({ query: '' }));
   };
 
   const loadMore = () => {
@@ -378,6 +398,7 @@ export function useCatalogFeed(): CatalogFeed {
     onSearch,
     onPersonSelect,
     onKeywordSelect,
+    onGenreSelect,
     onClearSearch,
     loadMore,
     updateItem,
