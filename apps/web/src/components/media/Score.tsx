@@ -60,19 +60,8 @@ export function Score({ score }: ScoreProps) {
       return;
     }
 
-    if (signal.kind === 'cast') {
-      goToDiscovery('person', subjectId, signal.name);
-      return;
-    }
-
-    if (signal.kind === 'keyword') {
-      goToDiscovery('keyword', subjectId, signal.name);
-      return;
-    }
-
-    if (signal.kind === 'genre') {
-      goToDiscovery('genre', subjectId, signal.name);
-    }
+    const type = signal.kind === 'cast' ? 'person' : signal.kind;
+    goToDiscovery(type, subjectId, signal.name);
   };
 
   const renderSignals = (

@@ -31,7 +31,7 @@ export function SearchMatches({
   return (
     <aside className="flex flex-col gap-6" aria-label={t('explore.searchResults')}>
       {genres.length > 0 && (
-        <section className="order-2" aria-label={t('catalog.genreResults')}>
+        <section aria-label={t('catalog.genreResults')}>
           <h2 className="mb-2 text-xs font-semibold tracking-wide text-zinc-400 uppercase">
             {t('catalog.genreResults')}
           </h2>
@@ -63,12 +63,12 @@ export function SearchMatches({
       )}
 
       {keywords.length > 0 && (
-        <section className="order-3" aria-label={t('catalog.keywordResults')}>
+        <section aria-label={t('catalog.keywordResults')}>
           <h2 className="mb-2 text-xs font-semibold tracking-wide text-zinc-400 uppercase">
             {t('catalog.keywordResults')}
           </h2>
           {/* Restricts height to exactly 2 rows + gap, hides overflow */}
-          <div className="max-h-[60px] overflow-hidden">
+          <div className="max-h-15 overflow-hidden">
             <div className="flex flex-row flex-wrap gap-2">
               {keywords.map((keyword) => (
                 <button
@@ -88,7 +88,7 @@ export function SearchMatches({
       )}
 
       {people.length > 0 && (
-        <section className="order-1" aria-label={t('catalog.peopleResults')}>
+        <section aria-label={t('catalog.peopleResults')}>
           <h2 className="mb-3 text-xs font-semibold tracking-wide text-zinc-400 uppercase">
             {t('catalog.peopleResults')}
           </h2>
