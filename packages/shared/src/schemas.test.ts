@@ -98,21 +98,34 @@ describe('schemas', () => {
 
   describe('DiscoverQuerySchema', () => {
     it('should validate positive discovery IDs', () => {
-      expect(DiscoverQuerySchema.safeParse({ personId: 0 }).success).toBe(false);
-      expect(DiscoverQuerySchema.safeParse({ keywordId: 0 }).success).toBe(false);
-      expect(DiscoverQuerySchema.safeParse({ genreId: 0 }).success).toBe(false);
-      expect(DiscoverQuerySchema.parse({ personId: '31' })).toStrictEqual({
-        personId: 31,
-        page: 1,
-        type: 'both',
-      });
-      expect(DiscoverQuerySchema.parse({ keywordId: '1' })).toStrictEqual({
-        keywordId: 1,
-        page: 1,
-        type: 'both',
-      });
-      expect(DiscoverQuerySchema.parse({ genreId: '28' })).toStrictEqual({
-        genreId: 28,
+      expect(DiscoverQuerySchema.safeParse({ discoverType: 'person', discoverId: 0 }).success).toBe(
+        false,
+      );
+      expect(
+        DiscoverQuerySchema.safeParse({ discoverType: 'keyword', discoverId: 0 }).success,
+      ).toBe(false);
+      expect(DiscoverQuerySchema.safeParse({ discoverType: 'genre', discoverId: 0 }).success).toBe(
+        false,
+      );
+      expect(DiscoverQuerySchema.parse({ discoverType: 'person', discoverId: '31' })).toStrictEqual(
+        {
+          discoverType: 'person',
+          discoverId: 31,
+          page: 1,
+          type: 'both',
+        },
+      );
+      expect(DiscoverQuerySchema.parse({ discoverType: 'keyword', discoverId: '1' })).toStrictEqual(
+        {
+          discoverType: 'keyword',
+          discoverId: 1,
+          page: 1,
+          type: 'both',
+        },
+      );
+      expect(DiscoverQuerySchema.parse({ discoverType: 'genre', discoverId: '28' })).toStrictEqual({
+        discoverType: 'genre',
+        discoverId: 28,
         page: 1,
         type: 'both',
       });

@@ -2,9 +2,7 @@ import type { Media, SearchType } from '@findarr/shared/media';
 import { useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { buildCatalogSearchParams } from '../utils/catalogSearchParams';
-
-type DiscoveryKind = 'person' | 'keyword' | 'genre';
+import { buildCatalogSearchParams, type DiscoveryType } from '../utils/catalogSearchParams';
 
 export function useMediaNavigation() {
   const location = useLocation();
@@ -34,14 +32,11 @@ export function useMediaNavigation() {
   );
 
   const goToDiscovery = useCallback(
-    (kind: DiscoveryKind, id: number, discoveryName: string, type: SearchType = 'both') => {
+    (kind: DiscoveryType, id: number, discoveryName: string, type: SearchType = 'both') => {
       void navigate(
         `/explore?${buildCatalogSearchParams({
-          discoveryName,
           type,
-          ...(kind === 'person' ? { personId: id } : {}),
-          ...(kind === 'keyword' ? { keywordId: id } : {}),
-          ...(kind === 'genre' ? { genreId: id } : {}),
+          discovery: { type: kind, id, name: discoveryName },
         }).toString()}`,
       );
     },

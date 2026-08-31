@@ -2,6 +2,14 @@ import type { InteractionFilter } from '@findarr/shared/interaction';
 import type { SearchType } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
 
+export type DiscoveryType = 'person' | 'genre' | 'keyword';
+
+export interface DiscoveryFilter {
+  type: DiscoveryType;
+  id: number;
+  name: string;
+}
+
 interface CatalogSearchParamDefaults {
   interaction?: InteractionFilter;
   page?: number;
@@ -14,9 +22,7 @@ interface CatalogSearchParamState {
   page: number;
   q: string;
   type: SearchType;
-  personId?: number;
-  keywordId?: number;
-  genreId?: number;
+  discovery?: DiscoveryFilter;
 }
 
 interface CatalogSearchParamInput {
@@ -25,9 +31,7 @@ interface CatalogSearchParamInput {
   page?: number | undefined;
   q?: string | undefined;
   type?: SearchType | undefined;
-  keywordId?: number | undefined;
-  personId?: number | undefined;
-  genreId?: number | undefined;
+  discovery?: DiscoveryFilter | undefined;
 }
 
 const isInteractionFilter = (value: string): value is InteractionFilter =>
@@ -41,6 +45,16 @@ const readPositiveInteger = (value: string | null): number | undefined => {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
 };
 
+export const DISCOVERY_TYPES: readonly DiscoveryType[] = ['person', 'genre', 'keyword'] as const;
+
+export function isDiscoveryType(value: unknown): value is DiscoveryType {
+  return typeof value === 'string' && (DISCOVERY_TYPES as readonly string[]).includes(value);
+}
+
+export function parseDiscoveryType(raw: unknown): DiscoveryType | undefined {
+  return isDiscoveryType(raw) ? raw : undefined;
+}
+
 export const readCatalogSearchParams = (
   searchParams: URLSearchParams,
   defaults: CatalogSearchParamDefaults = {},
@@ -53,9 +67,9 @@ export const readCatalogSearchParams = (
       ? rawInteraction
       : defaults.interaction;
 
-  const personId = readPositiveInteger(searchParams.get('person'));
-  const keywordId = readPositiveInteger(searchParams.get('keyword'));
-  const genreId = readPositiveInteger(searchParams.get('genre'));
+  const rawDiscoveryType = searchParams.get('discoverType');
+  const discoveryId = readPositiveInteger(searchParams.get('discoverId'));
+  const discoveryType: DiscoveryType | undefined = parseDiscoveryType(rawDiscoveryType);
   const discoveryName = searchParams.get('name') ?? undefined;
 
   return {
@@ -63,9 +77,9 @@ export const readCatalogSearchParams = (
     page: Math.trunc(Number(searchParams.get('page') ?? String(defaults.page ?? 1))),
     q: searchParams.get('q') ?? '',
     ...(isDefined(interaction) ? { interaction } : {}),
-    ...(isDefined(personId) ? { personId } : {}),
-    ...(isDefined(keywordId) ? { keywordId } : {}),
-    ...(isDefined(genreId) ? { genreId } : {}),
+    ...(isDefined(discoveryType) && isDefined(discoveryId) && isDefined(discoveryName)
+      ? { discovery: { type: discoveryType, id: discoveryId, name: discoveryName } }
+      : {}),
     ...(isDefined(discoveryName) ? { discoveryName } : {}),
   };
 };
@@ -85,17 +99,10 @@ export const buildCatalogSearchParams = (next: CatalogSearchParamInput) => {
   if (isDefined(next.q)) {
     params.set('q', next.q);
   }
-  if (isDefined(next.personId)) {
-    params.set('person', String(next.personId));
-  }
-  if (isDefined(next.keywordId)) {
-    params.set('keyword', String(next.keywordId));
-  }
-  if (isDefined(next.genreId)) {
-    params.set('genre', String(next.genreId));
-  }
-  if (isDefined(next.discoveryName)) {
-    params.set('name', next.discoveryName);
+  if (isDefined(next.discovery)) {
+    params.set('discoverType', next.discovery.type);
+    params.set('discoverId', String(next.discovery.id));
+    params.set('name', next.discovery.name);
   }
 
   return params;

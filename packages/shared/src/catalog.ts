@@ -13,9 +13,8 @@ export const SearchQuerySchema = z.object({
 export const DiscoverQuerySchema = z.object({
   page: z.coerce.number().int().min(1).max(1000).default(1),
   type: z.enum(['movie', 'tv', 'both']).default('both'),
-  personId: z.coerce.number().int().positive().optional(),
-  keywordId: z.coerce.number().int().positive().optional(),
-  genreId: z.coerce.number().int().positive().optional(),
+  discoverType: z.enum(['person', 'genre', 'keyword']),
+  discoverId: z.coerce.number().int().positive(),
 });
 
 // Snapshot-backed popular query for infinite scrolling/load-more

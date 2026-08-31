@@ -4,7 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { searchService } from '../services/api';
-import { buildCatalogSearchParams, readCatalogSearchParams } from '../utils/catalogSearchParams';
+import {
+  buildCatalogSearchParams,
+  readCatalogSearchParams,
+  type DiscoveryFilter,
+} from '../utils/catalogSearchParams';
 import { isSameMedia, mergeUniqueMedia } from '../utils/media';
 
 interface CatalogFeedState {
@@ -20,10 +24,7 @@ interface CatalogFeedState {
 interface CatalogFilters {
   query: string;
   type: SearchType;
-  keywordId?: number | undefined;
-  personId?: number | undefined;
-  genreId?: number | undefined;
-  discoveryName?: string | undefined;
+  discovery?: DiscoveryFilter | undefined;
 }
 
 interface LoadFeedOptions {
@@ -53,10 +54,7 @@ const idleLoadingState: LoadingState = {
 
 function createFilters(filters: Partial<CatalogFilters>) {
   return {
-    personId: undefined,
-    keywordId: undefined,
-    genreId: undefined,
-    discoveryName: undefined,
+    discovery: undefined,
     ...filters,
   };
 }
@@ -79,10 +77,7 @@ function useCatalogFilters() {
     () => ({
       type: urlFilters.type,
       query: urlFilters.q,
-      personId: urlFilters.personId,
-      keywordId: urlFilters.keywordId,
-      genreId: urlFilters.genreId,
-      discoveryName: urlFilters.discoveryName,
+      discovery: urlFilters.discovery,
     }),
     [urlFilters],
   );
@@ -95,10 +90,7 @@ function useCatalogFilters() {
         buildCatalogSearchParams({
           type: merged.type,
           q: merged.query || undefined,
-          personId: merged.personId,
-          keywordId: merged.keywordId,
-          discoveryName: merged.discoveryName,
-          genreId: merged.genreId,
+          discovery: merged.discovery,
         }),
       );
     },
@@ -139,8 +131,7 @@ export function useCatalogFeed(): CatalogFeed {
   const popularSnapshotRef = useRef<CatalogFeedState | null>(null);
   const latestRequestIdRef = useRef(0);
 
-  const isDiscovery =
-    isDefined(filters.personId) || isDefined(filters.keywordId) || isDefined(filters.genreId);
+  const isDiscovery = isDefined(filters.discovery);
   const isSearchMode = filters.query.trim().length > 0 || isDiscovery;
 
   const updateFeed = useCallback((nextFeed: CatalogFeedState) => {
@@ -175,15 +166,18 @@ export function useCatalogFeed(): CatalogFeed {
       );
 
       try {
-        const discoverParams = {
-          page: page ?? 1,
-          type: reqFilters.type,
-          ...(isDefined(reqFilters.personId) ? { personId: reqFilters.personId } : {}),
-          ...(isDefined(reqFilters.keywordId) ? { keywordId: reqFilters.keywordId } : {}),
-          ...(isDefined(reqFilters.genreId) ? { genreId: reqFilters.genreId } : {}),
-        };
-
         if (reqSearchMode && isDiscovery) {
+          const { discovery } = reqFilters;
+          if (!discovery) {
+            return;
+          }
+
+          const discoverParams = {
+            page: page ?? 1,
+            type: reqFilters.type,
+            discoverType: discovery.type,
+            discoverId: discovery.id,
+          };
           const response = await searchService.discover(discoverParams);
 
           if (latestRequestIdRef.current !== requestId) {
@@ -286,8 +280,7 @@ export function useCatalogFeed(): CatalogFeed {
   const onPersonSelect = (person: Person) => {
     updateFilters(
       createFilters({
-        personId: person.tmdbId,
-        discoveryName: person.name,
+        discovery: { type: 'person', id: person.tmdbId, name: person.name },
       }),
     );
   };
@@ -295,8 +288,7 @@ export function useCatalogFeed(): CatalogFeed {
   const onKeywordSelect = (keyword: Keyword) => {
     updateFilters(
       createFilters({
-        keywordId: keyword.id,
-        discoveryName: keyword.name,
+        discovery: { type: 'keyword', id: keyword.id, name: keyword.name },
       }),
     );
   };
@@ -304,8 +296,7 @@ export function useCatalogFeed(): CatalogFeed {
   const onGenreSelect = (genre: Genre) => {
     updateFilters(
       createFilters({
-        genreId: genre.id,
-        discoveryName: genre.name,
+        discovery: { type: 'genre', id: genre.id, name: genre.name },
       }),
     );
   };
@@ -370,7 +361,7 @@ export function useCatalogFeed(): CatalogFeed {
     hasMore: feed.hasMore,
     currentSearchType: filters.type,
     currentQuery: filters.query,
-    discoveryName: filters.discoveryName,
+    discoveryName: filters.discovery?.name,
     onTypeChange,
     onSearch,
     onPersonSelect,
