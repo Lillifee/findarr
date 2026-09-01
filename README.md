@@ -15,11 +15,7 @@ Find movies and shows you actually want — without endless scrolling.
 ---
 
 <div align="center">
-	<img src="screenshots/home.png" alt="Findarr Home" width="700" />
-	<br />
-	<img src="screenshots/vote.png" alt="Findarr Vote" width="700" />
-	<br />
-	<img src="screenshots/explore.png" alt="Findarr Explore" width="700" />
+	<img src="screenshots/findarr.gif" alt="Findarr Home" width="700" />
 </div>
 
 ---
