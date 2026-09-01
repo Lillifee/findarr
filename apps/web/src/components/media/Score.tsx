@@ -91,7 +91,7 @@ export function Score({ score }: ScoreProps) {
             onClick={() => {
               goToSignal(signal);
             }}
-            className={`inline-flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-full border px-2.5 py-1.5 text-xs transition-colors hover:border-amber-400/60 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400 ${tone}`}
+            className={`inline-flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-full border px-2.5 py-1 text-xs transition-colors hover:border-amber-400/60 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400 ${tone}`}
           >
             <Icon name={signalIcons[signal.kind]} size="xs" />
             <span className="font-medium">{signal.name}</span>

@@ -4,6 +4,19 @@ import { z } from 'zod';
 // Catalog Request Schemas
 // ============================================================================
 
+export type DiscoveryType = 'person' | 'genre' | 'keyword';
+
+export interface DiscoveryFilter {
+  type: DiscoveryType;
+  id: number;
+  name: string;
+}
+
+const asArray = (value: unknown): unknown[] =>
+  value === undefined ? [] : Array.isArray(value) ? value : [value];
+
+const positiveIds = z.preprocess(asArray, z.array(z.coerce.number().int().positive()).default([]));
+
 export const SearchQuerySchema = z.object({
   query: z.string().min(1),
   page: z.coerce.number().int().min(1).max(1000).default(1),
@@ -13,8 +26,9 @@ export const SearchQuerySchema = z.object({
 export const DiscoverQuerySchema = z.object({
   page: z.coerce.number().int().min(1).max(1000).default(1),
   type: z.enum(['movie', 'tv', 'both']).default('both'),
-  discoverType: z.enum(['person', 'genre', 'keyword']),
-  discoverId: z.coerce.number().int().positive(),
+  person: positiveIds,
+  genre: positiveIds,
+  keyword: positiveIds,
 });
 
 // Snapshot-backed popular query for infinite scrolling/load-more

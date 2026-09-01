@@ -173,7 +173,7 @@ export function createCatalogService(context: CatalogContext) {
     const { language } = await user.getSettings(userId);
 
     // TMDB only support person discover for movies
-    const type = params.discoverType === 'person' ? 'movie' : params.type;
+    const type = params.person.length > 0 ? 'movie' : params.type;
 
     const response = await tmdb.discoverMedia({ ...params, language, type });
     const results = await media.enrichMediaResults(response.results, userId);

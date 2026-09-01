@@ -97,35 +97,24 @@ describe('schemas', () => {
   });
 
   describe('DiscoverQuerySchema', () => {
-    it('should validate positive discovery IDs', () => {
-      expect(DiscoverQuerySchema.safeParse({ discoverType: 'person', discoverId: 0 }).success).toBe(
-        false,
-      );
+    it('should normalize repeated positive discovery IDs', () => {
       expect(
-        DiscoverQuerySchema.safeParse({ discoverType: 'keyword', discoverId: 0 }).success,
-      ).toBe(false);
-      expect(DiscoverQuerySchema.safeParse({ discoverType: 'genre', discoverId: 0 }).success).toBe(
-        false,
-      );
-      expect(DiscoverQuerySchema.parse({ discoverType: 'person', discoverId: '31' })).toStrictEqual(
-        {
-          discoverType: 'person',
-          discoverId: 31,
-          page: 1,
-          type: 'both',
-        },
-      );
-      expect(DiscoverQuerySchema.parse({ discoverType: 'keyword', discoverId: '1' })).toStrictEqual(
-        {
-          discoverType: 'keyword',
-          discoverId: 1,
-          page: 1,
-          type: 'both',
-        },
-      );
-      expect(DiscoverQuerySchema.parse({ discoverType: 'genre', discoverId: '28' })).toStrictEqual({
-        discoverType: 'genre',
-        discoverId: 28,
+        DiscoverQuerySchema.parse({ person: ['287', '819'], genre: '28', keyword: '1234' }),
+      ).toStrictEqual({
+        person: [287, 819],
+        genre: [28],
+        keyword: [1234],
+        page: 1,
+        type: 'both',
+      });
+      expect(DiscoverQuerySchema.safeParse({ person: '0' }).success).toBe(false);
+    });
+
+    it('should default missing discovery filters to empty arrays', () => {
+      expect(DiscoverQuerySchema.parse({})).toStrictEqual({
+        person: [],
+        genre: [],
+        keyword: [],
         page: 1,
         type: 'both',
       });

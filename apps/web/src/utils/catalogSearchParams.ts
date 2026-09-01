@@ -22,7 +22,7 @@ interface CatalogSearchParamState {
   page: number;
   q: string;
   type: SearchType;
-  discovery?: DiscoveryFilter;
+  discovery?: DiscoveryFilter[];
 }
 
 interface CatalogSearchParamInput {
@@ -31,7 +31,7 @@ interface CatalogSearchParamInput {
   page?: number | undefined;
   q?: string | undefined;
   type?: SearchType | undefined;
-  discovery?: DiscoveryFilter | undefined;
+  discovery?: DiscoveryFilter[] | undefined;
 }
 
 const isInteractionFilter = (value: string): value is InteractionFilter =>
@@ -45,7 +45,7 @@ const readPositiveInteger = (value: string | null): number | undefined => {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
 };
 
-export const DISCOVERY_TYPES: readonly DiscoveryType[] = ['person', 'genre', 'keyword'] as const;
+export const DISCOVERY_TYPES: readonly DiscoveryType[] = ['genre', 'person', 'keyword'] as const;
 
 export function isDiscoveryType(value: unknown): value is DiscoveryType {
   return typeof value === 'string' && (DISCOVERY_TYPES as readonly string[]).includes(value);
@@ -67,20 +67,24 @@ export const readCatalogSearchParams = (
       ? rawInteraction
       : defaults.interaction;
 
-  const rawDiscoveryType = searchParams.get('discoverType');
-  const discoveryId = readPositiveInteger(searchParams.get('discoverId'));
-  const discoveryType: DiscoveryType | undefined = parseDiscoveryType(rawDiscoveryType);
-  const discoveryName = searchParams.get('name') ?? undefined;
+  const discovery = DISCOVERY_TYPES.flatMap((type) =>
+    searchParams
+      .getAll(type)
+      .map((value) => readPositiveInteger(value))
+      .filter((id) => isDefined(id))
+      .map((id, index) => ({
+        type,
+        id,
+        name: searchParams.getAll(`${type}Name`)[index] ?? `${type} ${id}`,
+      })),
+  );
 
   return {
     type: isDefined(rawType) && isSearchType(rawType) ? rawType : (defaults.type ?? 'both'),
     page: Math.trunc(Number(searchParams.get('page') ?? String(defaults.page ?? 1))),
     q: searchParams.get('q') ?? '',
     ...(isDefined(interaction) ? { interaction } : {}),
-    ...(isDefined(discoveryType) && isDefined(discoveryId) && isDefined(discoveryName)
-      ? { discovery: { type: discoveryType, id: discoveryId, name: discoveryName } }
-      : {}),
-    ...(isDefined(discoveryName) ? { discoveryName } : {}),
+    ...(discovery.length > 0 ? { discovery } : {}),
   };
 };
 
@@ -100,9 +104,10 @@ export const buildCatalogSearchParams = (next: CatalogSearchParamInput) => {
     params.set('q', next.q);
   }
   if (isDefined(next.discovery)) {
-    params.set('discoverType', next.discovery.type);
-    params.set('discoverId', String(next.discovery.id));
-    params.set('name', next.discovery.name);
+    for (const discovery of next.discovery) {
+      params.append(discovery.type, String(discovery.id));
+      params.append(`${discovery.type}Name`, discovery.name);
+    }
   }
 
   return params;

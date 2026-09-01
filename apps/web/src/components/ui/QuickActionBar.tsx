@@ -45,7 +45,7 @@ export function QuickActionBar({ title, items, children }: QuickActionBarProps) 
                 interactive
                 selected={isSelected}
                 onClick={item.onClick}
-                className={`px-2.5 py-1.25 text-xs shadow-none backdrop-blur-none ${
+                className={`px-2.5 py-1 text-xs shadow-none backdrop-blur-none ${
                   isSelected
                     ? 'border-amber-400/45 bg-amber-400/12 text-amber-100 hover:border-amber-300/60 hover:bg-amber-400/16 hover:text-amber-50'
                     : 'border-zinc-800 bg-zinc-900 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-800 hover:text-zinc-100'
