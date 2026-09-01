@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useMediaNavigation } from '../../hooks/useMediaNavigation';
 import { getAvatarColorClass, getInitials } from '../../utils/formatting';
 import { tmdbImageOrUndefined } from '../../utils/tmdb';
+import { DiscoveryTag } from '../catalog/DiscoveryTag';
 import { Icon } from '../ui/Icon';
 import { StatusBadge } from '../ui/StatusBadge';
 import { LikeDislikeButton } from './LikeDislikeButton';
@@ -270,16 +271,14 @@ export function MediaView({
                 <div className="mt-2 pt-2">
                   <div className="flex flex-wrap gap-2">
                     {media.genres.map((genre) => (
-                      <button
+                      <DiscoveryTag
                         key={genre.id}
-                        type="button"
+                        type="genre"
+                        name={genre.name}
                         onClick={() => {
                           goToDiscovery('genre', genre.id, genre.name);
                         }}
-                        className="inline-flex items-center rounded-full border border-zinc-800/80 bg-zinc-950/72 px-3 py-1 text-xs text-zinc-200 backdrop-blur-sm transition-colors hover:border-amber-500/60 hover:text-amber-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400"
-                      >
-                        {genre.name}
-                      </button>
+                      />
                     ))}
                   </div>
                 </div>
@@ -308,16 +307,14 @@ export function MediaView({
                 </h2>
                 <div className="flex flex-wrap gap-2">
                   {media.keywords.map((keyword) => (
-                    <button
+                    <DiscoveryTag
                       key={keyword.id}
-                      type="button"
+                      type="keyword"
+                      name={keyword.name}
                       onClick={() => {
                         goToDiscovery('keyword', keyword.id, keyword.name);
                       }}
-                      className="rounded-full border border-zinc-800/80 bg-zinc-950/72 px-3 py-1 text-sm text-zinc-200 backdrop-blur-sm transition-colors hover:border-amber-500/60 hover:text-amber-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400"
-                    >
-                      {keyword.name}
-                    </button>
+                    />
                   ))}
                 </div>
               </div>

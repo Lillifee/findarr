@@ -235,9 +235,9 @@ export async function createTMDBService(context: TmdbServiceContext) {
     const genreMap = await getGenreMap(language);
 
     const tmdbParams = {
-      ...(params.discoverType === 'person' ? { with_people: String(params.discoverId) } : {}),
-      ...(params.discoverType === 'keyword' ? { with_keywords: String(params.discoverId) } : {}),
-      ...(params.discoverType === 'genre' ? { with_genres: String(params.discoverId) } : {}),
+      ...(params.person.length > 0 ? { with_people: params.person.join(',') } : {}),
+      ...(params.keyword.length > 0 ? { with_keywords: params.keyword.join(',') } : {}),
+      ...(params.genre.length > 0 ? { with_genres: params.genre.join(',') } : {}),
     };
 
     const responses = await Promise.all(

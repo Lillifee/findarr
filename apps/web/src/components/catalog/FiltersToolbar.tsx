@@ -79,6 +79,10 @@ export function FiltersToolbar({
     }
   }, [filtersExpanded, showFilterTrigger]);
 
+  if (!showMediaType && !showFilterTrigger) {
+    return null;
+  }
+
   const closeFilters = () => {
     setFiltersExpanded(false);
   };

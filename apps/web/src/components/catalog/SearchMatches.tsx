@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { tmdbImage } from '../../utils/tmdb';
 import { Icon } from '../ui/Icon';
+import { DiscoveryTag } from './DiscoveryTag';
 
 interface SearchMatchesProps {
   genres: Genre[];
@@ -45,16 +46,14 @@ export function SearchMatches({
             >
               <div className="flex w-max gap-2 pr-16">
                 {genres.map((genre) => (
-                  <button
+                  <DiscoveryTag
                     key={genre.id}
-                    type="button"
+                    type="genre"
+                    name={genre.name}
                     onClick={() => {
                       onSelectGenre(genre);
                     }}
-                    className="rounded-full border border-zinc-800/80 bg-zinc-950/72 px-2.5 py-1 text-xs text-zinc-200 transition-colors hover:border-amber-500/60 hover:text-amber-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400"
-                  >
-                    {genre.name}
-                  </button>
+                  />
                 ))}
               </div>
             </div>
@@ -68,19 +67,17 @@ export function SearchMatches({
             {t('catalog.keywordResults')}
           </h2>
           {/* Restricts height to exactly 2 rows + gap, hides overflow */}
-          <div className="max-h-15 overflow-hidden">
+          <div className="max-h-17 overflow-hidden">
             <div className="flex flex-row flex-wrap gap-2">
               {keywords.map((keyword) => (
-                <button
+                <DiscoveryTag
                   key={keyword.id}
-                  type="button"
+                  type="keyword"
+                  name={keyword.name}
                   onClick={() => {
                     onSelectKeyword(keyword);
                   }}
-                  className="rounded-full border border-zinc-800/80 bg-zinc-950/72 px-2.5 py-1 text-xs whitespace-nowrap text-zinc-200 transition-colors hover:border-amber-500/60 hover:text-amber-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400"
-                >
-                  {keyword.name}
-                </button>
+                />
               ))}
             </div>
           </div>

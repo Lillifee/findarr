@@ -117,15 +117,15 @@ describe('catalog service - integration tests', () => {
 
     const search = await catalogService.search({ query: 'test', type: 'both', page: 1 }, user.id);
     const personDiscovery = await catalogService.listDiscoveredMedia(
-      { discoverType: 'person', discoverId: 1, page: 1, type: 'movie' },
+      { person: [1], genre: [], keyword: [], page: 1, type: 'movie' },
       user.id,
     );
     const keywordDiscovery = await catalogService.listDiscoveredMedia(
-      { discoverType: 'keyword', discoverId: 1, page: 1, type: 'tv' },
+      { person: [], genre: [], keyword: [1], page: 1, type: 'tv' },
       user.id,
     );
     const genreDiscovery = await catalogService.listDiscoveredMedia(
-      { discoverType: 'genre', discoverId: 28, page: 1, type: 'both' },
+      { person: [], genre: [28], keyword: [], page: 1, type: 'both' },
       user.id,
     );
 
@@ -136,13 +136,13 @@ describe('catalog service - integration tests', () => {
     expect(search.keywords).toStrictEqual([{ id: 1, name: 'superhero' }]);
     expect(search.genres).toStrictEqual([{ id: 1, name: 'Test genre' }]);
     expect(tmdbService.discoverMedia).toHaveBeenCalledWith(
-      expect.objectContaining({ discoverType: 'person', discoverId: 1, page: 1, type: 'movie' }),
+      expect.objectContaining({ person: [1] }),
     );
     expect(tmdbService.discoverMedia).toHaveBeenCalledWith(
-      expect.objectContaining({ discoverType: 'keyword', discoverId: 1, page: 1, type: 'tv' }),
+      expect.objectContaining({ keyword: [1] }),
     );
     expect(tmdbService.discoverMedia).toHaveBeenCalledWith(
-      expect.objectContaining({ discoverType: 'genre', discoverId: 28, page: 1, type: 'both' }),
+      expect.objectContaining({ genre: [28] }),
     );
     expect(personDiscovery).toMatchObject({
       results: [movie],

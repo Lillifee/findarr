@@ -1,5 +1,4 @@
 import type { Media } from '@findarr/shared/media';
-import { isDefined } from '@findarr/shared/utils';
 import { useTranslation } from 'react-i18next';
 
 import { FiltersToolbar } from '../components/catalog/FiltersToolbar';
@@ -33,6 +32,8 @@ export function ExplorePage() {
             onClear={feed.onClearSearch}
             hasSearched={feed.isSearchMode}
             initialQuery={feed.currentQuery}
+            discovery={feed.discovery}
+            onRemoveDiscovery={feed.onDiscoveryRemove}
           />
         }
         filters={
@@ -48,16 +49,18 @@ export function ExplorePage() {
 
       <PageContainer>
         <div className="space-y-8 md:space-y-10">
-          <PageHeader
-            title={feed.isSearchMode ? t('explore.searchResults') : t('explore.trending')}
-            description={
-              feed.isDiscovery && isDefined(feed.discoveryName)
-                ? t('explore.discovering', { name: feed.discoveryName })
-                : t('explore.description')
-            }
-          />
+          {!feed.isSearchMode && (
+            <PageHeader
+              title={t('explore.trending')}
+              description={
+                feed.isDiscovery && feed.discoveryNames.length > 0
+                  ? t('explore.discovering', { name: feed.discoveryNames.join(', ') })
+                  : t('explore.description')
+              }
+            />
+          )}
 
-          {feed.isSearchMode && !feed.isDiscovery && (
+          {feed.currentQuery.trim().length > 0 && (
             <SearchMatches
               genres={feed.genres}
               keywords={feed.keywords}

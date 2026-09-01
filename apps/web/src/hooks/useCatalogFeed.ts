@@ -1,3 +1,4 @@
+import type { DiscoverQuery } from '@findarr/shared/catalog';
 import type { Genre, Keyword, Media, Person, SearchType } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -24,7 +25,7 @@ interface CatalogFeedState {
 interface CatalogFilters {
   query: string;
   type: SearchType;
-  discovery?: DiscoveryFilter | undefined;
+  discovery?: DiscoveryFilter[] | undefined;
 }
 
 interface LoadFeedOptions {
@@ -112,7 +113,9 @@ export interface CatalogFeed {
   isSearchMode: boolean;
   currentSearchType: SearchType;
   currentQuery: string;
-  discoveryName?: string | undefined;
+  discovery: DiscoveryFilter[];
+  discoveryNames: string[];
+  onDiscoveryRemove: (index: number) => void;
   onTypeChange: (type: SearchType) => void;
   onSearch: (query: string) => void;
   onPersonSelect: (person: Person) => void;
@@ -131,7 +134,7 @@ export function useCatalogFeed(): CatalogFeed {
   const popularSnapshotRef = useRef<CatalogFeedState | null>(null);
   const latestRequestIdRef = useRef(0);
 
-  const isDiscovery = isDefined(filters.discovery);
+  const isDiscovery = Boolean(filters.discovery?.length);
   const isSearchMode = filters.query.trim().length > 0 || isDiscovery;
 
   const updateFeed = useCallback((nextFeed: CatalogFeedState) => {
@@ -166,17 +169,18 @@ export function useCatalogFeed(): CatalogFeed {
       );
 
       try {
-        if (reqSearchMode && isDiscovery) {
+        if (!reqFilters.query.trim() && isDiscovery) {
           const { discovery } = reqFilters;
           if (!discovery) {
             return;
           }
 
-          const discoverParams = {
+          const discoverParams: DiscoverQuery = {
             page: page ?? 1,
             type: reqFilters.type,
-            discoverType: discovery.type,
-            discoverId: discovery.id,
+            person: discovery.filter((item) => item.type === 'person').map((item) => item.id),
+            genre: discovery.filter((item) => item.type === 'genre').map((item) => item.id),
+            keyword: discovery.filter((item) => item.type === 'keyword').map((item) => item.id),
           };
           const response = await searchService.discover(discoverParams);
 
@@ -274,31 +278,38 @@ export function useCatalogFeed(): CatalogFeed {
   };
 
   const onSearch = (query: string) => {
-    updateFilters(createFilters({ query }));
+    updateFilters({ query });
   };
 
   const onPersonSelect = (person: Person) => {
-    updateFilters(
-      createFilters({
-        discovery: { type: 'person', id: person.tmdbId, name: person.name },
-      }),
-    );
+    updateFilters({
+      query: '',
+      discovery: [
+        ...(filters.discovery ?? []),
+        {
+          type: 'person',
+          id: person.tmdbId,
+          name: person.name,
+        },
+      ],
+    });
   };
 
   const onKeywordSelect = (keyword: Keyword) => {
-    updateFilters(
-      createFilters({
-        discovery: { type: 'keyword', id: keyword.id, name: keyword.name },
-      }),
-    );
+    updateFilters({
+      query: '',
+      discovery: [
+        ...(filters.discovery ?? []),
+        { type: 'keyword', id: keyword.id, name: keyword.name },
+      ],
+    });
   };
 
   const onGenreSelect = (genre: Genre) => {
-    updateFilters(
-      createFilters({
-        discovery: { type: 'genre', id: genre.id, name: genre.name },
-      }),
-    );
+    updateFilters({
+      query: '',
+      discovery: [...(filters.discovery ?? []), { type: 'genre', id: genre.id, name: genre.name }],
+    });
   };
 
   const onClearSearch = () => {
@@ -311,6 +322,10 @@ export function useCatalogFeed(): CatalogFeed {
     }
 
     updateFilters(createFilters({ query: '' }));
+  };
+
+  const onDiscoveryRemove = (index: number) => {
+    updateFilters({ discovery: filters.discovery?.filter((_, itemIndex) => itemIndex !== index) });
   };
 
   const loadMore = () => {
@@ -361,13 +376,15 @@ export function useCatalogFeed(): CatalogFeed {
     hasMore: feed.hasMore,
     currentSearchType: filters.type,
     currentQuery: filters.query,
-    discoveryName: filters.discovery?.name,
+    discovery: filters.discovery ?? [],
+    discoveryNames: filters.discovery?.map((item) => item.name) ?? [],
     onTypeChange,
     onSearch,
     onPersonSelect,
     onKeywordSelect,
     onGenreSelect,
     onClearSearch,
+    onDiscoveryRemove,
     loadMore,
     updateItem,
   };
