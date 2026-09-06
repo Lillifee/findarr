@@ -230,10 +230,3 @@ export interface VoteQueueResponse {
   feedId: string;
   hasMore: boolean;
 }
-
-export interface PopularResponse {
-  results: Media[];
-  page: number;
-  totalPages: number;
-  feedId: string;
-}

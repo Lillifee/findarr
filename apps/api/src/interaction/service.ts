@@ -14,7 +14,7 @@ import {
   updateMediaSeasons,
 } from '../media/repository.js';
 import type { MediaService } from '../media/service.js';
-import { updatePreferencesForInteraction } from '../preferences/service.js';
+import type { PreferencesService } from '../preferences/service.js';
 import type { SettingsService } from '../settings/service.js';
 import type { TMDBService } from '../tmdb/service.js';
 import type { UserService } from '../user/service.js';
@@ -36,6 +36,7 @@ export interface InteractionContext {
   user: UserService;
   media: MediaService;
   settings: SettingsService;
+  preferences: PreferencesService;
   appLog: AppLogger;
 }
 
@@ -44,7 +45,18 @@ export interface InteractionContext {
  * activity lists. Mandatory services are injected once via the context.
  */
 export function createInteractionService(context: InteractionContext) {
-  const { db, tmdb, radarr, sonarr, catalog, user: userService, media, settings, appLog } = context;
+  const {
+    db,
+    tmdb,
+    radarr,
+    sonarr,
+    catalog,
+    user: userService,
+    media,
+    settings,
+    preferences,
+    appLog,
+  } = context;
   const log = appLog.scope('interaction');
 
   /**
@@ -166,8 +178,7 @@ export function createInteractionService(context: InteractionContext) {
     }
 
     // Update user genre preferences based on the interaction.
-    await updatePreferencesForInteraction(
-      db,
+    await preferences.updateForInteraction(
       user.id,
       details.genres,
       details.keywords,

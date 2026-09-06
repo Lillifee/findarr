@@ -1,5 +1,4 @@
 import type { Genre, MediaDetails, SearchResponse } from '@findarr/shared/media';
-import type { PreferenceKind, PreferenceSubject } from '@findarr/shared/preferences';
 import type SqlDatabase from 'better-sqlite3';
 import type { Mocked } from 'vite-plus/test';
 
@@ -10,7 +9,6 @@ import { createDatabase, type Database } from '../db/service.js';
 import { addInteraction } from '../interaction/repository.js';
 import { createMedia } from '../media/repository.js';
 import { createMediaService } from '../media/service.js';
-import { applyPreferenceDeltas } from '../preferences/repository.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { createUserService, type UserService } from '../user/service.js';
 import { createMockAppLogger, createMockTMDBService } from './helpers/mockServices.js';
@@ -19,12 +17,6 @@ import {
   createTestMovieDetail,
   createTestUserInDb,
 } from './helpers/testHelper.js';
-
-const preferenceSubject = (
-  kind: PreferenceKind,
-  id: number,
-  subjectName: string,
-): PreferenceSubject => ({ kind, subjectKey: String(id), subjectName });
 
 describe('catalog service - integration tests', () => {
   let db: Database;
@@ -61,7 +53,6 @@ describe('catalog service - integration tests', () => {
       user: userService,
       appLog: appLogService,
     });
-
     catalogService = createCatalogService({
       db,
       tmdb: tmdbService,
@@ -146,61 +137,27 @@ describe('catalog service - integration tests', () => {
     );
     expect(personDiscovery).toMatchObject({
       results: [movie],
-      genres: [],
-      people: [],
-      keywords: [],
     });
     expect(keywordDiscovery).toMatchObject({
       results: [movie],
-      genres: [],
-      people: [],
-      keywords: [],
     });
     expect(genreDiscovery).toMatchObject({
       results: [movie],
-      genres: [],
-      people: [],
-      keywords: [],
     });
   });
 
-  it('should return cached popular results and filter/paginate', async () => {
-    vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
-    const user = await createTestUserInDb(db, { email: 'pagination@test.com' });
+  it('should delegate discovery without filters', async () => {
+    const user = await createTestUserInDb(db, { email: 'empty-discover@test.com' });
 
-    // Populate catalog cache with 50 items
-    const cachedItems = Array.from({ length: 50 }, (_, i) => createTestMedia({ tmdbId: i + 1 }));
-    await upsertCatalogCache(db, cachedItems);
-
-    // First page
-    const firstPage = await catalogService.listPopularMedia({}, user.id);
-    expect(firstPage.results).toHaveLength(20);
-    expect(firstPage.totalPages).toBe(3);
-    expect(firstPage.feedId).toBeTruthy();
-    expect(firstPage.page).toBe(1);
-
-    // Second page
-    const secondPage = await catalogService.listPopularMedia(
-      { page: 2, feedId: firstPage.feedId },
+    const result = await catalogService.listDiscoveredMedia(
+      { person: [], genre: [], keyword: [], page: 1, type: 'both' },
       user.id,
     );
-    expect(secondPage.results[0]?.tmdbId).toBe(21);
-  });
 
-  it('should respect type, region, and genre filters in popular', async () => {
-    vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
-    const user = await createTestUserInDb(db, { email: 'type-filter@test.com' });
-
-    // Populate catalog cache with mixed types
-    const items = [
-      createTestMedia({ tmdbId: 1, type: 'movie' }),
-      createTestMedia({ tmdbId: 2, type: 'tv' }),
-    ];
-    await upsertCatalogCache(db, items);
-
-    const result = await catalogService.listPopularMedia({ type: 'tv' }, user.id);
-    expect(result.results).toHaveLength(1);
-    expect(result.results[0]?.type).toBe('tv');
+    expect(tmdbService.discoverMedia).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ person: [], genre: [], keyword: [], type: 'both' }),
+    );
+    expect(result).toMatchObject({ results: [] });
   });
 
   it('should enrich search results with database state', async () => {
@@ -213,92 +170,6 @@ describe('catalog service - integration tests', () => {
 
     const result = await catalogService.search({ query: 'test', type: 'movie', page: 1 }, user.id);
     expect(result.results).toStrictEqual(items);
-  });
-
-  it('should apply user preference scoring when user has genre preferences', async () => {
-    // Mock password hashing for speed
-    vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
-
-    // Create a user
-    const user = await createTestUserInDb(db);
-
-    // Add genre preferences for the user (Action = high score)
-    await applyPreferenceDeltas(db, user.id, [preferenceSubject('genre', 28, 'Action')], 5);
-
-    // Populate catalog cache with items - some with Action genre, some without
-    const items = [
-      createTestMedia({
-        tmdbId: 1,
-        genres: [{ id: 28, name: 'Action' }],
-        popularity: 100,
-      }),
-      createTestMedia({
-        tmdbId: 2,
-        genres: [{ id: 35, name: 'Comedy' }],
-        popularity: 200,
-      }),
-    ];
-    await upsertCatalogCache(db, items);
-
-    // Call popular with userId - should apply preference scoring
-    const result = await catalogService.listPopularMedia({}, user.id);
-
-    // The Action movie should be boosted due to user preferences
-    expect(result.results).toHaveLength(2);
-    // Results should be scored (we can't predict exact order without knowing scoring algorithm details)
-    // But we're testing that the code path with user preferences is executed
-    expect(result.results).toBeDefined();
-  });
-
-  it('should apply user keyword preference scoring when user has keyword preferences', async () => {
-    // Mock password hashing for speed
-    vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
-
-    // Create a user
-    const user = await createTestUserInDb(db);
-
-    // Add keyword preferences for the user
-    await applyPreferenceDeltas(db, user.id, [preferenceSubject('keyword', 123, 'superhero')], 3);
-
-    // Populate catalog cache with items that have keywords
-    const items = [
-      createTestMedia({
-        tmdbId: 1,
-        keywords: [{ id: 123, name: 'superhero' }],
-      }),
-      createTestMedia({
-        tmdbId: 2,
-        keywords: [{ id: 456, name: 'romance' }],
-      }),
-    ];
-    await upsertCatalogCache(db, items);
-
-    const result = await catalogService.listPopularMedia({}, user.id);
-
-    // Should execute the keyword preference scoring code path
-    expect(result.results).toBeDefined();
-    expect(result.results).toHaveLength(2);
-  });
-
-  it('should enrich results with user interactions when userId is provided', async () => {
-    // Mock password hashing for speed
-    vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
-
-    // Create a user
-    const user = await createTestUserInDb(db);
-
-    // Create media in database
-    const mediaItem = createTestMedia({ tmdbId: 1 });
-    await createMedia(db, mediaItem.tmdbId, mediaItem.type);
-
-    // Populate catalog cache
-    await upsertCatalogCache(db, [mediaItem]);
-
-    // Call popular with userId to trigger enrichment with interactions
-    const result = await catalogService.listPopularMedia({}, user.id);
-
-    // Should execute enrichment with userId code path (line 130)
-    expect(result.results).toBeDefined();
   });
 
   it('should return the bounded vote queue and the next catalog window separately', async () => {

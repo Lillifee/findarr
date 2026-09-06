@@ -7,9 +7,9 @@ import type {
 } from '@findarr/shared/catalog';
 import type {
   SearchResponse,
-  PopularResponse,
   Genre,
   Media,
+  PaginatedMediaResponse,
   VoteQueueResponse,
 } from '@findarr/shared/media';
 
@@ -142,55 +142,21 @@ export function createCatalogService(context: CatalogContext) {
     };
   }
 
-  /**
-   * Popular media - snapshot-backed page load-more API.
-   */
-  async function listPopularMedia(params: PopularQuery, userId: number): Promise<PopularResponse> {
-    const { page = 1, type = 'both', interaction } = params;
-
-    // Get or create feed snapshot (cached for short time to allow consistent pagination)
-    const popularFeedSnapshot = await getPopularFeedSnapshot({ ...params, interaction }, userId);
-
-    const filteredItems = popularFeedSnapshot.items.filter((item) => filterByMediaType(item, type));
-
-    const pageSize = 20;
-    const pageStart = Math.max(0, (page - 1) * pageSize);
-    const pageWindow = {
-      items: filteredItems.slice(pageStart, pageStart + pageSize),
-      page,
-      totalPages: Math.ceil(filteredItems.length / pageSize),
-    };
-
-    // Enrich the items in the current window with full state (scores, records, interactions)
-    const results = await media.enrichMediaResults(pageWindow.items, userId, { scoring: false });
-
-    return {
-      results,
-      page: pageWindow.page,
-      totalPages: pageWindow.totalPages,
-      feedId: popularFeedSnapshot.id,
-    };
-  }
-
   async function listDiscoveredMedia(
     params: DiscoverQuery,
     userId: number,
-  ): Promise<SearchResponse> {
+  ): Promise<PaginatedMediaResponse> {
     const { language } = await user.getSettings(userId);
 
-    // TMDB only support person discover for movies
-    const type = params.person.length > 0 ? 'movie' : params.type;
-
-    const response = await tmdb.discoverMedia({ ...params, language, type });
+    const response = await tmdb.discoverMedia({ ...params, language });
     const results = await media.enrichMediaResults(response.results, userId);
 
-    return { ...response, results, people: [], keywords: [], genres: [] };
+    return { ...response, results };
   }
 
   return {
     search,
     listGenres,
-    listPopularMedia,
     getMediaDetails,
     getVoteQueue,
     listDiscoveredMedia,

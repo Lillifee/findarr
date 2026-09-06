@@ -20,6 +20,8 @@ import loggerPlugin from './logging/plugin.js';
 import { adminLogsRoutes } from './logging/routes.js';
 import { createLogStore } from './logging/service.js';
 import mediaPlugin from './media/plugin.js';
+import preferencesPlugin from './preferences/plugin.js';
+import { preferencesRoutes } from './preferences/routes.js';
 import schedulerPlugin from './scheduler/plugin.js';
 import { adminSchedulerRoutes, schedulerRoutes } from './scheduler/routes.js';
 import settingsPlugin from './settings/plugin.js';
@@ -73,6 +75,7 @@ async function start() {
     await server.register(settingsPlugin);
     await server.register(tmdbPlugin);
     await server.register(userPlugin);
+    await server.register(preferencesPlugin);
     await server.register(mediaPlugin);
     await server.register(libPlugin);
     await server.register(arrPlugin);
@@ -90,6 +93,7 @@ async function start() {
     await server.register(adminRoutes, { prefix: '/api/admin' });
     await server.register(interactionRoutes, { prefix: '/api/interactions' });
     await server.register(settingsRoutes, { prefix: '/api/settings' });
+    await server.register(preferencesRoutes, { prefix: '/api/preferences' });
     await server.register(catalogRoutes, { prefix: '/api' });
     await server.register(schedulerRoutes, { prefix: '/api' });
     await server.register(adminSchedulerRoutes, { prefix: '/api/admin' });

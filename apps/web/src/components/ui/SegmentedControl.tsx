@@ -52,7 +52,7 @@ export function SegmentedControl<T extends string>({
             onClick={() => {
               onChange(option.value);
             }}
-            className={`inline-flex min-h-10 items-center gap-1.5 px-2.5 py-1.5 text-sm font-medium transition-colors sm:px-3 ${edgeClass} ${stateClass} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+            className={`box-border inline-flex h-10 items-center gap-1.5 px-2.5 py-1.5 text-sm font-medium transition-colors sm:px-3 ${edgeClass} ${stateClass} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
           >
             <Icon name={option.icon} size="sm" />
             <span className="max-[600px]:hidden">{renderLabel(option)}</span>

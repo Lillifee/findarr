@@ -10,6 +10,7 @@ interface PaginatedMediaResultsProps {
   loading: boolean;
   loadingMore: boolean;
   hasMore: boolean;
+  showEmptyState?: boolean;
   onSelectItem: (item: Media) => void;
   onUpdateItem: (updatedItem: Media) => void;
   onLoadMore: () => void;
@@ -20,6 +21,7 @@ export function PaginatedMediaResults({
   loading,
   loadingMore,
   hasMore,
+  showEmptyState = true,
   onSelectItem,
   onUpdateItem,
   onLoadMore,
@@ -32,7 +34,9 @@ export function PaginatedMediaResults({
         <LoadingState className="flex min-h-[50vh] items-center justify-center" />
       )}
 
-      {!loading && results.length === 0 && <StateDisplay title={t('common.noResults')} />}
+      {!loading && results.length === 0 && showEmptyState && (
+        <StateDisplay title={t('common.noResults')} />
+      )}
 
       {!loading && results.length > 0 && (
         <ResultsGrid results={results} onSelectItem={onSelectItem} onUpdateItem={onUpdateItem} />

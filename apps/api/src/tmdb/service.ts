@@ -231,7 +231,8 @@ export async function createTMDBService(context: TmdbServiceContext) {
     params: DiscoverQuery & TmdbBaseParams,
   ): Promise<PaginatedMediaResponse> {
     const { page, type, language = 'en-US' } = params;
-    const mediaTypes = type === 'both' ? MEDIA_TYPES : [type];
+    const mediaTypes: readonly MediaType[] =
+      params.person.length > 0 ? ['movie'] : type === 'both' ? MEDIA_TYPES : [type];
     const genreMap = await getGenreMap(language);
 
     const tmdbParams = {
