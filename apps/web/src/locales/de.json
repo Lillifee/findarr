@@ -102,10 +102,21 @@
   },
   "vote": {
     "tryAgain": "Erneut versuchen",
+    "viewMode": {
+      "label": "Ansicht",
+      "single": "Einzeln",
+      "grid": "Raster"
+    },
+    "grid": {
+      "votingRangeTitle": "Dein Abstimmungsbereich",
+      "votingRangeDescription": "Diese Titel stehen aktuell zur Abstimmung bereit.",
+      "nextTitle": "Als Nächstes",
+      "nextDescription": "Das sind die nächsten Titel außerhalb deines aktuellen Abstimmungsbereichs. Wenn dich einer davon interessiert, erhöhe deinen Abstimmungsbereich in den Einstellungen, um weitere Titel einzubeziehen."
+    },
     "complete": {
       "title": "Alles erledigt",
       "message": "Du hast alle Einträge in deinem aktuellen Bereich bewertet. Erhöhe deinen Abstimmungsbereich in den Einstellungen, um mehr zu bewerten.",
-      "explore": "Entdecken",
+      "nextUp": "Als Nächstes",
       "openSettings": "Einstellungen öffnen"
     }
   },

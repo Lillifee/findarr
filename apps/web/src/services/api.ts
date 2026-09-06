@@ -21,7 +21,7 @@ import type {
   PopularResponse,
   Genre,
   MediaDetails,
-  SwipeNextResponse,
+  VoteQueueResponse,
   MediaType,
 } from '@findarr/shared/media';
 import type { SchedulerInfo } from '@findarr/shared/scheduler';
@@ -74,8 +74,8 @@ export const searchService = {
     return response.data;
   },
 
-  getNextUnvotedMedia: async (params: PopularQuery = {}): Promise<SwipeNextResponse> => {
-    const response = await api.get<SwipeNextResponse>('/next', { params });
+  getVoteQueue: async (params: PopularQuery = {}): Promise<VoteQueueResponse> => {
+    const response = await api.get<VoteQueueResponse>('/queue', { params });
     return response.data;
   },
 };

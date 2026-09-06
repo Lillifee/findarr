@@ -10,12 +10,12 @@ import type {
   PopularResponse,
   Genre,
   Media,
-  SwipeNextResponse,
+  VoteQueueResponse,
 } from '@findarr/shared/media';
 
 import type { Database } from '../db/service.js';
 import { getUserInteractionMediaKeys } from '../interaction/repository.js';
-import { filterByCriteria, filterByInteraction } from '../media/filter.js';
+import { filterByRegions, filterByInteraction, filterByMediaType } from '../media/filter.js';
 import type { MediaService } from '../media/service.js';
 import type { TMDBService } from '../tmdb/service.js';
 import type { UserService } from '../user/service.js';
@@ -40,7 +40,7 @@ export function createCatalogService(context: CatalogContext) {
   const popularFeedSnapshotStore = createFeedSnapshotStore<Media>();
 
   async function getPopularFeedSnapshot(params: PopularQuery, userId: number) {
-    const { type = 'both', interaction } = params;
+    const { interaction } = params;
 
     return popularFeedSnapshotStore.getOrCreateSnapshot(params.feedId, async () => {
       const timer = log.timer('getPopularFeedSnapshot');
@@ -55,8 +55,7 @@ export function createCatalogService(context: CatalogContext) {
 
       let filteredMedia = cachedCatalogMedia.filter(
         (item) =>
-          filterByCriteria(item, { type, regions }) &&
-          filterByInteraction(item, interactionKeys, interaction),
+          filterByRegions(item, regions) && filterByInteraction(item, interactionKeys, interaction),
       );
 
       filteredMedia = await media.enrichWithScoring(filteredMedia, userId);
@@ -111,33 +110,36 @@ export function createCatalogService(context: CatalogContext) {
     return tmdb.searchGenres(params);
   }
 
-  /**
-   * Get next unvoted media for swipe/vote feature.
-   */
-  async function getNextUnvotedMedia(
-    params: PopularQuery,
-    userId: number,
-  ): Promise<SwipeNextResponse> {
-    const timer = log.timer('getNextUnvotedMedia');
+  async function getVoteQueue(params: PopularQuery, userId: number): Promise<VoteQueueResponse> {
     const { swipeLimit } = await user.getSettings(userId);
-
+    const { type = 'both' } = params;
+    const page = params.page ?? 1;
     const [snapshot, interactionKeys] = await Promise.all([
       getPopularFeedSnapshot({ ...params, interaction: 'all' }, userId),
       getUserInteractionMediaKeys(db, userId),
     ]);
-    timer.lap('snapshot');
 
-    const votableItems = snapshot.items.slice(0, swipeLimit);
-    const nextItem = votableItems.find((item) =>
-      filterByInteraction(item, interactionKeys, 'unvoted'),
-    );
+    const filterItems = (items: Media[]) =>
+      items.filter(
+        (item) =>
+          filterByMediaType(item, type) && filterByInteraction(item, interactionKeys, 'unvoted'),
+      );
 
-    const nextMediaDetails =
-      nextItem && (await getMediaDetails({ id: nextItem.tmdbId, type: nextItem.type }, userId));
-    timer.lap('details');
-    timer.end();
+    const unvotedItems = filterItems(snapshot.items.slice(0, swipeLimit));
+    const unvotedNextItems = filterItems(snapshot.items.slice(swipeLimit));
 
-    return { media: nextMediaDetails, feedId: snapshot.id };
+    const nextStart = (page - 1) * 20;
+    const nextItems = unvotedNextItems.slice(nextStart, nextStart + 20);
+
+    const results = await media.enrichMediaResults(unvotedItems, userId, { scoring: false });
+    const nextResults = await media.enrichMediaResults(nextItems, userId, { scoring: false });
+
+    return {
+      results,
+      nextResults,
+      feedId: snapshot.id,
+      hasMore: nextStart + nextItems.length < unvotedNextItems.length,
+    };
   }
 
   /**
@@ -147,13 +149,17 @@ export function createCatalogService(context: CatalogContext) {
     const { page = 1, type = 'both', interaction } = params;
 
     // Get or create feed snapshot (cached for short time to allow consistent pagination)
-    const popularFeedSnapshot = await getPopularFeedSnapshot(
-      { ...params, type, interaction },
-      userId,
-    );
+    const popularFeedSnapshot = await getPopularFeedSnapshot({ ...params, interaction }, userId);
 
-    // Get the requested page window from the stable snapshot
-    const pageWindow = popularFeedSnapshot.getSnapshotPage(page);
+    const filteredItems = popularFeedSnapshot.items.filter((item) => filterByMediaType(item, type));
+
+    const pageSize = 20;
+    const pageStart = Math.max(0, (page - 1) * pageSize);
+    const pageWindow = {
+      items: filteredItems.slice(pageStart, pageStart + pageSize),
+      page,
+      totalPages: Math.ceil(filteredItems.length / pageSize),
+    };
 
     // Enrich the items in the current window with full state (scores, records, interactions)
     const results = await media.enrichMediaResults(pageWindow.items, userId, { scoring: false });
@@ -186,7 +192,7 @@ export function createCatalogService(context: CatalogContext) {
     listGenres,
     listPopularMedia,
     getMediaDetails,
-    getNextUnvotedMedia,
+    getVoteQueue,
     listDiscoveredMedia,
   };
 }

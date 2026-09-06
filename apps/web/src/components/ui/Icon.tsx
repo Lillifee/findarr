@@ -2,6 +2,7 @@ import type { CSSProperties, HTMLAttributes } from 'react';
 
 export type IconName =
   | 'arrow_back'
+  | 'apps'
   | 'bar_chart'
   | 'calendar_month'
   | 'check'
@@ -39,6 +40,7 @@ export type IconName =
   | 'thumb_up'
   | 'tune'
   | 'tv'
+  | 'view_list'
   | 'warning';
 
 type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | 'display';

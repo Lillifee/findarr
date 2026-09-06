@@ -224,12 +224,11 @@ export interface SearchResponse extends PaginatedMediaResponse {
 }
 export type UserInteractionsResponse = PaginatedMediaResponse;
 
-/**
- * Swipe/Vote response - returns next unvoted media item
- */
-export interface SwipeNextResponse {
+export interface VoteQueueResponse {
+  results: Media[];
+  nextResults: Media[];
   feedId: string;
-  media: MediaDetails | undefined;
+  hasMore: boolean;
 }
 
 export interface PopularResponse {

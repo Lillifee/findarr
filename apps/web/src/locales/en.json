@@ -102,10 +102,21 @@
   },
   "vote": {
     "tryAgain": "Try Again",
+    "viewMode": {
+      "label": "View",
+      "single": "Single",
+      "grid": "Grid"
+    },
+    "grid": {
+      "votingRangeTitle": "Your voting range",
+      "votingRangeDescription": "These are the titles currently available for voting.",
+      "nextTitle": "Next up",
+      "nextDescription": "These are the next titles beyond your current voting range. If one catches your interest, increase your voting range in settings to include more."
+    },
     "complete": {
       "title": "All done",
       "message": "You have voted on every item in your current range. Increase your voting range in settings to vote on more.",
-      "explore": "Explore",
+      "nextUp": "Next up",
       "openSettings": "Open settings"
     }
   },
