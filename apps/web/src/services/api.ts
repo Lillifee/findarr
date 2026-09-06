@@ -17,13 +17,14 @@ import type { InteractionsQuery } from '@findarr/shared/interaction';
 import type { LogLevel, LogLevelResponse, LogsResponse } from '@findarr/shared/logs';
 import type {
   SearchResponse,
+  PaginatedMediaResponse,
   UserInteractionsResponse,
-  PopularResponse,
   Genre,
   MediaDetails,
   VoteQueueResponse,
   MediaType,
 } from '@findarr/shared/media';
+import type { UserPreferencesResponse } from '@findarr/shared/preferences';
 import type { SchedulerInfo } from '@findarr/shared/scheduler';
 import type {
   AdministrationSettings,
@@ -49,18 +50,18 @@ export const api = create({
 });
 
 export const searchService = {
+  listPreferences: async (): Promise<UserPreferencesResponse> => {
+    const response = await api.get<UserPreferencesResponse>('/preferences');
+    return response.data;
+  },
+
   search: async (params: SearchQuery): Promise<SearchResponse> => {
     const response = await api.get<SearchResponse>('/search', { params });
     return response.data;
   },
 
-  discover: async (params: DiscoverQuery): Promise<SearchResponse> => {
-    const response = await api.get<SearchResponse>('/discover', { params });
-    return response.data;
-  },
-
-  listPopularMedia: async (params: PopularQuery): Promise<PopularResponse> => {
-    const response = await api.get<PopularResponse>('/popular', { params });
+  discover: async (params: DiscoverQuery): Promise<PaginatedMediaResponse> => {
+    const response = await api.get<PaginatedMediaResponse>('/discover', { params });
     return response.data;
   },
 

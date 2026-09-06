@@ -95,7 +95,7 @@ export function FiltersToolbar({
       }}
       aria-expanded={filtersExpanded}
       aria-label={t('catalog.filters')}
-      className={`ml-auto inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium whitespace-nowrap sm:px-3.5 ${controlSurface}`}
+      className={`ml-auto box-border inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium whitespace-nowrap sm:px-3.5 ${controlSurface}`}
     >
       <Icon name="tune" size="sm" />
       <span className="max-[600px]:hidden">{t('catalog.filters')}</span>

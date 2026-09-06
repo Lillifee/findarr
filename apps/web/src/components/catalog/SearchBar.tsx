@@ -95,7 +95,7 @@ export function SearchBar({
         event.preventDefault();
       }}
       disabled={!canClear}
-      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all ${
+      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-all ${
         canClear
           ? 'cursor-pointer text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100'
           : 'pointer-events-none cursor-default text-transparent'
@@ -113,7 +113,7 @@ export function SearchBar({
           {discovery.map((filter, index) => (
             <span
               key={`${filter.type}-${filter.id}`}
-              className="flex max-w-full min-w-0 shrink items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs text-zinc-100"
+              className="box-border flex h-7 max-w-full min-w-0 shrink items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs text-zinc-100"
             >
               <Icon name={discoveryIcons[filter.type]} size="xs" />
               <span className="min-w-0 flex-1 truncate">{filter.name}</span>
@@ -143,7 +143,7 @@ export function SearchBar({
               handleChange(event.target.value);
             }}
             placeholder={t('catalog.searchPlaceholder')}
-            className="min-w-0 flex-1 overflow-hidden bg-transparent px-2 py-1.5 text-sm text-ellipsis whitespace-nowrap text-white placeholder-zinc-400 outline-none"
+            className="min-w-0 flex-1 overflow-hidden bg-transparent px-2 py-1 text-sm text-ellipsis whitespace-nowrap text-white placeholder-zinc-400 outline-none"
           />
           {clearButton}
         </div>

@@ -51,16 +51,16 @@ export function ExplorePage() {
         <div className="space-y-8 md:space-y-10">
           {!feed.isSearchMode && (
             <PageHeader
-              title={t('explore.trending')}
+              title={t('explore.description')}
               description={
                 feed.isDiscovery && feed.discoveryNames.length > 0
                   ? t('explore.discovering', { name: feed.discoveryNames.join(', ') })
-                  : t('explore.description')
+                  : t('explore.trending')
               }
             />
           )}
 
-          {feed.currentQuery.trim().length > 0 && (
+          {(!feed.isDiscovery || feed.currentQuery.trim().length > 0) && (
             <SearchMatches
               genres={feed.genres}
               keywords={feed.keywords}
@@ -76,6 +76,7 @@ export function ExplorePage() {
             loading={feed.loading}
             loadingMore={feed.loadingMore}
             hasMore={feed.hasMore}
+            showEmptyState={feed.isSearchMode}
             onSelectItem={handleSelectItem}
             onUpdateItem={feed.updateItem}
             onLoadMore={feed.loadMore}

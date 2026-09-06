@@ -8,5 +8,24 @@ export interface UserRatingCounts {
   dislikes: number;
 }
 
+export interface UserPreferenceSuggestion {
+  id: number;
+  name: string;
+}
+
+export interface UserPreferencePersonSuggestion {
+  tmdbId: number;
+  name: string;
+  profilePath: string | undefined;
+  knownForDepartment: string | undefined;
+  score: number;
+}
+
+export interface UserPreferencesResponse {
+  genres: UserPreferenceSuggestion[];
+  keywords: UserPreferenceSuggestion[];
+  people: UserPreferencePersonSuggestion[];
+}
+
 export const toPreferenceKey = (kind: PreferenceKind, subjectKey: string) =>
   `${kind}:${subjectKey}`;

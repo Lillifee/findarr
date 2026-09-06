@@ -31,14 +31,6 @@ export const catalogRoutes = (fastify: FastifyInstance) => {
     ),
   );
 
-  // Popular endpoint: GET /popular?type=both&page=2&feedId=...
-  fastify.get(
-    '/popular',
-    protectedRoute(async (request) =>
-      fastify.catalog.listPopularMedia(PopularQuerySchema.parse(request.query), request.user.id),
-    ),
-  );
-
   // Details endpoint: GET /details?id=123&type=movie&language=en-US
   // Returns enriched media with DB state if authenticated
   fastify.get(

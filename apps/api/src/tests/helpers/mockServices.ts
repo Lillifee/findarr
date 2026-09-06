@@ -108,13 +108,7 @@ export function createMockCatalogService(
       .mockResolvedValue({ results: [], genres: [], people: [], keywords: [], page: 1 }),
     listDiscoveredMedia: vi
       .fn<CatalogService['listDiscoveredMedia']>()
-      .mockResolvedValue({ results: [], genres: [], people: [], keywords: [], page: 1 }),
-    listPopularMedia: vi.fn<CatalogService['listPopularMedia']>().mockResolvedValue({
-      results: [],
-      page: 1,
-      totalPages: 0,
-      feedId: '00000000-0000-0000-0000-000000000000',
-    }),
+      .mockResolvedValue({ results: [], page: 1 }),
     getMediaDetails: vi
       .fn<CatalogService['getMediaDetails']>()
       .mockImplementation(async (params) =>

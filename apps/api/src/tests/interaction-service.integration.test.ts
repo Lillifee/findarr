@@ -8,6 +8,7 @@ import { createInteractionService, type InteractionService } from '../interactio
 import { createMedia, getMediaByTmdbId, updateMediaStatus } from '../media/repository.js';
 import { createMediaService } from '../media/service.js';
 import { getUserPreferences } from '../preferences/repository.js';
+import { createPreferencesService } from '../preferences/service.js';
 import { createSettingsService } from '../settings/service.js';
 import type { TMDBService } from '../tmdb/service.js';
 import { createUserService } from '../user/service.js';
@@ -48,6 +49,7 @@ const createInteraction = async (
   const appLogService = createMockAppLogger();
   const userService = createUserService({ db });
   const mediaService = createMediaService({ db, tmdb, user: userService, appLog: appLogService });
+  const preferencesService = createPreferencesService({ db, tmdb, user: userService });
   const settingsService = createSettingsService(db);
 
   return createInteractionService({
@@ -58,6 +60,7 @@ const createInteraction = async (
     catalog,
     user: userService,
     media: mediaService,
+    preferences: preferencesService,
     settings: settingsService,
     appLog: appLogService,
   }).createInteraction(...args);
@@ -73,6 +76,11 @@ const buildService = (tmdbService: TMDBService, db: Database): InteractionServic
     appLog: appLogService,
   });
   const appSettingsService = createSettingsService(db);
+  const preferencesService = createPreferencesService({
+    db,
+    tmdb: tmdbService,
+    user: userService,
+  });
 
   return createInteractionService({
     db,
@@ -82,6 +90,7 @@ const buildService = (tmdbService: TMDBService, db: Database): InteractionServic
     catalog: catalogService,
     user: userService,
     media: mediaService,
+    preferences: preferencesService,
     settings: appSettingsService,
     appLog: appLogService,
   });
