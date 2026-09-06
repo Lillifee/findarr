@@ -29,11 +29,11 @@ export function useDashboardData(): DashboardData {
 
     const loadHero = async () => {
       try {
-        const result = await searchService.getNextUnvotedMedia({ type: 'both' });
+        const result = await searchService.getVoteQueue({ type: 'both', page: 1 });
         if (requestId !== requestIdRef.current) {
           return;
         }
-        setNextMedia(result.media);
+        setNextMedia(result.results[0]);
         setHeroError(undefined);
       } catch (err) {
         console.error('Failed to load next voting candidate:', err);

@@ -263,12 +263,6 @@ export function useCatalogFeed(): CatalogFeed {
   );
 
   useEffect(() => {
-    const popularSnapshot = popularSnapshotRef.current;
-    if (!isSearchMode && popularSnapshot) {
-      restoreFeed(popularSnapshot);
-      return;
-    }
-
     restoreFeed(emptyFeed);
     void loadFeed({ append: false });
   }, [filters, isSearchMode, loadFeed, restoreFeed]);
@@ -315,11 +309,6 @@ export function useCatalogFeed(): CatalogFeed {
   const onClearSearch = () => {
     latestRequestIdRef.current += 1;
     setLoadingState(idleLoadingState);
-
-    const popularSnapshot = popularSnapshotRef.current;
-    if (popularSnapshot) {
-      restoreFeed(popularSnapshot);
-    }
 
     updateFilters(createFilters({ query: '' }));
   };

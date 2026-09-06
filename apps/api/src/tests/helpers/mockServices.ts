@@ -129,9 +129,11 @@ export function createMockCatalogService(
             }),
       ),
     listGenres: vi.fn<CatalogService['listGenres']>().mockResolvedValue([]),
-    getNextUnvotedMedia: vi.fn<CatalogService['getNextUnvotedMedia']>().mockResolvedValue({
-      media: undefined,
+    getVoteQueue: vi.fn<CatalogService['getVoteQueue']>().mockResolvedValue({
+      results: [],
+      nextResults: [],
       feedId: 'feed-1',
+      hasMore: false,
     }),
     ...overrides,
   };

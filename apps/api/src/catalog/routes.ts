@@ -53,13 +53,10 @@ export const catalogRoutes = (fastify: FastifyInstance) => {
     fastify.catalog.listGenres(GenresQuerySchema.parse(request.query)),
   );
 
-  // Next unvoted endpoint: GET /next
-  // Returns the next unvoted item from popular media for swipe/vote feature
-  // Requires authentication and supports same filters as popular page
   fastify.get(
-    '/next',
+    '/queue',
     protectedRoute(async (request) =>
-      fastify.catalog.getNextUnvotedMedia(PopularQuerySchema.parse(request.query), request.user.id),
+      fastify.catalog.getVoteQueue(PopularQuerySchema.parse(request.query), request.user.id),
     ),
   );
 };

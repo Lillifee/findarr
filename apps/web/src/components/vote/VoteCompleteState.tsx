@@ -1,16 +1,17 @@
 import { useTranslation } from 'react-i18next';
 
+import { useMediaNavigation } from '../../hooks/useMediaNavigation';
 import { Button } from '../ui/Button';
 import { Icon } from '../ui/Icon';
 import { StateDisplay } from '../ui/StateDisplay';
 
 interface VoteCompleteStateProps {
-  onExplore: () => void;
-  onOpenSettings: () => void;
+  onPrimaryAction: () => void;
 }
 
-export function VoteCompleteState({ onExplore, onOpenSettings }: VoteCompleteStateProps) {
+export function VoteCompleteState({ onPrimaryAction }: VoteCompleteStateProps) {
   const { t } = useTranslation();
+  const { goTo } = useMediaNavigation();
   return (
     <StateDisplay
       className="py-24"
@@ -19,8 +20,13 @@ export function VoteCompleteState({ onExplore, onOpenSettings }: VoteCompleteSta
       message={t('vote.complete.message')}
       action={
         <>
-          <Button onClick={onExplore}>{t('vote.complete.explore')}</Button>
-          <Button variant="secondary" onClick={onOpenSettings}>
+          <Button onClick={onPrimaryAction}>{t('vote.complete.nextUp')}</Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              goTo('/settings');
+            }}
+          >
             {t('vote.complete.openSettings')}
           </Button>
         </>

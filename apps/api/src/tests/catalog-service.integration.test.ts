@@ -301,26 +301,21 @@ describe('catalog service - integration tests', () => {
     expect(result.results).toBeDefined();
   });
 
-  it('should stop swipe voting once the configured swipe limit is exhausted', async () => {
+  it('should return the bounded vote queue and the next catalog window separately', async () => {
     vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
-    const user = await createTestUserInDb(db, { email: 'swipe-limit@test.com' });
-
-    const cachedItems = Array.from({ length: 101 }, (_, index) =>
+    const user = await createTestUserInDb(db, { email: 'vote-queue@test.com' });
+    const cachedItems = Array.from({ length: 102 }, (_, index) =>
       createTestMedia({ tmdbId: index + 1, popularity: 1000 - index }),
     );
     await upsertCatalogCache(db, cachedItems);
 
-    // Vote on the first 100 items - the default swipe limit.
-    for (const item of cachedItems.slice(0, 100)) {
-      // oxlint-disable-next-line no-await-in-loop
-      const mediaRecord = await createMedia(db, item.tmdbId, item.type);
-      // oxlint-disable-next-line no-await-in-loop
-      await addInteraction(db, user.id, mediaRecord.id, 'liked');
-    }
+    const nextVotedMediaRecord = await createMedia(db, 101, 'movie');
+    await addInteraction(db, user.id, nextVotedMediaRecord.id, 'liked');
 
-    const result = await catalogService.getNextUnvotedMedia({ type: 'both' }, user.id);
+    const result = await catalogService.getVoteQueue({ type: 'both' }, user.id);
 
-    expect(result.media).toBeUndefined();
-    expect(tmdbService.details).not.toHaveBeenCalled();
+    expect(result.results).toHaveLength(100);
+    expect(result.results.at(-1)?.tmdbId).toBe(100);
+    expect(result.nextResults.map((item) => item.tmdbId)).toStrictEqual([102]);
   });
 });
