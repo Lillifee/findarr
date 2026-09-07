@@ -202,9 +202,8 @@
   },
   "explore": {
     "searchResults": "Suchergebnisse",
-    "discovering": "Ergebnisse für {{name}}",
-    "trending": "Trends & Beliebt",
-    "description": "Entdecke Trends, suche deinen nächsten Film und stimme ab, was angefordert werden soll."
+    "title": "Filme & Serien entdecken",
+    "description": "Suche nach Personen, Genres oder Stichwörtern oder wähle unten etwas aus, um die Entdeckung zu starten."
   },
   "catalog": {
     "searchPlaceholder": "Filme, Serien oder Personen suchen...",

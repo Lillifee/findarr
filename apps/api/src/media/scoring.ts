@@ -144,6 +144,18 @@ const getUserLikeBaseline = ({ likes, dislikes }: UserRatingCounts) =>
 const getSmoothedLift = (positiveCount: number, evidenceCount: number, userLikeBaseline: number) =>
   (positiveCount - userLikeBaseline * evidenceCount) / (evidenceCount + SUBJECT_LIFT_PRIOR_RATINGS);
 
+export const getSubjectPreferenceScore = (
+  preference: UserPreference | undefined,
+  userLikeBaseline: number,
+) => {
+  if (!preference || preference.count < MIN_SUBJECT_RATINGS) {
+    return 0.5;
+  }
+
+  const positiveCount = (preference.count + preference.score) / 2;
+  return 0.5 + getSmoothedLift(positiveCount, preference.count, userLikeBaseline);
+};
+
 const toPreferenceSubjects = (
   kind: PreferenceKind,
   items: readonly { id: number; name: string }[],
@@ -169,7 +181,7 @@ const scorePreferenceKind = (
     // Stored preferences keep the difference and total, so rebuild the counts.
     const positiveCount = (preference.count + preference.score) / 2;
     const negativeCount = preference.count - positiveCount;
-    const subjectPref = 0.5 + getSmoothedLift(positiveCount, preference.count, userLikeBaseline);
+    const subjectPref = getSubjectPreferenceScore(preference, userLikeBaseline);
     const prefType = subjectPref > 0.6 ? 'positive' : subjectPref < 0.4 ? 'negative' : 'mixed';
     const strength = Math.abs(subjectPref - 0.5) * 2;
 

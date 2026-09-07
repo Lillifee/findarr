@@ -36,26 +36,18 @@ export function SearchMatches({
           <h2 className="mb-2 text-xs font-semibold tracking-wide text-zinc-400 uppercase">
             {t('catalog.genreResults')}
           </h2>
-          <div className="relative overflow-hidden">
-            <div
-              className="scrollbar-hidden overflow-x-auto overflow-y-hidden"
-              style={{
-                WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 5rem), transparent)',
-                maskImage: 'linear-gradient(to right, black calc(100% - 5rem), transparent)',
-              }}
-            >
-              <div className="flex w-max gap-2 pr-16">
-                {genres.map((genre) => (
-                  <DiscoveryTag
-                    key={genre.id}
-                    type="genre"
-                    name={genre.name}
-                    onClick={() => {
-                      onSelectGenre(genre);
-                    }}
-                  />
-                ))}
-              </div>
+          <div className="max-h-17 overflow-hidden">
+            <div className="flex flex-row flex-wrap gap-2">
+              {genres.map((genre) => (
+                <DiscoveryTag
+                  key={genre.id}
+                  type="genre"
+                  name={genre.name}
+                  onClick={() => {
+                    onSelectGenre(genre);
+                  }}
+                />
+              ))}
             </div>
           </div>
         </section>

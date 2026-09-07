@@ -36,6 +36,8 @@ interface LoadingState {
   loadingMore: boolean;
 }
 
+export type CatalogFeedMode = 'browse' | 'search' | 'discover';
+
 const emptyFeed: CatalogFeedState = {
   currentPage: 0,
   genres: [],
@@ -54,7 +56,7 @@ function useCatalogFilters() {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParamsKey = searchParams.toString();
   const urlFilters = useMemo(
-    () => readCatalogSearchParams(new URLSearchParams(searchParamsKey)),
+    () => readCatalogSearchParams(new URLSearchParams(searchParamsKey), { type: 'movie' }),
     [searchParamsKey],
   );
 
@@ -93,12 +95,10 @@ export interface CatalogFeed {
   loading: boolean;
   loadingMore: boolean;
   hasMore: boolean;
-  isDiscovery: boolean;
-  isSearchMode: boolean;
+  mode: CatalogFeedMode;
   currentSearchType: SearchType;
   currentQuery: string;
   discovery: DiscoveryFilter[];
-  discoveryNames: string[];
   onDiscoveryRemove: (index: number) => void;
   onTypeChange: (type: SearchType) => void;
   onSearch: (query: string) => void;
@@ -117,8 +117,12 @@ export function useCatalogFeed(): CatalogFeed {
   const feedRef = useRef<CatalogFeedState>(emptyFeed);
   const latestRequestIdRef = useRef(0);
 
-  const isDiscovery = Boolean(filters.discovery?.length);
-  const isSearchMode = filters.query.trim().length > 0 || isDiscovery;
+  const mode: CatalogFeedMode =
+    filters.query.trim().length > 0
+      ? 'search'
+      : (filters.discovery?.length ?? 0) > 0
+        ? 'discover'
+        : 'browse';
 
   const updateFeed = useCallback((nextFeed: CatalogFeedState) => {
     feedRef.current = nextFeed;
@@ -130,14 +134,14 @@ export function useCatalogFeed(): CatalogFeed {
       const requestId = latestRequestIdRef.current + 1;
       latestRequestIdRef.current = requestId;
       const reqFilters = filters;
-      const reqSearchMode = isSearchMode;
+      const requestMode = mode;
 
       setLoadingState(
         append ? { loading: false, loadingMore: true } : { loading: true, loadingMore: false },
       );
 
       try {
-        if (!reqFilters.query.trim() && isDiscovery) {
+        if (requestMode === 'discover') {
           const { discovery } = reqFilters;
           if (!discovery) {
             return;
@@ -169,7 +173,7 @@ export function useCatalogFeed(): CatalogFeed {
           return;
         }
 
-        if (reqSearchMode) {
+        if (requestMode === 'search') {
           const response = await searchService.search({
             query: reqFilters.query,
             page: page ?? 1,
@@ -195,7 +199,7 @@ export function useCatalogFeed(): CatalogFeed {
           return;
         }
 
-        const response = await searchService.listPreferences();
+        const response = await searchService.listPreferences(reqFilters.type);
 
         if (latestRequestIdRef.current !== requestId) {
           return;
@@ -210,27 +214,35 @@ export function useCatalogFeed(): CatalogFeed {
           hasMore: false,
         });
       } catch (error) {
-        console.error(`Failed to load ${reqSearchMode ? 'search' : 'preferences'}:`, error);
+        console.error(
+          `Failed to load ${requestMode === 'search' ? 'search' : 'preferences'}:`,
+          error,
+        );
       } finally {
         if (latestRequestIdRef.current === requestId) {
           setLoadingState(idleLoadingState);
         }
       }
     },
-    [filters, isDiscovery, isSearchMode, updateFeed],
+    [filters, mode, updateFeed],
   );
 
   useEffect(() => {
     updateFeed(emptyFeed);
     void loadFeed({ append: false });
-  }, [filters, isDiscovery, isSearchMode, loadFeed, updateFeed]);
+  }, [filters, mode, loadFeed, updateFeed]);
 
   const onTypeChange = (type: SearchType) => {
-    updateFilters({ type });
+    const switchingBetweenMediaTypes = filters.type !== type;
+
+    updateFilters({
+      type,
+      ...(switchingBetweenMediaTypes ? { discovery: undefined } : {}),
+    });
   };
 
   const onSearch = (query: string) => {
-    updateFilters({ query });
+    updateFilters({ query, discovery: undefined });
   };
 
   const onPersonSelect = (person: Person) => {
@@ -304,8 +316,7 @@ export function useCatalogFeed(): CatalogFeed {
   );
 
   return {
-    isSearchMode,
-    isDiscovery,
+    mode,
     loading: loadingState.loading,
     loadingMore: loadingState.loadingMore,
     results: feed.results,
@@ -316,7 +327,6 @@ export function useCatalogFeed(): CatalogFeed {
     currentSearchType: filters.type,
     currentQuery: filters.query,
     discovery: filters.discovery ?? [],
-    discoveryNames: filters.discovery?.map((item) => item.name) ?? [],
     onTypeChange,
     onSearch,
     onPersonSelect,

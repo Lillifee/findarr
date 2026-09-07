@@ -49,18 +49,20 @@ export function useMediaNavigation() {
   );
 
   const goToDiscovery = useCallback(
-    (kind: DiscoveryType, id: number, discoveryName: string, type: SearchType = 'both') => {
+    (kind: DiscoveryType, id: number, discoveryName: string, type?: SearchType) => {
       const sourceSearch = getBackgroundSearch(location.state) ?? location.search;
       const currentFilters = readCatalogSearchParams(new URLSearchParams(sourceSearch));
+      const detailType = location.pathname.startsWith('/tv/') ? 'tv' : 'movie';
+      const discoveryType = kind === 'person' ? 'movie' : (type ?? detailType);
       void navigate(
         `/explore?${buildCatalogSearchParams({
-          type,
+          type: discoveryType,
           discovery: [...(currentFilters.discovery ?? []), { type: kind, id, name: discoveryName }],
           q: undefined,
         }).toString()}`,
       );
     },
-    [location.search, location.state, navigate],
+    [location.pathname, location.search, location.state, navigate],
   );
 
   return { goTo, goToMedia, goToSearch, goToDiscovery };

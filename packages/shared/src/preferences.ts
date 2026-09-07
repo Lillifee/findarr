@@ -1,4 +1,12 @@
+import { z } from 'zod';
+
 import type { DbUserPreference } from './db.js';
+
+export const UserPreferencesQuerySchema = z.object({
+  type: z.enum(['movie', 'tv', 'both']).default('both'),
+});
+
+export type UserPreferencesQuery = z.infer<typeof UserPreferencesQuerySchema>;
 
 export type UserPreference = Omit<DbUserPreference, 'userId'>;
 export type PreferenceKind = UserPreference['kind'];
