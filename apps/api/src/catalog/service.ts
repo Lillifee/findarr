@@ -80,7 +80,7 @@ export function createCatalogService(context: CatalogContext) {
 
     const [mediaResponse, people, keywords, genres] = await Promise.all([
       tmdb.searchMedia({ ...params, language }),
-      tmdb.searchPeople({ ...params, language }),
+      params.type === 'tv' ? Promise.resolve([]) : tmdb.searchPeople({ ...params, language }),
       tmdb.searchKeywords({ ...params, language }),
       tmdb.searchGenres({ ...params, language }),
     ]);

@@ -14,6 +14,7 @@ interface SegmentedControlProps<T extends string> {
   selectedValue: T;
   onChange: (value: T) => void;
   disabled?: boolean;
+  size?: 'sm' | 'md';
   renderLabel?: (option: SegmentedControlOption<T>) => ReactNode;
 }
 
@@ -27,6 +28,7 @@ export function SegmentedControl<T extends string>({
   selectedValue,
   onChange,
   disabled = false,
+  size = 'md',
   renderLabel = defaultRenderLabel,
 }: SegmentedControlProps<T>) {
   return (
@@ -52,7 +54,9 @@ export function SegmentedControl<T extends string>({
             onClick={() => {
               onChange(option.value);
             }}
-            className={`box-border inline-flex h-10 items-center gap-1.5 px-2.5 py-1.5 text-sm font-medium transition-colors sm:px-3 ${edgeClass} ${stateClass} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+            className={`box-border inline-flex items-center gap-1.5 font-medium transition-colors ${
+              size === 'sm' ? 'h-7 px-2 py-1 text-xs' : 'h-10 px-2.5 py-1.5 text-sm sm:px-3'
+            } ${edgeClass} ${stateClass} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
           >
             <Icon name={option.icon} size="sm" />
             <span className="max-[600px]:hidden">{renderLabel(option)}</span>

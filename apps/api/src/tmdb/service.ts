@@ -7,6 +7,7 @@ import type {
   PaginatedMediaResponse,
   Person,
   Keyword,
+  SearchType,
 } from '@findarr/shared/media';
 import type { TmdbSettings, TmdbSettingsQuery } from '@findarr/shared/settings';
 import { isDefined } from '@findarr/shared/utils';
@@ -42,6 +43,7 @@ export interface TmdbBaseParams {
 
 interface TmdbGenresParams extends TmdbBaseParams {
   query?: string;
+  type?: SearchType;
 }
 
 /**
@@ -61,17 +63,20 @@ export async function createTMDBService(context: TmdbServiceContext) {
         : undefined,
   });
 
-  async function getGenreMap(language = 'en-US'): Promise<Map<number, Genre>> {
-    return genreCache.getOrLoad(language, async () => {
+  async function getGenreMap(
+    language = 'en-US',
+    type: SearchType = 'both',
+  ): Promise<Map<number, Genre>> {
+    return genreCache.getOrLoad(`${language}:${type}`, async () => {
       const client = lifecycle.client();
+      const types: MediaType[] = type === 'both' ? [...MEDIA_TYPES] : [type];
 
-      const [movieGenres, tvGenres] = await Promise.all([
-        client.genres('movie', { language }),
-        client.genres('tv', { language }),
-      ]);
+      const responses = await Promise.all(
+        types.map(async (mediaType) => client.genres(mediaType, { language })),
+      );
       const genreMap = new Map<number, Genre>();
 
-      for (const genre of [...movieGenres.genres, ...tvGenres.genres]) {
+      for (const genre of responses.flatMap((response) => response.genres)) {
         genreMap.set(genre.id, genre);
       }
 
@@ -192,7 +197,7 @@ export async function createTMDBService(context: TmdbServiceContext) {
     const { query, type, page, language = 'en-US' } = params;
     const region = language.split('-')[1] ?? 'US';
     const client = lifecycle.client();
-    const genreMap = await getGenreMap(language);
+    const genreMap = await getGenreMap(language, type);
 
     const searchTypes = type === 'both' ? MEDIA_TYPES : [type];
     const mediaResponses = await Promise.all(
@@ -231,9 +236,8 @@ export async function createTMDBService(context: TmdbServiceContext) {
     params: DiscoverQuery & TmdbBaseParams,
   ): Promise<PaginatedMediaResponse> {
     const { page, type, language = 'en-US' } = params;
-    const mediaTypes: readonly MediaType[] =
-      params.person.length > 0 ? ['movie'] : type === 'both' ? MEDIA_TYPES : [type];
-    const genreMap = await getGenreMap(language);
+    const mediaTypes: readonly MediaType[] = type === 'both' ? MEDIA_TYPES : [type];
+    const genreMap = await getGenreMap(language, mediaTypes.length === 2 ? 'both' : mediaTypes[0]);
 
     const tmdbParams = {
       ...(params.person.length > 0 ? { with_people: params.person.join(',') } : {}),
@@ -263,17 +267,16 @@ export async function createTMDBService(context: TmdbServiceContext) {
 
     return detailsCache.getOrLoad(`${id}:${type}:${language}`, async () => {
       const tmdbMovie = await lifecycle.client().details(type, { id, language });
-      const genreMap = await getGenreMap(language);
+      const genreMap = await getGenreMap(language, type);
       return transformDetails(tmdbMovie, genreMap);
     });
   }
 
   /**
-   * Get all genres.
-   * Returns from the in-memory map populated during configure — params are not used.
+   * Get genres from the cached map for the requested media scope.
    */
   async function searchGenres(params: TmdbGenresParams): Promise<Genre[]> {
-    const genreMap = await getGenreMap(params.language);
+    const genreMap = await getGenreMap(params.language, params.type);
     const allGenres = [...genreMap.values()];
 
     if (!isDefined(params.query)) {

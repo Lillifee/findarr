@@ -128,7 +128,7 @@ export function SearchBar({
             </span>
           ))}
         </div>
-        <div className="box-border flex max-w-full min-w-[5rem] flex-1 items-center">
+        <div className="box-border flex max-w-full min-w-20 flex-1 items-center">
           <input
             ref={inputRef}
             type="text"

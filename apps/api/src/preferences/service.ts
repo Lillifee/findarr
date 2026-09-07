@@ -1,9 +1,14 @@
 import type { InteractionType } from '@findarr/shared/interaction';
-import type { CastMember, Genre, Keyword } from '@findarr/shared/media';
-import type { PreferenceSubject, UserPreferencesResponse } from '@findarr/shared/preferences';
+import type { CastMember, Genre, Keyword, MediaType } from '@findarr/shared/media';
+import {
+  toPreferenceKey,
+  type PreferenceSubject,
+  type UserPreferencesResponse,
+} from '@findarr/shared/preferences';
 import { isDefined } from '@findarr/shared/utils';
 
 import type { Database } from '../db/service.js';
+import { getSubjectPreferenceScore } from '../media/scoring.js';
 import type { TMDBService } from '../tmdb/service.js';
 import type { UserService } from '../user/service.js';
 import { getTopCast } from './helpers.js';
@@ -63,13 +68,27 @@ export function createPreferencesService(context: PreferencesContext) {
     await applyPreferenceDeltas(context.db, userId, subjects, scoreDelta, countDelta);
   }
 
-  async function listForUser(userId: number): Promise<UserPreferencesResponse> {
+  async function listForUser(
+    userId: number,
+    type: MediaType | 'both' = 'both',
+  ): Promise<UserPreferencesResponse> {
     const preferences = await getUserPreferences(context.db, userId);
     const suggestions = {
-      genres: [] as { id: number; name: string; score: number }[],
       keywords: [] as { id: number; name: string; score: number }[],
       people: [] as { id: number; name: string; score: number }[],
     };
+    const getPreferenceScore = (kind: PreferenceSubject['kind'], id: number) =>
+      getSubjectPreferenceScore(preferences.get(toPreferenceKey(kind, String(id))), 0.5);
+
+    const sortByPreference = <T extends { id: number; name: string }>(
+      kind: PreferenceSubject['kind'],
+      items: T[],
+    ) =>
+      items.toSorted(
+        (first, second) =>
+          getPreferenceScore(kind, second.id) - getPreferenceScore(kind, first.id) ||
+          first.name.localeCompare(second.name),
+      );
 
     for (const preference of preferences.values()) {
       if (preference.score <= 0) {
@@ -81,41 +100,41 @@ export function createPreferencesService(context: PreferencesContext) {
         continue;
       }
 
-      const collection =
-        preference.kind === 'genre'
-          ? suggestions.genres
-          : preference.kind === 'keyword'
-            ? suggestions.keywords
-            : suggestions.people;
+      if (preference.kind === 'genre') {
+        continue;
+      }
+
+      const collection = preference.kind === 'keyword' ? suggestions.keywords : suggestions.people;
       collection.push({ id, name: preference.subjectName, score: preference.score });
     }
 
-    for (const collection of Object.values(suggestions)) {
-      collection.sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
-    }
-
     const { language } = await context.user.getSettings(userId);
+    const availableGenres = await context.tmdb.searchGenres({ language, type });
     const people = await Promise.all(
-      suggestions.people.slice(0, 11).map(async ({ id: tmdbId, name, score }) => {
-        const tmdbPeople = await context.tmdb.searchPeople({
-          query: name,
-          page: 1,
-          type: 'both',
-          language,
-        });
-        const match = tmdbPeople.find((person) => person.tmdbId === tmdbId);
+      sortByPreference('cast', suggestions.people)
+        .slice(0, 11)
+        .map(async ({ id: tmdbId, name, score }) => {
+          const tmdbPeople = await context.tmdb.searchPeople({
+            query: name,
+            page: 1,
+            type: 'both',
+            language,
+          });
+          const match = tmdbPeople.find((person) => person.tmdbId === tmdbId);
 
-        return {
-          tmdbId,
-          name,
-          score,
-          profilePath: match?.profilePath,
-          knownForDepartment: match?.knownForDepartment,
-        };
-      }),
+          return {
+            tmdbId,
+            name,
+            score,
+            profilePath: match?.profilePath,
+            knownForDepartment: match?.knownForDepartment,
+          };
+        }),
     );
-    const genres = suggestions.genres.slice(0, 20).map(({ id, name }) => ({ id, name }));
-    const keywords = suggestions.keywords.slice(0, 20).map(({ id, name }) => ({ id, name }));
+    const genres = sortByPreference('genre', availableGenres).map(({ id, name }) => ({ id, name }));
+    const keywords = sortByPreference('keyword', suggestions.keywords)
+      .slice(0, 20)
+      .map(({ id, name }) => ({ id, name }));
 
     return { people, genres, keywords };
   }

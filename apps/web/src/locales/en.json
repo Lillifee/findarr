@@ -202,9 +202,8 @@
   },
   "explore": {
     "searchResults": "Search results",
-    "discovering": "Results for {{name}}",
-    "trending": "Trending & Popular",
-    "description": "Browse what is trending, search your next watch, and vote on what should be requested."
+    "title": "Explore Movies & Shows",
+    "description": "Search for people, genres, or keywords, or select one below to start discovering."
   },
   "catalog": {
     "searchPlaceholder": "Search movies, TV shows, or people...",
