@@ -11,22 +11,30 @@ import type { Database } from '../db/service.js';
 /**
  * Get all preferences for a user, keyed by kind and subject key.
  */
-export async function getUserPreferences(db: Database, userId: number) {
+export async function getUserPreferences(db: Database, userId: number, mediaType?: 'movie' | 'tv') {
   const results = await db
     .select({
       kind: userPreferences.kind,
+      mediaType: userPreferences.mediaType,
       subjectKey: userPreferences.subjectKey,
       subjectName: userPreferences.subjectName,
       score: userPreferences.score,
       count: userPreferences.count,
     })
     .from(userPreferences)
-    .where(eq(userPreferences.userId, userId));
+    .where(
+      mediaType
+        ? and(eq(userPreferences.userId, userId), eq(userPreferences.mediaType, mediaType))
+        : eq(userPreferences.userId, userId),
+    );
 
   const preferenceMap = new Map<string, UserPreference>();
 
   for (const preference of results) {
-    preferenceMap.set(toPreferenceKey(preference.kind, preference.subjectKey), preference);
+    preferenceMap.set(
+      toPreferenceKey(preference.mediaType, preference.kind, preference.subjectKey),
+      preference,
+    );
   }
 
   return preferenceMap;
@@ -52,7 +60,12 @@ export async function applyPreferenceDeltas(
           count: countDelta,
         })
         .onConflictDoUpdate({
-          target: [userPreferences.userId, userPreferences.kind, userPreferences.subjectKey],
+          target: [
+            userPreferences.userId,
+            userPreferences.mediaType,
+            userPreferences.kind,
+            userPreferences.subjectKey,
+          ],
           set: {
             score: sql`${userPreferences.score} + ${scoreDelta}`,
             count: sql`${userPreferences.count} + ${countDelta}`,

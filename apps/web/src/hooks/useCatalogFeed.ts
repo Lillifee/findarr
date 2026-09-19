@@ -224,7 +224,9 @@ export function useCatalogFeed(): CatalogFeed {
     let active = true;
 
     const loadSuggestions = async () => {
-      const response = await searchService.listPreferences(filters.type);
+      const response = await searchService.listPreferences(
+        filters.type === 'both' ? 'movie' : filters.type,
+      );
       if (active) {
         setSuggestions({
           genres: response.genres,

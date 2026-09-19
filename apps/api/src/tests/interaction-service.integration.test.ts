@@ -46,10 +46,10 @@ const createInteraction = async (
   catalog: typeof catalogService,
   ...args: Parameters<InteractionService['createInteraction']>
 ) => {
-  const appLogService = createMockAppLogger();
-  const userService = createUserService({ db });
-  const mediaService = createMediaService({ db, tmdb, user: userService, appLog: appLogService });
-  const preferencesService = createPreferencesService({ db, tmdb, user: userService });
+  const appLog = createMockAppLogger();
+  const user = createUserService({ db });
+  const mediaService = createMediaService({ db, tmdb, user, appLog });
+  const preferencesService = createPreferencesService({ db, tmdb, user, appLog });
   const settingsService = createSettingsService(db);
 
   return createInteractionService({
@@ -58,11 +58,11 @@ const createInteraction = async (
     radarr,
     sonarr,
     catalog,
-    user: userService,
+    user,
     media: mediaService,
     preferences: preferencesService,
     settings: settingsService,
-    appLog: appLogService,
+    appLog,
   }).createInteraction(...args);
 };
 
@@ -80,6 +80,7 @@ const buildService = (tmdbService: TMDBService, db: Database): InteractionServic
     db,
     tmdb: tmdbService,
     user: userService,
+    appLog: appLogService,
   });
 
   return createInteractionService({
@@ -164,8 +165,8 @@ describe('interaction service - integration tests', () => {
 
       const preferences = await getUserPreferences(db, user.id);
       expect(
-        [...preferences.keys()].filter((key) => key.startsWith('cast:')).toSorted(),
-      ).toStrictEqual(['cast:1', 'cast:2', 'cast:3', 'cast:4']);
+        [...preferences.keys()].filter((key) => key.startsWith('movie:cast:')).toSorted(),
+      ).toStrictEqual(['movie:cast:1', 'movie:cast:2', 'movie:cast:3', 'movie:cast:4']);
 
       // Verify result
       expect(result).toMatchObject({
@@ -211,7 +212,7 @@ describe('interaction service - integration tests', () => {
       // Verify interaction exists
       expect(await getInteractionAction(db, user.id, media.id)).toBe('liked');
       const preferencesAfterLike = await getUserPreferences(db, user.id);
-      expect(preferencesAfterLike.get('genre:28')).toMatchObject({
+      expect(preferencesAfterLike.get('movie:genre:28')).toMatchObject({
         score: 1,
         count: 1,
       });
@@ -267,7 +268,7 @@ describe('interaction service - integration tests', () => {
       // Verify only like exists now
       expect(await getInteractionAction(db, user.id, media.id)).toBe('liked');
       const preferencesAfterLike = await getUserPreferences(db, user.id);
-      expect(preferencesAfterLike.get('genre:28')).toMatchObject({
+      expect(preferencesAfterLike.get('movie:genre:28')).toMatchObject({
         score: 1,
         count: 1,
       });
@@ -283,7 +284,7 @@ describe('interaction service - integration tests', () => {
       );
 
       const preferencesAfterSecondDislike = await getUserPreferences(db, user.id);
-      expect(preferencesAfterSecondDislike.get('genre:28')).toMatchObject({
+      expect(preferencesAfterSecondDislike.get('movie:genre:28')).toMatchObject({
         score: -1,
         count: 1,
       });
@@ -325,7 +326,7 @@ describe('interaction service - integration tests', () => {
       );
 
       const preferencesAfterSeasonUpdate = await getUserPreferences(db, user.id);
-      expect(preferencesAfterSeasonUpdate.get('genre:18')).toMatchObject({
+      expect(preferencesAfterSeasonUpdate.get('tv:genre:18')).toMatchObject({
         score: 1,
         count: 1,
       });

@@ -1,7 +1,7 @@
 import { media, users, userMediaInteractions, type DbMedia } from '@findarr/shared/db';
 import type { InteractionsQuery, InteractionType } from '@findarr/shared/interaction';
 import type { Media, MediaStatus, MediaInteractionWithUser } from '@findarr/shared/media';
-import type { UserRatingCounts } from '@findarr/shared/preferences';
+import type { UserRatingCountsByMediaType } from '@findarr/shared/preferences';
 import { isDefined } from '@findarr/shared/utils';
 import { and, desc, eq, getTableColumns, inArray, isNotNull, sql } from 'drizzle-orm';
 
@@ -207,18 +207,30 @@ export async function getUserInteractionMediaKeys(db: Database, userId: number) 
 // Vote Counting & Aggregation
 // ============================================================================
 
-export async function getUserRatingCounts(db: Database, userId: number): Promise<UserRatingCounts> {
+export async function getUserRatingCounts(
+  db: Database,
+  userId: number,
+): Promise<UserRatingCountsByMediaType> {
   const result = await db
     .select({
+      mediaType: media.type,
       likes: sql<number>`SUM(CASE WHEN ${userMediaInteractions.action} = 'liked' THEN 1 ELSE 0 END)`,
       dislikes: sql<number>`SUM(CASE WHEN ${userMediaInteractions.action} = 'disliked' THEN 1 ELSE 0 END)`,
     })
     .from(userMediaInteractions)
-    .where(eq(userMediaInteractions.userId, userId));
+    .innerJoin(media, eq(userMediaInteractions.mediaId, media.id))
+    .where(eq(userMediaInteractions.userId, userId))
+    .groupBy(media.type);
 
   return {
-    likes: result[0]?.likes ?? 0,
-    dislikes: result[0]?.dislikes ?? 0,
+    movie: {
+      likes: result.find((row) => row.mediaType === 'movie')?.likes ?? 0,
+      dislikes: result.find((row) => row.mediaType === 'movie')?.dislikes ?? 0,
+    },
+    tv: {
+      likes: result.find((row) => row.mediaType === 'tv')?.likes ?? 0,
+      dislikes: result.find((row) => row.mediaType === 'tv')?.dislikes ?? 0,
+    },
   };
 }
 

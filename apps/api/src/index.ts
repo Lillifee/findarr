@@ -21,6 +21,7 @@ import { adminLogsRoutes } from './logging/routes.js';
 import { createLogStore } from './logging/service.js';
 import mediaPlugin from './media/plugin.js';
 import preferencesPlugin from './preferences/plugin.js';
+import { rebuildUserPreferences } from './preferences/rebuild.js';
 import { preferencesRoutes } from './preferences/routes.js';
 import schedulerPlugin from './scheduler/plugin.js';
 import { adminSchedulerRoutes, schedulerRoutes } from './scheduler/routes.js';
@@ -107,6 +108,8 @@ async function start() {
     if (env.NODE_ENV === 'production') {
       await registerStatic(server);
     }
+
+    await rebuildUserPreferences(server.db, server.tmdb, server.appLog);
 
     // Start server
     await server.listen({

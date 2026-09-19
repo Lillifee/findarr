@@ -135,6 +135,7 @@ export const userPreferences = sqliteTable(
     userId: integer('userId')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
+    mediaType: text('mediaType', { enum: ['movie', 'tv'] }).notNull(),
     kind: text('kind', { enum: ['genre', 'keyword', 'cast'] }).notNull(),
     subjectKey: text('subjectKey').notNull(),
     subjectName: text('subjectName').notNull(),
@@ -142,7 +143,7 @@ export const userPreferences = sqliteTable(
     count: integer('count').notNull().default(1),
   },
   (table) => [
-    primaryKey({ columns: [table.userId, table.kind, table.subjectKey] }),
+    primaryKey({ columns: [table.userId, table.mediaType, table.kind, table.subjectKey] }),
     index('idx_user_preferences_user_kind').on(table.userId, table.kind),
   ],
 );

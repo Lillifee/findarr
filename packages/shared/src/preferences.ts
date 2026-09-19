@@ -3,18 +3,21 @@ import { z } from 'zod';
 import type { DbUserPreference } from './db.js';
 
 export const UserPreferencesQuerySchema = z.object({
-  type: z.enum(['movie', 'tv', 'both']).default('both'),
+  type: z.enum(['movie', 'tv']),
 });
 
 export type UserPreferencesQuery = z.infer<typeof UserPreferencesQuerySchema>;
 
 export type UserPreference = Omit<DbUserPreference, 'userId'>;
 export type PreferenceKind = UserPreference['kind'];
-export type PreferenceSubject = Pick<UserPreference, 'kind' | 'subjectKey' | 'subjectName'>;
-export interface UserRatingCounts {
-  likes: number;
-  dislikes: number;
-}
+export type PreferenceSubject = Pick<
+  UserPreference,
+  'mediaType' | 'kind' | 'subjectKey' | 'subjectName'
+>;
+export type UserRatingCountsByMediaType = Record<
+  'movie' | 'tv',
+  { likes: number; dislikes: number }
+>;
 
 export interface UserPreferenceSuggestion {
   id: number;
@@ -35,5 +38,8 @@ export interface UserPreferencesResponse {
   people: UserPreferencePersonSuggestion[];
 }
 
-export const toPreferenceKey = (kind: PreferenceKind, subjectKey: string) =>
-  `${kind}:${subjectKey}`;
+export const toPreferenceKey = (
+  mediaType: UserPreference['mediaType'],
+  kind: PreferenceKind,
+  subjectKey: string,
+) => `${mediaType}:${kind}:${subjectKey}`;

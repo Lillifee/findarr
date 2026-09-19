@@ -10,7 +10,7 @@ import {
   type PreferenceKind,
   type PreferenceSubject,
   type UserPreference,
-  type UserRatingCounts,
+  type UserRatingCountsByMediaType,
 } from '@findarr/shared/preferences';
 import { isDefined, isNotEmpty } from '@findarr/shared/utils';
 
@@ -131,12 +131,15 @@ const PREFERENCE_KIND_MULTIPLIERS: Record<PreferenceKind, number> = {
   cast: 1.2,
 };
 
-const NO_USER_RATINGS: UserRatingCounts = { likes: 0, dislikes: 0 };
+const NO_USER_RATINGS_BY_MEDIA_TYPE: UserRatingCountsByMediaType = {
+  movie: { likes: 0, dislikes: 0 },
+  tv: { likes: 0, dislikes: 0 },
+};
 
 // This is how often the user normally likes something. A user who likes only
 // 30% of titles may still favor a subject they like 40% of the time.
 // New users start near 50% until they have enough ratings.
-const getUserLikeBaseline = ({ likes, dislikes }: UserRatingCounts) =>
+const getUserLikeBaseline = ({ likes, dislikes }: { likes: number; dislikes: number }) =>
   (likes + USER_BASELINE_PRIOR_RATINGS * 0.5) / (likes + dislikes + USER_BASELINE_PRIOR_RATINGS);
 
 // Compare the actual likes for a subject with the number expected from the
@@ -158,9 +161,10 @@ export const getSubjectPreferenceScore = (
 
 const toPreferenceSubjects = (
   kind: PreferenceKind,
+  mediaType: UserPreference['mediaType'],
   items: readonly { id: number; name: string }[],
 ): PreferenceSubject[] =>
-  items.map((item) => ({ kind, subjectKey: String(item.id), subjectName: item.name }));
+  items.map((item) => ({ mediaType, kind, subjectKey: String(item.id), subjectName: item.name }));
 
 const scorePreferenceKind = (
   kind: PreferenceKind,
@@ -173,7 +177,9 @@ const scorePreferenceKind = (
   const evidenceSignals: MediaScoreSignal[] = [];
 
   for (const subject of subjects) {
-    const preference = preferences.get(toPreferenceKey(subject.kind, subject.subjectKey));
+    const preference = preferences.get(
+      toPreferenceKey(subject.mediaType, subject.kind, subject.subjectKey),
+    );
     if (!preference || preference.count < MIN_SUBJECT_RATINGS) {
       continue;
     }
@@ -226,30 +232,29 @@ const getStrongestSignals = (
 export function scoreMediaItemsForUser<T extends Media>(
   items: T[],
   preferences: Map<string, UserPreference>,
-  ratingCounts: UserRatingCounts = NO_USER_RATINGS,
+  ratingCounts: UserRatingCountsByMediaType = NO_USER_RATINGS_BY_MEDIA_TYPE,
 ): T[] {
   if (preferences.size === 0) {
     return items;
   }
 
-  const userLikeBaseline = getUserLikeBaseline(ratingCounts);
-
   return items.map<T>((item) => {
+    const userLikeBaseline = getUserLikeBaseline(ratingCounts[item.type]);
     const genreResult = scorePreferenceKind(
       'genre',
-      toPreferenceSubjects('genre', item.genres),
+      toPreferenceSubjects('genre', item.type, item.genres),
       preferences,
       userLikeBaseline,
     );
     const keywordResult = scorePreferenceKind(
       'keyword',
-      toPreferenceSubjects('keyword', item.keywords ?? []),
+      toPreferenceSubjects('keyword', item.type, item.keywords ?? []),
       preferences,
       userLikeBaseline,
     );
     const castResult = scorePreferenceKind(
       'cast',
-      toPreferenceSubjects('cast', getTopCast(item.cast)),
+      toPreferenceSubjects('cast', item.type, getTopCast(item.cast)),
       preferences,
       userLikeBaseline,
     );
