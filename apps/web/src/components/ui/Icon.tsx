@@ -8,6 +8,8 @@ export type IconName =
   | 'check'
   | 'check_circle'
   | 'checklist'
+  | 'chevron_left'
+  | 'chevron_right'
   | 'close'
   | 'download'
   | 'error'

@@ -112,6 +112,48 @@ input:disabled,
   display: none;
 }
 
+.horizontal-rail-scrollbar {
+  scrollbar-width: none;
+}
+
+.horizontal-rail-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .horizontal-rail-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .group\/rail:hover .horizontal-rail-scrollbar,
+  .group\/rail:focus-within .horizontal-rail-scrollbar {
+    scrollbar-color: #52525b transparent;
+  }
+
+  .horizontal-rail-scrollbar::-webkit-scrollbar {
+    display: block;
+    height: 0.5rem;
+  }
+
+  .horizontal-rail-scrollbar::-webkit-scrollbar-track {
+    border: 0;
+    background: transparent;
+  }
+
+  .horizontal-rail-scrollbar::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    background: transparent;
+    background-clip: padding-box;
+  }
+
+  .group\/rail:hover .horizontal-rail-scrollbar::-webkit-scrollbar-thumb,
+  .group\/rail:focus-within .horizontal-rail-scrollbar::-webkit-scrollbar-thumb {
+    background: #52525b;
+    background-clip: padding-box;
+  }
+}
+
 /* Safe area inset for mobile devices with notches */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .safe-area-inset-bottom {

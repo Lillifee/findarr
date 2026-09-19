@@ -127,7 +127,7 @@ export function createPreferencesService(context: PreferencesContext) {
     );
     const genres = sortByPreference('genre', availableGenres).map(({ id, name }) => ({ id, name }));
     const keywords = sortByPreference('keyword', suggestions.keywords)
-      .slice(0, 20)
+      .slice(0, 24)
       .map(({ id, name }) => ({ id, name }));
 
     return { people, genres, keywords };

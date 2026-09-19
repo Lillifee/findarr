@@ -1,6 +1,8 @@
 import { isDefined } from '@findarr/shared/utils';
+import { useTranslation } from 'react-i18next';
 
 import { tmdbImage } from '../../utils/tmdb';
+import { HorizontalRail } from '../ui/HorizontalRail';
 import { Icon } from '../ui/Icon';
 
 export interface PersonGridItem {
@@ -13,18 +15,30 @@ export interface PersonGridItem {
 interface PeopleGridProps<T extends PersonGridItem> {
   people: T[];
   onSelect?: (person: T) => void;
+  ariaLabel?: string;
 }
 
-export function PeopleGrid<T extends PersonGridItem>({ people, onSelect }: PeopleGridProps<T>) {
+export function PeopleGrid<T extends PersonGridItem>({
+  people,
+  onSelect,
+  ariaLabel,
+}: PeopleGridProps<T>) {
+  const { t } = useTranslation();
+
   return (
-    <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
+    <HorizontalRail
+      ariaLabel={ariaLabel ?? t('catalog.peopleResults')}
+      contentClassName="flex gap-4"
+      nextLabel={t('common.next')}
+      previousLabel={t('common.previous')}
+    >
       {people.map((person) => (
         <button
           key={person.id}
           type="button"
           onClick={() => onSelect?.(person)}
           disabled={!onSelect}
-          className={`flex flex-col items-center ${
+          className={`flex w-28 shrink-0 flex-col items-center md:w-32 ${
             onSelect
               ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500'
               : ''
@@ -49,6 +63,6 @@ export function PeopleGrid<T extends PersonGridItem>({ people, onSelect }: Peopl
           </div>
         </button>
       ))}
-    </div>
+    </HorizontalRail>
   );
 }

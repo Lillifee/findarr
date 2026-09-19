@@ -15,7 +15,10 @@
     "email": "Email",
     "password": "Password",
     "creating": "Creating...",
-    "noResults": "No results found"
+    "noResults": "No results found",
+    "previous": "Previous",
+    "next": "Next",
+    "showAll": "Show all"
   },
   "nav": {
     "home": "Home",
