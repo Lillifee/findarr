@@ -21,7 +21,6 @@ import type {
   MediaDetails,
   VoteQueueResponse,
   MediaType,
-  SearchType,
 } from '@findarr/shared/media';
 import type { UserPreferencesResponse } from '@findarr/shared/preferences';
 import type { SchedulerInfo } from '@findarr/shared/scheduler';
@@ -49,7 +48,7 @@ export const api = create({
 });
 
 export const searchService = {
-  listPreferences: async (type: SearchType = 'both'): Promise<UserPreferencesResponse> => {
+  listPreferences: async (type: MediaType): Promise<UserPreferencesResponse> => {
     const response = await api.get<UserPreferencesResponse>('/preferences', { params: { type } });
     return response.data;
   },

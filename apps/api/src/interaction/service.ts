@@ -180,6 +180,7 @@ export function createInteractionService(context: InteractionContext) {
     // Update user genre preferences based on the interaction.
     await preferences.updateForInteraction(
       user.id,
+      data.mediaType,
       details.genres,
       details.keywords,
       details.cast,

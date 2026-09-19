@@ -11,6 +11,7 @@ import {
   type PreferenceSubject,
   type UserPreference,
   type UserRatingCounts,
+  type UserRatingCountsByMediaType,
 } from '@findarr/shared/preferences';
 import { isDefined, isNotEmpty } from '@findarr/shared/utils';
 
@@ -131,7 +132,10 @@ const PREFERENCE_KIND_MULTIPLIERS: Record<PreferenceKind, number> = {
   cast: 1.2,
 };
 
-const NO_USER_RATINGS: UserRatingCounts = { likes: 0, dislikes: 0 };
+const NO_USER_RATINGS_BY_MEDIA_TYPE: UserRatingCountsByMediaType = {
+  movie: { likes: 0, dislikes: 0 },
+  tv: { likes: 0, dislikes: 0 },
+};
 
 // This is how often the user normally likes something. A user who likes only
 // 30% of titles may still favor a subject they like 40% of the time.
@@ -148,19 +152,21 @@ export const getSubjectPreferenceScore = (
   preference: UserPreference | undefined,
   userLikeBaseline: number,
 ) => {
-  if (!preference || preference.count < MIN_SUBJECT_RATINGS) {
+  const evidenceCount = preference ? preference.likes + preference.dislikes : 0;
+
+  if (!preference || evidenceCount < MIN_SUBJECT_RATINGS) {
     return 0.5;
   }
 
-  const positiveCount = (preference.count + preference.score) / 2;
-  return 0.5 + getSmoothedLift(positiveCount, preference.count, userLikeBaseline);
+  return 0.5 + getSmoothedLift(preference.likes, evidenceCount, userLikeBaseline);
 };
 
 const toPreferenceSubjects = (
   kind: PreferenceKind,
+  mediaType: UserPreference['mediaType'],
   items: readonly { id: number; name: string }[],
 ): PreferenceSubject[] =>
-  items.map((item) => ({ kind, subjectKey: String(item.id), subjectName: item.name }));
+  items.map((item) => ({ mediaType, kind, subjectKey: String(item.id), subjectName: item.name }));
 
 const scorePreferenceKind = (
   kind: PreferenceKind,
@@ -173,20 +179,21 @@ const scorePreferenceKind = (
   const evidenceSignals: MediaScoreSignal[] = [];
 
   for (const subject of subjects) {
-    const preference = preferences.get(toPreferenceKey(subject.kind, subject.subjectKey));
-    if (!preference || preference.count < MIN_SUBJECT_RATINGS) {
+    const preference = preferences.get(
+      toPreferenceKey(subject.mediaType, subject.kind, subject.subjectKey),
+    );
+    if (!preference || preference.likes + preference.dislikes < MIN_SUBJECT_RATINGS) {
       continue;
     }
 
-    // Stored preferences keep the difference and total, so rebuild the counts.
-    const positiveCount = (preference.count + preference.score) / 2;
-    const negativeCount = preference.count - positiveCount;
+    const positiveCount = preference.likes;
+    const negativeCount = preference.dislikes;
     const subjectPref = getSubjectPreferenceScore(preference, userLikeBaseline);
     const prefType = subjectPref > 0.6 ? 'positive' : subjectPref < 0.4 ? 'negative' : 'mixed';
     const strength = Math.abs(subjectPref - 0.5) * 2;
 
     totalPositiveCount += positiveCount;
-    evidenceCount += preference.count;
+    evidenceCount += positiveCount + negativeCount;
     evidenceSignals.push({
       kind: subject.kind,
       subjectKey: subject.subjectKey,
@@ -226,30 +233,29 @@ const getStrongestSignals = (
 export function scoreMediaItemsForUser<T extends Media>(
   items: T[],
   preferences: Map<string, UserPreference>,
-  ratingCounts: UserRatingCounts = NO_USER_RATINGS,
+  ratingCounts: UserRatingCountsByMediaType = NO_USER_RATINGS_BY_MEDIA_TYPE,
 ): T[] {
   if (preferences.size === 0) {
     return items;
   }
 
-  const userLikeBaseline = getUserLikeBaseline(ratingCounts);
-
   return items.map<T>((item) => {
+    const userLikeBaseline = getUserLikeBaseline(ratingCounts[item.type]);
     const genreResult = scorePreferenceKind(
       'genre',
-      toPreferenceSubjects('genre', item.genres),
+      toPreferenceSubjects('genre', item.type, item.genres),
       preferences,
       userLikeBaseline,
     );
     const keywordResult = scorePreferenceKind(
       'keyword',
-      toPreferenceSubjects('keyword', item.keywords ?? []),
+      toPreferenceSubjects('keyword', item.type, item.keywords ?? []),
       preferences,
       userLikeBaseline,
     );
     const castResult = scorePreferenceKind(
       'cast',
-      toPreferenceSubjects('cast', getTopCast(item.cast)),
+      toPreferenceSubjects('cast', item.type, getTopCast(item.cast)),
       preferences,
       userLikeBaseline,
     );
