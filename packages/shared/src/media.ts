@@ -48,6 +48,13 @@ export interface CastMember {
   order: number;
 }
 
+export interface CrewMember {
+  id: number;
+  name: string;
+  job: string;
+  profilePath: string | undefined;
+}
+
 export interface Person {
   tmdbId: number;
   name: string;
@@ -155,6 +162,7 @@ export interface Media {
   trendingRank?: number | undefined;
   keywords?: Keyword[];
   cast?: CastMember[] | undefined;
+  crew?: CrewMember[] | undefined;
 
   // Server-added state (computed scores, database records, user interactions)
   state?: MediaState;
