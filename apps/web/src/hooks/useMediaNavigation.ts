@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import {
+  addDiscoveryFilter,
   buildCatalogSearchParams,
   readCatalogSearchParams,
   type DiscoveryType,
@@ -54,10 +55,16 @@ export function useMediaNavigation() {
       const currentFilters = readCatalogSearchParams(new URLSearchParams(sourceSearch));
       const detailType = location.pathname.startsWith('/tv/') ? 'tv' : 'movie';
       const discoveryType = kind === 'person' ? 'movie' : (type ?? detailType);
+      const discovery = addDiscoveryFilter(currentFilters.discovery, {
+        type: kind,
+        id,
+        name: discoveryName,
+      });
+
       void navigate(
         `/explore?${buildCatalogSearchParams({
           type: discoveryType,
-          discovery: [...(currentFilters.discovery ?? []), { type: kind, id, name: discoveryName }],
+          discovery,
           q: undefined,
         }).toString()}`,
       );

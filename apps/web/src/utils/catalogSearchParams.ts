@@ -55,6 +55,15 @@ export function parseDiscoveryType(raw: unknown): DiscoveryType | undefined {
   return isDiscoveryType(raw) ? raw : undefined;
 }
 
+export function addDiscoveryFilter(
+  discovery: DiscoveryFilter[] | undefined,
+  filter: DiscoveryFilter,
+): DiscoveryFilter[] {
+  return (discovery?.some((item) => item.type === filter.type && item.id === filter.id) ?? false)
+    ? (discovery ?? [])
+    : [...(discovery ?? []), filter];
+}
+
 export const readCatalogSearchParams = (
   searchParams: URLSearchParams,
   defaults: CatalogSearchParamDefaults = {},

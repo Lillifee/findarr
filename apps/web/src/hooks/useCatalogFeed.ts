@@ -5,6 +5,7 @@ import { useSearchParams } from 'react-router-dom';
 
 import { searchService } from '../services/api';
 import {
+  addDiscoveryFilter,
   buildCatalogSearchParams,
   readCatalogSearchParams,
   type DiscoveryFilter,
@@ -329,35 +330,27 @@ export function useCatalogFeed(): CatalogFeed {
     updateFilters({ query });
   };
 
-  const onPersonSelect = (person: Person) => {
+  const addDiscovery = (discovery: DiscoveryFilter) => {
     updateFilters({
       query: '',
-      discovery: [
-        ...(filters.discovery ?? []),
-        {
-          type: 'person',
-          id: person.tmdbId,
-          name: person.name,
-        },
-      ],
+      discovery: addDiscoveryFilter(filters.discovery, discovery),
+    });
+  };
+
+  const onPersonSelect = (person: Person) => {
+    addDiscovery({
+      type: 'person',
+      id: person.tmdbId,
+      name: person.name,
     });
   };
 
   const onKeywordSelect = (keyword: Keyword) => {
-    updateFilters({
-      query: '',
-      discovery: [
-        ...(filters.discovery ?? []),
-        { type: 'keyword', id: keyword.id, name: keyword.name },
-      ],
-    });
+    addDiscovery({ type: 'keyword', id: keyword.id, name: keyword.name });
   };
 
   const onGenreSelect = (genre: Genre) => {
-    updateFilters({
-      query: '',
-      discovery: [...(filters.discovery ?? []), { type: 'genre', id: genre.id, name: genre.name }],
-    });
+    addDiscovery({ type: 'genre', id: genre.id, name: genre.name });
   };
 
   const onClearSearch = () => {
