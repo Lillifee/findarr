@@ -217,6 +217,10 @@ export interface PaginatedMediaResponse {
   page: number;
 }
 
+export interface DiscoverMediaResponse extends PaginatedMediaResponse {
+  feedId: string;
+}
+
 export interface SearchResponse extends PaginatedMediaResponse {
   genres: Genre[];
   keywords: Keyword[];

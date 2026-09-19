@@ -12,6 +12,7 @@ export type IconName =
   | 'download'
   | 'error'
   | 'expand_more'
+  | 'expand_less'
   | 'explore'
   | 'fact_check'
   | 'flag'

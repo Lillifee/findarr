@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
 import { FiltersToolbar } from '../components/catalog/FiltersToolbar';
-import { SearchBar } from '../components/catalog/SearchBar';
 import { MediaView } from '../components/media/MediaView';
 import { ResultsGrid } from '../components/media/ResultsGrid';
 import { PageContainer } from '../components/ui';
@@ -20,7 +19,7 @@ import { asVoid } from '../utils/asyncHandlers';
 
 export function VotePage() {
   const { t } = useTranslation();
-  const { goToMedia, goToSearch } = useMediaNavigation();
+  const { goToMedia } = useMediaNavigation();
   const [searchParams, setSearchParams] = useSearchParams();
   const viewMode = searchParams.get('view') === 'grid' ? 'grid' : 'single';
 
@@ -57,13 +56,6 @@ export function VotePage() {
   return (
     <div className="pb-20 md:pb-8">
       <SearchFilterBar
-        search={
-          <SearchBar
-            onSearch={(query) => {
-              goToSearch(query);
-            }}
-          />
-        }
         filters={
           <FiltersToolbar
             selectedType={selectedType}

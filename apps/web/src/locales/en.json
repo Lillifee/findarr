@@ -104,8 +104,8 @@
     "tryAgain": "Try Again",
     "viewMode": {
       "label": "View",
-      "single": "Single",
-      "grid": "Grid"
+      "single": "Vote",
+      "grid": "More"
     },
     "grid": {
       "votingRangeTitle": "Your voting range",
@@ -210,7 +210,11 @@
     "peopleResults": "People",
     "genreResults": "Genres",
     "keywordResults": "Keywords",
+    "mediaResults": "Movies & shows",
     "clearSearch": "Clear search",
+    "searchFor": "Search for \"{{query}}\"",
+    "yourPreferences": "Your preferences",
+    "closeSearch": "Close search",
     "filters": "Filters",
     "typeAll": "All",
     "typeMovies": "Movies",

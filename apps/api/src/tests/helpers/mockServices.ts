@@ -31,6 +31,7 @@ export function createMockTMDBService(
       .mockResolvedValue({ tmdbAccessTokenSet: true }),
     searchMedia: vi.fn<TMDBService['searchMedia']>().mockResolvedValue({ results: [], page: 1 }),
     searchPeople: vi.fn<TMDBService['searchPeople']>().mockResolvedValue([]),
+    personDetails: vi.fn<TMDBService['personDetails']>(),
     searchKeywords: vi.fn<TMDBService['searchKeywords']>().mockResolvedValue([]),
     discoverMedia: vi.fn<TMDBService['discoverMedia']>().mockResolvedValue({
       results: [],
@@ -106,9 +107,9 @@ export function createMockCatalogService(
     search: vi
       .fn<CatalogService['search']>()
       .mockResolvedValue({ results: [], genres: [], people: [], keywords: [], page: 1 }),
-    listDiscoveredMedia: vi
-      .fn<CatalogService['listDiscoveredMedia']>()
-      .mockResolvedValue({ results: [], page: 1 }),
+    getDiscoveryFeed: vi
+      .fn<CatalogService['getDiscoveryFeed']>()
+      .mockResolvedValue({ results: [], page: 1, feedId: 'feed-1' }),
     getMediaDetails: vi
       .fn<CatalogService['getMediaDetails']>()
       .mockImplementation(async (params) =>
@@ -122,8 +123,7 @@ export function createMockCatalogService(
               state: { record: createDefaultMediaRecord() },
             }),
       ),
-    listGenres: vi.fn<CatalogService['listGenres']>().mockResolvedValue([]),
-    getVoteQueue: vi.fn<CatalogService['getVoteQueue']>().mockResolvedValue({
+    getVotingFeed: vi.fn<CatalogService['getVotingFeed']>().mockResolvedValue({
       results: [],
       nextResults: [],
       feedId: 'feed-1',

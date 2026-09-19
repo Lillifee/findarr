@@ -48,6 +48,8 @@ export const TMDBPersonSchema = z.object({
   known_for_department: z.string().nullish(),
 });
 
+export const TMDBPersonDetailsSchema = TMDBPersonSchema;
+
 // TMDB Genre schema
 export const TMDBGenreSchema = z.object({
   id: z.number(),

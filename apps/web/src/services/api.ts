@@ -11,15 +11,13 @@ import type {
   DiscoverQuery,
   PopularQuery,
   DetailsQuery,
-  GenresQuery,
 } from '@findarr/shared/catalog';
 import type { InteractionsQuery } from '@findarr/shared/interaction';
 import type { LogLevel, LogLevelResponse, LogsResponse } from '@findarr/shared/logs';
 import type {
   SearchResponse,
-  PaginatedMediaResponse,
+  DiscoverMediaResponse,
   UserInteractionsResponse,
-  Genre,
   MediaDetails,
   VoteQueueResponse,
   MediaType,
@@ -61,8 +59,8 @@ export const searchService = {
     return response.data;
   },
 
-  discover: async (params: DiscoverQuery): Promise<PaginatedMediaResponse> => {
-    const response = await api.get<PaginatedMediaResponse>('/discover', { params });
+  getDiscoveryFeed: async (params: DiscoverQuery): Promise<DiscoverMediaResponse> => {
+    const response = await api.get<DiscoverMediaResponse>('/discover', { params });
     return response.data;
   },
 
@@ -71,12 +69,7 @@ export const searchService = {
     return response.data;
   },
 
-  listGenres: async (params: GenresQuery): Promise<Genre[]> => {
-    const response = await api.get<Genre[]>('/genres', { params });
-    return response.data;
-  },
-
-  getVoteQueue: async (params: PopularQuery = {}): Promise<VoteQueueResponse> => {
+  getVotingFeed: async (params: Partial<PopularQuery> = {}): Promise<VoteQueueResponse> => {
     const response = await api.get<VoteQueueResponse>('/queue', { params });
     return response.data;
   },

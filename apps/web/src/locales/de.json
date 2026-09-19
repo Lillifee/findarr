@@ -104,8 +104,8 @@
     "tryAgain": "Erneut versuchen",
     "viewMode": {
       "label": "Ansicht",
-      "single": "Einzeln",
-      "grid": "Raster"
+      "single": "Abstimmen",
+      "grid": "Mehr"
     },
     "grid": {
       "votingRangeTitle": "Dein Abstimmungsbereich",
@@ -210,7 +210,11 @@
     "peopleResults": "Personen",
     "genreResults": "Genres",
     "keywordResults": "Stichwörter",
+    "mediaResults": "Filme & Serien",
     "clearSearch": "Suche löschen",
+    "searchFor": "Nach \"{{query}}\" suchen",
+    "yourPreferences": "Deine Präferenzen",
+    "closeSearch": "Suche schließen",
     "filters": "Filter",
     "typeAll": "Alle",
     "typeMovies": "Filme",

@@ -53,6 +53,7 @@ interface TmdbGenresParams extends TmdbBaseParams {
 export async function createTMDBService(context: TmdbServiceContext) {
   const genreCache = createLruTtlCache<Map<number, Genre>>(24 * 60 * 60 * 1000, 20);
   const detailsCache = createLruTtlCache<MediaDetails>(60_000, 500);
+  const personCache = createLruTtlCache<Person>(24 * 60 * 60 * 1000, 500);
 
   const lifecycle = createClientLifecycle<TmdbSettingsFull, TMDBClient>({
     name: 'TMDB',
@@ -87,6 +88,7 @@ export async function createTMDBService(context: TmdbServiceContext) {
   async function reloadService(): Promise<void> {
     await lifecycle.reload();
     genreCache.clear();
+    personCache.clear();
 
     if (lifecycle.isConfigured()) {
       await getGenreMap();
@@ -225,6 +227,15 @@ export async function createTMDBService(context: TmdbServiceContext) {
     return response.results.map(transformPerson);
   }
 
+  async function personDetails(id: number, params: TmdbBaseParams = {}): Promise<Person> {
+    const language = params.language ?? 'en-US';
+
+    return personCache.getOrLoad(`${id}:${language}`, async () => {
+      const response = await lifecycle.client().personDetails(id, { language });
+      return transformPerson(response);
+    });
+  }
+
   async function searchKeywords(params: SearchQuery & TmdbBaseParams): Promise<Keyword[]> {
     const { query, page, language = 'en-US' } = params;
     const response = await lifecycle.client().searchKeywords({ query, page, language });
@@ -304,6 +315,7 @@ export async function createTMDBService(context: TmdbServiceContext) {
     testAndSync,
     searchMedia,
     searchPeople,
+    personDetails,
     searchKeywords,
     discoverMedia,
     discover,
