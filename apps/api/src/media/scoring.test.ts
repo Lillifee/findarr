@@ -6,14 +6,15 @@ import { scoreMediaItemsForUser } from './scoring.js';
 describe('scoreMediaItemsForUser explanations', () => {
   it('does not use a single rating for scoring or explanation', () => {
     const preference: UserPreference = {
+      mediaType: 'movie',
       kind: 'genre',
       subjectKey: '28',
       subjectName: 'Action',
-      score: -1,
-      count: 1,
+      likes: 0,
+      dislikes: 1,
     };
     const preferences = new Map([
-      [toPreferenceKey(preference.kind, preference.subjectKey), preference],
+      [toPreferenceKey('movie', preference.kind, preference.subjectKey), preference],
     ]);
 
     const [result] = scoreMediaItemsForUser(
@@ -31,14 +32,15 @@ describe('scoreMediaItemsForUser explanations', () => {
 
   it('reports the positive and negative split and classifies a close result as mixed', () => {
     const preference: UserPreference = {
+      mediaType: 'movie',
       kind: 'genre',
       subjectKey: '28',
       subjectName: 'Action',
-      score: 1,
-      count: 15,
+      likes: 8,
+      dislikes: 7,
     };
     const preferences = new Map([
-      [toPreferenceKey(preference.kind, preference.subjectKey), preference],
+      [toPreferenceKey('movie', preference.kind, preference.subjectKey), preference],
     ]);
 
     const [result] = scoreMediaItemsForUser(
@@ -56,22 +58,24 @@ describe('scoreMediaItemsForUser explanations', () => {
 
   it('does not compound multiple weak genre preferences into a strong match', () => {
     const action: UserPreference = {
+      mediaType: 'movie',
       kind: 'genre',
       subjectKey: '28',
       subjectName: 'Action',
-      score: 9,
-      count: 141,
+      likes: 75,
+      dislikes: 66,
     };
     const thriller: UserPreference = {
+      mediaType: 'movie',
       kind: 'genre',
       subjectKey: '53',
       subjectName: 'Thriller',
-      score: 9,
-      count: 169,
+      likes: 89,
+      dislikes: 80,
     };
     const preferences = new Map(
       [action, thriller].map((preference) => [
-        toPreferenceKey(preference.kind, preference.subjectKey),
+        toPreferenceKey('movie', preference.kind, preference.subjectKey),
         preference,
       ]),
     );
@@ -99,27 +103,50 @@ describe('scoreMediaItemsForUser explanations', () => {
 
   it('does not let sparse keyword evidence outweigh mature genre evidence', () => {
     const preferences: UserPreference[] = [
-      { kind: 'genre', subjectKey: '28', subjectName: 'Action', score: 14, count: 22 },
-      { kind: 'genre', subjectKey: '80', subjectName: 'Crime', score: -1, count: 15 },
-      { kind: 'genre', subjectKey: '53', subjectName: 'Thriller', score: 20, count: 32 },
       {
+        mediaType: 'movie',
+        kind: 'genre',
+        subjectKey: '28',
+        subjectName: 'Action',
+        likes: 18,
+        dislikes: 4,
+      },
+      {
+        mediaType: 'movie',
+        kind: 'genre',
+        subjectKey: '80',
+        subjectName: 'Crime',
+        likes: 7,
+        dislikes: 8,
+      },
+      {
+        mediaType: 'movie',
+        kind: 'genre',
+        subjectKey: '53',
+        subjectName: 'Thriller',
+        likes: 26,
+        dislikes: 6,
+      },
+      {
+        mediaType: 'movie',
         kind: 'keyword',
         subjectKey: '239886',
         subjectName: 'child protection',
-        score: 2,
-        count: 2,
+        likes: 2,
+        dislikes: 0,
       },
       {
+        mediaType: 'movie',
         kind: 'keyword',
         subjectKey: '325773',
         subjectName: 'audacious',
-        score: 1,
-        count: 3,
+        likes: 2,
+        dislikes: 1,
       },
     ];
     const preferenceMap = new Map(
       preferences.map((preference) => [
-        toPreferenceKey(preference.kind, preference.subjectKey),
+        toPreferenceKey('movie', preference.kind, preference.subjectKey),
         preference,
       ]),
     );
@@ -145,12 +172,26 @@ describe('scoreMediaItemsForUser explanations', () => {
 
   it('keeps established cast evidence competitive with much more common genre evidence', () => {
     const preferences: UserPreference[] = [
-      { kind: 'genre', subjectKey: '28', subjectName: 'Action', score: 20, count: 100 },
-      { kind: 'cast', subjectKey: '1', subjectName: 'First Lead', score: 10, count: 10 },
+      {
+        mediaType: 'movie',
+        kind: 'genre',
+        subjectKey: '28',
+        subjectName: 'Action',
+        likes: 60,
+        dislikes: 40,
+      },
+      {
+        mediaType: 'movie',
+        kind: 'cast',
+        subjectKey: '1',
+        subjectName: 'First Lead',
+        likes: 10,
+        dislikes: 0,
+      },
     ];
     const preferenceMap = new Map(
       preferences.map((preference) => [
-        toPreferenceKey(preference.kind, preference.subjectKey),
+        toPreferenceKey('movie', preference.kind, preference.subjectKey),
         preference,
       ]),
     );
@@ -171,23 +212,25 @@ describe('scoreMediaItemsForUser explanations', () => {
   it('weights subjects by their evidence rather than metadata tag count', () => {
     const preferenceMap = new Map<string, UserPreference>([
       [
-        'keyword:0',
+        'movie:keyword:0',
         {
+          mediaType: 'movie',
           kind: 'keyword',
           subjectKey: '0',
           subjectName: 'Alien',
-          score: 17,
-          count: 19,
+          likes: 18,
+          dislikes: 1,
         },
       ],
       [
-        'keyword:1',
+        'movie:keyword:1',
         {
+          mediaType: 'movie',
           kind: 'keyword',
           subjectKey: '1',
           subjectName: 'Sequel',
-          score: 0,
-          count: 14,
+          likes: 7,
+          dislikes: 7,
         },
       ],
     ]);
@@ -258,16 +301,25 @@ describe('scoreMediaItemsForUser explanations', () => {
   ])('$name produces a differentiated score', ({ genres, keywords, expectedUserScore }) => {
     const preferenceMap = new Map<string, UserPreference>(
       [
-        ...genres.map((genre) => ({ ...genre, kind: 'genre' as const })),
-        ...keywords.map((keyword) => ({ ...keyword, kind: 'keyword' as const })),
+        ...genres.map((genre) => ({
+          ...genre,
+          mediaType: 'movie' as const,
+          kind: 'genre' as const,
+        })),
+        ...keywords.map((keyword) => ({
+          ...keyword,
+          mediaType: 'movie' as const,
+          kind: 'keyword' as const,
+        })),
       ].map((preference) => [
-        toPreferenceKey(preference.kind, String(preference.id)),
+        toPreferenceKey('movie', preference.kind, String(preference.id)),
         {
+          mediaType: 'movie',
           kind: preference.kind,
           subjectKey: String(preference.id),
           subjectName: preference.name,
-          score: preference.score,
-          count: preference.count,
+          likes: (preference.count + preference.score) / 2,
+          dislikes: (preference.count - preference.score) / 2,
         },
       ]),
     );
@@ -298,16 +350,25 @@ describe('scoreMediaItemsForUser explanations', () => {
     ];
     const preferenceMap = new Map<string, UserPreference>(
       [
-        ...genres.map((genre) => ({ ...genre, kind: 'genre' as const })),
-        ...keywords.map((keyword) => ({ ...keyword, kind: 'keyword' as const })),
+        ...genres.map((genre) => ({
+          ...genre,
+          mediaType: 'movie' as const,
+          kind: 'genre' as const,
+        })),
+        ...keywords.map((keyword) => ({
+          ...keyword,
+          mediaType: 'movie' as const,
+          kind: 'keyword' as const,
+        })),
       ].map((preference) => [
-        toPreferenceKey(preference.kind, String(preference.id)),
+        toPreferenceKey('movie', preference.kind, String(preference.id)),
         {
+          mediaType: 'movie',
           kind: preference.kind,
           subjectKey: String(preference.id),
           subjectName: preference.name,
-          score: preference.score,
-          count: preference.count,
+          likes: (preference.count + preference.score) / 2,
+          dislikes: (preference.count - preference.score) / 2,
         },
       ]),
     );
@@ -320,7 +381,7 @@ describe('scoreMediaItemsForUser explanations', () => {
         }),
       ],
       preferenceMap,
-      { likes: 212, dislikes: 479 },
+      { movie: { likes: 212, dislikes: 479 }, tv: { likes: 0, dislikes: 0 } },
     );
     const score = result?.state?.score;
 
@@ -338,13 +399,14 @@ describe('scoreMediaItemsForUser explanations', () => {
         { id: 3, name: 'Third Lead', score: 2 },
         { id: 4, name: 'Fourth Cast Member', score: -2 },
       ].map((member) => [
-        `cast:${member.id}`,
+        `movie:cast:${member.id}`,
         {
+          mediaType: 'movie',
           kind: 'cast',
           subjectKey: String(member.id),
           subjectName: member.name,
-          score: member.score,
-          count: 2,
+          likes: (2 + member.score) / 2,
+          dislikes: (2 - member.score) / 2,
         },
       ]),
     );

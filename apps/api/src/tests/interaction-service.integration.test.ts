@@ -1,3 +1,4 @@
+import { userPreferences } from '@findarr/shared/db';
 import type { CreateMediaInteraction } from '@findarr/shared/interaction';
 import type SqlDatabase from 'better-sqlite3';
 import type { Mocked } from 'vite-plus/test';
@@ -46,10 +47,10 @@ const createInteraction = async (
   catalog: typeof catalogService,
   ...args: Parameters<InteractionService['createInteraction']>
 ) => {
-  const appLogService = createMockAppLogger();
-  const userService = createUserService({ db });
-  const mediaService = createMediaService({ db, tmdb, user: userService, appLog: appLogService });
-  const preferencesService = createPreferencesService({ db, tmdb, user: userService });
+  const appLog = createMockAppLogger();
+  const user = createUserService({ db });
+  const mediaService = createMediaService({ db, tmdb, user, appLog });
+  const preferencesService = createPreferencesService({ db, tmdb, user, appLog });
   const settingsService = createSettingsService(db);
 
   return createInteractionService({
@@ -58,11 +59,11 @@ const createInteraction = async (
     radarr,
     sonarr,
     catalog,
-    user: userService,
+    user,
     media: mediaService,
     preferences: preferencesService,
     settings: settingsService,
-    appLog: appLogService,
+    appLog,
   }).createInteraction(...args);
 };
 
@@ -80,6 +81,7 @@ const buildService = (tmdbService: TMDBService, db: Database): InteractionServic
     db,
     tmdb: tmdbService,
     user: userService,
+    appLog: appLogService,
   });
 
   return createInteractionService({
@@ -137,6 +139,56 @@ describe('interaction service - integration tests', () => {
     sqliteDb.close();
   });
 
+  it('offers mixed and disliked keywords after more liked keywords', async () => {
+    const user = await createTestUserInDb(db, { email: 'keyword-options@test.com' });
+    expectDefined(user);
+    db.insert(userPreferences)
+      .values([
+        {
+          userId: user.id,
+          mediaType: 'movie',
+          kind: 'keyword',
+          subjectKey: '1',
+          subjectName: 'Liked',
+          likes: 20,
+          dislikes: 0,
+        },
+        {
+          userId: user.id,
+          mediaType: 'movie',
+          kind: 'keyword',
+          subjectKey: '2',
+          subjectName: 'Mixed',
+          likes: 10,
+          dislikes: 12,
+        },
+        {
+          userId: user.id,
+          mediaType: 'movie',
+          kind: 'keyword',
+          subjectKey: '3',
+          subjectName: 'Disliked',
+          likes: 0,
+          dislikes: 3,
+        },
+      ])
+      .run();
+
+    const preferencesService = createPreferencesService({
+      db,
+      tmdb,
+      user: createUserService({ db }),
+      appLog: createMockAppLogger(),
+    });
+    const suggestions = await preferencesService.listForUser(user.id, 'movie');
+
+    expect(suggestions.keywords.map((keyword) => keyword.name)).toStrictEqual([
+      'Liked',
+      'Mixed',
+      'Disliked',
+    ]);
+  });
+
   describe('createInteraction', () => {
     it('should create new media and interaction when media does not exist', async () => {
       const user = await createTestUserInDb(db, { email: 'user1@test.com' });
@@ -164,8 +216,8 @@ describe('interaction service - integration tests', () => {
 
       const preferences = await getUserPreferences(db, user.id);
       expect(
-        [...preferences.keys()].filter((key) => key.startsWith('cast:')).toSorted(),
-      ).toStrictEqual(['cast:1', 'cast:2', 'cast:3', 'cast:4']);
+        [...preferences.keys()].filter((key) => key.startsWith('movie:cast:')).toSorted(),
+      ).toStrictEqual(['movie:cast:1', 'movie:cast:2', 'movie:cast:3', 'movie:cast:4']);
 
       // Verify result
       expect(result).toMatchObject({
@@ -211,9 +263,9 @@ describe('interaction service - integration tests', () => {
       // Verify interaction exists
       expect(await getInteractionAction(db, user.id, media.id)).toBe('liked');
       const preferencesAfterLike = await getUserPreferences(db, user.id);
-      expect(preferencesAfterLike.get('genre:28')).toMatchObject({
-        score: 1,
-        count: 1,
+      expect(preferencesAfterLike.get('movie:genre:28')).toMatchObject({
+        likes: 1,
+        dislikes: 0,
       });
 
       // Toggle off - click the same action again
@@ -267,9 +319,9 @@ describe('interaction service - integration tests', () => {
       // Verify only like exists now
       expect(await getInteractionAction(db, user.id, media.id)).toBe('liked');
       const preferencesAfterLike = await getUserPreferences(db, user.id);
-      expect(preferencesAfterLike.get('genre:28')).toMatchObject({
-        score: 1,
-        count: 1,
+      expect(preferencesAfterLike.get('movie:genre:28')).toMatchObject({
+        likes: 1,
+        dislikes: 0,
       });
 
       await createInteraction(
@@ -283,9 +335,9 @@ describe('interaction service - integration tests', () => {
       );
 
       const preferencesAfterSecondDislike = await getUserPreferences(db, user.id);
-      expect(preferencesAfterSecondDislike.get('genre:28')).toMatchObject({
-        score: -1,
-        count: 1,
+      expect(preferencesAfterSecondDislike.get('movie:genre:28')).toMatchObject({
+        likes: 0,
+        dislikes: 1,
       });
     });
 
@@ -325,9 +377,9 @@ describe('interaction service - integration tests', () => {
       );
 
       const preferencesAfterSeasonUpdate = await getUserPreferences(db, user.id);
-      expect(preferencesAfterSeasonUpdate.get('genre:18')).toMatchObject({
-        score: 1,
-        count: 1,
+      expect(preferencesAfterSeasonUpdate.get('tv:genre:18')).toMatchObject({
+        likes: 1,
+        dislikes: 0,
       });
     });
 
