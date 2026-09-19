@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { tmdbImage } from '../../utils/tmdb';
+import { HorizontalRail } from '../ui/HorizontalRail';
 import { Icon } from '../ui/Icon';
 import { DiscoveryTag } from './DiscoveryTag';
 
@@ -14,6 +15,7 @@ interface ExpandableSectionProps {
   collapsedClassName: string;
   heading: string;
   headingClassName?: string;
+  resetKey: string;
 }
 
 function ExpandableSection({
@@ -21,7 +23,9 @@ function ExpandableSection({
   collapsedClassName,
   heading,
   headingClassName = 'mb-2',
+  resetKey,
 }: ExpandableSectionProps) {
+  const { t } = useTranslation();
   const contentRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [hasMore, setHasMore] = useState(false);
@@ -33,9 +37,7 @@ function ExpandableSection({
     }
 
     const updateOverflow = () => {
-      if (!expanded) {
-        setHasMore(content.scrollHeight > content.clientHeight + 1);
-      }
+      setHasMore(!expanded && content.scrollHeight > content.clientHeight + 1);
     };
 
     updateOverflow();
@@ -46,28 +48,18 @@ function ExpandableSection({
     };
   }, [children, expanded]);
 
+  useEffect(() => {
+    setExpanded(false);
+  }, [resetKey]);
+
   return (
     <>
-      <div className="mb-2 flex items-center justify-between gap-3">
+      <div className="mb-2">
         <h2
           className={`${headingClassName} text-xs font-semibold tracking-wide text-zinc-400 uppercase`}
         >
           {heading}
         </h2>
-        {hasMore && (
-          <button
-            type="button"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-zinc-800 bg-zinc-900 text-zinc-300 transition-colors hover:border-zinc-700 hover:bg-zinc-800 hover:text-amber-300"
-            aria-expanded={expanded}
-            aria-label={heading}
-            title={heading}
-            onClick={() => {
-              setExpanded((current) => !current);
-            }}
-          >
-            <Icon name={expanded ? 'expand_less' : 'expand_more'} size="sm" />
-          </button>
-        )}
       </div>
       <div
         ref={contentRef}
@@ -75,6 +67,21 @@ function ExpandableSection({
       >
         {children}
       </div>
+      {hasMore && !expanded && (
+        <div className="mt-2 flex justify-end">
+          <button
+            type="button"
+            className="text-xs font-semibold text-amber-300 transition-colors hover:text-amber-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+            aria-expanded={expanded}
+            aria-label={heading}
+            onClick={() => {
+              setExpanded(true);
+            }}
+          >
+            {t('common.showAll')}
+          </button>
+        </div>
+      )}
     </>
   );
 }
@@ -124,7 +131,11 @@ export function SearchMatches({
     >
       {genres.length > 0 && (
         <section aria-label={t('catalog.genreResults')}>
-          <ExpandableSection collapsedClassName="max-h-17" heading={t('catalog.genreResults')}>
+          <ExpandableSection
+            collapsedClassName="max-h-17"
+            heading={t('catalog.genreResults')}
+            resetKey={genres.map((genre) => genre.id).join(',')}
+          >
             <div className="flex flex-row flex-wrap gap-2">
               {genres.map((genre) => (
                 <DiscoveryTag
@@ -143,7 +154,11 @@ export function SearchMatches({
 
       {keywords.length > 0 && (
         <section aria-label={t('catalog.keywordResults')}>
-          <ExpandableSection collapsedClassName="max-h-17" heading={t('catalog.keywordResults')}>
+          <ExpandableSection
+            collapsedClassName="max-h-17"
+            heading={t('catalog.keywordResults')}
+            resetKey={keywords.map((keyword) => keyword.id).join(',')}
+          >
             <div className="flex flex-row flex-wrap gap-2">
               {keywords.map((keyword) => (
                 <DiscoveryTag
@@ -162,71 +177,85 @@ export function SearchMatches({
 
       {visiblePeople.length > 0 && (
         <section aria-label={t('catalog.peopleResults')}>
-          <ExpandableSection
-            collapsedClassName={compact ? 'max-h-24' : 'max-h-28'}
-            heading={t('catalog.peopleResults')}
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <h2 className="text-xs font-semibold tracking-wide text-zinc-400 uppercase">
+              {t('catalog.peopleResults')}
+            </h2>
+          </div>
+          <HorizontalRail
+            ariaLabel={t('catalog.peopleResults')}
+            contentClassName={`flex px-1 ${compact ? 'gap-4' : 'gap-7'}`}
+            nextLabel={t('common.next')}
+            previousLabel={t('common.previous')}
           >
-            <div className={`flex flex-wrap px-1 ${compact ? 'gap-4' : 'gap-7'}`}>
-              {visiblePeople.map((person) => (
-                <button
-                  key={person.tmdbId}
-                  type="button"
-                  onClick={() => {
-                    onSelectPerson(person);
-                  }}
-                  className={`flex shrink-0 flex-col items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${compact ? 'w-16' : 'w-20'}`}
-                >
-                  {isDefined(person.profilePath) ? (
-                    <img
-                      src={tmdbImage(person.profilePath, 'w185')}
-                      alt={person.name}
-                      className={`${compact ? 'h-16 w-16' : 'h-20 w-20'} mb-2 rounded-full border border-zinc-800/80 object-cover shadow-lg`}
-                    />
-                  ) : (
-                    <span
-                      className={`${compact ? 'h-16 w-16' : 'h-20 w-20'} mb-2 flex items-center justify-center rounded-full border border-zinc-800/80 bg-zinc-900/80 shadow-lg`}
-                    >
-                      <Icon filled className="text-zinc-500" name="person" size="xl" />
-                    </span>
-                  )}
-                  <span className="w-full truncate text-center text-xs font-medium text-white">
-                    {person.name}
+            {visiblePeople.map((person) => (
+              <button
+                key={person.tmdbId}
+                type="button"
+                onClick={() => {
+                  onSelectPerson(person);
+                }}
+                className={`flex shrink-0 flex-col items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${compact ? 'w-16' : 'w-20'}`}
+              >
+                {isDefined(person.profilePath) ? (
+                  <img
+                    src={tmdbImage(person.profilePath, 'w185')}
+                    alt={person.name}
+                    className={`${compact ? 'h-16 w-16' : 'h-20 w-20'} mb-2 rounded-full border border-zinc-800/80 object-cover shadow-lg`}
+                  />
+                ) : (
+                  <span
+                    className={`${compact ? 'h-16 w-16' : 'h-20 w-20'} mb-2 flex items-center justify-center rounded-full border border-zinc-800/80 bg-zinc-900/80 shadow-lg`}
+                  >
+                    <Icon filled className="text-zinc-500" name="person" size="xl" />
                   </span>
-                </button>
-              ))}
-            </div>
-          </ExpandableSection>
+                )}
+                <span className="w-full truncate text-center text-xs font-medium text-white">
+                  {person.name}
+                </span>
+              </button>
+            ))}
+          </HorizontalRail>
         </section>
       )}
       {results.length > 0 && (
         <section aria-label={t('catalog.mediaResults')}>
-          <ExpandableSection collapsedClassName="max-h-60" heading={t('catalog.mediaResults')}>
-            <div className="flex flex-wrap gap-3">
-              {results.slice(0, 14).map((media) => (
-                <button
-                  key={`${media.type}-${media.tmdbId}`}
-                  type="button"
-                  className="flex w-32 shrink-0 flex-col text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                  onClick={() => {
-                    onSelectMedia?.(media);
-                  }}
-                >
-                  {isDefined(media.posterPath) ? (
-                    <img
-                      src={tmdbImage(media.posterPath, 'w185')}
-                      alt=""
-                      className="mb-2 aspect-2/3 w-full rounded-md object-cover"
-                    />
-                  ) : (
-                    <span className="mb-2 flex aspect-2/3 w-full items-center justify-center rounded-md bg-zinc-900 text-zinc-500">
-                      <Icon name={media.type === 'movie' ? 'movie' : 'tv'} size="lg" />
-                    </span>
-                  )}
-                  <span className="line-clamp-2 text-xs font-medium text-white">{media.name}</span>
-                </button>
-              ))}
-            </div>
-          </ExpandableSection>
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <h2 className="text-xs font-semibold tracking-wide text-zinc-400 uppercase">
+              {t('catalog.mediaResults')}
+            </h2>
+          </div>
+          <HorizontalRail
+            ariaLabel={t('catalog.mediaResults')}
+            contentClassName="flex gap-3"
+            nextLabel={t('common.next')}
+            previousLabel={t('common.previous')}
+          >
+            {results.slice(0, 14).map((media) => (
+              <button
+                key={`${media.type}-${media.tmdbId}`}
+                type="button"
+                disabled={!onSelectMedia}
+                className="flex w-32 shrink-0 flex-col text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                onClick={() => {
+                  onSelectMedia?.(media);
+                }}
+              >
+                {isDefined(media.posterPath) ? (
+                  <img
+                    src={tmdbImage(media.posterPath, 'w185')}
+                    alt=""
+                    className="mb-2 aspect-2/3 w-full rounded-md object-cover"
+                  />
+                ) : (
+                  <span className="mb-2 flex aspect-2/3 w-full items-center justify-center rounded-md bg-zinc-900 text-zinc-500">
+                    <Icon name={media.type === 'movie' ? 'movie' : 'tv'} size="lg" />
+                  </span>
+                )}
+                <span className="line-clamp-2 text-xs font-medium text-white">{media.name}</span>
+              </button>
+            ))}
+          </HorizontalRail>
         </section>
       )}
     </aside>

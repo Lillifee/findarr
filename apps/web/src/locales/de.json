@@ -15,7 +15,10 @@
     "email": "E-Mail",
     "password": "Passwort",
     "creating": "Wird erstellt...",
-    "noResults": "Keine Ergebnisse gefunden"
+    "noResults": "Keine Ergebnisse gefunden",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "showAll": "Alle anzeigen"
   },
   "nav": {
     "home": "Startseite",

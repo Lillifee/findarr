@@ -22,7 +22,6 @@ interface SearchBarProps {
   hasSearched?: boolean;
   discovery?: DiscoveryFilter[];
   suggestions?: SearchData;
-  searchData?: SearchData;
   showPeople?: boolean;
   onSearch: (query: string) => void;
   onSearchPreview?: (query: string) => void;
@@ -43,7 +42,6 @@ export function SearchBar({
   hasSearched = false,
   discovery = emptyDiscovery,
   suggestions,
-  searchData,
   showPeople = true,
   onSearch,
   onSearchPreview,
@@ -64,7 +62,7 @@ export function SearchBar({
   const inputRef = useRef<HTMLInputElement>(null);
   const inputFocusedRef = useRef(false);
   const canClear = Boolean(query || hasSearched || discovery.length > 0);
-  const activeData = query.trim() ? searchData : suggestions;
+  const activeData = suggestions;
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
@@ -133,6 +131,7 @@ export function SearchBar({
   const handleDiscoverySelect = () => {
     clearTimeout(pendingSearchRef.current ?? undefined);
     setQuery('');
+    onSearchPreview?.('');
     setPanelOpen(false);
   };
 
@@ -248,7 +247,7 @@ export function SearchBar({
       </div>
       {panelOpen && activeData && (
         <PopupPanel
-          className="fixed inset-x-2 top-16 z-50 max-h-[calc(100vh-8rem)] min-h-96 overflow-x-hidden overflow-y-auto p-4 md:absolute md:inset-x-0 md:!top-[calc(100%+0.5rem)] md:max-h-[calc(100vh-7rem)] md:min-h-128"
+          className="fixed inset-x-2 top-16 z-50 max-h-[calc(100vh-8rem)] min-h-96 overflow-x-hidden overflow-y-auto p-4 md:absolute md:inset-x-0 md:top-[calc(100%+0.5rem)]! md:max-h-[calc(100vh-7rem)] md:min-h-128"
           style={mobilePanelTop === null ? undefined : { top: `${mobilePanelTop}px` }}
         >
           {activeData.loading ? (

@@ -73,10 +73,8 @@ export function MediaView({
     ? undefined
     : `https://www.youtube.com/results?search_query=${encodeURIComponent(`${title} ${releaseYear} trailer`)}`;
 
-  const topCast = (media.cast ?? []).slice(0, 12);
-  const voters = (media.state?.voters ?? [])
-    .filter((voter) => voter.action === 'liked')
-    .slice(0, 6);
+  const topCast = media.cast ?? [];
+  const voters = (media.state?.voters ?? []).filter((voter) => voter.action === 'liked');
   const recommendations = media.recommendations ?? [];
 
   const availabilityStatus = media.state?.record?.status;
@@ -327,6 +325,7 @@ export function MediaView({
                   {t('mediaView.cast')}
                 </h2>
                 <PeopleGrid
+                  ariaLabel={t('mediaView.cast')}
                   people={topCast.map((actor) => ({
                     id: actor.id,
                     name: actor.name,
@@ -346,6 +345,7 @@ export function MediaView({
                   {t('mediaView.recommendations')}
                 </h2>
                 <MediaPosterStrip
+                  ariaLabel={t('mediaView.recommendations')}
                   loading={false}
                   onSelectItem={goToMedia}
                   results={recommendations}

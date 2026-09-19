@@ -44,13 +44,6 @@ export function ExplorePage() {
             discovery={feed.discovery}
             onRemoveDiscovery={feed.onDiscoveryRemove}
             suggestions={feed.suggestions}
-            searchData={{
-              genres: feed.suggestions.genres,
-              keywords: feed.suggestions.keywords,
-              people: feed.suggestions.people,
-              results: feed.suggestions.results,
-              loading: feed.suggestions.loading,
-            }}
             onSelectGenre={feed.onGenreSelect}
             onSelectKeyword={feed.onKeywordSelect}
             onSelectPerson={feed.onPersonSelect}
