@@ -83,7 +83,7 @@ export const ArrRootFolderSchema = z.object({
 export const LibSettingsQuerySchema = z.object({
   enabled: z.boolean().optional(),
   url: z.string().optional(),
-  apiKey: z.string().optional(),
+  apiKey: z.string().min(1).optional(),
 });
 
 /** Response shape for GET /admin/jellyfin/settings and GET /admin/plex/settings */

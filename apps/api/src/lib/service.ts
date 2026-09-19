@@ -1,5 +1,5 @@
 import type { LibSettings, LibSettingsQuery } from '@findarr/shared/settings';
-import { isDefined } from '@findarr/shared/utils';
+import { isDefined, isNotEmpty } from '@findarr/shared/utils';
 
 import type { Database } from '../db/service.js';
 import type { SchedulerService } from '../scheduler/service.js';
@@ -38,7 +38,7 @@ export async function createLibService(config: LibServiceConfig, context: LibSer
         return undefined;
       }
       const factory = clientFactories[config.service];
-      return factory && isDefined(settings.url) && isDefined(settings.apiKey)
+      return factory && isDefined(settings.url) && isNotEmpty(settings.apiKey?.trim())
         ? factory(settings.url, settings.apiKey, context.appLog)
         : undefined;
     },

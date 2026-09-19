@@ -22,7 +22,10 @@ interface JellyfinUser {
 function createHttpClient(baseUrl: string, apiKey: string): AxiosInstance {
   return create({
     baseURL: baseUrl,
-    headers: { 'X-Emby-Token': apiKey, 'Content-Type': 'application/json' },
+    headers: {
+      Authorization: `MediaBrowser Client="Findarr", Device="Findarr", DeviceId="findarr", Version="1.0.0", Token="${apiKey}"`,
+      'Content-Type': 'application/json',
+    },
     timeout: 30_000,
   });
 }
