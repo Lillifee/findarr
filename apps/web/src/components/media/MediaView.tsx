@@ -22,6 +22,11 @@ interface MediaDetailsProps {
 
 const createFormattedMeta = (text: string) => `(${text})`;
 
+const featuredCrewJobOrder = ['Director', 'Creator', 'Screenplay', 'Writer', 'Novel', 'Story'];
+const featuredCrewJobPriority = new Map(
+  featuredCrewJobOrder.map((job, priority) => [job, priority]),
+);
+
 // Format helpers
 const formatRuntime = (value: number | number[] | undefined, unknown: string) => {
   if (!isDefined(value)) {
@@ -74,6 +79,13 @@ export function MediaView({
     : `https://www.youtube.com/results?search_query=${encodeURIComponent(`${title} ${releaseYear} trailer`)}`;
 
   const topCast = media.cast ?? [];
+  const crew = (media.crew ?? [])
+    .filter((member) => featuredCrewJobPriority.has(member.job))
+    .toSorted(
+      (first, second) =>
+        (featuredCrewJobPriority.get(first.job) ?? Number.MAX_SAFE_INTEGER) -
+        (featuredCrewJobPriority.get(second.job) ?? Number.MAX_SAFE_INTEGER),
+    );
   const voters = (media.state?.voters ?? []).filter((voter) => voter.action === 'liked');
   const recommendations = media.recommendations ?? [];
 
@@ -311,6 +323,27 @@ export function MediaView({
                       name={keyword.name}
                       onClick={() => {
                         goToDiscovery('keyword', keyword.id, keyword.name);
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {crew.length > 0 && (
+              <div className="mb-8">
+                <h2 className="mb-4 text-2xl font-semibold text-white drop-shadow-md">
+                  {t('mediaView.crew')}
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {crew.map((member) => (
+                    <DiscoveryTag
+                      type="person"
+                      key={`${member.id}-${member.job}`}
+                      label={member.job}
+                      name={member.name}
+                      onClick={() => {
+                        goToDiscovery('person', member.id, member.name);
                       }}
                     />
                   ))}

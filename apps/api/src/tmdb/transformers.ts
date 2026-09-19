@@ -11,6 +11,7 @@ import type {
   Keyword,
   Media,
   CastMember,
+  CrewMember,
   Person,
   Video,
 } from '@findarr/shared/media';
@@ -42,6 +43,19 @@ function extractCast(credits: TMDBCredits | undefined): CastMember[] | undefined
     character: member.character,
     profilePath: member.profile_path ?? undefined,
     order: member.order,
+  }));
+}
+
+function extractCrew(credits: TMDBCredits | undefined): CrewMember[] | undefined {
+  if (!credits?.crew || credits.crew.length === 0) {
+    return undefined;
+  }
+
+  return credits.crew.map((member) => ({
+    id: member.id,
+    name: member.name,
+    job: member.job,
+    profilePath: member.profile_path ?? undefined,
   }));
 }
 
@@ -86,6 +100,7 @@ function transformMovieDetails(
 
   // Extract rich media data
   const cast = extractCast(tmdbMovie.credits);
+  const crew = extractCrew(tmdbMovie.credits);
   const videos = extractVideos(tmdbMovie.videos);
 
   return {
@@ -111,6 +126,7 @@ function transformMovieDetails(
     homepage: tmdbMovie.homepage ?? undefined,
     imdbId: tmdbMovie.imdb_id ?? undefined,
     cast,
+    crew,
     videos,
     ...(tmdbMovie.recommendations
       ? {
@@ -139,6 +155,7 @@ function transformTVDetails(tmdbTV: TMDBTVDetails, genreMap: Map<number, Genre>)
 
   // Extract rich media data
   const cast = extractCast(tmdbTV.credits);
+  const crew = extractCrew(tmdbTV.credits);
   const videos = extractVideos(tmdbTV.videos);
 
   return {
@@ -169,6 +186,7 @@ function transformTVDetails(tmdbTV: TMDBTVDetails, genreMap: Map<number, Genre>)
     tvdbId: tmdbTV.external_ids?.tvdb_id ?? undefined,
     imdbId: tmdbTV.external_ids?.imdb_id ?? undefined,
     cast,
+    crew,
     videos,
     ...(tmdbTV.recommendations
       ? {
