@@ -2,7 +2,6 @@ import {
   SearchQuerySchema,
   DiscoverQuerySchema,
   DetailsQuerySchema,
-  GenresQuerySchema,
   PopularQuerySchema,
 } from '@findarr/shared/catalog';
 import type { FastifyInstance } from 'fastify';
@@ -21,16 +20,6 @@ export const catalogRoutes = (fastify: FastifyInstance) => {
     ),
   );
 
-  fastify.get(
-    '/discover',
-    protectedRoute(async (request) =>
-      fastify.catalog.listDiscoveredMedia(
-        DiscoverQuerySchema.parse(request.query),
-        request.user.id,
-      ),
-    ),
-  );
-
   // Details endpoint: GET /details?id=123&type=movie&language=en-US
   // Returns enriched media with DB state if authenticated
   fastify.get(
@@ -40,15 +29,17 @@ export const catalogRoutes = (fastify: FastifyInstance) => {
     ),
   );
 
-  // Genres endpoint: GET /genres?type=movie
-  fastify.get('/genres', async (request) =>
-    fastify.catalog.listGenres(GenresQuerySchema.parse(request.query)),
-  );
-
   fastify.get(
     '/queue',
     protectedRoute(async (request) =>
-      fastify.catalog.getVoteQueue(PopularQuerySchema.parse(request.query), request.user.id),
+      fastify.catalog.getVotingFeed(PopularQuerySchema.parse(request.query), request.user.id),
+    ),
+  );
+
+  fastify.get(
+    '/discover',
+    protectedRoute(async (request) =>
+      fastify.catalog.getDiscoveryFeed(DiscoverQuerySchema.parse(request.query), request.user.id),
     ),
   );
 };

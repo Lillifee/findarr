@@ -29,7 +29,7 @@ export function useDashboardData(): DashboardData {
 
     const loadHero = async () => {
       try {
-        const result = await searchService.getVoteQueue({ type: 'both', page: 1 });
+        const result = await searchService.getVotingFeed({ type: 'both', page: 1 });
         if (requestId !== requestIdRef.current) {
           return;
         }

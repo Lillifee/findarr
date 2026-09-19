@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
 import { Icon } from '../ui/Icon';
+import { PopupPanel } from '../ui/PopupPanel';
 import { controlSurface } from '../ui/theme';
 import { MediaTypeChips } from './MediaTypeChips';
 
@@ -32,7 +33,7 @@ function FilterPanel({ children, onClose }: FilterPanelProps) {
       />
 
       <div className="animate-in slide-in-from-top-4 fixed top-8 right-0 left-0 z-1010 mx-4 max-w-7xl duration-200 md:right-0 md:left-64 md:mx-8 md:mr-auto md:ml-auto">
-        <div className="flex max-h-[calc(100dvh-3rem)] flex-col overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+        <PopupPanel className="flex max-h-[calc(100dvh-3rem)] flex-col">
           <div className="shrink-0 border-b border-zinc-800 px-4 py-4 md:px-5">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -41,10 +42,10 @@ function FilterPanel({ children, onClose }: FilterPanelProps) {
               <button
                 type="button"
                 onClick={onClose}
-                className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:border-zinc-700 hover:bg-zinc-800 hover:text-zinc-100"
+                className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+                aria-label={t('common.close')}
               >
-                {t('common.close')}
-                <span aria-hidden>{t('common.closeSymbol')}</span>
+                <Icon name="close" />
               </button>
             </div>
           </div>
@@ -52,7 +53,7 @@ function FilterPanel({ children, onClose }: FilterPanelProps) {
           <div className="flex flex-col gap-4 overflow-y-auto overscroll-contain p-4 md:p-5">
             {children}
           </div>
-        </div>
+        </PopupPanel>
       </div>
     </>
   );

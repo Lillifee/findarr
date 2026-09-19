@@ -1,4 +1,4 @@
-import type { Genre, MediaDetails, SearchResponse } from '@findarr/shared/media';
+import type { MediaDetails, SearchResponse } from '@findarr/shared/media';
 import type SqlDatabase from 'better-sqlite3';
 import type { Mocked } from 'vite-plus/test';
 
@@ -66,7 +66,7 @@ describe('catalog service - integration tests', () => {
     sqliteDb.close();
   });
 
-  it('should delegate search, details, and genres', async () => {
+  it('should delegate search and details', async () => {
     vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
     const user = await createTestUserInDb(db, { email: 'delegate@test.com' });
 
@@ -78,21 +78,15 @@ describe('catalog service - integration tests', () => {
       page: 0,
     };
     const detailsResult: MediaDetails = createTestMovieDetail({ tmdbId: 1 });
-    const genresResult: Genre[] = [];
-
     tmdbService.searchMedia.mockResolvedValue(searchResult);
     tmdbService.searchPeople.mockResolvedValue(searchResult.people);
     tmdbService.details.mockResolvedValue(detailsResult);
-    tmdbService.searchGenres.mockResolvedValue(genresResult);
 
     const search = await catalogService.search({ query: 'test', type: 'movie', page: 0 }, user.id);
     expect(search.results).toStrictEqual(searchResult.results);
 
     const details = await catalogService.getMediaDetails({ id: 1, type: 'movie' }, user.id);
     expect(details).toBe(detailsResult);
-
-    const genres = await catalogService.listGenres({});
-    expect(genres).toBe(genresResult);
   });
 
   it('should return people and keywords and discover media by person, keyword, or genre', async () => {
@@ -107,15 +101,15 @@ describe('catalog service - integration tests', () => {
     tmdbService.discoverMedia.mockResolvedValue({ page: 1, results: [movie] });
 
     const search = await catalogService.search({ query: 'test', type: 'both', page: 1 }, user.id);
-    const personDiscovery = await catalogService.listDiscoveredMedia(
+    const personDiscovery = await catalogService.getDiscoveryFeed(
       { person: [1], genre: [], keyword: [], page: 1, type: 'movie' },
       user.id,
     );
-    const keywordDiscovery = await catalogService.listDiscoveredMedia(
+    const keywordDiscovery = await catalogService.getDiscoveryFeed(
       { person: [], genre: [], keyword: [1], page: 1, type: 'tv' },
       user.id,
     );
-    const genreDiscovery = await catalogService.listDiscoveredMedia(
+    const genreDiscovery = await catalogService.getDiscoveryFeed(
       { person: [], genre: [28], keyword: [], page: 1, type: 'both' },
       user.id,
     );
@@ -149,7 +143,7 @@ describe('catalog service - integration tests', () => {
   it('should delegate discovery without filters', async () => {
     const user = await createTestUserInDb(db, { email: 'empty-discover@test.com' });
 
-    const result = await catalogService.listDiscoveredMedia(
+    const result = await catalogService.getDiscoveryFeed(
       { person: [], genre: [], keyword: [], page: 1, type: 'both' },
       user.id,
     );
@@ -183,7 +177,10 @@ describe('catalog service - integration tests', () => {
     const nextVotedMediaRecord = await createMedia(db, 101, 'movie');
     await addInteraction(db, user.id, nextVotedMediaRecord.id, 'liked');
 
-    const result = await catalogService.getVoteQueue({ type: 'both' }, user.id);
+    const result = await catalogService.getVotingFeed(
+      { type: 'both', page: 1, interaction: 'all' },
+      user.id,
+    );
 
     expect(result.results).toHaveLength(100);
     expect(result.results.at(-1)?.tmdbId).toBe(100);

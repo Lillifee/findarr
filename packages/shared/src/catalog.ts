@@ -24,6 +24,7 @@ export const SearchQuerySchema = z.object({
 });
 
 export const DiscoverQuerySchema = z.object({
+  feedId: z.uuid().optional(),
   page: z.coerce.number().int().min(1).max(1000).default(1),
   type: z.enum(['movie', 'tv', 'both']).default('both'),
   person: positiveIds,
@@ -34,10 +35,9 @@ export const DiscoverQuerySchema = z.object({
 // Snapshot-backed popular query for infinite scrolling/load-more
 export const PopularQuerySchema = z.object({
   feedId: z.uuid().optional(),
-  page: z.coerce.number().int().min(1).max(1000).optional(),
-  type: z.enum(['movie', 'tv', 'both']).optional(),
-
-  interaction: z.enum(['all', 'unvoted', 'voted']).optional(),
+  page: z.coerce.number().int().min(1).max(1000).default(1),
+  type: z.enum(['movie', 'tv', 'both']).default('both'),
+  interaction: z.enum(['all', 'unvoted', 'voted']).default('all'),
 });
 
 export const DetailsQuerySchema = z.object({
@@ -45,10 +45,7 @@ export const DetailsQuerySchema = z.object({
   type: z.enum(['movie', 'tv']),
 });
 
-export const GenresQuerySchema = z.object({});
-
 export type SearchQuery = z.infer<typeof SearchQuerySchema>;
 export type DiscoverQuery = z.infer<typeof DiscoverQuerySchema>;
 export type PopularQuery = z.infer<typeof PopularQuerySchema>;
 export type DetailsQuery = z.infer<typeof DetailsQuerySchema>;
-export type GenresQuery = z.infer<typeof GenresQuerySchema>;

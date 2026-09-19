@@ -73,7 +73,7 @@ export function useVoteFeed(): VoteFeed {
       setQueueError(null);
 
       try {
-        const response = await searchService.getVoteQueue({
+        const response = await searchService.getVotingFeed({
           type: selectedType,
           feedId: queueFeedIdRef.current ?? undefined,
           page: append ? queuePageRef.current + 1 : 1,

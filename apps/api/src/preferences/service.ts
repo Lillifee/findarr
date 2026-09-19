@@ -112,22 +112,16 @@ export function createPreferencesService(context: PreferencesContext) {
     const availableGenres = await context.tmdb.searchGenres({ language, type });
     const people = await Promise.all(
       sortByPreference('cast', suggestions.people)
-        .slice(0, 11)
+        .slice(0, 24)
         .map(async ({ id: tmdbId, name, score }) => {
-          const tmdbPeople = await context.tmdb.searchPeople({
-            query: name,
-            page: 1,
-            type: 'both',
-            language,
-          });
-          const match = tmdbPeople.find((person) => person.tmdbId === tmdbId);
+          const person = await context.tmdb.personDetails(tmdbId, { language });
 
           return {
             tmdbId,
             name,
             score,
-            profilePath: match?.profilePath,
-            knownForDepartment: match?.knownForDepartment,
+            profilePath: person.profilePath,
+            knownForDepartment: person.knownForDepartment,
           };
         }),
     );

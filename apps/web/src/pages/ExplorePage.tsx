@@ -28,17 +28,34 @@ export function ExplorePage() {
     goToMedia(item);
   };
 
+  const showingSearchResults = feed.currentQuery.length > 0;
+
   return (
     <>
       <SearchFilterBar
         search={
           <SearchBar
             onSearch={feed.onSearch}
+            onSearchPreview={feed.onSearchPreview}
+            onSubmitSearch={feed.onSubmitSearch}
             onClear={feed.onClearSearch}
-            hasSearched={feed.mode !== 'browse'}
+            hasSearched={feed.mode !== 'browse' || feed.currentQuery.length > 0}
             initialQuery={feed.currentQuery}
             discovery={feed.discovery}
             onRemoveDiscovery={feed.onDiscoveryRemove}
+            suggestions={feed.suggestions}
+            searchData={{
+              genres: feed.suggestions.genres,
+              keywords: feed.suggestions.keywords,
+              people: feed.suggestions.people,
+              results: feed.suggestions.results,
+              loading: feed.suggestions.loading,
+            }}
+            onSelectGenre={feed.onGenreSelect}
+            onSelectKeyword={feed.onKeywordSelect}
+            onSelectPerson={feed.onPersonSelect}
+            onSelectMedia={goToMedia}
+            showPeople={feed.currentSearchType !== 'tv'}
           />
         }
         filters={
@@ -57,26 +74,31 @@ export function ExplorePage() {
       <PageContainer>
         <div className="space-y-8 md:space-y-10">
           {feed.mode === 'browse' && (
-            <PageHeader title={t('explore.title')} description={t('explore.description')} />
-          )}
-
-          {feed.mode !== 'discover' && (
-            <SearchMatches
-              genres={feed.genres}
-              keywords={feed.keywords}
-              people={feed.currentSearchType === 'tv' ? [] : feed.people}
-              onSelectGenre={feed.onGenreSelect}
-              onSelectKeyword={feed.onKeywordSelect}
-              onSelectPerson={feed.onPersonSelect}
-            />
+            <>
+              <PageHeader title={t('explore.title')} description={t('explore.description')} />
+              {!showingSearchResults && (
+                <SearchMatches
+                  genres={feed.preferences.genres}
+                  keywords={feed.preferences.keywords}
+                  people={feed.preferences.people}
+                  results={feed.preferences.results}
+                  onSelectGenre={feed.onGenreSelect}
+                  onSelectKeyword={feed.onKeywordSelect}
+                  onSelectPerson={feed.onPersonSelect}
+                  onSelectMedia={goToMedia}
+                  showPeople={feed.currentSearchType !== 'tv'}
+                  className="w-full"
+                />
+              )}
+            </>
           )}
 
           <PaginatedMediaResults
-            results={feed.results}
-            loading={feed.loading}
-            loadingMore={feed.loadingMore}
-            hasMore={feed.hasMore}
-            showEmptyState={feed.mode !== 'browse'}
+            results={showingSearchResults ? feed.searchResults : feed.results}
+            loading={showingSearchResults ? feed.searchLoading : feed.loading}
+            loadingMore={showingSearchResults ? false : feed.loadingMore}
+            hasMore={showingSearchResults ? false : feed.hasMore}
+            showEmptyState={showingSearchResults || feed.mode !== 'browse'}
             onSelectItem={handleSelectItem}
             onUpdateItem={feed.updateItem}
             onLoadMore={feed.loadMore}
