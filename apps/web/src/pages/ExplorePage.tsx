@@ -8,6 +8,7 @@ import { PageContainer } from '../components/ui/PageContainer';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SearchFilterBar } from '../components/ui/SearchFilterBar';
 import { SegmentedControl, type SegmentedControlOption } from '../components/ui/SegmentedControl';
+import { LoadingState } from '../components/ui/StateDisplay';
 import { useCatalogFeed } from '../hooks/useCatalogFeed';
 import { useMediaNavigation } from '../hooks/useMediaNavigation';
 import { useMediaUpdateSubscription } from '../hooks/useMediaUpdateSubscription';
@@ -69,20 +70,23 @@ export function ExplorePage() {
           {feed.mode === 'browse' && (
             <>
               <PageHeader title={t('explore.title')} description={t('explore.description')} />
-              {!showingSearchResults && (
-                <SearchMatches
-                  genres={feed.preferences.genres}
-                  keywords={feed.preferences.keywords}
-                  people={feed.preferences.people}
-                  results={feed.preferences.results}
-                  onSelectGenre={feed.onGenreSelect}
-                  onSelectKeyword={feed.onKeywordSelect}
-                  onSelectPerson={feed.onPersonSelect}
-                  onSelectMedia={goToMedia}
-                  showPeople={feed.currentSearchType !== 'tv'}
-                  className="w-full"
-                />
-              )}
+              {!showingSearchResults &&
+                (feed.preferences.loading ? (
+                  <LoadingState className="flex min-h-[50vh] items-center justify-center" />
+                ) : (
+                  <SearchMatches
+                    genres={feed.preferences.genres}
+                    keywords={feed.preferences.keywords}
+                    people={feed.preferences.people}
+                    results={feed.preferences.results}
+                    onSelectGenre={feed.onGenreSelect}
+                    onSelectKeyword={feed.onKeywordSelect}
+                    onSelectPerson={feed.onPersonSelect}
+                    onSelectMedia={goToMedia}
+                    showPeople={feed.currentSearchType !== 'tv'}
+                    className="w-full"
+                  />
+                ))}
             </>
           )}
 

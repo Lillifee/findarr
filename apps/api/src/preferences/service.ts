@@ -129,7 +129,7 @@ export function createPreferencesService(context: PreferencesContext) {
     const availableGenres = await context.tmdb.searchGenres({ language, type });
     const people = await Promise.all(
       sortByPreference('cast', suggestions.people)
-        .slice(0, 24)
+        .slice(0, 16)
         .map(async ({ id: tmdbId, name, score }) => {
           const person = await context.tmdb.personDetails(tmdbId, { language });
 
