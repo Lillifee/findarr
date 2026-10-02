@@ -69,6 +69,11 @@ const emptySearchState: SearchState = {
   loading: false,
 };
 
+const initialSuggestionsState: SearchState = {
+  ...emptySearchState,
+  loading: true,
+};
+
 function useCatalogFilters() {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParamsKey = searchParams.toString();
@@ -140,7 +145,7 @@ export function useCatalogFeed(): CatalogFeed {
   const [searchState, setSearchState] = useState<SearchState>(emptySearchState);
   const [previewQuery, setPreviewQuery] = useState(filters.query);
   const [previewSearchState, setPreviewSearchState] = useState<SearchState>(emptySearchState);
-  const [suggestions, setSuggestions] = useState<SearchState>(emptySearchState);
+  const [suggestions, setSuggestions] = useState<SearchState>(initialSuggestionsState);
   const feedRef = useRef<CatalogFeedState>(emptyFeed);
   const latestRequestIdRef = useRef(0);
   const discoveryFeedIdRef = useRef<string | null>(null);
@@ -222,19 +227,26 @@ export function useCatalogFeed(): CatalogFeed {
 
   useEffect(() => {
     let active = true;
+    setSuggestions((current) => ({ ...current, loading: true }));
 
     const loadSuggestions = async () => {
-      const response = await searchService.listPreferences(
-        filters.type === 'both' ? 'movie' : filters.type,
-      );
-      if (active) {
-        setSuggestions({
-          genres: response.genres,
-          people: response.people,
-          keywords: response.keywords,
-          results: [],
-          loading: false,
-        });
+      try {
+        const response = await searchService.listPreferences(
+          filters.type === 'both' ? 'movie' : filters.type,
+        );
+        if (active) {
+          setSuggestions({
+            genres: response.genres,
+            people: response.people,
+            keywords: response.keywords,
+            results: [],
+            loading: false,
+          });
+        }
+      } catch {
+        if (active) {
+          setSuggestions(emptySearchState);
+        }
       }
     };
     void loadSuggestions();
@@ -312,6 +324,10 @@ export function useCatalogFeed(): CatalogFeed {
 
   const onTypeChange = (type: SearchType) => {
     const switchingBetweenMediaTypes = filters.type !== type;
+
+    if (switchingBetweenMediaTypes) {
+      setSuggestions((current) => ({ ...current, loading: true }));
+    }
 
     updateFilters({
       type,

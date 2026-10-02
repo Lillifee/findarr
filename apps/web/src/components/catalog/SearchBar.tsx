@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import type { DiscoveryFilter } from '../../utils/catalogSearchParams';
 import { Icon } from '../ui/Icon';
 import { PopupPanel } from '../ui/PopupPanel';
+import { Spinner } from '../ui/Spinner';
 import { discoveryIcons } from './discoveryTagConfig';
 import { discoveryTagClassName } from './discoveryTagStyles';
 import { SearchMatches } from './SearchMatches';
@@ -251,7 +252,8 @@ export function SearchBar({
           style={mobilePanelTop === null ? undefined : { top: `${mobilePanelTop}px` }}
         >
           {activeData.loading ? (
-            <div className="flex min-h-24 items-center justify-center text-sm text-zinc-400">
+            <div className="flex min-h-24 items-center justify-center gap-3 text-sm text-zinc-400">
+              <Spinner size="lg" />
               {t('common.loading')}
             </div>
           ) : (
