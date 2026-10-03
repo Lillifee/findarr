@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "tsx": "^4.23.12",
+    "tsx": "^4.23.15",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:"
