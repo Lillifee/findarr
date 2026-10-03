@@ -23,7 +23,7 @@
     "skipLibCheck": true,
     "verbatimModuleSyntax": true,
 
-    "types": ["vitest/globals"]
+    "types": ["vite-plus/test/globals"]
   },
   "include": ["src"]
 }

@@ -8,20 +8,16 @@ allowBuilds:
 
 catalog:
   vite: npm:@voidzero-dev/vite-plus-core@1.0.0
-  vitest: 5.0.3
   vite-plus: 1.0.0
   typescript: ^7.0.2
 
 overrides:
   vite: 'catalog:'
-  vitest: 'catalog:'
   '@types/node': ^24.0.0
 
 peerDependencyRules:
   allowAny:
     - vite
-    - vitest
 
   allowedVersions:
     vite: '*'
-    vitest: '*'

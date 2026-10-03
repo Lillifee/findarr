@@ -23,7 +23,7 @@
     "skipLibCheck": true,
     "verbatimModuleSyntax": true,
 
-    "types": ["node", "vitest/globals"]
+    "types": ["node", "vite-plus/test/globals"]
   },
   "include": ["src", "**/*.test.ts", "src/preferences/helpers.ts"]
 }
