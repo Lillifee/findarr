@@ -21,6 +21,11 @@ export async function registerStatic(server: FastifyInstance) {
   // Root document
   server.get('/', (_request, reply) => reply.sendFile('index.html', clientDistDir));
 
+  // The manifest is served from the origin root for browser installation metadata.
+  server.get('/site.webmanifest', (_request, reply) =>
+    reply.type('application/manifest+json').sendFile('site.webmanifest', clientDistDir),
+  );
+
   // SPA fallback
   server.get('/*', (request, reply) => {
     const [requestPath] = request.url.split('?');
