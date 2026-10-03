@@ -75,10 +75,10 @@ function MediaCard({ item, onSelect, onUpdate }: MediaCardProps) {
               <>
                 <span className="h-3 w-px bg-zinc-700" />
                 <span className="text-sky-300" title="User score">
-                  User {Math.round(item.state?.score.userScore * 100)}%
+                  {`User ${Math.round(item.state?.score.userScore * 100)}%`}
                 </span>
                 <span className="text-rose-300" title="Final score">
-                  Overall {Math.round(item.state?.score.finalTrendingScore * 100)}%
+                  {`Overall ${Math.round(item.state?.score.finalTrendingScore * 100)}%`}
                 </span>
               </>
             )}

@@ -246,7 +246,7 @@ export function ArrSection({ service }: ArrSectionProps) {
               </SelectInput>
             ) : (
               <div className={`${readonlyClass} flex items-center`}>
-                Available after a successful connection test.
+                {t('integrationCard.arr.availableAfterTest')}
               </div>
             )}
           </div>
