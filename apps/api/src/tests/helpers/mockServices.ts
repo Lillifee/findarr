@@ -1,6 +1,5 @@
 /* oxlint-disable typescript/no-unsafe-type-assertion, vitest/no-importing-vitest-globals */
-import type { Mocked } from 'vite-plus/test';
-import { vi } from 'vitest';
+import { vi, type Mocked } from 'vite-plus/test';
 
 import { arrConfig, type ArrServiceConfig } from '../../arr/config.js';
 import type { ArrService } from '../../arr/service.js';
