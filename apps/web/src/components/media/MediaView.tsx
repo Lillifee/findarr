@@ -167,7 +167,7 @@ export function MediaView({
               </h1>
               {isNotEmpty(media.tagline) && (
                 <p className="text-xl text-gray-300 italic drop-shadow-md md:text-2xl">
-                  &quot;{media.tagline}&quot;
+                  {`"${media.tagline}"`}
                 </p>
               )}
               {media.type === 'tv' && media.originalName !== media.name && (
@@ -264,7 +264,7 @@ export function MediaView({
                   <div className={infoTileClass}>
                     <p className={infoLabelClass}>{t('mediaView.episodes')}</p>
                     <p className="mt-1.5 text-sm font-semibold text-zinc-100">
-                      {media.numberOfSeasons} / {media.numberOfEpisodes}
+                      {`${media.numberOfSeasons} / ${media.numberOfEpisodes}`}
                     </p>
                   </div>
                 )}

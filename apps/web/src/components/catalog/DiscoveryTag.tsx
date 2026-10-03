@@ -21,7 +21,7 @@ export function DiscoveryTag({ type, name, label, onClick }: DiscoveryTagProps) 
     >
       <Icon name={discoveryIcons[type]} size="xs" />
       <span className="max-w-40 truncate">
-        {isDefined(label) && <span className="font-normal text-zinc-400">{label}: </span>}
+        {isDefined(label) && <span className="font-normal text-zinc-400">{`${label}: `}</span>}
         {name}
       </span>
     </button>

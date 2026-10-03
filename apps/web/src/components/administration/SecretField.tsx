@@ -18,7 +18,7 @@ export function SecretField({ label, value, onChange, isSet, placeholder }: Secr
         {label}
         {isSet && !value && (
           <span className="ml-2 text-xs font-normal text-zinc-500">
-            ({t('integrationCard.secretAlreadySet')})
+            {`(${t('integrationCard.secretAlreadySet')})`}
           </span>
         )}
       </label>
