@@ -1,6 +1,6 @@
 import type { User } from '@findarr/shared/auth';
 import { isDefined } from '@findarr/shared/utils';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, useLocation } from 'react-router-dom';
 
@@ -36,12 +36,41 @@ export function Navigation({ onLogout, user, isAdmin }: NavigationProps) {
   const { t } = useTranslation();
   const [mobileAdvancedOpen, setMobileAdvancedOpen] = useState(false);
   const [hasAttention, setHasAttention] = useState(false);
+  const mobileAdvancedMenuRef = useRef<HTMLDivElement>(null);
+  const mobileAdvancedToggleRef = useRef<HTMLButtonElement>(null);
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
   const versionInfo = useVersionInfo(isAdmin);
   const activityLinkTarget = hasAttention
     ? '/activity?audience=everyone&status=downloading&status=warning&type=both'
     : '/activity';
+
+  useEffect(() => {
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      const { target } = event;
+      if (
+        target instanceof Node &&
+        !(mobileAdvancedMenuRef.current?.contains(target) ?? false) &&
+        !(mobileAdvancedToggleRef.current?.contains(target) ?? false)
+      ) {
+        setMobileAdvancedOpen(false);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileAdvancedOpen(false);
+      }
+    };
+
+    if (mobileAdvancedOpen) {
+      document.addEventListener('pointerdown', closeOnOutsideClick);
+      document.addEventListener('keydown', closeOnEscape);
+    }
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsideClick);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [mobileAdvancedOpen]);
 
   useEffect(() => {
     let cancelled = false;
@@ -199,6 +228,7 @@ export function Navigation({ onLogout, user, isAdmin }: NavigationProps) {
           </NavLink>
 
           <button
+            ref={mobileAdvancedToggleRef}
             onClick={() => {
               setMobileAdvancedOpen(!mobileAdvancedOpen);
             }}
@@ -220,7 +250,10 @@ export function Navigation({ onLogout, user, isAdmin }: NavigationProps) {
 
         {/* Mobile Advanced Menu Dropdown */}
         {mobileAdvancedOpen && (
-          <div className="animate-in fade-in slide-in-from-bottom-2 absolute right-0 bottom-full left-0 border-t border-zinc-800/80 bg-zinc-950 duration-200">
+          <div
+            ref={mobileAdvancedMenuRef}
+            className="animate-in fade-in slide-in-from-bottom-2 absolute right-0 bottom-full left-0 border-t border-zinc-800/80 bg-zinc-950 duration-200"
+          >
             <div className="space-y-2 p-4">
               <div className="mb-3 px-2 text-xs text-gray-400">
                 {t('nav.loggedInAs')}{' '}
