@@ -3,6 +3,7 @@ import { isDefined } from '@findarr/shared/utils';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { discoveryDateRanges } from '../../utils/discoveryDateRanges';
 import { tmdbImage } from '../../utils/tmdb';
 import { HorizontalRail } from '../ui/HorizontalRail';
 import { Icon } from '../ui/Icon';
@@ -95,6 +96,7 @@ interface SearchMatchesProps {
   onSelectGenre: (genre: Genre) => void;
   onSelectKeyword: (keyword: Keyword) => void;
   onSelectPerson: (person: Person) => void;
+  onSelectDateRange?: (id: number, name: string) => void;
   showPeople?: boolean;
   compact?: boolean;
   className?: string;
@@ -109,6 +111,7 @@ export function SearchMatches({
   onSelectGenre,
   onSelectKeyword,
   onSelectPerson,
+  onSelectDateRange,
   showPeople = true,
   compact = false,
   className,
@@ -120,7 +123,8 @@ export function SearchMatches({
     results.length === 0 &&
     genres.length === 0 &&
     keywords.length === 0 &&
-    visiblePeople.length === 0
+    visiblePeople.length === 0 &&
+    !onSelectDateRange
   ) {
     return null;
   }
@@ -129,6 +133,28 @@ export function SearchMatches({
       className={`flex flex-col [&>section+section]:mt-5 [&>section+section]:border-t [&>section+section]:border-zinc-800/80 [&>section+section]:pt-5 ${className ?? ''}`}
       aria-label={t('explore.searchResults')}
     >
+      {onSelectDateRange && (
+        <section aria-label={t('catalog.releaseDate')}>
+          <ExpandableSection
+            collapsedClassName="max-h-17"
+            heading={t('catalog.releaseDate')}
+            resetKey="date-ranges"
+          >
+            <div className="flex flex-row flex-wrap gap-2">
+              {discoveryDateRanges.map((dateRange) => (
+                <DiscoveryTag
+                  key={dateRange.id}
+                  type="date"
+                  name={t(dateRange.label)}
+                  onClick={() => {
+                    onSelectDateRange(dateRange.id, t(dateRange.label));
+                  }}
+                />
+              ))}
+            </div>
+          </ExpandableSection>
+        </section>
+      )}
       {genres.length > 0 && (
         <section aria-label={t('catalog.genreResults')}>
           <ExpandableSection

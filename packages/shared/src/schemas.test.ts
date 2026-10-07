@@ -119,6 +119,16 @@ describe('schemas', () => {
         type: 'both',
       });
     });
+
+    it('should validate date bounds individually', () => {
+      expect(
+        DiscoverQuerySchema.parse({ startDate: '2020-01-01', endDate: '2020-12-31' }),
+      ).toMatchObject({ startDate: '2020-01-01', endDate: '2020-12-31' });
+      expect(DiscoverQuerySchema.safeParse({ startDate: '2020-01-01' }).success).toBe(true);
+      expect(
+        DiscoverQuerySchema.safeParse({ startDate: '2020-02-30', endDate: '2020-03-01' }).success,
+      ).toBe(false);
+    });
   });
 
   describe('DetailsQuerySchema', () => {

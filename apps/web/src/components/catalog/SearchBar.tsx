@@ -32,6 +32,7 @@ interface SearchBarProps {
   onSelectGenre?: (genre: Genre) => void;
   onSelectKeyword?: (keyword: Keyword) => void;
   onSelectPerson?: (person: Person) => void;
+  onSelectDateRange?: (id: number, name: string) => void;
   onSelectMedia?: (media: Media) => void;
 }
 
@@ -52,6 +53,7 @@ export function SearchBar({
   onSelectGenre,
   onSelectKeyword,
   onSelectPerson,
+  onSelectDateRange,
   onSelectMedia,
 }: SearchBarProps) {
   const { t } = useTranslation();
@@ -304,6 +306,10 @@ export function SearchBar({
                   handleDiscoverySelect();
                   onSelectPerson?.(person);
                 }}
+                onSelectDateRange={(id, name) => {
+                  handleDiscoverySelect();
+                  onSelectDateRange?.(id, name);
+                }}
                 onSelectMedia={(media) => {
                   setPanelOpen(false);
                   onSelectMedia?.(media);
@@ -311,7 +317,8 @@ export function SearchBar({
               />
               {activeData.genres.length === 0 &&
                 activeData.keywords.length === 0 &&
-                activeData.people.length === 0 && (
+                activeData.people.length === 0 &&
+                !onSelectDateRange && (
                   <p className="py-6 text-center text-sm text-zinc-400">{t('common.noResults')}</p>
                 )}
             </div>

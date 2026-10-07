@@ -10,6 +10,7 @@ import {
   readCatalogSearchParams,
   type DiscoveryFilter,
 } from '../utils/catalogSearchParams';
+import { getDiscoveryDateRange } from '../utils/discoveryDateRanges';
 import { isSameMedia, mergeUniqueMedia } from '../utils/media';
 
 interface CatalogFeedState {
@@ -126,6 +127,7 @@ export interface CatalogFeed {
   currentQuery: string;
   discovery: DiscoveryFilter[];
   onDiscoveryRemove: (index: number) => void;
+  onDateRangeSelect: (id: number, name: string) => void;
   onTypeChange: (type: SearchType) => void;
   onSearch: (query: string) => void;
   onSearchPreview: (query: string) => void;
@@ -174,10 +176,9 @@ export function useCatalogFeed(): CatalogFeed {
 
       try {
         if (requestMode === 'discover') {
-          const { discovery } = reqFilters;
-          if (!discovery) {
-            return;
-          }
+          const discovery = reqFilters.discovery ?? [];
+          const dateFilter = discovery.find((item) => item.type === 'date');
+          const dateRange = dateFilter ? getDiscoveryDateRange(dateFilter.id) : undefined;
 
           const discoverParams: DiscoverQuery = {
             page: page ?? 1,
@@ -186,6 +187,7 @@ export function useCatalogFeed(): CatalogFeed {
             person: discovery.filter((item) => item.type === 'person').map((item) => item.id),
             genre: discovery.filter((item) => item.type === 'genre').map((item) => item.id),
             keyword: discovery.filter((item) => item.type === 'keyword').map((item) => item.id),
+            ...dateRange,
           };
           const response = await searchService.getDiscoveryFeed(discoverParams);
 
@@ -355,6 +357,10 @@ export function useCatalogFeed(): CatalogFeed {
     });
   };
 
+  const onDateRangeSelect = (id: number, name: string) => {
+    addDiscovery({ type: 'date', id, name });
+  };
+
   const onPersonSelect = (person: Person) => {
     addDiscovery({
       type: 'person',
@@ -428,6 +434,7 @@ export function useCatalogFeed(): CatalogFeed {
     currentQuery: filters.query,
     discovery: filters.discovery ?? [],
     onTypeChange,
+    onDateRangeSelect,
     onSearch,
     onSearchPreview,
     onSubmitSearch,

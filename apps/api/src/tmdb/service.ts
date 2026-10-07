@@ -19,7 +19,7 @@ import { createLruTtlCache } from '../utils/cacheHelper.js';
 import { createClientLifecycle } from '../utils/clientLifecycleHelper.js';
 import type { AppLogger } from '../utils/logger.js';
 import { createTMDBClient, type TMDBClient } from './client.js';
-import { buildDateParams } from './helpers.js';
+import { buildDateParams, getDateRangeFromDays } from './helpers.js';
 import { getTmdbSettingsFull, setTmdbSettings, type TmdbSettingsFull } from './repository.js';
 import type { TMDBDiscoverParams, TMDBTrendingParams } from './schemas.js';
 import { transformMedia, transformDetails, transformPerson } from './transformers.js';
@@ -138,6 +138,7 @@ export async function createTMDBService(context: TmdbServiceContext) {
     const client = lifecycle.client();
     const { recentDays, pages, tmdbParams } = params;
     const pagesToFetch = createPageRange(pages);
+    const dateRange = getDateRangeFromDays(recentDays);
     const genreMap = await getGenreMap('en-US');
 
     const responses = await Promise.all(
@@ -145,7 +146,7 @@ export async function createTMDBService(context: TmdbServiceContext) {
         pagesToFetch.map(async (page) =>
           client.discover(discoverType, {
             page,
-            ...buildDateParams(discoverType, recentDays),
+            ...buildDateParams(discoverType, dateRange.startDate, dateRange.endDate),
             ...tmdbParams,
           }),
         ),
@@ -249,7 +250,6 @@ export async function createTMDBService(context: TmdbServiceContext) {
     const { page, type, language = 'en-US' } = params;
     const mediaTypes: readonly MediaType[] = type === 'both' ? MEDIA_TYPES : [type];
     const genreMap = await getGenreMap(language, mediaTypes.length === 2 ? 'both' : mediaTypes[0]);
-
     const tmdbParams = {
       ...(params.person.length > 0 ? { with_people: params.person.join(',') } : {}),
       ...(params.keyword.length > 0 ? { with_keywords: params.keyword.join(',') } : {}),
@@ -258,7 +258,12 @@ export async function createTMDBService(context: TmdbServiceContext) {
 
     const responses = await Promise.all(
       mediaTypes.map(async (mediaType) =>
-        lifecycle.client().discover(mediaType, { page, language, ...tmdbParams }),
+        lifecycle.client().discover(mediaType, {
+          page,
+          language,
+          ...buildDateParams(mediaType, params.startDate, params.endDate),
+          ...tmdbParams,
+        }),
       ),
     );
 

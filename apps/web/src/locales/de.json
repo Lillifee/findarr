@@ -222,6 +222,15 @@
     "typeAll": "Alle",
     "typeMovies": "Filme",
     "typeShows": "Serien",
+    "releaseDate": "Erscheinungsdatum",
+    "lastYear": "Letztes Jahr",
+    "last3Years": "Letzte 3 Jahre",
+    "last5Years": "Letzte 5 Jahre",
+    "2020s": "2020er",
+    "2010s": "2010er",
+    "2000s": "2000er",
+    "1990s": "1990er",
+    "1980s": "1980er",
     "clearAll": "Alle entfernen"
   },
   "media": {
