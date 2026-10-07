@@ -27,34 +27,38 @@ export const buildRegionFilters = (regions: RegionGroupId[]) => {
 /**
  * Calculate date range from days back
  */
-export const getDateRangeFromDays = (days: number) => {
-  const today = new Date();
-  const futureDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-  const pastDate = new Date(today.getTime() - days * 24 * 60 * 60 * 1000);
+export const getDateRangeFromDays = (days: number, today = new Date()) => {
+  const endDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const startDate = new Date(today.getTime() - days * 24 * 60 * 60 * 1000);
 
-  return { pastDate, futureDate };
+  return { startDate, endDate };
 };
 
 const formatDate = (date: Date) => date.toISOString().split('T')[0] ?? '';
 
+const formatDateBound = (date: Date | string) =>
+  typeof date === 'string' ? date : formatDate(date);
+
 /**
  * Build date parameters for discover queries
  */
-export const buildDateParams = (type: MediaType, recentDays: number) => {
-  const { pastDate, futureDate } = getDateRangeFromDays(recentDays);
+export const buildDateParams = (
+  type: MediaType,
+  startDate?: Date | string,
+  endDate?: Date | string,
+) => {
+  if (!isDefined(startDate) && !isDefined(endDate)) {
+    return {};
+  }
 
+  const field = type === 'movie' ? 'primary_release_date' : 'air_date';
   const dateParams: Record<string, string> = {};
-
-  if (type === 'movie') {
-    dateParams['primary_release_date.gte'] = formatDate(pastDate);
-    dateParams['primary_release_date.lte'] = formatDate(futureDate);
+  if (isDefined(startDate)) {
+    dateParams[`${field}.gte`] = formatDateBound(startDate);
   }
-
-  if (type === 'tv') {
-    dateParams['air_date.gte'] = formatDate(pastDate);
-    dateParams['air_date.lte'] = formatDate(futureDate);
+  if (isDefined(endDate)) {
+    dateParams[`${field}.lte`] = formatDateBound(endDate);
   }
-
   return dateParams;
 };
 

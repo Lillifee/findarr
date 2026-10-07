@@ -1,5 +1,6 @@
 import type { Genre } from '@findarr/shared/media';
 
+import { buildDateParams, getDateRangeFromDays } from '../tmdb/helpers.js';
 import {
   TMDBSearchResponseSchema,
   TMDBPersonSchema,
@@ -409,6 +410,31 @@ describe('TMDB Parsing Integration Tests - Real API Data', () => {
         const fixture = loadFixture(`tmdb/tv-${id}.json`);
         expect(() => TMDBTVDetailsSchema.parse(fixture)).not.toThrow();
       }
+    });
+  });
+
+  describe('TMDB date filters', () => {
+    const today = new Date('2026-10-06T00:00:00.000Z');
+
+    it('maps explicit bounds to movie and TV TMDB date fields', () => {
+      const range = { startDate: '1990-01-01', endDate: '1999-12-31' };
+
+      expect(buildDateParams('movie', range.startDate, range.endDate)).toStrictEqual({
+        'primary_release_date.gte': '1990-01-01',
+        'primary_release_date.lte': '1999-12-31',
+      });
+      expect(buildDateParams('tv', range.startDate, range.endDate)).toStrictEqual({
+        'air_date.gte': '1990-01-01',
+        'air_date.lte': '1999-12-31',
+      });
+      expect(buildDateParams('movie', '2020-01-01')).toStrictEqual({
+        'primary_release_date.gte': '2020-01-01',
+      });
+      const recentRange = getDateRangeFromDays(30, today);
+      expect(buildDateParams('tv', recentRange.startDate, recentRange.endDate)).toStrictEqual({
+        'air_date.gte': '2026-09-06',
+        'air_date.lte': '2026-10-13',
+      });
     });
   });
 });

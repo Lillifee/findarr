@@ -1,14 +1,12 @@
+import type { DiscoveryFilter, DiscoveryType } from '@findarr/shared/catalog';
 import type { InteractionFilter } from '@findarr/shared/interaction';
 import type { SearchType } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
 
-export type DiscoveryType = 'person' | 'genre' | 'keyword';
+import { discoveryDateRanges } from './discoveryDateRanges';
 
-export interface DiscoveryFilter {
-  type: DiscoveryType;
-  id: number;
-  name: string;
-}
+export type { DiscoveryFilter, DiscoveryType } from '@findarr/shared/catalog';
+export type DiscoveryEntityType = Exclude<DiscoveryType, 'date'>;
 
 interface CatalogSearchParamDefaults {
   interaction?: InteractionFilter;
@@ -45,7 +43,7 @@ const readPositiveInteger = (value: string | null): number | undefined => {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
 };
 
-export const DISCOVERY_TYPES: readonly DiscoveryType[] = ['genre', 'person', 'keyword'] as const;
+export const DISCOVERY_TYPES: readonly DiscoveryType[] = ['genre', 'person', 'keyword', 'date'];
 
 export function isDiscoveryType(value: unknown): value is DiscoveryType {
   return typeof value === 'string' && (DISCOVERY_TYPES as readonly string[]).includes(value);
@@ -59,6 +57,10 @@ export function addDiscoveryFilter(
   discovery: DiscoveryFilter[] | undefined,
   filter: DiscoveryFilter,
 ): DiscoveryFilter[] {
+  if (filter.type === 'date') {
+    return [...(discovery ?? []).filter((item) => item.type !== 'date'), filter];
+  }
+
   return (discovery?.some((item) => item.type === filter.type && item.id === filter.id) ?? false)
     ? (discovery ?? [])
     : [...(discovery ?? []), filter];
@@ -76,18 +78,20 @@ export const readCatalogSearchParams = (
       ? rawInteraction
       : defaults.interaction;
 
-  const discovery = DISCOVERY_TYPES.flatMap((type) =>
+  const discovery: DiscoveryFilter[] = DISCOVERY_TYPES.flatMap((type) =>
     searchParams
       .getAll(type)
       .map((value) => readPositiveInteger(value))
       .filter((id) => isDefined(id))
+      .filter(
+        (id) => type !== 'date' || discoveryDateRanges.some((dateRange) => dateRange.id === id),
+      )
       .map((id, index) => ({
         type,
         id,
         name: searchParams.getAll(`${type}Name`)[index] ?? `${type} ${id}`,
       })),
   );
-
   return {
     type: isDefined(rawType) && isSearchType(rawType) ? rawType : (defaults.type ?? 'both'),
     page: Math.trunc(Number(searchParams.get('page') ?? String(defaults.page ?? 1))),
