@@ -102,15 +102,15 @@ describe('catalog service - integration tests', () => {
 
     const search = await catalogService.search({ query: 'test', type: 'both', page: 1 }, user.id);
     const personDiscovery = await catalogService.getDiscoveryFeed(
-      { person: [1], genre: [], keyword: [], page: 1, type: 'movie' },
+      { person: [1], genre: [], keyword: [], type: 'movie' },
       user.id,
     );
     const keywordDiscovery = await catalogService.getDiscoveryFeed(
-      { person: [], genre: [], keyword: [1], page: 1, type: 'tv' },
+      { person: [], genre: [], keyword: [1], type: 'tv' },
       user.id,
     );
     const genreDiscovery = await catalogService.getDiscoveryFeed(
-      { person: [], genre: [28], keyword: [], page: 1, type: 'both' },
+      { person: [], genre: [28], keyword: [], type: 'both' },
       user.id,
     );
 
@@ -144,7 +144,7 @@ describe('catalog service - integration tests', () => {
     const user = await createTestUserInDb(db, { email: 'empty-discover@test.com' });
 
     const result = await catalogService.getDiscoveryFeed(
-      { person: [], genre: [], keyword: [], page: 1, type: 'both' },
+      { person: [], genre: [], keyword: [], type: 'both' },
       user.id,
     );
 
@@ -152,6 +152,34 @@ describe('catalog service - integration tests', () => {
       expect.objectContaining({ person: [], genre: [], keyword: [], type: 'both' }),
     );
     expect(result).toMatchObject({ results: [] });
+  });
+
+  it('should skip voted discovery items and fill the batch from the next page', async () => {
+    vi.spyOn(authUtils, 'hashPassword').mockResolvedValue('hashed-password');
+    const user = await createTestUserInDb(db, { email: 'unvoted-discover@test.com' });
+    const votedMovie = createTestMedia({ tmdbId: 1, type: 'movie' });
+    const firstPage = [
+      votedMovie,
+      ...Array.from({ length: 19 }, (_, index) =>
+        createTestMedia({ tmdbId: index + 2, type: 'movie' }),
+      ),
+    ];
+    const nextMovie = createTestMedia({ tmdbId: 21, type: 'movie' });
+    const votedRecord = await createMedia(db, votedMovie.tmdbId, 'movie');
+    await addInteraction(db, user.id, votedRecord.id, 'liked');
+    tmdbService.discoverMedia
+      .mockResolvedValueOnce({ page: 1, results: firstPage })
+      .mockResolvedValueOnce({ page: 2, results: [nextMovie] });
+
+    const result = await catalogService.getDiscoveryFeed(
+      { person: [], genre: [], keyword: [], type: 'movie' },
+      user.id,
+    );
+
+    expect(result.results).toHaveLength(20);
+    expect(result.results.map((item) => item.tmdbId)).not.toContain(votedMovie.tmdbId);
+    expect(result.results.map((item) => item.tmdbId)).toContain(nextMovie.tmdbId);
+    expect(tmdbService.discoverMedia).toHaveBeenCalledTimes(2);
   });
 
   it('should enrich search results with database state', async () => {
@@ -177,10 +205,7 @@ describe('catalog service - integration tests', () => {
     const nextVotedMediaRecord = await createMedia(db, 101, 'movie');
     await addInteraction(db, user.id, nextVotedMediaRecord.id, 'liked');
 
-    const result = await catalogService.getVotingFeed(
-      { type: 'both', page: 1, interaction: 'all' },
-      user.id,
-    );
+    const result = await catalogService.getVotingFeed({ type: 'both' }, user.id);
 
     expect(result.results).toHaveLength(100);
     expect(result.results.at(-1)?.tmdbId).toBe(100);

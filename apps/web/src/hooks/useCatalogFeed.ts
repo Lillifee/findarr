@@ -14,7 +14,6 @@ import { getDiscoveryDateRange } from '../utils/discoveryDateRanges';
 import { isSameMedia, mergeUniqueMedia } from '../utils/media';
 
 interface CatalogFeedState {
-  currentPage: number;
   genres: Genre[];
   keywords: Keyword[];
   people: Person[];
@@ -30,7 +29,6 @@ interface CatalogFilters {
 
 interface LoadFeedOptions {
   append: boolean;
-  page?: number;
 }
 
 interface LoadingState {
@@ -49,7 +47,6 @@ interface SearchState {
 export type CatalogFeedMode = 'browse' | 'discover';
 
 const emptyFeed: CatalogFeedState = {
-  currentPage: 0,
   genres: [],
   keywords: [],
   people: [],
@@ -164,7 +161,7 @@ export function useCatalogFeed(): CatalogFeed {
   }, []);
 
   const loadFeed = useCallback(
-    async ({ append, page }: LoadFeedOptions) => {
+    async ({ append }: LoadFeedOptions) => {
       const requestId = latestRequestIdRef.current + 1;
       latestRequestIdRef.current = requestId;
       const reqFilters = feedFilters;
@@ -181,7 +178,6 @@ export function useCatalogFeed(): CatalogFeed {
           const dateRange = dateFilter ? getDiscoveryDateRange(dateFilter.id) : undefined;
 
           const discoverParams: DiscoverQuery = {
-            page: page ?? 1,
             type: reqFilters.type,
             ...(discoveryFeedIdRef.current === null ? {} : { feedId: discoveryFeedIdRef.current }),
             person: discovery.filter((item) => item.type === 'person').map((item) => item.id),
@@ -197,14 +193,13 @@ export function useCatalogFeed(): CatalogFeed {
 
           discoveryFeedIdRef.current = response.feedId;
           updateFeed({
-            currentPage: response.page,
             genres: [],
             people: [],
             keywords: [],
             results: append
               ? mergeUniqueMedia(feedRef.current.results, response.results)
               : response.results,
-            hasMore: response.results.length > 0,
+            hasMore: response.hasMore,
           });
         }
       } catch (error) {
@@ -396,10 +391,7 @@ export function useCatalogFeed(): CatalogFeed {
       return;
     }
 
-    void loadFeed({
-      append: true,
-      page: currentFeed.currentPage + 1,
-    });
+    void loadFeed({ append: true });
   };
 
   const updateItem = useCallback(

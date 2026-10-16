@@ -225,8 +225,10 @@ export interface PaginatedMediaResponse {
   page: number;
 }
 
-export interface DiscoverMediaResponse extends PaginatedMediaResponse {
+export interface DiscoverMediaResponse {
+  results: Media[];
   feedId: string;
+  hasMore: boolean;
 }
 
 export interface SearchResponse extends PaginatedMediaResponse {

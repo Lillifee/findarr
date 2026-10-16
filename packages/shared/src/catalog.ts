@@ -25,7 +25,6 @@ export const SearchQuerySchema = z.object({
 
 export const DiscoverQuerySchema = z.object({
   feedId: z.uuid().optional(),
-  page: z.coerce.number().int().min(1).max(1000).default(1),
   type: z.enum(['movie', 'tv', 'both']).default('both'),
   person: positiveIds,
   genre: positiveIds,
@@ -37,9 +36,7 @@ export const DiscoverQuerySchema = z.object({
 // Snapshot-backed popular query for infinite scrolling/load-more
 export const PopularQuerySchema = z.object({
   feedId: z.uuid().optional(),
-  page: z.coerce.number().int().min(1).max(1000).default(1),
   type: z.enum(['movie', 'tv', 'both']).default('both'),
-  interaction: z.enum(['all', 'unvoted', 'voted']).default('all'),
 });
 
 export const DetailsQuerySchema = z.object({

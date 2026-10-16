@@ -71,77 +71,61 @@ export function createCatalogService(context: CatalogContext) {
     return enriched;
   }
 
-  async function getPopularFeedSnapshot(params: PopularQuery, userId: number) {
-    const { interaction } = params;
-
-    return popularFeedSnapshotStore.getOrCreateSnapshot(params.feedId, async () => {
+  async function getPopularFeedSnapshot(feedId: string | undefined, userId: number) {
+    return popularFeedSnapshotStore.getOrCreateSnapshot(feedId, async () => {
       const timer = log.timer('getPopularFeedSnapshot');
 
       const { regions } = await user.getSettings(userId);
-      const [cachedCatalogMedia, interactionKeys] = await Promise.all([
-        getAllCatalogCache(db),
-        getUserInteractionMediaKeys(db, userId),
-      ]);
+      const cachedCatalogMedia = await getAllCatalogCache(db);
 
       timer.lap('catalogCache');
 
-      let filteredMedia = cachedCatalogMedia.filter(
-        (item) =>
-          filterByRegions(item, regions) && filterByInteraction(item, interactionKeys, interaction),
-      );
-
-      filteredMedia = await media.enrichWithScoring(filteredMedia, userId);
-
-      filteredMedia.sort(
+      const filteredMedia = cachedCatalogMedia.filter((item) => filterByRegions(item, regions));
+      const scoredMedia = await media.enrichWithScoring(filteredMedia, userId);
+      const sortedMedia = scoredMedia.toSorted(
         (a, b) =>
           (b.state?.score?.finalTrendingScore ?? 0) - (a.state?.score?.finalTrendingScore ?? 0),
       );
+
       timer.lap('scoring');
       timer.end();
 
-      return filteredMedia;
+      return sortedMedia;
     });
   }
 
   async function getVotingFeed(params: PopularQuery, userId: number): Promise<VoteQueueResponse> {
     const { swipeLimit } = await user.getSettings(userId);
-    const { type, page } = params;
+    const { feedId, type } = params;
     const [snapshot, interactionKeys] = await Promise.all([
-      getPopularFeedSnapshot({ ...params, interaction: 'all' }, userId),
+      getPopularFeedSnapshot(feedId, userId),
       getUserInteractionMediaKeys(db, userId),
     ]);
 
-    const filterItems = (items: Media[]) =>
-      items.filter(
-        (item) =>
-          filterByMediaType(item, type) && filterByInteraction(item, interactionKeys, 'unvoted'),
-      );
+    const isQueueItem = (item: Media) =>
+      filterByMediaType(item, type) && filterByInteraction(item, interactionKeys, 'unvoted');
 
-    const unvotedItems = filterItems(snapshot.items.slice(0, swipeLimit));
-    const unvotedNextItems = filterItems(snapshot.items.slice(swipeLimit));
-
-    const nextStart = (page - 1) * 20;
-    const nextItems = unvotedNextItems.slice(nextStart, nextStart + 20);
+    const unvotedItems = snapshot.items.slice(0, swipeLimit).filter((x) => isQueueItem(x));
+    const nextPage = snapshot.getNextPage(isQueueItem, swipeLimit);
 
     const results = await media.enrichMediaResults(unvotedItems, userId, { scoring: false });
-    const nextResults = await media.enrichMediaResults(nextItems, userId, { scoring: false });
+    const nextResults = await media.enrichMediaResults(nextPage.items, userId, { scoring: false });
 
     return {
       results,
       nextResults,
       feedId: snapshot.id,
-      hasMore: nextStart + nextItems.length < unvotedNextItems.length,
+      hasMore: nextPage.hasMore,
     };
   }
 
   async function getDiscoveryFeedPage(params: DiscoverQuery, userId: number) {
-    const { feedId, page } = params;
+    const { feedId } = params;
     const { language } = await user.getSettings(userId);
     const interactionKeys = await getUserInteractionMediaKeys(db, userId);
 
-    return discoveryFeedStore.getPage(
+    return discoveryFeedStore.getNextBatch(
       feedId,
-      page,
       20,
       async (sourcePage) => {
         const response = await tmdb.discoverMedia({ ...params, language, page: sourcePage });
@@ -155,11 +139,10 @@ export function createCatalogService(context: CatalogContext) {
     params: DiscoverQuery,
     userId: number,
   ): Promise<DiscoverMediaResponse> {
-    const { page } = params;
     const feedPage = await getDiscoveryFeedPage(params, userId);
     const results = await media.enrichMediaResults(feedPage.items, userId);
 
-    return { page, results, feedId: feedPage.id };
+    return { results, feedId: feedPage.id, hasMore: feedPage.hasMore };
   }
 
   return {
