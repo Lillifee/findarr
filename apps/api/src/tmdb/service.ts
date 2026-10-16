@@ -245,7 +245,7 @@ export async function createTMDBService(context: TmdbServiceContext) {
   }
 
   async function discoverMedia(
-    params: DiscoverQuery & TmdbBaseParams,
+    params: DiscoverQuery & TmdbBaseParams & { page: number },
   ): Promise<PaginatedMediaResponse> {
     const { page, type, language = 'en-US' } = params;
     const mediaTypes: readonly MediaType[] = type === 'both' ? MEDIA_TYPES : [type];

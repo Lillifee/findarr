@@ -104,7 +104,6 @@ describe('schemas', () => {
         person: [287, 819],
         genre: [28],
         keyword: [1234],
-        page: 1,
         type: 'both',
       });
       expect(DiscoverQuerySchema.safeParse({ person: '0' }).success).toBe(false);
@@ -115,7 +114,15 @@ describe('schemas', () => {
         person: [],
         genre: [],
         keyword: [],
-        page: 1,
+        type: 'both',
+      });
+    });
+
+    it('should ignore the removed interaction query parameter', () => {
+      expect(DiscoverQuerySchema.parse({ interaction: 'voted' })).toStrictEqual({
+        person: [],
+        genre: [],
+        keyword: [],
         type: 'both',
       });
     });

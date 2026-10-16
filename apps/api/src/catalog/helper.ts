@@ -1,53 +1,46 @@
 import { isDefined } from '@findarr/shared/utils';
 
 const DEFAULT_FEED_TTL_MS = 5 * 60 * 1000;
+const MAX_SOURCE_PAGES_PER_REQUEST = 10;
 
-export interface FeedPage<T> {
-  items: T[];
-  page: number;
-  totalPages: number;
+function cleanupExpiredEntries<T extends { createdAt: number }>(
+  entries: Map<string, T>,
+  now: number,
+  ttlMs: number,
+) {
+  for (const [key, entry] of entries) {
+    if (now - entry.createdAt >= ttlMs) {
+      entries.delete(key);
+    }
+  }
 }
 
 type DiscoveryFeed<T> = {
   items: T[];
   keys: Set<string>;
-  nextPage: number;
-  pagesFetched: number;
+  nextSourcePage: number;
+  nextItemIndex: number;
   exhausted: boolean;
   createdAt: number;
-  pending: Promise<void> | null;
+  pending: Promise<{ items: T[]; hasMore: boolean }> | null;
 };
 
-function getPageBounds(page: number, itemsPerPage: number) {
-  const startIndex = Math.max(0, (page - 1) * itemsPerPage);
-  return { startIndex, endIndex: startIndex + itemsPerPage };
-}
-
-function countAvailable<T>(items: T[], isAvailable: (item: T) => boolean) {
-  return items.filter((item) => isAvailable(item)).length;
-}
-
 export function createFeedSnapshotStore<T>(ttlMs = DEFAULT_FEED_TTL_MS) {
-  const snapshotEntries = new Map<string, { items: T[]; createdAt: number }>();
+  const snapshotEntries = new Map<string, { items: T[]; createdAt: number; nextIndex: number }>();
 
-  function cleanupExpiredEntries(now: number) {
-    for (const [key, entry] of snapshotEntries) {
-      if (now - entry.createdAt >= ttlMs) {
-        snapshotEntries.delete(key);
-      }
-    }
-  }
+  function createFeedSnapshot(
+    id: string,
+    entry: { items: T[]; createdAt: number; nextIndex: number },
+  ) {
+    function getNextPage(isAvailable: (item: T) => boolean, sourceOffset = 0, itemsPerPage = 20) {
+      const availableItems = entry.items.slice(sourceOffset).filter((x) => isAvailable(x));
+      const pageItems = availableItems.slice(entry.nextIndex, entry.nextIndex + itemsPerPage);
+      entry.nextIndex += pageItems.length;
 
-  function createFeedSnapshot(id: string, items: T[]) {
-    function getPage(page: number, itemsPerPage = 20): FeedPage<T> {
-      const { startIndex, endIndex } = getPageBounds(page, itemsPerPage);
-      const totalPages = Math.ceil(items.length / itemsPerPage);
-      const pageItems = items.slice(startIndex, endIndex);
-
-      return { items: pageItems, page, totalPages };
+      return { items: pageItems, hasMore: entry.nextIndex < availableItems.length };
     }
 
-    return { id, items, getPage };
+    return { id, items: entry.items, getNextPage };
   }
 
   function getSnapshot(feedId: string | undefined) {
@@ -58,7 +51,7 @@ export function createFeedSnapshotStore<T>(ttlMs = DEFAULT_FEED_TTL_MS) {
     const now = Date.now();
     const existingEntry = snapshotEntries.get(feedId);
     if (existingEntry && now - existingEntry.createdAt < ttlMs) {
-      return createFeedSnapshot(feedId, existingEntry.items);
+      return createFeedSnapshot(feedId, existingEntry);
     }
 
     // Drop expired entries when encountered.
@@ -71,11 +64,12 @@ export function createFeedSnapshotStore<T>(ttlMs = DEFAULT_FEED_TTL_MS) {
 
   function createSnapshot(items: T[]) {
     const now = Date.now();
-    cleanupExpiredEntries(now);
+    cleanupExpiredEntries(snapshotEntries, now, ttlMs);
 
     const snapshotId = crypto.randomUUID();
-    snapshotEntries.set(snapshotId, { items, createdAt: now });
-    return createFeedSnapshot(snapshotId, items);
+    const entry = { items, createdAt: now, nextIndex: 0 };
+    snapshotEntries.set(snapshotId, entry);
+    return createFeedSnapshot(snapshotId, entry);
   }
 
   async function getOrCreateSnapshot(feedId: string | undefined, createItems: () => Promise<T[]>) {
@@ -94,21 +88,12 @@ export function createFeedSnapshotStore<T>(ttlMs = DEFAULT_FEED_TTL_MS) {
 export function createDiscoveryFeedStore<T>(
   getKey: (item: T) => string,
   ttlMs = DEFAULT_FEED_TTL_MS,
-  maxPages = 10,
 ) {
   const feeds = new Map<string, DiscoveryFeed<T>>();
 
-  function cleanupExpiredEntries(now: number) {
-    for (const [key, feed] of feeds) {
-      if (now - feed.createdAt >= ttlMs) {
-        feeds.delete(key);
-      }
-    }
-  }
-
   function getOrCreateFeed(feedId: string | undefined) {
     const now = Date.now();
-    cleanupExpiredEntries(now);
+    cleanupExpiredEntries(feeds, now, ttlMs);
 
     if (isDefined(feedId)) {
       const existingFeed = feeds.get(feedId);
@@ -121,8 +106,8 @@ export function createDiscoveryFeedStore<T>(
     const feed: DiscoveryFeed<T> = {
       items: [],
       keys: new Set<string>(),
-      nextPage: 1,
-      pagesFetched: 0,
+      nextSourcePage: 1,
+      nextItemIndex: 0,
       exhausted: false,
       createdAt: now,
       pending: null,
@@ -131,21 +116,36 @@ export function createDiscoveryFeedStore<T>(
     return { id, feed };
   }
 
-  async function fill(
+  async function readNextBatch(
     feed: DiscoveryFeed<T>,
-    requiredItems: number,
+    itemsPerPage: number,
     fetchPage: (page: number) => Promise<T[]>,
     isAvailable: (item: T) => boolean,
   ) {
+    const batchItems: T[] = [];
+    let pagesFetched = 0;
+
+    function collectBufferedItems() {
+      while (feed.nextItemIndex < feed.items.length && batchItems.length < itemsPerPage) {
+        const item = feed.items[feed.nextItemIndex];
+        feed.nextItemIndex += 1;
+        if (item !== undefined && isAvailable(item)) {
+          batchItems.push(item);
+        }
+      }
+    }
+
+    collectBufferedItems();
+
     while (
+      batchItems.length < itemsPerPage &&
       !feed.exhausted &&
-      feed.pagesFetched < maxPages &&
-      countAvailable(feed.items, isAvailable) < requiredItems
+      pagesFetched < MAX_SOURCE_PAGES_PER_REQUEST
     ) {
       // oxlint-disable-next-line no-await-in-loop
-      const items = await fetchPage(feed.nextPage);
-      feed.nextPage += 1;
-      feed.pagesFetched += 1;
+      const items = await fetchPage(feed.nextSourcePage);
+      feed.nextSourcePage += 1;
+      pagesFetched += 1;
 
       if (items.length === 0) {
         feed.exhausted = true;
@@ -159,42 +159,36 @@ export function createDiscoveryFeedStore<T>(
           feed.items.push(item);
         }
       }
+
+      collectBufferedItems();
     }
 
-    if (feed.pagesFetched >= maxPages) {
-      feed.exhausted = true;
-    }
+    return {
+      items: batchItems,
+      hasMore: feed.nextItemIndex < feed.items.length || !feed.exhausted,
+    };
   }
 
-  async function getPage(
+  async function getNextBatch(
     feedId: string | undefined,
-    page: number,
     itemsPerPage: number,
     fetchPage: (page: number) => Promise<T[]>,
     isAvailable: (item: T) => boolean,
   ) {
     const { id, feed } = getOrCreateFeed(feedId);
-    const requiredItems = page * itemsPerPage;
 
-    if (feed.pending) {
-      await feed.pending;
-    }
-    if (!feed.exhausted && countAvailable(feed.items, isAvailable) < requiredItems) {
-      feed.pending = fill(feed, requiredItems, fetchPage, isAvailable);
-      try {
-        await feed.pending;
-      } finally {
+    const request = feed.pending ?? readNextBatch(feed, itemsPerPage, fetchPage, isAvailable);
+    feed.pending = request;
+
+    try {
+      const result = await request;
+      return { id, ...result };
+    } finally {
+      if (feed.pending === request) {
         feed.pending = null;
       }
     }
-
-    const availableItems = feed.items.filter(isAvailable);
-    const { startIndex, endIndex } = getPageBounds(page, itemsPerPage);
-    return {
-      id,
-      items: availableItems.slice(startIndex, endIndex),
-    };
   }
 
-  return { getPage };
+  return { getNextBatch };
 }

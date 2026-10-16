@@ -1,5 +1,4 @@
 import type { DiscoveryFilter, DiscoveryType } from '@findarr/shared/catalog';
-import type { InteractionFilter } from '@findarr/shared/interaction';
 import type { SearchType } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
 
@@ -9,14 +8,12 @@ export type { DiscoveryFilter, DiscoveryType } from '@findarr/shared/catalog';
 export type DiscoveryEntityType = Exclude<DiscoveryType, 'date'>;
 
 interface CatalogSearchParamDefaults {
-  interaction?: InteractionFilter;
   page?: number;
   type?: SearchType;
 }
 
 interface CatalogSearchParamState {
   discoveryName?: string;
-  interaction?: InteractionFilter;
   page: number;
   q: string;
   type: SearchType;
@@ -25,15 +22,11 @@ interface CatalogSearchParamState {
 
 interface CatalogSearchParamInput {
   discoveryName?: string | undefined;
-  interaction?: InteractionFilter | undefined;
   page?: number | undefined;
   q?: string | undefined;
   type?: SearchType | undefined;
   discovery?: DiscoveryFilter[] | undefined;
 }
-
-const isInteractionFilter = (value: string): value is InteractionFilter =>
-  value === 'all' || value === 'unvoted' || value === 'voted';
 
 const isSearchType = (value: string): value is SearchType =>
   value === 'movie' || value === 'tv' || value === 'both';
@@ -71,12 +64,6 @@ export const readCatalogSearchParams = (
   defaults: CatalogSearchParamDefaults = {},
 ): CatalogSearchParamState => {
   const rawType = searchParams.get('type');
-  const rawInteraction = searchParams.get('interaction');
-
-  const interaction =
-    isDefined(rawInteraction) && isInteractionFilter(rawInteraction)
-      ? rawInteraction
-      : defaults.interaction;
 
   const discovery: DiscoveryFilter[] = DISCOVERY_TYPES.flatMap((type) =>
     searchParams
@@ -96,7 +83,6 @@ export const readCatalogSearchParams = (
     type: isDefined(rawType) && isSearchType(rawType) ? rawType : (defaults.type ?? 'both'),
     page: Math.trunc(Number(searchParams.get('page') ?? String(defaults.page ?? 1))),
     q: searchParams.get('q') ?? '',
-    ...(isDefined(interaction) ? { interaction } : {}),
     ...(discovery.length > 0 ? { discovery } : {}),
   };
 };
@@ -109,9 +95,6 @@ export const buildCatalogSearchParams = (next: CatalogSearchParamInput) => {
   }
   if (isDefined(next.page)) {
     params.set('page', String(next.page));
-  }
-  if (isDefined(next.interaction)) {
-    params.set('interaction', next.interaction);
   }
   if (isDefined(next.q)) {
     params.set('q', next.q);

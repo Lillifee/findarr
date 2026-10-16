@@ -62,7 +62,6 @@ export function useVoteFeed(): VoteFeed {
   const [queueIsLoading, setQueueIsLoading] = useState(true);
   const [queueError, setQueueError] = useState<string | null>(null);
   const [queueHasMore, setQueueHasMore] = useState(false);
-  const queuePageRef = useRef(1);
   const detailRequestIdRef = useRef(0);
 
   const loadQueue = useCallback(
@@ -76,14 +75,12 @@ export function useVoteFeed(): VoteFeed {
         const response = await searchService.getVotingFeed({
           type: selectedType,
           feedId: queueFeedIdRef.current ?? undefined,
-          page: append ? queuePageRef.current + 1 : 1,
         });
         if (queueRequestIdRef.current !== requestId) {
           return;
         }
 
         queueFeedIdRef.current = response.feedId;
-        queuePageRef.current = append ? queuePageRef.current + 1 : 1;
         setResults(response.results);
         setNextResults((current) =>
           append ? [...current, ...response.nextResults] : response.nextResults,
@@ -105,7 +102,7 @@ export function useVoteFeed(): VoteFeed {
   );
 
   useEffect(() => {
-    queuePageRef.current = 1;
+    queueFeedIdRef.current = null;
     setResults([]);
     setNextResults([]);
     void loadQueue();
