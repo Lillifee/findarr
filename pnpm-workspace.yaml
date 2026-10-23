@@ -10,7 +10,10 @@ catalog:
   vite: npm:@voidzero-dev/vite-plus-core@1.4.0
   vite-plus: 1.4.0
   typescript: ^7.0.2
+  drizzle-orm: ^0.45.4
+  zod: ^4.6.7
 
+# TODO REMOVE
 minimumReleaseAgeExclude:
   - '@voidzero-dev/vite-plus-core@1.4.0'
   - '@voidzero-dev/vite-plus-darwin-arm64@1.4.0'

@@ -6,12 +6,18 @@ settings:
 
 catalogs:
   default:
+    drizzle-orm:
+      specifier: ^0.45.4
+      version: 0.45.4
     typescript:
       specifier: ^7.0.2
       version: 7.0.2
     vite-plus:
       specifier: 1.4.0
       version: 1.4.0
+    zod:
+      specifier: ^4.6.7
+      version: 4.6.7
 
 overrides:
   vite: npm:@voidzero-dev/vite-plus-core@1.4.0
@@ -73,7 +79,7 @@ importers:
         specifier: ^18.0.8
         version: 18.0.8
       drizzle-orm:
-        specifier: ^0.45.4
+        specifier: 'catalog:'
         version: 0.45.4(@types/better-sqlite3@9.6.0)(better-sqlite3@13.0.3)
       fastify:
         specifier: ^5.12.7
@@ -88,7 +94,7 @@ importers:
         specifier: ^13.2.0
         version: 13.2.0
       zod:
-        specifier: ^4.6.7
+        specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
       '@types/better-sqlite3':
@@ -134,7 +140,7 @@ importers:
         specifier: ^7.18.4
         version: 7.18.4(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       zod:
-        specifier: ^4.6.7
+        specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
       '@tailwindcss/postcss':
@@ -196,10 +202,10 @@ importers:
   packages/shared:
     dependencies:
       drizzle-orm:
-        specifier: ^0.45.4
+        specifier: 'catalog:'
         version: 0.45.4(@types/better-sqlite3@9.6.0)(better-sqlite3@13.0.3)
       zod:
-        specifier: ^4.6.7
+        specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
       typescript:
