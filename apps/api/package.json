@@ -5,10 +5,10 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "vpx --watch src/index.ts",
     "build": "tsc -p tsconfig.build.json",
     "preview": "node dist/index.js",
-    "test:fixtures": "tsx scripts/capture-tmdb-fixtures.ts",
+    "test:fixtures": "vpx scripts/capture-tmdb-fixtures.ts",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
@@ -36,7 +36,6 @@
     "@types/better-sqlite3": "^9.6.0",
     "@types/node": "catalog:",
     "drizzle-kit": "^0.31.11",
-    "tsx": "^4.23.15",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:"
