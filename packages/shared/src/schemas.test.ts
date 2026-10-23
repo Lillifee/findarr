@@ -102,8 +102,9 @@ describe('schemas', () => {
         DiscoverQuerySchema.parse({ person: ['287', '819'], genre: '28', keyword: '1234' }),
       ).toStrictEqual({
         person: [287, 819],
-        genre: [28],
         keyword: [1234],
+        genre: [28],
+        provider: [],
         type: 'both',
       });
       expect(DiscoverQuerySchema.safeParse({ person: '0' }).success).toBe(false);
@@ -112,8 +113,9 @@ describe('schemas', () => {
     it('should default missing discovery filters to empty arrays', () => {
       expect(DiscoverQuerySchema.parse({})).toStrictEqual({
         person: [],
-        genre: [],
         keyword: [],
+        genre: [],
+        provider: [],
         type: 'both',
       });
     });
@@ -121,8 +123,9 @@ describe('schemas', () => {
     it('should ignore the removed interaction query parameter', () => {
       expect(DiscoverQuerySchema.parse({ interaction: 'voted' })).toStrictEqual({
         person: [],
-        genre: [],
         keyword: [],
+        genre: [],
+        provider: [],
         type: 'both',
       });
     });

@@ -126,7 +126,10 @@ export function createPreferencesService(context: PreferencesContext) {
     }
 
     const { language } = await context.user.getSettings(userId);
-    const availableGenres = await context.tmdb.searchGenres({ language, type });
+    const [availableGenres, providers] = await Promise.all([
+      context.tmdb.getGenres({ language, type }),
+      context.tmdb.getProviders(type, language),
+    ]);
     const people = await Promise.all(
       sortByPreference('cast', suggestions.people)
         .slice(0, 16)
@@ -149,7 +152,7 @@ export function createPreferencesService(context: PreferencesContext) {
       .map(({ id, name }) => ({ id, name }));
 
     timer.end();
-    return { people, genres, keywords };
+    return { people, genres, keywords, providers };
   }
 
   return { listForUser, updateForInteraction };

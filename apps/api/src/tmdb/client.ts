@@ -16,6 +16,7 @@ import {
   TMDBTVDetailsSchema,
   type TMDBGenresParams,
   TMDBGenresResponseSchema,
+  TMDBProvidersResponseSchema,
   TMDBFindResponseSchema,
 } from './schemas.js';
 
@@ -149,6 +150,17 @@ export function createTMDBClient(accessToken: string, appLog: AppLogger) {
     return result;
   }
 
+  /** Get providers for movies or TV shows */
+  async function providers(type: MediaType, params: { language?: string; watch_region: string }) {
+    const timer = log.timer('providers', { type, params });
+
+    const response = await client.get(`/watch/providers/${type}`, { params });
+    const result = TMDBProvidersResponseSchema.parse(response.data);
+
+    timer.end();
+    return result;
+  }
+
   /**
    * Find content by external ID (TVDB, IMDB, etc.).
    * Returns movie_results and tv_results arrays.
@@ -178,6 +190,7 @@ export function createTMDBClient(accessToken: string, appLog: AppLogger) {
     trending,
     details,
     genres,
+    providers,
     findByExternalId,
   };
 }

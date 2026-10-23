@@ -49,6 +49,7 @@ export function ExplorePage() {
             onSelectKeyword={feed.onKeywordSelect}
             onSelectPerson={feed.onPersonSelect}
             onSelectDateRange={feed.onDateRangeSelect}
+            onSelectProvider={feed.onProviderSelect}
             onSelectMedia={goToMedia}
             showPeople={feed.currentSearchType !== 'tv'}
           />
@@ -79,11 +80,12 @@ export function ExplorePage() {
                     genres={feed.preferences.genres}
                     keywords={feed.preferences.keywords}
                     people={feed.preferences.people}
-                    results={feed.preferences.results}
+                    providers={feed.preferences.providers}
                     onSelectGenre={feed.onGenreSelect}
                     onSelectKeyword={feed.onKeywordSelect}
                     onSelectPerson={feed.onPersonSelect}
                     onSelectDateRange={feed.onDateRangeSelect}
+                    onSelectProvider={feed.onProviderSelect}
                     onSelectMedia={goToMedia}
                     showPeople={feed.currentSearchType !== 'tv'}
                     className="w-full"

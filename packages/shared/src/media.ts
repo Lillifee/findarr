@@ -2,6 +2,8 @@ import type { User } from './auth.js';
 import type { DbMedia, DbUserMediaInteraction } from './db.js';
 import type { PreferenceKind } from './preferences.js';
 
+export type { Provider } from './preferences.js';
+
 // ============================================================================
 // Media Composite Types - Derived from DB rows
 // ============================================================================
@@ -232,7 +234,6 @@ export interface DiscoverMediaResponse {
 }
 
 export interface SearchResponse extends PaginatedMediaResponse {
-  genres: Genre[];
   keywords: Keyword[];
   people: Person[];
 }

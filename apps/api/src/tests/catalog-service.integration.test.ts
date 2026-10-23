@@ -72,7 +72,6 @@ describe('catalog service - integration tests', () => {
 
     const searchResult: SearchResponse = {
       results: [],
-      genres: [],
       people: [],
       keywords: [],
       page: 0,
@@ -89,7 +88,7 @@ describe('catalog service - integration tests', () => {
     expect(details).toBe(detailsResult);
   });
 
-  it('should return people and keywords and discover media by person, keyword, or genre', async () => {
+  it('should return search matches and discover media by person, keyword, genre, or provider', async () => {
     const user = await createTestUserInDb(db, { email: 'cast-discover@test.com' });
     const movie = createTestMedia({ tmdbId: 1, type: 'movie' });
     tmdbService.searchPeople.mockResolvedValue([
@@ -97,20 +96,23 @@ describe('catalog service - integration tests', () => {
       { tmdbId: 2, name: 'Director', profilePath: undefined, knownForDepartment: 'Directing' },
     ]);
     tmdbService.searchKeywords.mockResolvedValue([{ id: 1, name: 'superhero' }]);
-    tmdbService.searchGenres.mockResolvedValue([{ id: 1, name: 'Test genre' }]);
     tmdbService.discoverMedia.mockResolvedValue({ page: 1, results: [movie] });
 
     const search = await catalogService.search({ query: 'test', type: 'both', page: 1 }, user.id);
     const personDiscovery = await catalogService.getDiscoveryFeed(
-      { person: [1], genre: [], keyword: [], type: 'movie' },
+      { person: [1], genre: [], keyword: [], provider: [], type: 'movie' },
       user.id,
     );
     const keywordDiscovery = await catalogService.getDiscoveryFeed(
-      { person: [], genre: [], keyword: [1], type: 'tv' },
+      { person: [], genre: [], keyword: [1], provider: [], type: 'tv' },
       user.id,
     );
     const genreDiscovery = await catalogService.getDiscoveryFeed(
-      { person: [], genre: [28], keyword: [], type: 'both' },
+      { person: [], genre: [28], keyword: [], provider: [], type: 'both' },
+      user.id,
+    );
+    const providerDiscovery = await catalogService.getDiscoveryFeed(
+      { person: [], genre: [], keyword: [], provider: [8], type: 'movie' },
       user.id,
     );
 
@@ -119,7 +121,6 @@ describe('catalog service - integration tests', () => {
       { tmdbId: 2, name: 'Director', profilePath: undefined, knownForDepartment: 'Directing' },
     ]);
     expect(search.keywords).toStrictEqual([{ id: 1, name: 'superhero' }]);
-    expect(search.genres).toStrictEqual([{ id: 1, name: 'Test genre' }]);
     expect(tmdbService.discoverMedia).toHaveBeenCalledWith(
       expect.objectContaining({ person: [1] }),
     );
@@ -128,6 +129,9 @@ describe('catalog service - integration tests', () => {
     );
     expect(tmdbService.discoverMedia).toHaveBeenCalledWith(
       expect.objectContaining({ genre: [28] }),
+    );
+    expect(tmdbService.discoverMedia).toHaveBeenCalledWith(
+      expect.objectContaining({ provider: [8] }),
     );
     expect(personDiscovery).toMatchObject({
       results: [movie],
@@ -138,18 +142,21 @@ describe('catalog service - integration tests', () => {
     expect(genreDiscovery).toMatchObject({
       results: [movie],
     });
+    expect(providerDiscovery).toMatchObject({
+      results: [movie],
+    });
   });
 
   it('should delegate discovery without filters', async () => {
     const user = await createTestUserInDb(db, { email: 'empty-discover@test.com' });
 
     const result = await catalogService.getDiscoveryFeed(
-      { person: [], genre: [], keyword: [], type: 'both' },
+      { person: [], genre: [], keyword: [], provider: [], type: 'both' },
       user.id,
     );
 
     expect(tmdbService.discoverMedia).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({ person: [], genre: [], keyword: [], type: 'both' }),
+      expect.objectContaining({ person: [], genre: [], keyword: [], provider: [], type: 'both' }),
     );
     expect(result).toMatchObject({ results: [] });
   });
@@ -172,7 +179,7 @@ describe('catalog service - integration tests', () => {
       .mockResolvedValueOnce({ page: 2, results: [nextMovie] });
 
     const result = await catalogService.getDiscoveryFeed(
-      { person: [], genre: [], keyword: [], type: 'movie' },
+      { person: [], genre: [], keyword: [], provider: [], type: 'movie' },
       user.id,
     );
 

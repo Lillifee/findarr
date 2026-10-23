@@ -12,12 +12,14 @@ describe('catalog discovery search params', () => {
     const discovery: DiscoveryFilter[] = [
       { type: 'genre', id: 28, name: 'Action' },
       { type: 'date', id: 4, name: '2020s' },
+      { type: 'provider', id: 8, name: 'Netflix' },
     ];
 
     const params = buildCatalogSearchParams({ type: 'movie', discovery });
     const parsed = readCatalogSearchParams(params, { type: 'movie' });
 
     expect(params.getAll('date')).toStrictEqual(['4']);
+    expect(params.getAll('provider')).toStrictEqual(['8']);
     expect(parsed.discovery).toStrictEqual(discovery);
   });
 

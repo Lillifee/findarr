@@ -228,6 +228,17 @@ export const TMDBGenresResponseSchema = z.object({
   genres: z.array(TMDBGenreSchema),
 });
 
+export const TMDBProvidersResponseSchema = z.object({
+  results: z.array(
+    z.object({
+      display_priority: z.number(),
+      logo_path: z.string(),
+      provider_id: z.number(),
+      provider_name: z.string(),
+    }),
+  ),
+});
+
 // TMDB Find by External ID response
 export const TMDBFindResponseSchema = z.object({
   movie_results: z.array(TMDBMovieSchema),

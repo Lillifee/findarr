@@ -213,6 +213,7 @@
     "peopleResults": "Personen",
     "genreResults": "Genres",
     "keywordResults": "Stichwörter",
+    "providerResults": "Streaming-Anbieter",
     "mediaResults": "Filme & Serien",
     "clearSearch": "Suche löschen",
     "searchFor": "Nach \"{{query}}\" suchen",

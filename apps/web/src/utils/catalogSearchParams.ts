@@ -36,7 +36,13 @@ const readPositiveInteger = (value: string | null): number | undefined => {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
 };
 
-export const DISCOVERY_TYPES: readonly DiscoveryType[] = ['genre', 'person', 'keyword', 'date'];
+export const DISCOVERY_TYPES: readonly DiscoveryType[] = [
+  'genre',
+  'person',
+  'keyword',
+  'date',
+  'provider',
+];
 
 export function isDiscoveryType(value: unknown): value is DiscoveryType {
   return typeof value === 'string' && (DISCOVERY_TYPES as readonly string[]).includes(value);
