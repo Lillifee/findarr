@@ -2,7 +2,7 @@
  * Script to capture real TMDB API responses and save them as fixtures for integration tests
  *
  * Usage:
- *   tsx server/scripts/capture-tmdb-fixtures.ts
+ *   vpx scripts/capture-tmdb-fixtures.ts
  *
  * This should be run once to populate the fixtures directory with real API data.
  * Fixtures can be refreshed quarterly or when TMDB API changes are detected.

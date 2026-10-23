@@ -153,7 +153,7 @@ Prefer the root `package.json` scripts (which wrap `vp`); run them from the repo
 | Lint + format + types | `pnpm check`       | `vp check`                                                |
 | Auto-fix lint/format  | `pnpm fix`         | `vp check --fix`                                          |
 | Run tests             | `pnpm test`        | `vp test` (Vitest)                                        |
-| CI (build+check+test) | `pnpm ci`          | `vp run -r build && vp check && vp test`                  |
+| CI (build+check+test) | `pnpm run ci`      | `vp run -r build && vp check && vp test`                  |
 | Generate migrations   | `pnpm db:generate` | `vp run -r db:generate` (Drizzle Kit)                     |
 
 Notes:
