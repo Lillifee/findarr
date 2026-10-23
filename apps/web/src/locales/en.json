@@ -84,7 +84,9 @@
     "items": "items",
     "votingRangeDescription": "How many of the top-ranked titles are available to vote on.",
     "password": "Password",
-    "passwordDescription": "Update your sign-in password."
+    "passwordDescription": "Update your sign-in password.",
+    "aboutCredits": "About & Credits",
+    "tmdbAttribution": "This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB."
   },
   "language": {
     "en": "English",
@@ -264,7 +266,7 @@
   "tmdbSetup": {
     "badge": "Setup Required",
     "title": "Connect TMDB",
-    "disclaimer": "This product uses the TMDB API but is not endorsed or certified by TMDB.",
+    "disclaimer": "This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.",
     "description": "Finish the initial Findarr setup by adding a TMDB read access token. This enables search, discovery, and full media metadata throughout the app.",
     "instructions": "Sign in or create an account at",
     "instructionsAfterLink": ", then open the following section in your account:",
