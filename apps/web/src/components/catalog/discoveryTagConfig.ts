@@ -6,4 +6,5 @@ export const discoveryIcons: Record<DiscoveryType, IconName> = {
   genre: 'theater_comedy',
   keyword: 'sell',
   person: 'person',
+  provider: 'play_arrow',
 };

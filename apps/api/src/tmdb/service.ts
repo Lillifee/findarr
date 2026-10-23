@@ -8,6 +8,7 @@ import type {
   Person,
   Keyword,
   SearchType,
+  Provider,
 } from '@findarr/shared/media';
 import type { TmdbSettings, TmdbSettingsQuery } from '@findarr/shared/settings';
 import { isDefined } from '@findarr/shared/utils';
@@ -42,7 +43,6 @@ export interface TmdbBaseParams {
 }
 
 interface TmdbGenresParams extends TmdbBaseParams {
-  query?: string;
   type?: SearchType;
 }
 
@@ -54,6 +54,7 @@ export async function createTMDBService(context: TmdbServiceContext) {
   const genreCache = createLruTtlCache<Map<number, Genre>>(24 * 60 * 60 * 1000, 20);
   const detailsCache = createLruTtlCache<MediaDetails>(60_000, 500);
   const personCache = createLruTtlCache<Person>(24 * 60 * 60 * 1000, 500);
+  const providersCache = createLruTtlCache<Provider[]>(24 * 60 * 60 * 1000, 20);
 
   const lifecycle = createClientLifecycle<TmdbSettingsFull, TMDBClient>({
     name: 'TMDB',
@@ -249,11 +250,15 @@ export async function createTMDBService(context: TmdbServiceContext) {
   ): Promise<PaginatedMediaResponse> {
     const { page, type, language = 'en-US' } = params;
     const mediaTypes: readonly MediaType[] = type === 'both' ? MEDIA_TYPES : [type];
+    const watchRegion = language.split('-')[1] ?? 'US';
     const genreMap = await getGenreMap(language, mediaTypes.length === 2 ? 'both' : mediaTypes[0]);
+
     const tmdbParams = {
       ...(params.person.length > 0 ? { with_people: params.person.join(',') } : {}),
       ...(params.keyword.length > 0 ? { with_keywords: params.keyword.join(',') } : {}),
       ...(params.genre.length > 0 ? { with_genres: params.genre.join(',') } : {}),
+      ...(params.provider.length > 0 ? { with_watch_providers: params.provider.join(',') } : {}),
+      ...(params.provider.length > 0 ? { watch_region: watchRegion } : {}),
     };
 
     const responses = await Promise.all(
@@ -291,16 +296,27 @@ export async function createTMDBService(context: TmdbServiceContext) {
   /**
    * Get genres from the cached map for the requested media scope.
    */
-  async function searchGenres(params: TmdbGenresParams): Promise<Genre[]> {
+  async function getGenres(params: TmdbGenresParams): Promise<Genre[]> {
     const genreMap = await getGenreMap(params.language, params.type);
-    const allGenres = [...genreMap.values()];
+    return [...genreMap.values()];
+  }
 
-    if (!isDefined(params.query)) {
-      return allGenres;
-    }
+  /**
+   * Get providers for the requested media type and language.
+   */
+  async function getProviders(type: MediaType, language = 'en-US'): Promise<Provider[]> {
+    const region = language.split('-')[1] ?? 'US';
 
-    const normalizedQuery = params.query.toLocaleLowerCase();
-    return allGenres.filter((genre) => genre.name.toLocaleLowerCase().includes(normalizedQuery));
+    return providersCache.getOrLoad(`${region}:${language}:${type}`, async () => {
+      const response = await lifecycle.client().providers(type, { language, watch_region: region });
+      return response.results
+        .toSorted((left, right) => left.display_priority - right.display_priority)
+        .map((provider) => ({
+          id: provider.provider_id,
+          name: provider.provider_name,
+          logoPath: provider.logo_path,
+        }));
+    });
   }
 
   /**
@@ -323,10 +339,11 @@ export async function createTMDBService(context: TmdbServiceContext) {
     personDetails,
     searchKeywords,
     discoverMedia,
+    getProviders,
     discover,
     trending,
     details,
-    searchGenres,
+    getGenres,
     findByExternalId,
   };
 }

@@ -1,4 +1,4 @@
-import type { Genre, Keyword, Media, Person } from '@findarr/shared/media';
+import type { Genre, Keyword, Media, Person, Provider } from '@findarr/shared/media';
 import { useEffect, useRef, useState, type SyntheticEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -14,6 +14,7 @@ export interface SearchData {
   genres: Genre[];
   keywords: Keyword[];
   people: Person[];
+  providers: Provider[];
   results: Media[];
   loading: boolean;
 }
@@ -33,6 +34,7 @@ interface SearchBarProps {
   onSelectKeyword?: (keyword: Keyword) => void;
   onSelectPerson?: (person: Person) => void;
   onSelectDateRange?: (id: number, name: string) => void;
+  onSelectProvider?: (provider: Provider) => void;
   onSelectMedia?: (media: Media) => void;
 }
 
@@ -54,6 +56,7 @@ export function SearchBar({
   onSelectKeyword,
   onSelectPerson,
   onSelectDateRange,
+  onSelectProvider,
   onSelectMedia,
 }: SearchBarProps) {
   const { t } = useTranslation();
@@ -66,6 +69,13 @@ export function SearchBar({
   const inputFocusedRef = useRef(false);
   const canClear = Boolean(query || hasSearched || discovery.length > 0);
   const activeData = suggestions;
+  const matchQuery = query.trim().toLocaleLowerCase();
+  const visibleGenres =
+    activeData?.genres.filter((genre) => genre.name.toLocaleLowerCase().includes(matchQuery)) ?? [];
+  const visibleProviders =
+    activeData?.providers.filter((provider) =>
+      provider.name.toLocaleLowerCase().includes(matchQuery),
+    ) ?? [];
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
@@ -288,9 +298,10 @@ export function SearchBar({
                 </button>
               </div>
               <SearchMatches
-                genres={activeData.genres}
+                genres={visibleGenres}
                 keywords={activeData.keywords}
                 people={showPeople ? activeData.people : []}
+                providers={visibleProviders}
                 results={activeData.results}
                 showPeople={showPeople}
                 compact
@@ -310,14 +321,19 @@ export function SearchBar({
                   handleDiscoverySelect();
                   onSelectDateRange?.(id, name);
                 }}
+                onSelectProvider={(provider) => {
+                  handleDiscoverySelect();
+                  onSelectProvider?.(provider);
+                }}
                 onSelectMedia={(media) => {
                   setPanelOpen(false);
                   onSelectMedia?.(media);
                 }}
               />
-              {activeData.genres.length === 0 &&
+              {visibleGenres.length === 0 &&
                 activeData.keywords.length === 0 &&
                 activeData.people.length === 0 &&
+                visibleProviders.length === 0 &&
                 !onSelectDateRange && (
                   <p className="py-6 text-center text-sm text-zinc-400">{t('common.noResults')}</p>
                 )}

@@ -213,6 +213,7 @@
     "peopleResults": "People",
     "genreResults": "Genres",
     "keywordResults": "Keywords",
+    "providerResults": "Providers",
     "mediaResults": "Movies & shows",
     "clearSearch": "Clear search",
     "searchFor": "Search for \"{{query}}\"",

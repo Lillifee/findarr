@@ -1,5 +1,5 @@
 import type { DiscoverQuery } from '@findarr/shared/catalog';
-import type { Genre, Keyword, Media, Person, SearchType } from '@findarr/shared/media';
+import type { Genre, Keyword, Media, Person, SearchType, Provider } from '@findarr/shared/media';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -36,13 +36,24 @@ interface LoadingState {
   loadingMore: boolean;
 }
 
-interface SearchState {
-  genres: Genre[];
+interface SuggestionState {
   keywords: Keyword[];
   people: Person[];
+}
+
+interface SearchState extends SuggestionState {
   results: Media[];
   loading: boolean;
 }
+
+interface PreferenceState extends SuggestionState {
+  genres: Genre[];
+  providers: Provider[];
+  loading: boolean;
+}
+
+type SearchData = SearchState & { genres: Genre[]; providers: Provider[] };
+type PreferenceData = PreferenceState;
 
 export type CatalogFeedMode = 'browse' | 'discover';
 
@@ -60,15 +71,22 @@ const idleLoadingState: LoadingState = {
 };
 
 const emptySearchState: SearchState = {
-  genres: [],
   keywords: [],
   people: [],
   results: [],
   loading: false,
 };
 
-const initialSuggestionsState: SearchState = {
-  ...emptySearchState,
+const emptyPreferencesState: PreferenceState = {
+  keywords: [],
+  people: [],
+  genres: [],
+  providers: [],
+  loading: false,
+};
+
+const initialSuggestionsState: PreferenceState = {
+  ...emptyPreferencesState,
   loading: true,
 };
 
@@ -109,13 +127,12 @@ function useCatalogFilters() {
 
 export interface CatalogFeed {
   results: Media[];
-  genres: Genre[];
   people: Person[];
   keywords: Keyword[];
   searchResults: Media[];
   searchLoading: boolean;
-  suggestions: SearchState;
-  preferences: SearchState;
+  suggestions: SearchData;
+  preferences: PreferenceData;
   loading: boolean;
   loadingMore: boolean;
   hasMore: boolean;
@@ -125,6 +142,7 @@ export interface CatalogFeed {
   discovery: DiscoveryFilter[];
   onDiscoveryRemove: (index: number) => void;
   onDateRangeSelect: (id: number, name: string) => void;
+  onProviderSelect: (provider: Provider) => void;
   onTypeChange: (type: SearchType) => void;
   onSearch: (query: string) => void;
   onSearchPreview: (query: string) => void;
@@ -144,7 +162,7 @@ export function useCatalogFeed(): CatalogFeed {
   const [searchState, setSearchState] = useState<SearchState>(emptySearchState);
   const [previewQuery, setPreviewQuery] = useState(filters.query);
   const [previewSearchState, setPreviewSearchState] = useState<SearchState>(emptySearchState);
-  const [suggestions, setSuggestions] = useState<SearchState>(initialSuggestionsState);
+  const [suggestions, setSuggestions] = useState<PreferenceState>(initialSuggestionsState);
   const feedRef = useRef<CatalogFeedState>(emptyFeed);
   const latestRequestIdRef = useRef(0);
   const discoveryFeedIdRef = useRef<string | null>(null);
@@ -183,6 +201,7 @@ export function useCatalogFeed(): CatalogFeed {
             person: discovery.filter((item) => item.type === 'person').map((item) => item.id),
             genre: discovery.filter((item) => item.type === 'genre').map((item) => item.id),
             keyword: discovery.filter((item) => item.type === 'keyword').map((item) => item.id),
+            provider: discovery.filter((item) => item.type === 'provider').map((item) => item.id),
             ...dateRange,
           };
           const response = await searchService.getDiscoveryFeed(discoverParams);
@@ -229,20 +248,20 @@ export function useCatalogFeed(): CatalogFeed {
     const loadSuggestions = async () => {
       try {
         const response = await searchService.listPreferences(
-          filters.type === 'both' ? 'movie' : filters.type,
+          filters.type === 'tv' ? 'tv' : 'movie',
         );
         if (active) {
           setSuggestions({
             genres: response.genres,
             people: response.people,
             keywords: response.keywords,
-            results: [],
+            providers: response.providers,
             loading: false,
           });
         }
       } catch {
         if (active) {
-          setSuggestions(emptySearchState);
+          setSuggestions(emptyPreferencesState);
         }
       }
     };
@@ -263,7 +282,6 @@ export function useCatalogFeed(): CatalogFeed {
           const response = await searchService.search({ query, page: 1, type: filters.type });
           if (active) {
             setSearchState({
-              genres: response.genres,
               people: response.people,
               keywords: response.keywords,
               results: response.results,
@@ -296,7 +314,6 @@ export function useCatalogFeed(): CatalogFeed {
           const response = await searchService.search({ query, page: 1, type: filters.type });
           if (active) {
             setPreviewSearchState({
-              genres: response.genres,
               people: response.people,
               keywords: response.keywords,
               results: response.results,
@@ -354,6 +371,10 @@ export function useCatalogFeed(): CatalogFeed {
 
   const onDateRangeSelect = (id: number, name: string) => {
     addDiscovery({ type: 'date', id, name });
+  };
+
+  const onProviderSelect = (provider: Provider) => {
+    addDiscovery({ type: 'provider', id: provider.id, name: provider.name });
   };
 
   const onPersonSelect = (person: Person) => {
@@ -414,19 +435,23 @@ export function useCatalogFeed(): CatalogFeed {
     loading: loadingState.loading,
     loadingMore: loadingState.loadingMore,
     results: feed.results,
-    genres: searchState.genres,
     people: searchState.people,
     keywords: searchState.keywords,
     searchResults: searchState.results,
     searchLoading: searchState.loading,
-    suggestions: previewQuery.trim() ? previewSearchState : suggestions,
-    preferences: suggestions,
+    suggestions: {
+      ...(previewQuery.trim() ? previewSearchState : { ...suggestions, results: [] }),
+      genres: suggestions.genres,
+      providers: suggestions.providers,
+    },
+    preferences: { ...suggestions },
     hasMore: feed.hasMore,
     currentSearchType: filters.type,
     currentQuery: filters.query,
     discovery: filters.discovery ?? [],
     onTypeChange,
     onDateRangeSelect,
+    onProviderSelect,
     onSearch,
     onSearchPreview,
     onSubmitSearch,

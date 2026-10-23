@@ -4,7 +4,7 @@ import { z } from 'zod';
 // Catalog Request Schemas
 // ============================================================================
 
-export type DiscoveryType = 'person' | 'genre' | 'keyword' | 'date';
+export type DiscoveryType = 'person' | 'genre' | 'keyword' | 'date' | 'provider';
 
 export interface DiscoveryFilter {
   type: DiscoveryType;
@@ -29,6 +29,7 @@ export const DiscoverQuerySchema = z.object({
   person: positiveIds,
   genre: positiveIds,
   keyword: positiveIds,
+  provider: positiveIds,
   startDate: z.iso.date().optional(),
   endDate: z.iso.date().optional(),
 });

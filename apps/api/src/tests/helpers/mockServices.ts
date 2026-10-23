@@ -32,13 +32,14 @@ export function createMockTMDBService(
     searchPeople: vi.fn<TMDBService['searchPeople']>().mockResolvedValue([]),
     personDetails: vi.fn<TMDBService['personDetails']>(),
     searchKeywords: vi.fn<TMDBService['searchKeywords']>().mockResolvedValue([]),
+    getProviders: vi.fn<TMDBService['getProviders']>().mockResolvedValue([]),
     discoverMedia: vi.fn<TMDBService['discoverMedia']>().mockResolvedValue({
       results: [],
       page: 1,
     }),
     discover: vi.fn<TMDBService['discover']>(),
     trending: vi.fn<TMDBService['trending']>(),
-    searchGenres: vi.fn<TMDBService['searchGenres']>().mockResolvedValue([]),
+    getGenres: vi.fn<TMDBService['getGenres']>().mockResolvedValue([]),
     details: vi.fn<TMDBService['details']>(),
     findByExternalId: vi.fn<TMDBService['findByExternalId']>(),
     ...overrides,
@@ -105,7 +106,7 @@ export function createMockCatalogService(
   return {
     search: vi
       .fn<CatalogService['search']>()
-      .mockResolvedValue({ results: [], genres: [], people: [], keywords: [], page: 1 }),
+      .mockResolvedValue({ results: [], people: [], keywords: [], page: 1 }),
     getDiscoveryFeed: vi
       .fn<CatalogService['getDiscoveryFeed']>()
       .mockResolvedValue({ results: [], hasMore: false, feedId: 'feed-1' }),

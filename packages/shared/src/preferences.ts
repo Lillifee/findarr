@@ -22,6 +22,12 @@ export interface UserPreferenceSuggestion {
   name: string;
 }
 
+export interface Provider {
+  id: number;
+  name: string;
+  logoPath: string;
+}
+
 export interface UserPreferencePersonSuggestion {
   tmdbId: number;
   name: string;
@@ -34,6 +40,7 @@ export interface UserPreferencesResponse {
   genres: UserPreferenceSuggestion[];
   keywords: UserPreferenceSuggestion[];
   people: UserPreferencePersonSuggestion[];
+  providers: Provider[];
 }
 
 export const toPreferenceKey = (

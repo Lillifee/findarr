@@ -1,4 +1,4 @@
-import type { Genre, Keyword, Media, Person } from '@findarr/shared/media';
+import type { Genre, Keyword, Media, Person, Provider } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,7 @@ import { Icon } from '../ui/Icon';
 import { DiscoveryTag } from './DiscoveryTag';
 
 const emptyResults: Media[] = [];
+const emptyProviders: Provider[] = [];
 
 interface ExpandableSectionProps {
   children: ReactNode;
@@ -91,12 +92,14 @@ interface SearchMatchesProps {
   genres: Genre[];
   keywords: Keyword[];
   people: Person[];
+  providers?: Provider[];
   results?: Media[];
   onSelectMedia?: (media: Media) => void;
   onSelectGenre: (genre: Genre) => void;
   onSelectKeyword: (keyword: Keyword) => void;
   onSelectPerson: (person: Person) => void;
   onSelectDateRange?: (id: number, name: string) => void;
+  onSelectProvider?: (provider: Provider) => void;
   showPeople?: boolean;
   compact?: boolean;
   className?: string;
@@ -106,12 +109,14 @@ export function SearchMatches({
   genres,
   keywords,
   people,
+  providers = emptyProviders,
   results = emptyResults,
   onSelectMedia,
   onSelectGenre,
   onSelectKeyword,
   onSelectPerson,
   onSelectDateRange,
+  onSelectProvider,
   showPeople = true,
   compact = false,
   className,
@@ -124,6 +129,7 @@ export function SearchMatches({
     genres.length === 0 &&
     keywords.length === 0 &&
     visiblePeople.length === 0 &&
+    providers.length === 0 &&
     !onSelectDateRange
   ) {
     return null;
@@ -155,6 +161,7 @@ export function SearchMatches({
           </ExpandableSection>
         </section>
       )}
+
       {genres.length > 0 && (
         <section aria-label={t('catalog.genreResults')}>
           <ExpandableSection
@@ -238,6 +245,47 @@ export function SearchMatches({
                 )}
                 <span className="w-full truncate text-center text-xs font-medium text-white">
                   {person.name}
+                </span>
+              </button>
+            ))}
+          </HorizontalRail>
+        </section>
+      )}
+
+      {providers.length > 0 && onSelectProvider && (
+        <section aria-label={t('catalog.providerResults')}>
+          <div className="mb-2">
+            <h2 className="text-xs font-semibold tracking-wide text-zinc-400 uppercase">
+              {t('catalog.providerResults')}
+            </h2>
+          </div>
+          <HorizontalRail
+            ariaLabel={t('catalog.providerResults')}
+            contentClassName={`flex px-1 ${compact ? 'gap-4' : 'gap-5'}`}
+            nextLabel={t('common.next')}
+            previousLabel={t('common.previous')}
+          >
+            {providers.map((provider) => (
+              <button
+                key={provider.id}
+                type="button"
+                aria-label={provider.name}
+                onClick={() => {
+                  onSelectProvider(provider);
+                }}
+                className={`flex shrink-0 flex-col items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${compact ? 'w-16' : 'w-20'}`}
+              >
+                <span
+                  className={`${compact ? 'h-16 w-16' : 'h-20 w-20'} mb-2 flex items-center justify-center rounded-md bg-zinc-900/80 p-2 shadow-lg`}
+                >
+                  <img
+                    src={tmdbImage(provider.logoPath, 'w185')}
+                    alt=""
+                    className="max-h-full max-w-full object-contain"
+                  />
+                </span>
+                <span className="w-full truncate text-center text-xs font-medium text-white">
+                  {provider.name}
                 </span>
               </button>
             ))}
