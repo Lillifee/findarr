@@ -31,6 +31,28 @@ export function SettingsPage() {
           <PasswordForm form={passwordForm} />
         </SettingsPanel>
       </div>
+
+      <div className="mt-6">
+        <SettingsPanel title={t('settings.aboutCredits')}>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <a
+              href="https://www.themoviedb.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex w-fit rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+            >
+              <img
+                src="https://www.themoviedb.org/assets/v4/logos/v2/blue_long_2-9665a76b1ae401a510ec1e0ca40ddcb3b0cfe45f1d51b77a308fea0845885648.svg"
+                alt="TMDB - The Movie Database"
+                className="h-10 max-w-full"
+              />
+            </a>
+            <p className="max-w-2xl text-sm leading-6 text-zinc-400">
+              {t('settings.tmdbAttribution')}
+            </p>
+          </div>
+        </SettingsPanel>
+      </div>
     </PageContainer>
   );
 }

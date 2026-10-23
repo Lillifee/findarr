@@ -84,7 +84,9 @@
     "items": "Einträge",
     "votingRangeDescription": "Wie viele der am höchsten bewerteten Titel zum Abstimmen verfügbar sind.",
     "password": "Passwort",
-    "passwordDescription": "Dein Anmeldepasswort aktualisieren."
+    "passwordDescription": "Dein Anmeldepasswort aktualisieren.",
+    "aboutCredits": "Info & Credits",
+    "tmdbAttribution": "Dieses Produkt verwendet TMDB und die TMDB-APIs, wird jedoch nicht von TMDB unterstützt, zertifiziert oder anderweitig genehmigt."
   },
   "language": {
     "en": "Englisch",
@@ -264,7 +266,7 @@
   "tmdbSetup": {
     "badge": "Einrichtung erforderlich",
     "title": "TMDB verbinden",
-    "disclaimer": "Dieses Produkt verwendet die TMDB-API, wird aber nicht von TMDB unterstützt oder zertifiziert.",
+    "disclaimer": "Dieses Produkt verwendet TMDB und die TMDB-APIs, wird jedoch nicht von TMDB unterstützt, zertifiziert oder anderweitig genehmigt.",
     "description": "Schließe die erste Findarr-Einrichtung ab, indem du ein TMDB-Lesezugriffstoken hinzufügst. Damit werden Medien-Metadaten in der gesamten App aktiviert.",
     "instructions": "Melde dich an oder erstelle ein Konto",
     "instructionsAfterLink": ", öffne anschließend den folgenden Bereich in deinem Konto:",
