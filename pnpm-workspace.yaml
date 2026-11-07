@@ -7,28 +7,16 @@ allowBuilds:
   esbuild: true
 
 catalog:
-  vite: npm:@voidzero-dev/vite-plus-core@1.4.0
-  vite-plus: 1.4.0
+  '@types/node': ^24.0.0
+  vite: npm:@voidzero-dev/vite-plus-core@1.5.0
+  vite-plus: 1.5.0
   typescript: ^7.0.2
   drizzle-orm: ^0.45.4
   zod: ^4.6.7
 
-# TODO REMOVE
-minimumReleaseAgeExclude:
-  - '@voidzero-dev/vite-plus-core@1.4.0'
-  - '@voidzero-dev/vite-plus-darwin-arm64@1.4.0'
-  - '@voidzero-dev/vite-plus-darwin-x64@1.4.0'
-  - '@voidzero-dev/vite-plus-linux-arm64-gnu@1.4.0'
-  - '@voidzero-dev/vite-plus-linux-arm64-musl@1.4.0'
-  - '@voidzero-dev/vite-plus-linux-x64-gnu@1.4.0'
-  - '@voidzero-dev/vite-plus-linux-x64-musl@1.4.0'
-  - '@voidzero-dev/vite-plus-win32-arm64-msvc@1.4.0'
-  - '@voidzero-dev/vite-plus-win32-x64-msvc@1.4.0'
-  - vite-plus@1.4.0
-
 overrides:
   vite: 'catalog:'
-  '@types/node': ^24.0.0
+  '@types/node': 'catalog:'
 
 peerDependencyRules:
   allowAny:
