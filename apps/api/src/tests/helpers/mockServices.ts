@@ -110,19 +110,17 @@ export function createMockCatalogService(
     getDiscoveryFeed: vi
       .fn<CatalogService['getDiscoveryFeed']>()
       .mockResolvedValue({ results: [], hasMore: false, feedId: 'feed-1' }),
-    getMediaDetails: vi
-      .fn<CatalogService['getMediaDetails']>()
-      .mockImplementation(async (params) =>
-        params.type === 'movie'
-          ? createTestMovieDetail({
-              tmdbId: params.id,
-              state: { record: createDefaultMediaRecord() },
-            })
-          : createTestTVDetail({
-              tmdbId: params.id,
-              state: { record: createDefaultMediaRecord() },
-            }),
-      ),
+    getMediaDetails: vi.fn<CatalogService['getMediaDetails']>().mockImplementation(async (params) =>
+      params.type === 'movie'
+        ? createTestMovieDetail({
+            tmdbId: params.id,
+            state: { record: createDefaultMediaRecord() },
+          })
+        : createTestTVDetail({
+            tmdbId: params.id,
+            state: { record: createDefaultMediaRecord() },
+          }),
+    ),
     getVotingFeed: vi.fn<CatalogService['getVotingFeed']>().mockResolvedValue({
       results: [],
       nextResults: [],
