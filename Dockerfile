@@ -5,7 +5,7 @@
 # =========================
 # Official Vite+ toolchain image: bundles `vp` + a native build toolchain
 # (build-essential, python3) and provisions the exact Node.js from .node-version.
-FROM ghcr.io/voidzero-dev/vite-plus:0.2.2 AS build
+FROM ghcr.io/voidzero-dev/vite-plus:1.5.0 AS build
 
 WORKDIR /app
 
@@ -37,7 +37,7 @@ RUN cp "$(vp env which node | head -1)" /tmp/node
 # =========================
 # A separate --prod install so devDependencies (including the vite-plus
 # toolchain) are excluded from the runtime image.
-FROM ghcr.io/voidzero-dev/vite-plus:0.2.2 AS deps
+FROM ghcr.io/voidzero-dev/vite-plus:1.5.0 AS deps
 
 WORKDIR /app
 
