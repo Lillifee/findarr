@@ -16,7 +16,7 @@ catalog:
 
 overrides:
   vite: 'catalog:'
-  '@types/node': 'catalog:'
+  '@types/node': ^24.0.0
 
 peerDependencyRules:
   allowAny:
