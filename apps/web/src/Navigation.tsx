@@ -134,52 +134,45 @@ export function Navigation({ onLogout, user, isAdmin }: NavigationProps) {
               <span className="font-medium">{t('nav.activity')}</span>
               <span className="ml-auto">{attentionIndicator}</span>
             </NavLink>
-
-            {/* Account Section - Always Visible on Desktop */}
-            <div className="pt-4">
-              <div className="mb-2 px-4 text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                {t('nav.account')}
-              </div>
-              <div className="space-y-1">
-                <NavLink to="/settings" className={navLinkClass}>
-                  <Icon name="tune" />
-                  <span className="text-sm font-medium">{t('nav.settings')}</span>
-                </NavLink>
-
-                {isAdmin && (
-                  <>
-                    <NavLink to="/admin/administration" className={navLinkClass}>
-                      <Icon name="link" />
-                      <span className="text-sm font-medium">{t('nav.admin')}</span>
-                    </NavLink>
-
-                    <NavLink to="/admin/users" className={navLinkClass}>
-                      <Icon name="group" />
-                      <span className="text-sm font-medium">{t('nav.users')}</span>
-                    </NavLink>
-
-                    <NavLink to="/admin/schedulers" className={navLinkClass}>
-                      <Icon name="schedule" />
-                      <span className="text-sm font-medium">{t('nav.schedulers')}</span>
-                    </NavLink>
-
-                    <NavLink to="/admin/logs" className={navLinkClass}>
-                      <Icon name="checklist" />
-                      <span className="text-sm font-medium">{t('nav.logs')}</span>
-                      <span className="ml-auto">{updateIndicator}</span>
-                    </NavLink>
-                  </>
-                )}
-
-                {/* Desktop logout moved to bottom user-info area */}
-              </div>
-            </div>
           </nav>
         </div>
 
-        {/* Bottom Section - User Info */}
-        <div className="border-t border-zinc-800/80 p-4">
-          <div className="p-0">
+        {/* Bottom Section - Account */}
+        <div className="max-h-[70vh] shrink-0 overflow-y-auto border-t border-zinc-800/80 p-4">
+          <div className="mb-2 px-4 text-xs font-semibold tracking-wider text-gray-500 uppercase">
+            {t('nav.account')}
+          </div>
+          <div className="space-y-1">
+            <NavLink to="/settings" className={navLinkClass}>
+              <Icon name="tune" />
+              <span className="text-sm font-medium">{t('nav.settings')}</span>
+            </NavLink>
+
+            {isAdmin && (
+              <>
+                <NavLink to="/admin/administration" className={navLinkClass}>
+                  <Icon name="link" />
+                  <span className="text-sm font-medium">{t('nav.admin')}</span>
+                </NavLink>
+
+                <NavLink to="/admin/users" className={navLinkClass}>
+                  <Icon name="group" />
+                  <span className="text-sm font-medium">{t('nav.users')}</span>
+                </NavLink>
+
+                <NavLink to="/admin/schedulers" className={navLinkClass}>
+                  <Icon name="schedule" />
+                  <span className="text-sm font-medium">{t('nav.schedulers')}</span>
+                </NavLink>
+
+                <NavLink to="/admin/logs" className={navLinkClass}>
+                  <Icon name="checklist" />
+                  <span className="text-sm font-medium">{t('nav.logs')}</span>
+                  <span className="ml-auto">{updateIndicator}</span>
+                </NavLink>
+              </>
+            )}
+
             <button
               onClick={onLogout}
               className={navLinkClass({ isActive: false })}
