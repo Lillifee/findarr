@@ -90,8 +90,7 @@ export function MediaView({
   const recommendations = media.recommendations ?? [];
 
   const availabilityStatus = media.state?.record?.status;
-  const infoTileClass =
-    'rounded-xl border border-zinc-800/80 bg-zinc-950/72 px-3 py-2.5 backdrop-blur-sm';
+  const infoTileClass = 'rounded-xl border border-zinc-800/80 bg-zinc-950 px-3 py-2.5';
   const infoLabelClass = 'text-[10px] uppercase tracking-[0.14em] text-zinc-400 font-semibold';
 
   // Build Radarr/Sonarr link
@@ -144,16 +143,16 @@ export function MediaView({
       )}
 
       {/* Content container */}
-      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 pb-28 md:px-8 md:py-16">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pt-8 pb-16 md:px-8 md:pt-16 md:pb-20">
         {/* Main content grid: poster left, details right */}
-        <div className="mb-12 flex flex-col gap-6 md:flex-row md:gap-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
           {/* Poster */}
           {isDefined(posterUrl) && (
             <div className="shrink-0">
               <img
                 src={posterUrl}
                 alt={title}
-                className="mx-auto w-full max-w-xs rounded-lg shadow-[0_26px_80px_rgba(0,0,0,0.42)] md:mx-0 md:w-56 lg:w-80 xl:w-96"
+                className="mx-auto w-full max-w-xs rounded-lg shadow-[0_26px_80px_rgba(0,0,0,0.42)] lg:mx-0 lg:w-56 xl:w-80 2xl:w-96"
               />
             </div>
           )}
@@ -179,7 +178,7 @@ export function MediaView({
 
             {actionLinks.length > 0 && (
               <div>
-                <div className="flex w-full flex-wrap items-center overflow-hidden rounded-xl border border-zinc-800/80 bg-zinc-950/72 backdrop-blur-sm">
+                <div className="flex w-full flex-wrap items-center overflow-hidden rounded-xl border border-zinc-800/80 bg-zinc-950">
                   <div className="flex min-w-0 flex-wrap gap-0">
                     {actionLinks.map((link, index) => (
                       <div key={link.key} className="contents">
@@ -415,7 +414,7 @@ export function MediaView({
       </div>
 
       {/* Sticky Like/Dislike buttons at bottom - Always centered, above mobile nav but behind desktop sidebar */}
-      <div className="fixed right-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 z-40 border-t border-zinc-800/80 bg-zinc-950/95 shadow-[0_-18px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm md:bottom-0 md:left-64 md:z-30">
+      <div className="fixed right-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 z-40 border-t border-zinc-800/80 bg-zinc-950 shadow-[0_-18px_50px_rgba(0,0,0,0.28)] md:bottom-0 md:left-64 md:z-30">
         <div className="mx-auto flex w-full max-w-7xl justify-center px-4 py-3 md:px-8 md:py-4">
           <LikeDislikeButton
             tmdbId={media.tmdbId}
