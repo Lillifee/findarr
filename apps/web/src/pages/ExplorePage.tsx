@@ -56,7 +56,6 @@ export function ExplorePage() {
         }
         filters={
           <SegmentedControl
-            ariaLabel={t('catalog.type')}
             options={mediaTypeOptions}
             selectedValue={feed.currentSearchType}
             onChange={feed.onTypeChange}

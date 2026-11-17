@@ -65,13 +65,13 @@ export function VotePage() {
         }
         actions={
           <SegmentedControl
-            ariaLabel={t('vote.viewMode.label')}
             options={[
               { value: 'single', label: t('vote.viewMode.single'), icon: 'view_list' },
               { value: 'grid', label: t('vote.viewMode.grid'), icon: 'grid_view' },
             ]}
             selectedValue={viewMode}
             onChange={setViewMode}
+            showLabelsOnMobile
           />
         }
       />

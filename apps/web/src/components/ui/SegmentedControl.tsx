@@ -9,13 +9,13 @@ export interface SegmentedControlOption<T extends string> {
 }
 
 interface SegmentedControlProps<T extends string> {
-  ariaLabel: string;
   options: SegmentedControlOption<T>[];
   selectedValue: T;
-  onChange: (value: T) => void;
   disabled?: boolean;
   size?: 'sm' | 'md';
+  onChange: (value: T) => void;
   renderLabel?: (option: SegmentedControlOption<T>) => ReactNode;
+  showLabelsOnMobile?: boolean;
 }
 
 function defaultRenderLabel<T extends string>(option: SegmentedControlOption<T>) {
@@ -23,17 +23,16 @@ function defaultRenderLabel<T extends string>(option: SegmentedControlOption<T>)
 }
 
 export function SegmentedControl<T extends string>({
-  ariaLabel,
   options,
   selectedValue,
-  onChange,
   disabled = false,
   size = 'md',
+  onChange,
   renderLabel = defaultRenderLabel,
+  showLabelsOnMobile = false,
 }: SegmentedControlProps<T>) {
   return (
     <div
-      aria-label={ariaLabel}
       className="inline-flex shrink-0 overflow-hidden rounded-lg bg-zinc-900 text-zinc-200 ring-1 ring-zinc-800 ring-inset"
       role="group"
     >
@@ -48,6 +47,7 @@ export function SegmentedControl<T extends string>({
           <button
             key={option.value}
             type="button"
+            aria-label={option.label}
             aria-pressed={selected}
             disabled={disabled}
             title={option.label}
@@ -59,7 +59,9 @@ export function SegmentedControl<T extends string>({
             } ${edgeClass} ${stateClass} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
           >
             <Icon name={option.icon} size="sm" />
-            <span className="max-[600px]:hidden">{renderLabel(option)}</span>
+            <span className={showLabelsOnMobile ? undefined : 'max-[600px]:hidden'}>
+              {renderLabel(option)}
+            </span>
           </button>
         );
       })}

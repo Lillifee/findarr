@@ -108,7 +108,6 @@
   "vote": {
     "tryAgain": "Try Again",
     "viewMode": {
-      "label": "View",
       "single": "Vote",
       "grid": "More"
     },
