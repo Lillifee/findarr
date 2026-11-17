@@ -25,7 +25,6 @@ export function MediaTypeChips({ selectedType, onChange, disabled = false }: Med
   const { t } = useTranslation();
   return (
     <SegmentedControl
-      ariaLabel={t('catalog.type')}
       options={options}
       selectedValue={selectedType}
       onChange={onChange}
