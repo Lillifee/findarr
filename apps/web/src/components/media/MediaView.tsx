@@ -215,8 +215,8 @@ export function MediaView({
             )}
 
             {/* Quick info panel */}
-            <div className="mt-2 mb-6 pt-2">
-              <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-5">
+            <div className="@container mt-2 mb-6 pt-2">
+              <div className="grid grid-cols-2 gap-2 @md:grid-cols-3 @2xl:grid-cols-5">
                 <div className={infoTileClass}>
                   <p className={infoLabelClass}>{t('mediaView.mediaType')}</p>
                   <div className="mt-1.5 flex items-center gap-2 text-sm font-semibold text-white">
