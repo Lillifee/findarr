@@ -109,7 +109,7 @@ export function Score({ score }: ScoreProps) {
   );
 
   return (
-    <section className="mb-8 overflow-hidden rounded-lg border border-zinc-700/80 bg-zinc-950/78 shadow-[0_18px_50px_rgba(0,0,0,0.2)] backdrop-blur-sm">
+    <section className="mb-8 overflow-hidden rounded-lg border border-zinc-800/80 bg-zinc-950 shadow-[0_18px_50px_rgba(0,0,0,0.2)]">
       <div className="flex gap-4 p-4 sm:p-5">
         {hasEvidence ? (
           <div
@@ -180,7 +180,7 @@ export function Score({ score }: ScoreProps) {
           </button>
 
           {expanded && (
-            <div className="space-y-5 border-t border-zinc-800 bg-zinc-900/35 px-4 py-4 sm:px-5">
+            <div className="space-y-5 border-t border-zinc-800/80 bg-zinc-950 px-4 py-4 sm:px-5">
               {explanation.positiveSignals.length > 0 && (
                 <div>
                   <h3 className="mb-2 text-sm font-semibold text-emerald-200">

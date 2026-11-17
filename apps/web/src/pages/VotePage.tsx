@@ -54,7 +54,7 @@ export function VotePage() {
   };
 
   return (
-    <div className="pb-20 md:pb-8">
+    <div className="pb-20 md:pb-0">
       <SearchFilterBar
         filters={
           <FiltersToolbar
