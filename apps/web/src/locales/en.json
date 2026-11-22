@@ -237,6 +237,8 @@
     "quickFilters": "Quick filters",
     "upcoming": "Upcoming",
     "recentOnProvider": "Recent on {{provider}}",
+    "recentOnStreaming": "Recent on Streaming",
+    "forRent": "For Rent",
     "next30Days": "Next 30 days",
     "last3Months": "Last 3 months",
     "last5Years": "Last 5 years",

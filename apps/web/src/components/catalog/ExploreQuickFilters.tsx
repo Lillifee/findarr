@@ -36,6 +36,27 @@ export function ExploreQuickFilters({ providers, onSelectFilters }: ExploreQuick
             onSelectFilters({ type: 'date', id: next30Days.id, name: t(next30Days.label) });
           }}
         />
+        <DiscoveryTag
+          type="availability"
+          name={t('catalog.recentOnStreaming')}
+          onClick={() => {
+            onSelectFilters(
+              { type: 'date', id: last3Months.id, name: t(last3Months.label) },
+              { type: 'availability', id: 'flatrate', name: t('catalog.availabilityStream') },
+            );
+          }}
+        />
+        <DiscoveryTag
+          type="availability"
+          name={t('catalog.forRent')}
+          onClick={() => {
+            onSelectFilters({
+              type: 'availability',
+              id: 'rent',
+              name: t('catalog.availabilityRent'),
+            });
+          }}
+        />
         {netflix && (
           <DiscoveryTag
             type="provider"

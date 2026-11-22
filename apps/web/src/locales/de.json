@@ -237,6 +237,8 @@
     "quickFilters": "Schnellfilter",
     "upcoming": "Demnächst",
     "recentOnProvider": "Aktuell auf {{provider}}",
+    "recentOnStreaming": "Aktuell im Stream",
+    "forRent": "Zum Leihen",
     "next30Days": "Nächste 30 Tage",
     "last3Months": "Letzte 3 Monate",
     "last5Years": "Letzte 5 Jahre",
