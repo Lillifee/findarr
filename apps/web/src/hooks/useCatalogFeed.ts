@@ -259,7 +259,8 @@ export function useCatalogFeed(): CatalogFeed {
             loading: false,
           });
         }
-      } catch {
+      } catch (error) {
+        console.error('Failed to load discovery suggestions:', error);
         if (active) {
           setSuggestions(emptyPreferencesState);
         }

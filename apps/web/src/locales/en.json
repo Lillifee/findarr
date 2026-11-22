@@ -18,7 +18,8 @@
     "noResults": "No results found",
     "previous": "Previous",
     "next": "Next",
-    "showAll": "Show all"
+    "showAll": "Show all",
+    "showMore": "Show more"
   },
   "nav": {
     "home": "Home",
@@ -207,7 +208,7 @@
   "explore": {
     "searchResults": "Search results",
     "title": "Explore Movies & Shows",
-    "description": "Search for people, genres, or keywords, or select one below to start discovering."
+    "description": "Search for a title or choose a filter to discover movies and shows."
   },
   "catalog": {
     "searchPlaceholder": "Search movies, TV shows, or people...",

@@ -1,90 +1,153 @@
 import type { Genre, Keyword, Media, Person, Provider } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { discoveryDateRanges } from '../../utils/discoveryDateRanges';
 import { tmdbImage } from '../../utils/tmdb';
 import { HorizontalRail } from '../ui/HorizontalRail';
 import { Icon } from '../ui/Icon';
+import { PanelSection } from '../ui/PanelSection';
 import { DiscoveryTag } from './DiscoveryTag';
 
-const emptyResults: Media[] = [];
 const emptyProviders: Provider[] = [];
+const emptyResults: Media[] = [];
 
-interface ExpandableSectionProps {
-  children: ReactNode;
-  collapsedClassName: string;
-  heading: string;
-  headingClassName?: string;
-  resetKey: string;
-}
-
-function ExpandableSection({
-  children,
-  collapsedClassName,
-  heading,
-  headingClassName = 'mb-2',
-  resetKey,
-}: ExpandableSectionProps) {
+function TagGroup({
+  items,
+  type,
+  onSelect,
+}: {
+  items: { id: number; name: string }[];
+  type: 'date' | 'genre' | 'keyword';
+  onSelect: (item: { id: number; name: string }) => void;
+}) {
   const { t } = useTranslation();
-  const contentRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [hasMore, setHasMore] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const content = contentRef.current;
-    if (!content) {
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (!list || expanded) {
       return () => {};
     }
-
+    const buttons = list.querySelectorAll('button');
     const updateOverflow = () => {
-      setHasMore(!expanded && content.scrollHeight > content.clientHeight + 1);
+      const height = list.clientHeight;
+      setHasMore(list.scrollHeight > height + 1);
+      for (const button of buttons) {
+        button.inert = button.offsetTop + button.offsetHeight > height + 1;
+      }
     };
-
     updateOverflow();
     const observer = new ResizeObserver(updateOverflow);
-    observer.observe(content);
+    observer.observe(list);
+    if (list.firstElementChild) {
+      observer.observe(list.firstElementChild);
+    }
     return () => {
       observer.disconnect();
+      for (const button of buttons) {
+        button.inert = false;
+      }
     };
-  }, [children, expanded]);
-
-  useEffect(() => {
-    setExpanded(false);
-  }, [resetKey]);
+  }, [items, expanded]);
 
   return (
     <>
-      <div className="mb-2">
-        <h2
-          className={`${headingClassName} text-xs font-semibold tracking-wide text-zinc-400 uppercase`}
-        >
-          {heading}
-        </h2>
-      </div>
       <div
-        ref={contentRef}
-        className={expanded ? undefined : `${collapsedClassName} overflow-hidden`}
+        ref={listRef}
+        className={
+          expanded ? undefined : 'relative max-h-17 overflow-clip [overflow-clip-margin:4px]'
+        }
       >
-        {children}
-      </div>
-      {hasMore && !expanded && (
-        <div className="mt-2 flex justify-end">
-          <button
-            type="button"
-            className="text-xs font-semibold text-amber-300 transition-colors hover:text-amber-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-            aria-expanded={expanded}
-            aria-label={heading}
-            onClick={() => {
-              setExpanded(true);
-            }}
-          >
-            {t('common.showAll')}
-          </button>
+        <div className="flex flex-wrap gap-2">
+          {items.map((item) => (
+            <DiscoveryTag
+              key={item.id}
+              type={type}
+              name={item.name}
+              onClick={() => {
+                onSelect(item);
+              }}
+            />
+          ))}
         </div>
+      </div>
+      {!expanded && hasMore && (
+        <button
+          type="button"
+          aria-expanded={false}
+          onClick={() => {
+            setExpanded(true);
+          }}
+          className="mt-2 ml-auto block text-xs font-semibold text-amber-300 hover:text-amber-200 focus-visible:outline-amber-500"
+        >
+          {t('common.showMore')}
+        </button>
       )}
     </>
+  );
+}
+
+function MatchRail({
+  heading,
+  compact,
+  children,
+}: {
+  heading: string;
+  compact: boolean;
+  children: ReactNode;
+}) {
+  const { t } = useTranslation();
+  return (
+    <PanelSection heading={heading} plain={compact}>
+      <HorizontalRail
+        ariaLabel={heading}
+        contentClassName="flex gap-4 p-1"
+        nextLabel={t('common.next')}
+        previousLabel={t('common.previous')}
+      >
+        {children}
+      </HorizontalRail>
+    </PanelSection>
+  );
+}
+
+function SuggestionTile({
+  name,
+  imagePath,
+  logo = false,
+  compact,
+  onClick,
+}: {
+  name: string;
+  imagePath: string | undefined;
+  logo?: boolean;
+  compact: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      title={name}
+      onClick={onClick}
+      className={`group shrink-0 rounded-lg text-zinc-200 hover:text-amber-200 focus-visible:outline-amber-500 ${compact ? 'w-16' : 'w-24'}`}
+    >
+      <span className="mb-2 flex aspect-square items-center justify-center overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 group-hover:border-amber-500/70">
+        {isDefined(imagePath) ? (
+          <img
+            src={tmdbImage(imagePath, 'w185')}
+            alt=""
+            className={`size-full ${logo ? 'object-contain p-2' : 'object-cover'}`}
+          />
+        ) : (
+          <Icon name={logo ? 'tv' : 'person'} size="xl" className="text-zinc-500" />
+        )}
+      </span>
+      <span className="block truncate text-xs font-medium">{name}</span>
+    </button>
   );
 }
 
@@ -102,7 +165,6 @@ interface SearchMatchesProps {
   onSelectProvider?: (provider: Provider) => void;
   showPeople?: boolean;
   compact?: boolean;
-  className?: string;
 }
 
 export function SearchMatches({
@@ -119,218 +181,116 @@ export function SearchMatches({
   onSelectProvider,
   showPeople = true,
   compact = false,
-  className,
 }: SearchMatchesProps) {
-  const visiblePeople = showPeople ? people : [];
   const { t } = useTranslation();
-
+  const hasPeople = showPeople && people.length > 0;
+  const hasProviders = onSelectProvider !== undefined && providers.length > 0;
   if (
-    results.length === 0 &&
+    !onSelectDateRange &&
     genres.length === 0 &&
     keywords.length === 0 &&
-    visiblePeople.length === 0 &&
-    providers.length === 0 &&
-    !onSelectDateRange
+    !hasPeople &&
+    !hasProviders &&
+    results.length === 0
   ) {
     return null;
   }
   return (
     <aside
-      className={`flex flex-col [&>section+section]:mt-5 [&>section+section]:border-t [&>section+section]:border-zinc-800/80 [&>section+section]:pt-5 ${className ?? ''}`}
+      className={
+        compact
+          ? 'space-y-5 divide-y divide-zinc-800 [&>section:not(:last-child)]:pb-5'
+          : 'space-y-3'
+      }
       aria-label={t('explore.searchResults')}
     >
       {onSelectDateRange && (
-        <section aria-label={t('catalog.releaseDate')}>
-          <ExpandableSection
-            collapsedClassName="max-h-17"
-            heading={t('catalog.releaseDate')}
-            resetKey="date-ranges"
-          >
-            <div className="flex flex-row flex-wrap gap-2">
-              {discoveryDateRanges.map((dateRange) => (
-                <DiscoveryTag
-                  key={dateRange.id}
-                  type="date"
-                  name={t(dateRange.label)}
-                  onClick={() => {
-                    onSelectDateRange(dateRange.id, t(dateRange.label));
-                  }}
-                />
-              ))}
-            </div>
-          </ExpandableSection>
-        </section>
+        <PanelSection heading={t('catalog.releaseDate')} plain={compact}>
+          <TagGroup
+            type="date"
+            items={discoveryDateRanges.map(({ id, label }) => ({ id, name: t(label) }))}
+            onSelect={({ id, name }) => {
+              onSelectDateRange(id, name);
+            }}
+          />
+        </PanelSection>
       )}
-
       {genres.length > 0 && (
-        <section aria-label={t('catalog.genreResults')}>
-          <ExpandableSection
-            collapsedClassName="max-h-17"
-            heading={t('catalog.genreResults')}
-            resetKey={genres.map((genre) => genre.id).join(',')}
-          >
-            <div className="flex flex-row flex-wrap gap-2">
-              {genres.map((genre) => (
-                <DiscoveryTag
-                  key={genre.id}
-                  type="genre"
-                  name={genre.name}
-                  onClick={() => {
-                    onSelectGenre(genre);
-                  }}
-                />
-              ))}
-            </div>
-          </ExpandableSection>
-        </section>
+        <PanelSection heading={t('catalog.genreResults')} plain={compact}>
+          <TagGroup
+            key={genres.map(({ id }) => id).join(',')}
+            type="genre"
+            items={genres}
+            onSelect={onSelectGenre}
+          />
+        </PanelSection>
       )}
-
       {keywords.length > 0 && (
-        <section aria-label={t('catalog.keywordResults')}>
-          <ExpandableSection
-            collapsedClassName="max-h-17"
-            heading={t('catalog.keywordResults')}
-            resetKey={keywords.map((keyword) => keyword.id).join(',')}
-          >
-            <div className="flex flex-row flex-wrap gap-2">
-              {keywords.map((keyword) => (
-                <DiscoveryTag
-                  key={keyword.id}
-                  type="keyword"
-                  name={keyword.name}
-                  onClick={() => {
-                    onSelectKeyword(keyword);
-                  }}
-                />
-              ))}
-            </div>
-          </ExpandableSection>
-        </section>
+        <PanelSection heading={t('catalog.keywordResults')} plain={compact}>
+          <TagGroup
+            key={keywords.map(({ id }) => id).join(',')}
+            type="keyword"
+            items={keywords}
+            onSelect={onSelectKeyword}
+          />
+        </PanelSection>
       )}
-
-      {visiblePeople.length > 0 && (
-        <section aria-label={t('catalog.peopleResults')}>
-          <div className="mb-2 flex items-center justify-between gap-3">
-            <h2 className="text-xs font-semibold tracking-wide text-zinc-400 uppercase">
-              {t('catalog.peopleResults')}
-            </h2>
-          </div>
-          <HorizontalRail
-            ariaLabel={t('catalog.peopleResults')}
-            contentClassName={`flex px-1 ${compact ? 'gap-4' : 'gap-7'}`}
-            nextLabel={t('common.next')}
-            previousLabel={t('common.previous')}
-          >
-            {visiblePeople.map((person) => (
-              <button
-                key={person.tmdbId}
-                type="button"
-                onClick={() => {
-                  onSelectPerson(person);
-                }}
-                className={`flex shrink-0 flex-col items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${compact ? 'w-16' : 'w-20'}`}
-              >
-                {isDefined(person.profilePath) ? (
-                  <img
-                    src={tmdbImage(person.profilePath, 'w185')}
-                    alt={person.name}
-                    className={`${compact ? 'h-16 w-16' : 'h-20 w-20'} mb-2 rounded-full border border-zinc-800/80 object-cover shadow-lg`}
-                  />
-                ) : (
-                  <span
-                    className={`${compact ? 'h-16 w-16' : 'h-20 w-20'} mb-2 flex items-center justify-center rounded-full border border-zinc-800/80 bg-zinc-900/80 shadow-lg`}
-                  >
-                    <Icon filled className="text-zinc-500" name="person" size="xl" />
-                  </span>
-                )}
-                <span className="w-full truncate text-center text-xs font-medium text-white">
-                  {person.name}
-                </span>
-              </button>
-            ))}
-          </HorizontalRail>
-        </section>
+      {hasPeople && (
+        <MatchRail heading={t('catalog.peopleResults')} compact={compact}>
+          {people.map((person) => (
+            <SuggestionTile
+              key={person.tmdbId}
+              name={person.name}
+              imagePath={person.profilePath}
+              compact={compact}
+              onClick={() => {
+                onSelectPerson(person);
+              }}
+            />
+          ))}
+        </MatchRail>
       )}
-
-      {providers.length > 0 && onSelectProvider && (
-        <section aria-label={t('catalog.providerResults')}>
-          <div className="mb-2">
-            <h2 className="text-xs font-semibold tracking-wide text-zinc-400 uppercase">
-              {t('catalog.providerResults')}
-            </h2>
-          </div>
-          <HorizontalRail
-            ariaLabel={t('catalog.providerResults')}
-            contentClassName={`flex px-1 ${compact ? 'gap-4' : 'gap-5'}`}
-            nextLabel={t('common.next')}
-            previousLabel={t('common.previous')}
-          >
-            {providers.map((provider) => (
-              <button
-                key={provider.id}
-                type="button"
-                aria-label={provider.name}
-                onClick={() => {
-                  onSelectProvider(provider);
-                }}
-                className={`flex shrink-0 flex-col items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${compact ? 'w-16' : 'w-20'}`}
-              >
-                <span
-                  className={`${compact ? 'h-16 w-16' : 'h-20 w-20'} mb-2 flex items-center justify-center rounded-md bg-zinc-900/80 p-2 shadow-lg`}
-                >
-                  <img
-                    src={tmdbImage(provider.logoPath, 'w185')}
-                    alt=""
-                    className="max-h-full max-w-full object-contain"
-                  />
-                </span>
-                <span className="w-full truncate text-center text-xs font-medium text-white">
-                  {provider.name}
-                </span>
-              </button>
-            ))}
-          </HorizontalRail>
-        </section>
+      {hasProviders && (
+        <MatchRail heading={t('catalog.providerResults')} compact={compact}>
+          {providers.map((provider) => (
+            <SuggestionTile
+              key={provider.id}
+              name={provider.name}
+              imagePath={provider.logoPath}
+              logo
+              compact={compact}
+              onClick={() => {
+                onSelectProvider(provider);
+              }}
+            />
+          ))}
+        </MatchRail>
       )}
       {results.length > 0 && (
-        <section aria-label={t('catalog.mediaResults')}>
-          <div className="mb-2 flex items-center justify-between gap-3">
-            <h2 className="text-xs font-semibold tracking-wide text-zinc-400 uppercase">
-              {t('catalog.mediaResults')}
-            </h2>
-          </div>
-          <HorizontalRail
-            ariaLabel={t('catalog.mediaResults')}
-            contentClassName="flex gap-3"
-            nextLabel={t('common.next')}
-            previousLabel={t('common.previous')}
-          >
-            {results.slice(0, 14).map((media) => (
-              <button
-                key={`${media.type}-${media.tmdbId}`}
-                type="button"
-                disabled={!onSelectMedia}
-                className="flex w-32 shrink-0 flex-col text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                onClick={() => {
-                  onSelectMedia?.(media);
-                }}
-              >
-                {isDefined(media.posterPath) ? (
-                  <img
-                    src={tmdbImage(media.posterPath, 'w185')}
-                    alt=""
-                    className="mb-2 aspect-2/3 w-full rounded-md object-cover"
-                  />
-                ) : (
-                  <span className="mb-2 flex aspect-2/3 w-full items-center justify-center rounded-md bg-zinc-900 text-zinc-500">
-                    <Icon name={media.type === 'movie' ? 'movie' : 'tv'} size="lg" />
-                  </span>
-                )}
-                <span className="line-clamp-2 text-xs font-medium text-white">{media.name}</span>
-              </button>
-            ))}
-          </HorizontalRail>
-        </section>
+        <MatchRail heading={t('catalog.mediaResults')} compact={compact}>
+          {results.slice(0, 14).map((media) => (
+            <button
+              key={`${media.type}-${media.tmdbId}`}
+              type="button"
+              disabled={!onSelectMedia}
+              className="flex w-32 shrink-0 flex-col text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+              onClick={() => onSelectMedia?.(media)}
+            >
+              {isDefined(media.posterPath) ? (
+                <img
+                  src={tmdbImage(media.posterPath, 'w185')}
+                  alt=""
+                  className="mb-2 aspect-2/3 w-full rounded-md object-cover"
+                />
+              ) : (
+                <span className="mb-2 flex aspect-2/3 w-full items-center justify-center rounded-md bg-zinc-900 text-zinc-500">
+                  <Icon name={media.type === 'movie' ? 'movie' : 'tv'} size="lg" />
+                </span>
+              )}
+              <span className="line-clamp-2 text-xs font-medium text-white">{media.name}</span>
+            </button>
+          ))}
+        </MatchRail>
       )}
     </aside>
   );
