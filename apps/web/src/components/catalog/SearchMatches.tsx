@@ -9,6 +9,7 @@ import { HorizontalRail } from '../ui/HorizontalRail';
 import { Icon } from '../ui/Icon';
 import { PanelSection } from '../ui/PanelSection';
 import { DiscoveryTag } from './DiscoveryTag';
+import { SuggestionTile } from './SuggestionTile';
 
 const emptyProviders: Provider[] = [];
 const emptyResults: Media[] = [];
@@ -115,42 +116,6 @@ function MatchRail({
   );
 }
 
-function SuggestionTile({
-  name,
-  imagePath,
-  logo = false,
-  compact,
-  onClick,
-}: {
-  name: string;
-  imagePath: string | undefined;
-  logo?: boolean;
-  compact: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      title={name}
-      onClick={onClick}
-      className={`group shrink-0 rounded-lg text-zinc-200 hover:text-amber-200 focus-visible:outline-amber-500 ${compact ? 'w-16' : 'w-24'}`}
-    >
-      <span className="mb-2 flex aspect-square items-center justify-center overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 group-hover:border-amber-500/70">
-        {isDefined(imagePath) ? (
-          <img
-            src={tmdbImage(imagePath, 'w185')}
-            alt=""
-            className={`size-full ${logo ? 'object-contain p-2' : 'object-cover'}`}
-          />
-        ) : (
-          <Icon name={logo ? 'tv' : 'person'} size="xl" className="text-zinc-500" />
-        )}
-      </span>
-      <span className="block truncate text-xs font-medium">{name}</span>
-    </button>
-  );
-}
-
 interface SearchMatchesProps {
   genres: Genre[];
   keywords: Keyword[];
@@ -242,6 +207,7 @@ export function SearchMatches({
               key={person.tmdbId}
               name={person.name}
               imagePath={person.profilePath}
+              fallbackIcon="person"
               compact={compact}
               onClick={() => {
                 onSelectPerson(person);
@@ -257,7 +223,8 @@ export function SearchMatches({
               key={provider.id}
               name={provider.name}
               imagePath={provider.logoPath}
-              logo
+              fallbackIcon="tv"
+              containImage
               compact={compact}
               onClick={() => {
                 onSelectProvider(provider);
