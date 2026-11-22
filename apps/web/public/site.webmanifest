@@ -6,7 +6,7 @@
   "scope": "/",
   "display": "standalone",
   "background_color": "#09090b",
-  "theme_color": "#f59e42",
+  "theme_color": "#0b0809",
   "icons": [
     {
       "src": "/assets/findarr-192.png?v=1",
