@@ -7,11 +7,12 @@ import { useMediaNavigation } from '../../hooks/useMediaNavigation';
 import { getAvatarColorClass, getInitials } from '../../utils/formatting';
 import { tmdbImageOrUndefined } from '../../utils/tmdb';
 import { DiscoveryTag } from '../catalog/DiscoveryTag';
+import { SuggestionTile } from '../catalog/SuggestionTile';
+import { HorizontalRail } from '../ui/HorizontalRail';
 import { Icon } from '../ui/Icon';
 import { StatusBadge } from '../ui/StatusBadge';
 import { LikeDislikeButton } from './LikeDislikeButton';
 import { MediaPosterStrip } from './MediaPosterStrip';
-import { PeopleGrid } from './PeopleGrid';
 import { Score } from './Score';
 
 interface MediaDetailsProps {
@@ -350,24 +351,30 @@ export function MediaView({
               </div>
             )}
 
-            {/* Cast section - Responsive grid */}
             {topCast.length > 0 && (
               <div className="mb-8">
                 <h2 className="mb-4 text-2xl font-semibold text-white drop-shadow-md">
                   {t('mediaView.cast')}
                 </h2>
-                <PeopleGrid
+                <HorizontalRail
                   ariaLabel={t('mediaView.cast')}
-                  people={topCast.map((actor) => ({
-                    id: actor.id,
-                    name: actor.name,
-                    profilePath: actor.profilePath,
-                    subtitle: actor.character,
-                  }))}
-                  onSelect={(actor) => {
-                    goToDiscovery('person', actor.id, actor.name);
-                  }}
-                />
+                  contentClassName="flex gap-4 p-1"
+                  nextLabel={t('common.next')}
+                  previousLabel={t('common.previous')}
+                >
+                  {topCast.map((actor) => (
+                    <SuggestionTile
+                      key={actor.id}
+                      name={actor.name}
+                      imagePath={actor.profilePath}
+                      fallbackIcon="person"
+                      subtitle={actor.character}
+                      onClick={() => {
+                        goToDiscovery('person', actor.id, actor.name);
+                      }}
+                    />
+                  ))}
+                </HorizontalRail>
               </div>
             )}
 
