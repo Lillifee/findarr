@@ -141,6 +141,7 @@ export interface CatalogFeed {
   currentQuery: string;
   discovery: DiscoveryFilter[];
   onDiscoveryRemove: (index: number) => void;
+  onSelectFilters: (...selected: DiscoveryFilter[]) => void;
   onDateRangeSelect: (id: number, name: string) => void;
   onProviderSelect: (provider: Provider) => void;
   onTypeChange: (type: SearchType) => void;
@@ -363,10 +364,14 @@ export function useCatalogFeed(): CatalogFeed {
     updateFilters({ query });
   };
 
-  const addDiscovery = (discovery: DiscoveryFilter) => {
+  const addDiscovery = (...selected: DiscoveryFilter[]) => {
+    let discovery = filters.discovery ?? [];
+    for (const filter of selected) {
+      discovery = addDiscoveryFilter(discovery, filter);
+    }
     updateFilters({
       query: '',
-      discovery: addDiscoveryFilter(filters.discovery, discovery),
+      discovery,
     });
   };
 
@@ -452,6 +457,7 @@ export function useCatalogFeed(): CatalogFeed {
     discovery: filters.discovery ?? [],
     onTypeChange,
     onDateRangeSelect,
+    onSelectFilters: addDiscovery,
     onProviderSelect,
     onSearch,
     onSearchPreview,
