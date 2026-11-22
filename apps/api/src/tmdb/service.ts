@@ -20,7 +20,7 @@ import { createLruTtlCache } from '../utils/cacheHelper.js';
 import { createClientLifecycle } from '../utils/clientLifecycleHelper.js';
 import type { AppLogger } from '../utils/logger.js';
 import { createTMDBClient, type TMDBClient } from './client.js';
-import { buildDateParams, getDateRangeFromDays } from './helpers.js';
+import { buildDateParams, getDateRangeFromDays, sortProvidersByRegion } from './helpers.js';
 import { getTmdbSettingsFull, setTmdbSettings, type TmdbSettingsFull } from './repository.js';
 import type { TMDBDiscoverParams, TMDBTrendingParams } from './schemas.js';
 import { transformMedia, transformDetails, transformPerson } from './transformers.js';
@@ -309,13 +309,12 @@ export async function createTMDBService(context: TmdbServiceContext) {
 
     return providersCache.getOrLoad(`${region}:${language}:${type}`, async () => {
       const response = await lifecycle.client().providers(type, { language, watch_region: region });
-      return response.results
-        .toSorted((left, right) => left.display_priority - right.display_priority)
-        .map((provider) => ({
-          id: provider.provider_id,
-          name: provider.provider_name,
-          logoPath: provider.logo_path,
-        }));
+
+      return sortProvidersByRegion(response.results, region).map((provider) => ({
+        id: provider.provider_id,
+        name: provider.provider_name,
+        logoPath: provider.logo_path,
+      }));
     });
   }
 

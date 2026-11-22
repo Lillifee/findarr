@@ -6,6 +6,15 @@ import { HttpError } from '../utils/errors.js';
 import { sleep } from '../utils/helper.js';
 import type { AppLogger } from '../utils/logger.js';
 
+export function sortProvidersByRegion<T extends { display_priorities: Record<string, number> }>(
+  providers: T[],
+  region: string,
+): T[] {
+  const priority = (provider: T) => provider.display_priorities[region] ?? Number.POSITIVE_INFINITY;
+
+  return providers.toSorted((left, right) => priority(left) - priority(right));
+}
+
 /**
  * Build region filters from selected region groups
  */
