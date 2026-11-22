@@ -8,8 +8,8 @@ allowBuilds:
 
 catalog:
   '@types/node': ^24.0.0
-  vite: npm:@voidzero-dev/vite-plus-core@1.6.0
-  vite-plus: 1.6.0
+  vite: npm:@voidzero-dev/vite-plus-core@8.3.8000
+  vite-plus: 1.7.0
   typescript: ^7.0.2
   drizzle-orm: ^0.45.4
   zod: ^4.6.7
@@ -17,10 +17,3 @@ catalog:
 overrides:
   '@types/node': ^24.0.0
   vite@*: 'catalog:'
-
-peerDependencyRules:
-  allowAny:
-    - vite
-
-  allowedVersions:
-    vite: '*'

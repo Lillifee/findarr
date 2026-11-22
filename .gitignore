@@ -9,7 +9,9 @@ node_modules/
 dist/
 build/
 coverage/
+.vitest/
 *.tsbuildinfo
+
 
 # Logs
 *.log
