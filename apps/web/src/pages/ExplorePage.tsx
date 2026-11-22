@@ -1,6 +1,7 @@
 import type { SearchType } from '@findarr/shared/media';
 import { useTranslation } from 'react-i18next';
 
+import { ExploreQuickFilters } from '../components/catalog/ExploreQuickFilters';
 import { SearchBar } from '../components/catalog/SearchBar';
 import { SearchMatches } from '../components/catalog/SearchMatches';
 import { PaginatedMediaResults } from '../components/media/PaginatedMediaResults';
@@ -71,18 +72,24 @@ export function ExplorePage() {
             (feed.preferences.loading ? (
               <LoadingState className="flex min-h-[50vh] items-center justify-center" />
             ) : (
-              <SearchMatches
-                genres={feed.preferences.genres}
-                keywords={feed.preferences.keywords}
-                people={feed.preferences.people}
-                providers={feed.preferences.providers}
-                onSelectGenre={feed.onGenreSelect}
-                onSelectKeyword={feed.onKeywordSelect}
-                onSelectPerson={feed.onPersonSelect}
-                onSelectDateRange={feed.onDateRangeSelect}
-                onSelectProvider={feed.onProviderSelect}
-                showPeople={feed.currentSearchType !== 'tv'}
-              />
+              <div className="space-y-3">
+                <ExploreQuickFilters
+                  providers={feed.preferences.providers}
+                  onSelectFilters={feed.onSelectFilters}
+                />
+                <SearchMatches
+                  genres={feed.preferences.genres}
+                  keywords={feed.preferences.keywords}
+                  people={feed.preferences.people}
+                  providers={feed.preferences.providers}
+                  onSelectGenre={feed.onGenreSelect}
+                  onSelectKeyword={feed.onKeywordSelect}
+                  onSelectPerson={feed.onPersonSelect}
+                  onSelectDateRange={feed.onDateRangeSelect}
+                  onSelectProvider={feed.onProviderSelect}
+                  showPeople={feed.currentSearchType !== 'tv'}
+                />
+              </div>
             ))}
 
           <PaginatedMediaResults

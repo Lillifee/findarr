@@ -71,20 +71,20 @@ export const readCatalogSearchParams = (
 ): CatalogSearchParamState => {
   const rawType = searchParams.get('type');
 
-  const discovery: DiscoveryFilter[] = DISCOVERY_TYPES.flatMap((type) =>
-    searchParams
-      .getAll(type)
-      .map((value) => readPositiveInteger(value))
-      .filter((id) => isDefined(id))
-      .filter(
-        (id) => type !== 'date' || discoveryDateRanges.some((dateRange) => dateRange.id === id),
-      )
-      .map((id, index) => ({
-        type,
-        id,
-        name: searchParams.getAll(`${type}Name`)[index] ?? `${type} ${id}`,
-      })),
-  );
+  const discovery: DiscoveryFilter[] = [];
+  for (const type of DISCOVERY_TYPES) {
+    const names = searchParams.getAll(`${type}Name`);
+    for (const [index, value] of searchParams.getAll(type).entries()) {
+      const name = names[index] ?? `${type} ${value}`;
+      const id = readPositiveInteger(value);
+      if (
+        isDefined(id) &&
+        (type !== 'date' || discoveryDateRanges.some((preset) => preset.id === id))
+      ) {
+        discovery.push({ type, id, name });
+      }
+    }
+  }
   return {
     type: isDefined(rawType) && isSearchType(rawType) ? rawType : (defaults.type ?? 'both'),
     page: Math.trunc(Number(searchParams.get('page') ?? String(defaults.page ?? 1))),
