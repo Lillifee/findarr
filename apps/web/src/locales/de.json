@@ -18,7 +18,8 @@
     "noResults": "Keine Ergebnisse gefunden",
     "previous": "Zurück",
     "next": "Weiter",
-    "showAll": "Alle anzeigen"
+    "showAll": "Alle anzeigen",
+    "showMore": "Mehr anzeigen"
   },
   "nav": {
     "home": "Startseite",
@@ -207,7 +208,7 @@
   "explore": {
     "searchResults": "Suchergebnisse",
     "title": "Filme & Serien entdecken",
-    "description": "Suche nach Personen, Genres oder Stichwörtern oder wähle unten etwas aus, um die Entdeckung zu starten."
+    "description": "Suche nach einem Titel oder wähle einen Filter, um Filme und Serien zu entdecken."
   },
   "catalog": {
     "searchPlaceholder": "Filme, Serien oder Personen suchen...",

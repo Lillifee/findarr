@@ -1,4 +1,4 @@
-import type { Media, SearchType } from '@findarr/shared/media';
+import type { SearchType } from '@findarr/shared/media';
 import { useTranslation } from 'react-i18next';
 
 import { SearchBar } from '../components/catalog/SearchBar';
@@ -25,10 +25,6 @@ export function ExplorePage() {
 
   useMediaUpdateSubscription(feed.updateItem);
 
-  const handleSelectItem = (item: Media) => {
-    goToMedia(item);
-  };
-
   const showingSearchResults = feed.currentQuery.length > 0;
 
   return (
@@ -40,7 +36,7 @@ export function ExplorePage() {
             onSearchPreview={feed.onSearchPreview}
             onSubmitSearch={feed.onSubmitSearch}
             onClear={feed.onClearSearch}
-            hasSearched={feed.mode !== 'browse' || feed.currentQuery.length > 0}
+            hasSearched={feed.mode !== 'browse' || showingSearchResults}
             initialQuery={feed.currentQuery}
             discovery={feed.discovery}
             onRemoveDiscovery={feed.onDiscoveryRemove}
@@ -67,31 +63,27 @@ export function ExplorePage() {
       />
 
       <PageContainer>
-        <div className="space-y-8 md:space-y-10">
-          {feed.mode === 'browse' && (
-            <>
-              <PageHeader title={t('explore.title')} description={t('explore.description')} />
-              {!showingSearchResults &&
-                (feed.preferences.loading ? (
-                  <LoadingState className="flex min-h-[50vh] items-center justify-center" />
-                ) : (
-                  <SearchMatches
-                    genres={feed.preferences.genres}
-                    keywords={feed.preferences.keywords}
-                    people={feed.preferences.people}
-                    providers={feed.preferences.providers}
-                    onSelectGenre={feed.onGenreSelect}
-                    onSelectKeyword={feed.onKeywordSelect}
-                    onSelectPerson={feed.onPersonSelect}
-                    onSelectDateRange={feed.onDateRangeSelect}
-                    onSelectProvider={feed.onProviderSelect}
-                    onSelectMedia={goToMedia}
-                    showPeople={feed.currentSearchType !== 'tv'}
-                    className="w-full"
-                  />
-                ))}
-            </>
-          )}
+        <div className="space-y-6 md:space-y-8">
+          <PageHeader title={t('explore.title')} description={t('explore.description')} />
+
+          {feed.mode === 'browse' &&
+            !showingSearchResults &&
+            (feed.preferences.loading ? (
+              <LoadingState className="flex min-h-[50vh] items-center justify-center" />
+            ) : (
+              <SearchMatches
+                genres={feed.preferences.genres}
+                keywords={feed.preferences.keywords}
+                people={feed.preferences.people}
+                providers={feed.preferences.providers}
+                onSelectGenre={feed.onGenreSelect}
+                onSelectKeyword={feed.onKeywordSelect}
+                onSelectPerson={feed.onPersonSelect}
+                onSelectDateRange={feed.onDateRangeSelect}
+                onSelectProvider={feed.onProviderSelect}
+                showPeople={feed.currentSearchType !== 'tv'}
+              />
+            ))}
 
           <PaginatedMediaResults
             results={showingSearchResults ? feed.searchResults : feed.results}
@@ -99,7 +91,7 @@ export function ExplorePage() {
             loadingMore={showingSearchResults ? false : feed.loadingMore}
             hasMore={showingSearchResults ? false : feed.hasMore}
             showEmptyState={showingSearchResults || feed.mode !== 'browse'}
-            onSelectItem={handleSelectItem}
+            onSelectItem={goToMedia}
             onUpdateItem={feed.updateItem}
             onLoadMore={feed.loadMore}
           />
