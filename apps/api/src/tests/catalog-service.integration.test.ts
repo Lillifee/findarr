@@ -100,19 +100,19 @@ describe('catalog service - integration tests', () => {
 
     const search = await catalogService.search({ query: 'test', type: 'both', page: 1 }, user.id);
     const personDiscovery = await catalogService.getDiscoveryFeed(
-      { person: [1], genre: [], keyword: [], provider: [], type: 'movie' },
+      { person: [1], genre: [], keyword: [], provider: [], availability: [], type: 'movie' },
       user.id,
     );
     const keywordDiscovery = await catalogService.getDiscoveryFeed(
-      { person: [], genre: [], keyword: [1], provider: [], type: 'tv' },
+      { person: [], genre: [], keyword: [1], provider: [], availability: [], type: 'tv' },
       user.id,
     );
     const genreDiscovery = await catalogService.getDiscoveryFeed(
-      { person: [], genre: [28], keyword: [], provider: [], type: 'both' },
+      { person: [], genre: [28], keyword: [], provider: [], availability: [], type: 'both' },
       user.id,
     );
     const providerDiscovery = await catalogService.getDiscoveryFeed(
-      { person: [], genre: [], keyword: [], provider: [8], type: 'movie' },
+      { person: [], genre: [], keyword: [], provider: [8], availability: [], type: 'movie' },
       user.id,
     );
 
@@ -151,7 +151,7 @@ describe('catalog service - integration tests', () => {
     const user = await createTestUserInDb(db, { email: 'empty-discover@test.com' });
 
     const result = await catalogService.getDiscoveryFeed(
-      { person: [], genre: [], keyword: [], provider: [], type: 'both' },
+      { person: [], genre: [], keyword: [], provider: [], availability: [], type: 'both' },
       user.id,
     );
 
@@ -179,7 +179,7 @@ describe('catalog service - integration tests', () => {
       .mockResolvedValueOnce({ page: 2, results: [nextMovie] });
 
     const result = await catalogService.getDiscoveryFeed(
-      { person: [], genre: [], keyword: [], provider: [], type: 'movie' },
+      { person: [], genre: [], keyword: [], provider: [], type: 'movie', availability: [] },
       user.id,
     );
 

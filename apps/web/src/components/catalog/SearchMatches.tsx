@@ -137,7 +137,7 @@ interface SearchMatchesProps {
   onSelectPerson: (person: Person) => void;
   onSelectDateRange?: (id: number, name: string) => void;
   onSelectProvider?: (provider: Provider) => void;
-  onSelectAvailability: (availability: WatchMonetizationType, name: string) => void;
+  onSelectAvailability?: (availability: WatchMonetizationType, name: string) => void;
   showPeople?: boolean;
   compact?: boolean;
 }
@@ -167,6 +167,7 @@ export function SearchMatches({
     keywords.length === 0 &&
     !hasPeople &&
     !hasProviders &&
+    !onSelectAvailability &&
     results.length === 0
   ) {
     return null;
@@ -212,20 +213,22 @@ export function SearchMatches({
           />
         </PanelSection>
       )}
-      <PanelSection heading={t('catalog.availability')} plain={compact}>
-        <div className="flex flex-wrap gap-2">
-          {availabilityOptions.map(({ id, label }) => (
-            <DiscoveryTag
-              key={id}
-              type="availability"
-              name={t(label)}
-              onClick={() => {
-                onSelectAvailability(id, t(label));
-              }}
-            />
-          ))}
-        </div>
-      </PanelSection>
+      {onSelectAvailability && (
+        <PanelSection heading={t('catalog.availability')} plain={compact}>
+          <div className="flex flex-wrap gap-2">
+            {availabilityOptions.map(({ id, label }) => (
+              <DiscoveryTag
+                key={id}
+                type="availability"
+                name={t(label)}
+                onClick={() => {
+                  onSelectAvailability(id, t(label));
+                }}
+              />
+            ))}
+          </div>
+        </PanelSection>
+      )}
       {hasPeople && (
         <MatchRail heading={t('catalog.peopleResults')} compact={compact}>
           {people.map((person) => (
