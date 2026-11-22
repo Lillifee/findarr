@@ -105,6 +105,7 @@ describe('schemas', () => {
         keyword: [1234],
         genre: [28],
         provider: [],
+        availability: [],
         type: 'both',
       });
       expect(DiscoverQuerySchema.safeParse({ person: '0' }).success).toBe(false);
@@ -116,6 +117,7 @@ describe('schemas', () => {
         keyword: [],
         genre: [],
         provider: [],
+        availability: [],
         type: 'both',
       });
     });
@@ -126,8 +128,16 @@ describe('schemas', () => {
         keyword: [],
         genre: [],
         provider: [],
+        availability: [],
         type: 'both',
       });
+    });
+
+    it('should validate availability values', () => {
+      expect(
+        DiscoverQuerySchema.parse({ availability: ['flatrate', 'free'] }).availability,
+      ).toStrictEqual(['flatrate', 'free']);
+      expect(DiscoverQuerySchema.safeParse({ availability: 'invalid' }).success).toBe(false);
     });
 
     it('should validate date bounds individually', () => {

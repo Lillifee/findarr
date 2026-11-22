@@ -7,4 +7,5 @@ export const discoveryIcons: Record<DiscoveryType, IconName> = {
   keyword: 'sell',
   person: 'person',
   provider: 'play_arrow',
+  availability: 'sell',
 };

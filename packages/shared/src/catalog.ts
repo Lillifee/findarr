@@ -4,18 +4,24 @@ import { z } from 'zod';
 // Catalog Request Schemas
 // ============================================================================
 
-export type DiscoveryType = 'person' | 'genre' | 'keyword' | 'date' | 'provider';
+export const WATCH_MONETIZATION_TYPES = ['flatrate', 'free', 'ads', 'rent', 'buy'] as const;
+export type WatchMonetizationType = (typeof WATCH_MONETIZATION_TYPES)[number];
 
-export interface DiscoveryFilter {
-  type: DiscoveryType;
-  id: number;
-  name: string;
-}
+export type DiscoveryType = 'person' | 'genre' | 'keyword' | 'date' | 'provider' | 'availability';
+
+type NumericDiscoveryType = Exclude<DiscoveryType, 'availability'>;
+
+export type DiscoveryFilter =
+  | { type: 'availability'; id: WatchMonetizationType; name: string }
+  | {
+      [Type in NumericDiscoveryType]: { type: Type; id: number; name: string };
+    }[NumericDiscoveryType];
 
 const asArray = (value: unknown): unknown[] =>
   value === undefined ? [] : Array.isArray(value) ? value : [value];
 
 const positiveIds = z.preprocess(asArray, z.array(z.coerce.number().int().positive()).default([]));
+const watchMonetizationTypes = z.preprocess(asArray, z.array(z.enum(WATCH_MONETIZATION_TYPES)));
 
 export const SearchQuerySchema = z.object({
   query: z.string().min(1),
@@ -30,6 +36,7 @@ export const DiscoverQuerySchema = z.object({
   genre: positiveIds,
   keyword: positiveIds,
   provider: positiveIds,
+  availability: watchMonetizationTypes,
   startDate: z.iso.date().optional(),
   endDate: z.iso.date().optional(),
 });
