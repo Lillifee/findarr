@@ -87,6 +87,7 @@ export function ExplorePage() {
                   onSelectPerson={feed.onPersonSelect}
                   onSelectDateRange={feed.onDateRangeSelect}
                   onSelectProvider={feed.onProviderSelect}
+                  onSelectAvailability={feed.onAvailabilitySelect}
                   showPeople={feed.currentSearchType !== 'tv'}
                 />
               </div>

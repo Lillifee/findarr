@@ -6,7 +6,7 @@ import {
   addDiscoveryFilter,
   buildCatalogSearchParams,
   readCatalogSearchParams,
-  type DiscoveryType,
+  type DiscoveryEntityType,
 } from '../utils/catalogSearchParams';
 
 const getBackgroundSearch = (state: unknown): string | undefined => {
@@ -50,7 +50,7 @@ export function useMediaNavigation() {
   );
 
   const goToDiscovery = useCallback(
-    (kind: DiscoveryType, id: number, discoveryName: string, type?: SearchType) => {
+    (kind: DiscoveryEntityType, id: number, discoveryName: string, type?: SearchType) => {
       const sourceSearch = getBackgroundSearch(location.state) ?? location.search;
       const currentFilters = readCatalogSearchParams(new URLSearchParams(sourceSearch));
       const detailType = location.pathname.startsWith('/tv/') ? 'tv' : 'movie';

@@ -1,11 +1,15 @@
-import type { DiscoveryFilter, DiscoveryType } from '@findarr/shared/catalog';
+import {
+  WATCH_MONETIZATION_TYPES,
+  type DiscoveryFilter,
+  type DiscoveryType,
+} from '@findarr/shared/catalog';
 import type { SearchType } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
 
 import { discoveryDateRanges } from './discoveryDateRanges';
 
 export type { DiscoveryFilter, DiscoveryType } from '@findarr/shared/catalog';
-export type DiscoveryEntityType = Exclude<DiscoveryType, 'date'>;
+export type DiscoveryEntityType = Exclude<DiscoveryType, 'date' | 'availability'>;
 
 interface CatalogSearchParamDefaults {
   page?: number;
@@ -42,6 +46,7 @@ export const DISCOVERY_TYPES: readonly DiscoveryType[] = [
   'keyword',
   'date',
   'provider',
+  'availability',
 ];
 
 export function isDiscoveryType(value: unknown): value is DiscoveryType {
@@ -76,6 +81,14 @@ export const readCatalogSearchParams = (
     const names = searchParams.getAll(`${type}Name`);
     for (const [index, value] of searchParams.getAll(type).entries()) {
       const name = names[index] ?? `${type} ${value}`;
+      if (type === 'availability') {
+        const id = WATCH_MONETIZATION_TYPES.find((availability) => availability === value);
+        if (isDefined(id)) {
+          discovery.push({ type, id, name });
+        }
+        continue;
+      }
+
       const id = readPositiveInteger(value);
       if (
         isDefined(id) &&

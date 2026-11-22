@@ -1,4 +1,4 @@
-import type { DiscoverQuery } from '@findarr/shared/catalog';
+import type { DiscoverQuery, WatchMonetizationType } from '@findarr/shared/catalog';
 import type { Genre, Keyword, Media, Person, SearchType, Provider } from '@findarr/shared/media';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -144,6 +144,7 @@ export interface CatalogFeed {
   onSelectFilters: (...selected: DiscoveryFilter[]) => void;
   onDateRangeSelect: (id: number, name: string) => void;
   onProviderSelect: (provider: Provider) => void;
+  onAvailabilitySelect: (availability: WatchMonetizationType, name: string) => void;
   onTypeChange: (type: SearchType) => void;
   onSearch: (query: string) => void;
   onSearchPreview: (query: string) => void;
@@ -193,16 +194,21 @@ export function useCatalogFeed(): CatalogFeed {
       try {
         if (requestMode === 'discover') {
           const discovery = reqFilters.discovery ?? [];
-          const dateFilter = discovery.find((item) => item.type === 'date');
+          const dateFilter = discovery.find(
+            (item): item is Extract<DiscoveryFilter, { type: 'date' }> => item.type === 'date',
+          );
           const dateRange = dateFilter ? getDiscoveryDateRange(dateFilter.id) : undefined;
 
           const discoverParams: DiscoverQuery = {
             type: reqFilters.type,
             ...(discoveryFeedIdRef.current === null ? {} : { feedId: discoveryFeedIdRef.current }),
-            person: discovery.filter((item) => item.type === 'person').map((item) => item.id),
-            genre: discovery.filter((item) => item.type === 'genre').map((item) => item.id),
-            keyword: discovery.filter((item) => item.type === 'keyword').map((item) => item.id),
-            provider: discovery.filter((item) => item.type === 'provider').map((item) => item.id),
+            person: discovery.flatMap((item) => (item.type === 'person' ? [item.id] : [])),
+            genre: discovery.flatMap((item) => (item.type === 'genre' ? [item.id] : [])),
+            keyword: discovery.flatMap((item) => (item.type === 'keyword' ? [item.id] : [])),
+            provider: discovery.flatMap((item) => (item.type === 'provider' ? [item.id] : [])),
+            availability: discovery.flatMap((item) =>
+              item.type === 'availability' ? [item.id] : [],
+            ),
             ...dateRange,
           };
           const response = await searchService.getDiscoveryFeed(discoverParams);
@@ -383,6 +389,10 @@ export function useCatalogFeed(): CatalogFeed {
     addDiscovery({ type: 'provider', id: provider.id, name: provider.name });
   };
 
+  const onAvailabilitySelect = (availability: WatchMonetizationType, name: string) => {
+    addDiscovery({ type: 'availability', id: availability, name });
+  };
+
   const onPersonSelect = (person: Person) => {
     addDiscovery({
       type: 'person',
@@ -459,6 +469,7 @@ export function useCatalogFeed(): CatalogFeed {
     onDateRangeSelect,
     onSelectFilters: addDiscovery,
     onProviderSelect,
+    onAvailabilitySelect,
     onSearch,
     onSearchPreview,
     onSubmitSearch,

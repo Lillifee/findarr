@@ -1,3 +1,4 @@
+import type { WatchMonetizationType } from '@findarr/shared/catalog';
 import type { Genre, Keyword, Media, Person, Provider } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
@@ -13,6 +14,14 @@ import { SuggestionTile } from './SuggestionTile';
 
 const emptyProviders: Provider[] = [];
 const emptyResults: Media[] = [];
+
+const availabilityOptions: { id: WatchMonetizationType; label: string }[] = [
+  { id: 'flatrate', label: 'catalog.availabilityStream' },
+  { id: 'free', label: 'catalog.availabilityFree' },
+  { id: 'ads', label: 'catalog.availabilityAds' },
+  { id: 'rent', label: 'catalog.availabilityRent' },
+  { id: 'buy', label: 'catalog.availabilityBuy' },
+];
 
 function TagGroup({
   items,
@@ -128,6 +137,7 @@ interface SearchMatchesProps {
   onSelectPerson: (person: Person) => void;
   onSelectDateRange?: (id: number, name: string) => void;
   onSelectProvider?: (provider: Provider) => void;
+  onSelectAvailability: (availability: WatchMonetizationType, name: string) => void;
   showPeople?: boolean;
   compact?: boolean;
 }
@@ -144,6 +154,7 @@ export function SearchMatches({
   onSelectPerson,
   onSelectDateRange,
   onSelectProvider,
+  onSelectAvailability,
   showPeople = true,
   compact = false,
 }: SearchMatchesProps) {
@@ -180,6 +191,7 @@ export function SearchMatches({
           />
         </PanelSection>
       )}
+
       {genres.length > 0 && (
         <PanelSection heading={t('catalog.genreResults')} plain={compact}>
           <TagGroup
@@ -200,6 +212,20 @@ export function SearchMatches({
           />
         </PanelSection>
       )}
+      <PanelSection heading={t('catalog.availability')} plain={compact}>
+        <div className="flex flex-wrap gap-2">
+          {availabilityOptions.map(({ id, label }) => (
+            <DiscoveryTag
+              key={id}
+              type="availability"
+              name={t(label)}
+              onClick={() => {
+                onSelectAvailability(id, t(label));
+              }}
+            />
+          ))}
+        </div>
+      </PanelSection>
       {hasPeople && (
         <MatchRail heading={t('catalog.peopleResults')} compact={compact}>
           {people.map((person) => (

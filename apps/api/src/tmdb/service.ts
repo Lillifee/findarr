@@ -257,8 +257,13 @@ export async function createTMDBService(context: TmdbServiceContext) {
       ...(params.person.length > 0 ? { with_people: params.person.join(',') } : {}),
       ...(params.keyword.length > 0 ? { with_keywords: params.keyword.join(',') } : {}),
       ...(params.genre.length > 0 ? { with_genres: params.genre.join(',') } : {}),
-      ...(params.provider.length > 0 ? { with_watch_providers: params.provider.join(',') } : {}),
-      ...(params.provider.length > 0 ? { watch_region: watchRegion } : {}),
+      ...(params.provider.length > 0 ? { with_watch_providers: params.provider.join('|') } : {}),
+      ...(params.availability.length > 0
+        ? { with_watch_monetization_types: params.availability.join('|') }
+        : {}),
+      ...(params.provider.length > 0 || params.availability.length > 0
+        ? { watch_region: watchRegion }
+        : {}),
     };
 
     const responses = await Promise.all(
