@@ -232,6 +232,7 @@ export const TMDBProvidersResponseSchema = z.object({
   results: z.array(
     z.object({
       display_priority: z.number(),
+      display_priorities: z.record(z.string(), z.number()),
       logo_path: z.string(),
       provider_id: z.number(),
       provider_name: z.string(),
