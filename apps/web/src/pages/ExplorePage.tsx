@@ -3,13 +3,11 @@ import { useTranslation } from 'react-i18next';
 
 import { ExploreQuickFilters } from '../components/catalog/ExploreQuickFilters';
 import { SearchBar } from '../components/catalog/SearchBar';
-import { SearchMatches } from '../components/catalog/SearchMatches';
 import { PaginatedMediaResults } from '../components/media/PaginatedMediaResults';
 import { PageContainer } from '../components/ui/PageContainer';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SearchFilterBar } from '../components/ui/SearchFilterBar';
 import { SegmentedControl, type SegmentedControlOption } from '../components/ui/SegmentedControl';
-import { LoadingState } from '../components/ui/StateDisplay';
 import { useCatalogFeed } from '../hooks/useCatalogFeed';
 import { useMediaNavigation } from '../hooks/useMediaNavigation';
 import { useMediaUpdateSubscription } from '../hooks/useMediaUpdateSubscription';
@@ -47,6 +45,7 @@ export function ExplorePage() {
             onSelectPerson={feed.onPersonSelect}
             onSelectDateRange={feed.onDateRangeSelect}
             onSelectProvider={feed.onProviderSelect}
+            onSelectAvailability={feed.onAvailabilitySelect}
             onSelectMedia={goToMedia}
             showPeople={feed.currentSearchType !== 'tv'}
           />
@@ -67,31 +66,12 @@ export function ExplorePage() {
         <div className="space-y-6 md:space-y-8">
           <PageHeader title={t('explore.title')} description={t('explore.description')} />
 
-          {feed.mode === 'browse' &&
-            !showingSearchResults &&
-            (feed.preferences.loading ? (
-              <LoadingState className="flex min-h-[50vh] items-center justify-center" />
-            ) : (
-              <div className="space-y-3">
-                <ExploreQuickFilters
-                  providers={feed.preferences.providers}
-                  onSelectFilters={feed.onSelectFilters}
-                />
-                <SearchMatches
-                  genres={feed.preferences.genres}
-                  keywords={feed.preferences.keywords}
-                  people={feed.preferences.people}
-                  providers={feed.preferences.providers}
-                  onSelectGenre={feed.onGenreSelect}
-                  onSelectKeyword={feed.onKeywordSelect}
-                  onSelectPerson={feed.onPersonSelect}
-                  onSelectDateRange={feed.onDateRangeSelect}
-                  onSelectProvider={feed.onProviderSelect}
-                  onSelectAvailability={feed.onAvailabilitySelect}
-                  showPeople={feed.currentSearchType !== 'tv'}
-                />
-              </div>
-            ))}
+          <ExploreQuickFilters
+            providers={feed.preferences.loading ? [] : feed.preferences.providers}
+            selectedFilters={showingSearchResults ? [] : feed.discovery}
+            defaultUpcomingSelected={!showingSearchResults && feed.discovery.length === 0}
+            onSelectPreset={feed.onSelectPreset}
+          />
 
           <PaginatedMediaResults
             results={showingSearchResults ? feed.searchResults : feed.results}

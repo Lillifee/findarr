@@ -1,13 +1,13 @@
 import type { WatchMonetizationType } from '@findarr/shared/catalog';
 import type { Genre, Keyword, Media, Person, Provider } from '@findarr/shared/media';
 import { isDefined } from '@findarr/shared/utils';
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { discoveryDateRanges } from '../../utils/discoveryDateRanges';
 import { tmdbImage } from '../../utils/tmdb';
 import { HorizontalRail } from '../ui/HorizontalRail';
-import { Icon } from '../ui/Icon';
+import { Icon, type IconName } from '../ui/Icon';
 import { PanelSection } from '../ui/PanelSection';
 import { DiscoveryTag } from './DiscoveryTag';
 import { SuggestionTile } from './SuggestionTile';
@@ -32,72 +32,56 @@ function TagGroup({
   type: 'date' | 'genre' | 'keyword';
   onSelect: (item: { id: number; name: string }) => void;
 }) {
-  const { t } = useTranslation();
-  const [expanded, setExpanded] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
-  const listRef = useRef<HTMLDivElement>(null);
-
-  useLayoutEffect(() => {
-    const list = listRef.current;
-    if (!list || expanded) {
-      return () => {};
-    }
-    const buttons = list.querySelectorAll('button');
-    const updateOverflow = () => {
-      const height = list.clientHeight;
-      setHasMore(list.scrollHeight > height + 1);
-      for (const button of buttons) {
-        button.inert = button.offsetTop + button.offsetHeight > height + 1;
-      }
-    };
-    updateOverflow();
-    const observer = new ResizeObserver(updateOverflow);
-    observer.observe(list);
-    if (list.firstElementChild) {
-      observer.observe(list.firstElementChild);
-    }
-    return () => {
-      observer.disconnect();
-      for (const button of buttons) {
-        button.inert = false;
-      }
-    };
-  }, [items, expanded]);
-
   return (
-    <>
-      <div
-        ref={listRef}
-        className={
-          expanded ? undefined : 'relative max-h-17 overflow-clip [overflow-clip-margin:4px]'
-        }
-      >
-        <div className="flex flex-wrap gap-2">
-          {items.map((item) => (
-            <DiscoveryTag
-              key={item.id}
-              type={type}
-              name={item.name}
-              onClick={() => {
-                onSelect(item);
-              }}
-            />
-          ))}
-        </div>
-      </div>
-      {!expanded && hasMore && (
-        <button
-          type="button"
-          aria-expanded={false}
+    <div className="flex flex-wrap gap-2">
+      {items.map((item) => (
+        <DiscoveryTag
+          key={item.id}
+          type={type}
+          name={item.name}
           onClick={() => {
-            setExpanded(true);
+            onSelect(item);
           }}
-          className="mt-2 ml-auto block text-xs font-semibold text-amber-300 hover:text-amber-200 focus-visible:outline-amber-500"
-        >
-          {t('common.showMore')}
-        </button>
-      )}
-    </>
+        />
+      ))}
+    </div>
+  );
+}
+
+interface SearchFilterCategory {
+  id: string;
+  heading: string;
+  icon: IconName;
+  content: ReactNode;
+}
+
+function FilterCategoryButton({
+  category,
+  selected,
+  onClick,
+}: {
+  category: SearchFilterCategory;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={onClick}
+      className={`flex min-h-12 items-center gap-3 rounded-lg border px-3 py-2 text-left text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500 ${
+        selected
+          ? 'border-amber-500 bg-amber-500/10 text-amber-200'
+          : 'border-zinc-800 bg-zinc-900/35 text-zinc-200 hover:border-zinc-700 hover:bg-zinc-800/70'
+      }`}
+    >
+      <Icon
+        name={category.icon}
+        size="sm"
+        className={selected ? 'text-amber-300' : 'text-zinc-400'}
+      />
+      <span>{category.heading}</span>
+    </button>
   );
 }
 
@@ -131,13 +115,13 @@ interface SearchMatchesProps {
   people: Person[];
   providers?: Provider[];
   results?: Media[];
-  onSelectMedia?: (media: Media) => void;
+  onSelectMedia: (media: Media) => void;
   onSelectGenre: (genre: Genre) => void;
   onSelectKeyword: (keyword: Keyword) => void;
   onSelectPerson: (person: Person) => void;
-  onSelectDateRange?: (id: number, name: string) => void;
-  onSelectProvider?: (provider: Provider) => void;
-  onSelectAvailability?: (availability: WatchMonetizationType, name: string) => void;
+  onSelectDateRange: (id: number, name: string) => void;
+  onSelectProvider: (provider: Provider) => void;
+  onSelectAvailability: (availability: WatchMonetizationType, name: string) => void;
   showPeople?: boolean;
   compact?: boolean;
 }
@@ -159,29 +143,15 @@ export function SearchMatches({
   compact = false,
 }: SearchMatchesProps) {
   const { t } = useTranslation();
+  const [selectedFilterCategory, setSelectedFilterCategory] = useState<string | null>(null);
   const hasPeople = showPeople && people.length > 0;
-  const hasProviders = onSelectProvider !== undefined && providers.length > 0;
-  if (
-    !onSelectDateRange &&
-    genres.length === 0 &&
-    keywords.length === 0 &&
-    !hasPeople &&
-    !hasProviders &&
-    !onSelectAvailability &&
-    results.length === 0
-  ) {
-    return null;
-  }
-  return (
-    <aside
-      className={
-        compact
-          ? 'space-y-5 divide-y divide-zinc-800 [&>section:not(:last-child)]:pb-5'
-          : 'space-y-3'
-      }
-      aria-label={t('explore.searchResults')}
-    >
-      {onSelectDateRange && (
+  const hasProviders = providers.length > 0;
+  const filterCategories: SearchFilterCategory[] = [
+    {
+      id: 'date',
+      heading: t('catalog.releaseDate'),
+      icon: 'calendar_month',
+      content: (
         <PanelSection heading={t('catalog.releaseDate')} plain={compact}>
           <TagGroup
             type="date"
@@ -191,9 +161,15 @@ export function SearchMatches({
             }}
           />
         </PanelSection>
-      )}
-
-      {genres.length > 0 && (
+      ),
+    },
+  ];
+  if (genres.length > 0) {
+    filterCategories.push({
+      id: 'genre',
+      heading: t('catalog.genreResults'),
+      icon: 'theater_comedy',
+      content: (
         <PanelSection heading={t('catalog.genreResults')} plain={compact}>
           <TagGroup
             key={genres.map(({ id }) => id).join(',')}
@@ -202,8 +178,15 @@ export function SearchMatches({
             onSelect={onSelectGenre}
           />
         </PanelSection>
-      )}
-      {keywords.length > 0 && (
+      ),
+    });
+  }
+  if (keywords.length > 0) {
+    filterCategories.push({
+      id: 'keyword',
+      heading: t('catalog.keywordResults'),
+      icon: 'sell',
+      content: (
         <PanelSection heading={t('catalog.keywordResults')} plain={compact}>
           <TagGroup
             key={keywords.map(({ id }) => id).join(',')}
@@ -212,24 +195,36 @@ export function SearchMatches({
             onSelect={onSelectKeyword}
           />
         </PanelSection>
-      )}
-      {onSelectAvailability && (
-        <PanelSection heading={t('catalog.availability')} plain={compact}>
-          <div className="flex flex-wrap gap-2">
-            {availabilityOptions.map(({ id, label }) => (
-              <DiscoveryTag
-                key={id}
-                type="availability"
-                name={t(label)}
-                onClick={() => {
-                  onSelectAvailability(id, t(label));
-                }}
-              />
-            ))}
-          </div>
-        </PanelSection>
-      )}
-      {hasPeople && (
+      ),
+    });
+  }
+  filterCategories.push({
+    id: 'availability',
+    heading: t('catalog.availability'),
+    icon: 'tv',
+    content: (
+      <PanelSection heading={t('catalog.availability')} plain={compact}>
+        <div className="flex flex-wrap gap-2">
+          {availabilityOptions.map(({ id, label }) => (
+            <DiscoveryTag
+              key={id}
+              type="availability"
+              name={t(label)}
+              onClick={() => {
+                onSelectAvailability(id, t(label));
+              }}
+            />
+          ))}
+        </div>
+      </PanelSection>
+    ),
+  });
+  if (hasPeople) {
+    filterCategories.push({
+      id: 'people',
+      heading: t('catalog.peopleResults'),
+      icon: 'group',
+      content: (
         <MatchRail heading={t('catalog.peopleResults')} compact={compact}>
           {people.map((person) => (
             <SuggestionTile
@@ -244,8 +239,15 @@ export function SearchMatches({
             />
           ))}
         </MatchRail>
-      )}
-      {hasProviders && (
+      ),
+    });
+  }
+  if (hasProviders) {
+    filterCategories.push({
+      id: 'providers',
+      heading: t('catalog.providerResults'),
+      icon: 'tv',
+      content: (
         <MatchRail heading={t('catalog.providerResults')} compact={compact}>
           {providers.map((provider) => (
             <SuggestionTile
@@ -261,16 +263,44 @@ export function SearchMatches({
             />
           ))}
         </MatchRail>
+      ),
+    });
+  }
+  const activeFilterCategory = filterCategories.find(({ id }) => id === selectedFilterCategory);
+  if (filterCategories.length === 0 && results.length === 0) {
+    return null;
+  }
+  return (
+    <aside className="space-y-3" aria-label={t('explore.searchResults')}>
+      {filterCategories.length > 0 && (
+        <div
+          className={compact ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-1 gap-2 sm:grid-cols-2'}
+        >
+          {filterCategories.map((category) => (
+            <FilterCategoryButton
+              key={category.id}
+              category={category}
+              selected={activeFilterCategory?.id === category.id}
+              onClick={() => {
+                setSelectedFilterCategory((current) =>
+                  current === category.id ? null : category.id,
+                );
+              }}
+            />
+          ))}
+        </div>
       )}
+      {activeFilterCategory?.content}
       {results.length > 0 && (
         <MatchRail heading={t('catalog.mediaResults')} compact={compact}>
           {results.slice(0, 14).map((media) => (
             <button
               key={`${media.type}-${media.tmdbId}`}
               type="button"
-              disabled={!onSelectMedia}
               className="flex w-32 shrink-0 flex-col text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-              onClick={() => onSelectMedia?.(media)}
+              onClick={() => {
+                onSelectMedia(media);
+              }}
             >
               {isDefined(media.posterPath) ? (
                 <img

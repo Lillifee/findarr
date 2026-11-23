@@ -1,3 +1,4 @@
+import type { WatchMonetizationType } from '@findarr/shared/catalog';
 import type { Genre, Keyword, Media, Person, Provider } from '@findarr/shared/media';
 import { useEffect, useRef, useState, type SyntheticEvent } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -35,6 +36,7 @@ interface SearchBarProps {
   onSelectPerson?: (person: Person) => void;
   onSelectDateRange?: (id: number, name: string) => void;
   onSelectProvider?: (provider: Provider) => void;
+  onSelectAvailability?: (availability: WatchMonetizationType, name: string) => void;
   onSelectMedia?: (media: Media) => void;
 }
 
@@ -57,6 +59,7 @@ export function SearchBar({
   onSelectPerson,
   onSelectDateRange,
   onSelectProvider,
+  onSelectAvailability,
   onSelectMedia,
 }: SearchBarProps) {
   const { t } = useTranslation();
@@ -260,7 +263,9 @@ export function SearchBar({
       </div>
       {panelOpen && activeData && (
         <PopupPanel
-          className="fixed inset-x-2 top-16 z-50 max-h-[calc(100vh-8rem)] min-h-96 overflow-x-hidden overflow-y-auto p-4 md:absolute md:inset-x-0 md:top-[calc(100%+0.5rem)]! md:max-h-[calc(100vh-7rem)] md:min-h-128"
+          className={`fixed inset-x-2 top-16 z-50 max-h-[calc(100vh-8rem)] overflow-x-hidden overflow-y-auto p-4 md:absolute md:inset-x-0 md:top-[calc(100%+0.5rem)]! md:max-h-[calc(100vh-7rem)] ${
+            query.trim() ? 'min-h-96 md:min-h-128' : ''
+          }`}
           style={mobilePanelTop === null ? undefined : { top: `${mobilePanelTop}px` }}
         >
           {activeData.loading ? (
@@ -324,6 +329,10 @@ export function SearchBar({
                 onSelectProvider={(provider) => {
                   handleDiscoverySelect();
                   onSelectProvider?.(provider);
+                }}
+                onSelectAvailability={(availability, name) => {
+                  handleDiscoverySelect();
+                  onSelectAvailability?.(availability, name);
                 }}
                 onSelectMedia={(media) => {
                   setPanelOpen(false);

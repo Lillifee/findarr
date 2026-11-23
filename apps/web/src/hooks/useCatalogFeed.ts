@@ -10,7 +10,7 @@ import {
   readCatalogSearchParams,
   type DiscoveryFilter,
 } from '../utils/catalogSearchParams';
-import { getDiscoveryDateRange } from '../utils/discoveryDateRanges';
+import { getDiscoveryDateRange, next30Days } from '../utils/discoveryDateRanges';
 import { isSameMedia, mergeUniqueMedia } from '../utils/media';
 
 interface CatalogFeedState {
@@ -90,6 +90,12 @@ const initialSuggestionsState: PreferenceState = {
   loading: true,
 };
 
+const defaultUpcomingFilter: DiscoveryFilter = {
+  type: 'date',
+  id: next30Days.id,
+  name: next30Days.label,
+};
+
 function useCatalogFilters() {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParamsKey = searchParams.toString();
@@ -141,7 +147,7 @@ export interface CatalogFeed {
   currentQuery: string;
   discovery: DiscoveryFilter[];
   onDiscoveryRemove: (index: number) => void;
-  onSelectFilters: (...selected: DiscoveryFilter[]) => void;
+  onSelectPreset: (...selected: DiscoveryFilter[]) => void;
   onDateRangeSelect: (id: number, name: string) => void;
   onProviderSelect: (provider: Provider) => void;
   onAvailabilitySelect: (availability: WatchMonetizationType, name: string) => void;
@@ -170,8 +176,11 @@ export function useCatalogFeed(): CatalogFeed {
   const discoveryFeedIdRef = useRef<string | null>(null);
 
   const feedFilters = useMemo(
-    () => ({ type: filters.type, discovery: filters.discovery }),
-    [filters.discovery, filters.type],
+    () => ({
+      type: filters.type,
+      discovery: filters.discovery ?? (filters.query.trim() ? undefined : [defaultUpcomingFilter]),
+    }),
+    [filters.discovery, filters.query, filters.type],
   );
   const mode: CatalogFeedMode = (feedFilters.discovery?.length ?? 0) > 0 ? 'discover' : 'browse';
 
@@ -381,6 +390,13 @@ export function useCatalogFeed(): CatalogFeed {
     });
   };
 
+  const onSelectPreset = (...selected: DiscoveryFilter[]) => {
+    updateFilters({
+      query: '',
+      discovery: selected,
+    });
+  };
+
   const onDateRangeSelect = (id: number, name: string) => {
     addDiscovery({ type: 'date', id, name });
   };
@@ -467,7 +483,7 @@ export function useCatalogFeed(): CatalogFeed {
     discovery: filters.discovery ?? [],
     onTypeChange,
     onDateRangeSelect,
-    onSelectFilters: addDiscovery,
+    onSelectPreset,
     onProviderSelect,
     onAvailabilitySelect,
     onSearch,
